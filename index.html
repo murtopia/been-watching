@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Been Watching</title>
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #FFFFFF;
+            --surface: rgba(255, 255, 255, 0.7);
+            --glass: rgba(255, 255, 255, 0.6);
+            --border: rgba(0, 0, 0, 0.08);
+            --accent-primary: #007AFF;
+            --accent-pink: #FF2D55;
+            --accent-purple: #AF52DE;
+            --text-primary: #000000;
+            --text-secondary: #6B6B75;
+            --love: #FF2D55;
+            --like: #007AFF;
+            --meh: #8E8E93;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #000000;
+                --surface: rgba(255, 255, 255, 0.1);
+                --glass: rgba(255, 255, 255, 0.08);
+                --border: rgba(255, 255, 255, 0.12);
+                --text-primary: #FFFFFF;
+                --text-secondary: #8E8E93;
+            }
+        }
+
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding-bottom: 90px;
+        }
+
+        .nav-header {
+            position: sticky;
+            top: 0;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            z-index: 100;
+        }
+
+        .nav-content {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.25rem;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .main-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .status-message {
+            background: var(--glass);
+            border-radius: 16px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .status-message.success {
+            border: 1px solid #34C759;
+            background: rgba(52, 199, 89, 0.1);
+        }
+
+        .status-message.error {
+            border: 1px solid var(--love);
+            background: rgba(255, 45, 85, 0.1);
+        }
+
+        .trending-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .shows-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .show-card {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .show-card:hover {
+            transform: scale(1.05);
+        }
+
+        .show-poster {
+            width: 100%;
+            aspect-ratio: 2/3;
+            border-radius: 12px;
+            object-fit: cover;
+            background: var(--surface);
+            margin-bottom: 0.5rem;
+        }
+
+        .show-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .activity-card {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .activity-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+        }
+
+        .post-time {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+        }
+
+        .show-content {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .show-poster-small {
+            width: 80px;
+            height: 120px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: var(--surface);
+        }
+
+        .show-info {
+            flex: 1;
+        }
+
+        .rating-section {
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .rating-pills {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .rating-pill {
+            flex: 1;
+            padding: 0.5rem;
+            background: var(--surface);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .rating-pill.active.love {
+            background: var(--love);
+            color: white;
+        }
+
+        .rating-pill.active.like {
+            background: var(--like);
+            color: white;
+        }
+
+        .rating-pill.active.meh {
+            background: var(--meh);
+            color: white;
+        }
+
+        .tab-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            padding: 0.5rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .tab-item, .tab-add {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-add {
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            color: white;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tab-item.active {
+            background: var(--accent-primary);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav-header">
+        <div class="nav-content">
+            <div class="logo">Been Watching</div>
+            <button style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">✨</button>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <div id="statusMessage" class="status-message">
+            📡 Loading shows from TMDB...
+        </div>
+
+        <div class="trending-section">
+            <h2 class="section-title">Trending This Week</h2>
+            <div id="trendingShows" class="shows-grid"></div>
+        </div>
+
+        <div id="feedContent"></div>
+    </div>
+
+    <nav class="tab-bar">
+        <button class="tab-item active">🏠 Feed</button>
+        <button class="tab-add">+</button>
+        <button class="tab-item">📚 My Shows</button>
+        <button class="tab-item">👤 Profile</button>
+    </nav>
+
+    <script>
+        // Your TMDB API key
+        const API_KEY = '99b89037cac7fea56692934b534ea26a';
+        
+        // Sample shows data (fallback if API fails)
+        const sampleShows = [
+            {
+                id: 136315,
+                name: "The Bear",
+                poster_path: "/sHFlbKS3WLqMnp9t2bGPnLeYdpc.jpg",
+                overview: "Carmy, a young fine-dining chef, comes home to Chicago...",
+                vote_average: 8.9
+            },
+            {
+                id: 106541,
+                name: "Fallout",
+                poster_path: "/AnsSKR9LuK0T9bAOcPVA3PUvyWj.jpg",
+                overview: "The story of haves and have-nots in a world...",
+                vote_average: 8.4
+            },
+            {
+                id: 126308,
+                name: "Shōgun",
+                poster_path: "/7O4iVfOMQmdCSxhOg1WnzG1AgYT.jpg",
+                overview: "In Japan in the year 1600...",
+                vote_average: 8.6
+            }
+        ];
+
+        // Try to load TMDB data with multiple approaches
+        async function loadShows() {
+            const statusDiv = document.getElementById('statusMessage');
+            const trendingDiv = document.getElementById('trendingShows');
+            const feedDiv = document.getElementById('feedContent');
+            
+            // Skip trying direct API since we know CORS blocks it
+            console.log('CORS is blocking direct TMDB access, trying alternatives...');
+            
+            // Method 1: Try with allorigins proxy (most reliable)
+            try {
+                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://api.themoviedb.org/3/trending/tv/week?api_key=${API_KEY}`)}`;
+                const response = await fetch(proxyUrl);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayShows(data.results.slice(0, 6));
+                    statusDiv.className = 'status-message success';
+                    statusDiv.innerHTML = '✅ Connected via proxy! Showing live data.';
+                    return;
+                }
+            } catch (error) {
+                console.log('AllOrigins proxy failed:', error.message);
+            }
+            
+            // Method 2: Try with cors-anywhere (backup)
+            try {
+                const proxyUrl = `https://cors-anywhere.herokuapp.com/https://api.themoviedb.org/3/trending/tv/week?api_key=${API_KEY}`;
+                const response = await fetch(proxyUrl);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayShows(data.results.slice(0, 6));
+                    statusDiv.className = 'status-message success';
+                    statusDiv.innerHTML = '✅ Connected via backup proxy! Showing live data.';
+                    return;
+                }
+            } catch (error) {
+                console.log('CORS-Anywhere proxy failed:', error.message);
+            }
+            
+            // Method 3: Use sample data with TMDB image URLs
+            console.log('All proxies failed. Using sample data with real TMDB images.');
+            statusDiv.className = 'status-message';
+            statusDiv.style.background = 'rgba(255, 149, 0, 0.1)';
+            statusDiv.style.border = '1px solid #FF9500';
+            statusDiv.innerHTML = `
+                <div>
+                    <strong>📺 Demo Mode - Sample Shows</strong><br>
+                    <small>The app is working! These are real shows with real images.</small><br>
+                    <small style="opacity: 0.7">To get live data: Deploy to Vercel/Netlify or run from a web server.</small>
+                </div>
+            `;
+            displayShows(sampleShows);
+        }
+
+        function displayShows(shows) {
+            const trendingDiv = document.getElementById('trendingShows');
+            const feedDiv = document.getElementById('feedContent');
+            
+            // Display trending grid
+            trendingDiv.innerHTML = shows.slice(0, 6).map(show => `
+                <div class="show-card">
+                    <img src="https://image.tmdb.org/t/p/w300${show.poster_path}" 
+                         alt="${show.name}"
+                         class="show-poster"
+                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 300%22%3E%3Crect fill=%22%23ddd%22 width=%22200%22 height=%22300%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23999%22%3ENo Image%3C/text%3E%3C/svg%3E'">
+                    <div class="show-title">${show.name}</div>
+                </div>
+            `).join('');
+            
+            // Display feed
+            feedDiv.innerHTML = shows.slice(0, 3).map((show, i) => {
+                const users = [
+                    { name: 'Sarah Chen', initials: 'SC', time: '2 hours ago', rating: 'love' },
+                    { name: 'Mike Rodriguez', initials: 'MR', time: '5 hours ago', rating: 'like' },
+                    { name: 'Emma Wilson', initials: 'EW', time: '1 day ago', rating: 'love' }
+                ];
+                const user = users[i];
+                
+                return `
+                    <div class="activity-card">
+                        <div class="activity-header">
+                            <div class="user-avatar">${user.initials}</div>
+                            <div class="user-info">
+                                <div class="user-name">${user.name}</div>
+                                <div class="post-time">${user.time}</div>
+                            </div>
+                        </div>
+                        <div class="show-content">
+                            <img src="https://image.tmdb.org/t/p/w200${show.poster_path}" 
+                                 alt="${show.name}"
+                                 class="show-poster-small"
+                                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 80 120%22%3E%3Crect fill=%22%23ddd%22 width=%2280%22 height=%22120%22/%3E%3C/svg%3E'">
+                            <div class="show-info">
+                                <h3>${show.name}</h3>
+                                <p style="font-size: 0.875rem; color: var(--text-secondary);">
+                                    ${show.overview ? show.overview.substring(0, 100) + '...' : 'No description available'}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="rating-section">
+                            <div class="rating-pills">
+                                <button class="rating-pill ${user.rating === 'meh' ? 'active meh' : ''}">😑 Meh</button>
+                                <button class="rating-pill ${user.rating === 'like' ? 'active like' : ''}">👍 Like</button>
+                                <button class="rating-pill ${user.rating === 'love' ? 'active love' : ''}">❤️ Love</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Add event listeners
+            attachEventListeners();
+        }
+
+        function attachEventListeners() {
+            // Rating pills
+            document.querySelectorAll('.rating-pills').forEach(group => {
+                const pills = group.querySelectorAll('.rating-pill');
+                pills.forEach(pill => {
+                    pill.addEventListener('click', function() {
+                        pills.forEach(p => p.classList.remove('active', 'love', 'like', 'meh'));
+                        
+                        if (this.textContent.includes('Love')) {
+                            this.classList.add('active', 'love');
+                        } else if (this.textContent.includes('Like')) {
+                            this.classList.add('active', 'like');
+                        } else {
+                            this.classList.add('active', 'meh');
+                        }
+                    });
+                });
+            });
+            
+            // Tab buttons
+            document.querySelectorAll('.tab-item').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        }
+
+        // Load shows when page loads
+        loadShows();
+    </script>
+</body>
+</html>
