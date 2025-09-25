@@ -1079,6 +1079,9 @@
             // Simulate streaming platforms (in real app, from TMDB watch providers API)
             const platforms = getStreamingPlatforms();
             
+            // Check if description is long enough to need expand/collapse
+            const needsExpand = item.overview && item.overview.length > 150;
+            
             return `
                 <div class="result-card">
                     <div class="result-card-header">
@@ -1100,14 +1103,14 @@
                                     ▶️ Trailer
                                 </a>
                             </div>
-                            <div class="result-overview collapsed" id="overview-${itemId}">
+                            <div class="result-overview ${needsExpand ? 'collapsed' : ''}" id="overview-${itemId}">
                                 ${item.overview || 'No description available'}
-                                ${item.overview && item.overview.length > 150 ? `
-                                    <button class="expand-btn" onclick="toggleDescription('${itemId}')">
-                                        Read more
-                                    </button>
-                                ` : ''}
                             </div>
+                            ${needsExpand ? `
+                                <button class="expand-btn" onclick="toggleDescription('${itemId}')">
+                                    Read more
+                                </button>
+                            ` : ''}
                         </div>
                     </div>
                     
@@ -1180,8 +1183,6 @@
                             </div>
                         </div>
                     </div>
-                    
-                    ${generateOverallFriendStats()}
                 </div>
             `;
         }
@@ -1220,34 +1221,6 @@
             };
         }
 
-        function generateOverallFriendStats() {
-            // Overall stats (different from by-status breakdown)
-            const watching = Math.floor(Math.random() * 8);
-            const rated = Math.floor(Math.random() * 15);
-            
-            if (watching === 0 && rated === 0) {
-                return '';
-            }
-            
-            const friends = ['SC', 'MR', 'EW', 'JP'];
-            const avatarsToShow = Math.min(3, watching + rated);
-            
-            return `
-                <div class="friend-stats">
-                    ${avatarsToShow > 0 ? `
-                        <div class="friend-avatars">
-                            ${friends.slice(0, avatarsToShow).map(f => `
-                                <div class="friend-avatar-small">${f}</div>
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                    <div class="friend-count">
-                        <strong>${watching + rated}</strong> friends engaged with this
-                    </div>
-                </div>
-            `;
-        }
-
         function getStreamingPlatforms() {
             // Simulate streaming platforms (in real app, from TMDB watch providers API)
             const allPlatforms = [
@@ -1276,7 +1249,7 @@
 
         function toggleDescription(itemId) {
             const overview = document.getElementById(`overview-${itemId}`);
-            const button = overview.querySelector('.expand-btn');
+            const button = event.target;
             
             if (overview.classList.contains('collapsed')) {
                 overview.classList.remove('collapsed');
