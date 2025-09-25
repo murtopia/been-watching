@@ -1,4 +1,60 @@
-<!DOCTYPE html>
+function showFriendsList(status, showTitle) {
+            event.stopPropagation();
+            
+            // Create or update the friends modal
+            let modal = document.getElementById('friendsModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'friendsModal';
+                modal.className = 'friends-modal';
+                document.body.appendChild(modal);
+            }
+            
+            // Generate friend list (in real app, from database)
+            const friends = generateFriendListForStatus(status);
+            
+            modal.innerHTML = `
+                <div class="friends-modal-header">
+                    <div class="friends-modal-title">
+                        ${status === 'want' ? 'Want to Watch' : status === 'watching' ? 'Watching' : 'Watched'} 
+                        "${showTitle}"
+                    </div>
+                    <button class="friends-modal-close" onclick="closeFriendsModal()">✕</button>
+                </div>
+                <div class="friends-list">
+                    ${friends.map(f => `
+                        <div class="friend-item">
+                            <div class="friend-item-avatar">${f.initials}</div>
+                            <div class="friend-item-name">${f.name}</div>
+                            <div class="friend-item-status">${f.rating || ''}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            modal.classList.add('active');
+        }
+
+        function generateFriendListForStatus(status) {
+            // Simulate friend data
+            const friends = [
+                { name: 'Sarah Chen', initials: 'SC', rating: '❤️ Loved' },
+                { name: 'Mike Rodriguez', initials: 'MR', rating: '👍 Liked' },
+                { name: 'Emma Wilson', initials: 'EW', rating: '❤️ Loved' },
+                { name: 'Jake Park', initials: 'JP', rating: '😑 Meh' },
+                { name: 'Tina Kim', initials: 'TK', rating: '👍 Liked' }
+            ];
+            
+            // Return random subset
+            return friends.slice(0, Math.floor(Math.random() * 4) + 2);
+        }
+
+        function closeFriendsModal() {
+            const modal = document.getElementById('friendsModal');
+            if (modal) {
+                modal.classList.remove('active');
+            }
+        }<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -420,7 +476,7 @@
             border-color: var(--meh);
         }
 
-        /* Status Buttons */
+        /* Status Buttons with Friend Counts */
         .quick-status {
             display: flex;
             gap: 0.5rem;
@@ -458,6 +514,144 @@
             background: var(--accent-primary);
             color: white;
             border-color: var(--accent-primary);
+        }
+
+        .status-friend-count {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+            font-size: 0.625rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.25rem;
+            transition: color 0.2s;
+        }
+
+        .status-friend-count:hover {
+            color: var(--accent-primary);
+        }
+
+        .status-friend-avatars {
+            display: flex;
+            justify-content: center;
+        }
+
+        .status-friend-avatar {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.5rem;
+            color: white;
+            font-weight: 600;
+            border: 1px solid var(--bg-primary);
+            margin: 0 -4px;
+        }
+
+        .status-friend-avatar:first-child {
+            z-index: 3;
+        }
+        
+        .status-friend-avatar:nth-child(2) {
+            z-index: 2;
+        }
+        
+        .status-friend-avatar:nth-child(3) {
+            z-index: 1;
+        }
+
+        /* Friends List Modal */
+        .friends-modal {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1rem;
+            width: 90%;
+            max-width: 400px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1001;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .friends-modal.active {
+            display: block;
+            animation: slideUp 0.3s;
+        }
+
+        .friends-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .friends-modal-title {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .friends-modal-close {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .friends-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .friend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            background: var(--surface);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .friend-item:hover {
+            background: var(--glass);
+        }
+
+        .friend-item-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+
+        .friend-item-name {
+            flex: 1;
+            font-size: 0.875rem;
+        }
+
+        .friend-item-status {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
         }
 
         /* ENHANCED ACTIVITY FEED CARDS */
@@ -771,7 +965,846 @@
             opacity: 1;
         }
 
-        /* Tab Bar */
+        /* My Shows Section Styles */
+        .my-shows-section {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .my-shows-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .my-shows-header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .shows-stats {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .list-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .list-tab {
+            flex: 1;
+            padding: 0.75rem;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-secondary);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .list-tab.active {
+            color: var(--text-primary);
+            border-bottom-color: var(--accent-primary);
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            margin-bottom: 1rem;
+        }
+
+        .view-btn {
+            padding: 0.5rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .view-btn.active {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .shows-container {
+            min-height: 300px;
+        }
+
+        .shows-list.grid-view {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
+
+        .shows-list.list-view {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .show-item-grid {
+            position: relative;
+            aspect-ratio: 2/3;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .show-item-grid:hover {
+            transform: scale(1.05);
+        }
+
+        .show-item-grid img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .show-item-list {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--glass);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .show-item-list img {
+            width: 60px;
+            height: 90px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .show-item-details {
+            flex: 1;
+        }
+
+        .show-item-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .show-item-meta {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .show-item-rating {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background: var(--surface);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .show-item-rating.love { background: var(--love); color: white; }
+        .show-item-rating.like { background: var(--like); color: white; }
+        .show-item-rating.meh { background: var(--meh); color: white; }
+
+        /* Profile Section Styles */
+        .profile-section {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .profile-header {
+            margin-bottom: 2rem;
+        }
+
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .profile-details {
+            flex: 1;
+        }
+
+        .profile-username {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .profile-bio {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .edit-profile-btn {
+            padding: 0.5rem 1rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .edit-profile-btn:hover {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .profile-stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 1rem 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .profile-stat {
+            text-align: center;
+        }
+
+        /* Top 3 Shows Section */
+        .top-three-section {
+            margin: 2rem 0;
+        }
+
+        .top-three-section h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .top-three-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .top-show-slot {
+            position: relative;
+            aspect-ratio: 2/3;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            background: var(--surface);
+            border: 2px dashed var(--border);
+            transition: all 0.2s;
+        }
+
+        .top-show-slot:hover {
+            transform: scale(1.05);
+            border-color: var(--accent-primary);
+        }
+
+        .slot-number {
+            position: absolute;
+            top: 0.5rem;
+            left: 0.5rem;
+            width: 24px;
+            height: 24px;
+            background: var(--accent-primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+            z-index: 1;
+        }
+
+        .top-show-poster {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .top-show-poster[src]:not([src=""]) {
+            display: block;
+        }
+
+        .add-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .top-show-poster[src]:not([src=""]) ~ .add-icon {
+            display: none;
+        }
+
+        /* Privacy Settings */
+        .privacy-settings {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: var(--surface);
+            border-radius: 12px;
+        }
+
+        .privacy-settings h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .privacy-option {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border);
+            transition: 0.3s;
+            border-radius: 28px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--accent-primary);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(22px);
+        }
+
+        .privacy-text {
+            flex: 1;
+        }
+
+        .privacy-label {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .privacy-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* Friend Requests Section */
+        #friendRequestsSection {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: var(--surface);
+            border-radius: 12px;
+        }
+
+        .requests-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .requests-header h4 {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .request-count {
+            background: var(--accent-pink);
+            color: white;
+            padding: 0.125rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .requests-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .request-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            background: var(--bg-primary);
+            border-radius: 8px;
+        }
+
+        .request-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .request-info {
+            flex: 1;
+        }
+
+        .request-name {
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .request-username {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .accept-btn, .decline-btn {
+            padding: 0.375rem 0.75rem;
+            border: none;
+            border-radius: 16px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .accept-btn {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .decline-btn {
+            background: var(--surface);
+            color: var(--text-primary);
+        }
+
+        .accept-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .decline-btn:hover {
+            background: var(--border);
+        }
+
+        /* Friends Tabs */
+        .friends-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1.5rem 0 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .friend-tab {
+            flex: 1;
+            padding: 0.75rem;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-secondary);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .friend-tab.active {
+            color: var(--text-primary);
+            border-bottom-color: var(--accent-primary);
+        }
+
+        .friend-tab span {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-left: 0.25rem;
+        }
+
+        .friends-list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .friend-list-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--surface);
+            border-radius: 10px;
+            transition: background 0.2s;
+        }
+
+        .friend-list-item:hover {
+            background: var(--glass);
+        }
+
+        .friend-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .friend-info {
+            flex: 1;
+        }
+
+        .friend-name {
+            font-weight: 500;
+            margin-bottom: 0.125rem;
+        }
+
+        .friend-username {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .unfollow-btn, .remove-btn, .follow-back-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: var(--surface);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .follow-back-btn {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+
+        .unfollow-btn:hover, .remove-btn:hover {
+            background: var(--border);
+        }
+
+        .pending-badge {
+            padding: 0.25rem 0.5rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        .friends-section {
+            margin: 2rem 0;
+        }
+
+        .friends-section h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .invite-friends-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: transform 0.2s;
+        }
+
+        .invite-friends-btn:hover {
+            transform: scale(1.02);
+        }
+
+        /* Modals */
+        .top-show-modal, .invite-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            padding: 2rem;
+        }
+
+        .modal-content {
+            background: var(--bg-primary);
+            border-radius: 20px;
+            max-width: 500px;
+            max-height: 80vh;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-header h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .modal-search {
+            padding: 1rem 1.5rem;
+        }
+
+        .modal-search input {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+
+        .modal-shows-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .modal-show-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .modal-show-item:hover {
+            background: var(--surface);
+        }
+
+        .modal-show-poster {
+            width: 50px;
+            height: 75px;
+            border-radius: 6px;
+            object-fit: cover;
+        }
+
+        .modal-show-info {
+            flex: 1;
+        }
+
+        .modal-show-title {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .modal-show-year {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* Invite Modal Styles */
+        .invite-methods {
+            display: flex;
+            gap: 1rem;
+            padding: 1.5rem;
+        }
+
+        .invite-method {
+            flex: 1;
+            padding: 1.5rem 0.5rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .invite-method:hover {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .invite-method span {
+            display: block;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .contacts-list {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            border-radius: 10px;
+            transition: background 0.2s;
+        }
+
+        .contact-item:hover {
+            background: var(--surface);
+        }
+
+        .contact-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .contact-info {
+            flex: 1;
+        }
+
+        .contact-name {
+            font-weight: 500;
+            margin-bottom: 0.125rem;
+        }
+
+        .contact-status {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .contact-status.on-app {
+            color: var(--accent-primary);
+        }
+
+        .invite-btn, .follow-btn {
+            padding: 0.5rem 1rem;
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .follow-btn {
+            background: var(--surface);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .follow-btn:hover {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .qr-placeholder {
+            width: 200px;
+            height: 200px;
+            margin: 2rem auto;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+        .qr-code-display p {
+            text-align: center;
+            color: var(--text-secondary);
+        }
         .tab-bar {
             position: fixed;
             bottom: 20px;
@@ -865,12 +1898,211 @@
     <!-- Success Toast -->
     <div class="toast" id="toast"></div>
 
+    <!-- My Shows Section -->
+    <div class="my-shows-section" id="myShowsSection" style="display: none;">
+        <div class="my-shows-header">
+            <h1>My Shows</h1>
+            <div class="shows-stats">
+                <div class="stat">
+                    <div class="stat-number" id="totalShowsCount">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="watchedCount">0</div>
+                    <div class="stat-label">Watched</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="watchingCount">0</div>
+                    <div class="stat-label">Watching</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="list-tabs">
+            <button class="list-tab active" data-list="want">Want to Watch</button>
+            <button class="list-tab" data-list="watching">Watching</button>
+            <button class="list-tab" data-list="watched">Watched</button>
+        </div>
+
+        <div class="view-toggle">
+            <button class="view-btn active" data-view="grid">⊞</button>
+            <button class="view-btn" data-view="list">☰</button>
+        </div>
+
+        <div class="shows-container">
+            <div id="wantList" class="shows-list active grid-view"></div>
+            <div id="watchingList" class="shows-list grid-view" style="display: none;"></div>
+            <div id="watchedList" class="shows-list grid-view" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Profile Section -->
+    <div class="profile-section" id="profileSection" style="display: none;">
+        <div class="profile-header">
+            <div class="profile-info">
+                <div class="profile-avatar">YOU</div>
+                <div class="profile-details">
+                    <h2 class="profile-username">Your Name</h2>
+                    <p class="profile-bio">What have you been watching?</p>
+                </div>
+                <button class="edit-profile-btn" onclick="editProfile()">Edit Profile</button>
+            </div>
+
+            <div class="profile-stats">
+                <div class="profile-stat">
+                    <div class="stat-number" id="profileTotalShows">0</div>
+                    <div class="stat-label">Shows</div>
+                </div>
+                <div class="profile-stat">
+                    <div class="stat-number" id="profileFollowers">42</div>
+                    <div class="stat-label">Followers</div>
+                </div>
+                <div class="profile-stat">
+                    <div class="stat-number" id="profileFollowing">38</div>
+                    <div class="stat-label">Following</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="top-three-section">
+            <h3>My Top 3 Shows</h3>
+            <div class="top-three-grid">
+                <div class="top-show-slot" data-slot="1" onclick="selectTopShow(1)">
+                    <div class="slot-number">1</div>
+                    <img class="top-show-poster" id="topShow1" src="" alt="Add show">
+                    <div class="add-icon">+</div>
+                </div>
+                <div class="top-show-slot" data-slot="2" onclick="selectTopShow(2)">
+                    <div class="slot-number">2</div>
+                    <img class="top-show-poster" id="topShow2" src="" alt="Add show">
+                    <div class="add-icon">+</div>
+                </div>
+                <div class="top-show-slot" data-slot="3" onclick="selectTopShow(3)">
+                    <div class="slot-number">3</div>
+                    <img class="top-show-poster" id="topShow3" src="" alt="Add show">
+                    <div class="add-icon">+</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="privacy-settings">
+            <h3>Privacy</h3>
+            <div class="privacy-option">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="privateProfile" onchange="togglePrivacy()">
+                    <span class="toggle-slider"></span>
+                </label>
+                <div class="privacy-text">
+                    <div class="privacy-label">Private Account</div>
+                    <div class="privacy-description">Only approved followers can see your activity</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="friends-section">
+            <h3>Friends</h3>
+            <button class="invite-friends-btn" onclick="showInviteFriends()">
+                <span>📱</span> Find Friends from Contacts
+            </button>
+            
+            <!-- Friend Requests Section (only shown for private accounts) -->
+            <div id="friendRequestsSection" style="display: none;">
+                <div class="requests-header">
+                    <h4>Friend Requests</h4>
+                    <span class="request-count" id="requestCount">0</span>
+                </div>
+                <div class="requests-list" id="requestsList"></div>
+            </div>
+            
+            <!-- Following/Followers Lists -->
+            <div class="friends-tabs">
+                <button class="friend-tab active" onclick="showFriendsList('following')">
+                    Following <span id="followingCount">0</span>
+                </button>
+                <button class="friend-tab" onclick="showFriendsList('followers')">
+                    Followers <span id="followersCount">0</span>
+                </button>
+            </div>
+            <div class="friends-list-container" id="friendsListContainer"></div>
+            
+            <div class="suggested-friends" id="suggestedFriends"></div>
+        </div>
+    </div>
+
+    <!-- Top Show Selector Modal -->
+    <div class="top-show-modal" id="topShowModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Select Top Show #<span id="slotNumber"></span></h3>
+                <button class="close-modal" onclick="closeTopShowModal()">✕</button>
+            </div>
+            <div class="modal-search">
+                <input type="text" id="topShowSearch" placeholder="Search your shows..." oninput="searchMyShows()">
+            </div>
+            <div class="modal-shows-list" id="modalShowsList"></div>
+        </div>
+    </div>
+
+    <!-- Invite Friends Modal -->
+    <div class="invite-modal" id="inviteModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Invite Friends</h3>
+                <button class="close-modal" onclick="closeInviteModal()">✕</button>
+            </div>
+            <div class="invite-methods">
+                <button class="invite-method" onclick="shareInviteLink()">
+                    <span>🔗</span>
+                    <div>Share Link</div>
+                </button>
+                <button class="invite-method" onclick="showQRCode()">
+                    <span>📱</span>
+                    <div>QR Code</div>
+                </button>
+                <button class="invite-method" onclick="inviteViaContacts()">
+                    <span>📧</span>
+                    <div>From Contacts</div>
+                </button>
+            </div>
+            <div class="contacts-list" id="contactsList" style="display: none;">
+                <div class="contact-item">
+                    <div class="contact-avatar">JD</div>
+                    <div class="contact-info">
+                        <div class="contact-name">John Doe</div>
+                        <div class="contact-status">Not on Been Watching</div>
+                    </div>
+                    <button class="invite-btn" onclick="inviteContact('John Doe')">Invite</button>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-avatar">AS</div>
+                    <div class="contact-info">
+                        <div class="contact-name">Alice Smith</div>
+                        <div class="contact-status on-app">@alicesmith</div>
+                    </div>
+                    <button class="follow-btn" onclick="toggleFollow('alicesmith', 'Alice Smith', true)">Follow</button>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-avatar">BP</div>
+                    <div class="contact-info">
+                        <div class="contact-name">Bob Peterson</div>
+                        <div class="contact-status on-app">@bobp • Private</div>
+                    </div>
+                    <button class="follow-btn" onclick="toggleFollow('bobp', 'Bob Peterson', true)">Request</button>
+                </div>
+            </div>
+            <div class="qr-code-display" id="qrCodeDisplay" style="display: none;">
+                <div class="qr-placeholder">📱 QR Code</div>
+                <p>Friends can scan this to join Been Watching!</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Tab Bar -->
     <nav class="tab-bar">
-        <button class="tab-item active">🏠 Feed</button>
+        <button class="tab-item active" onclick="showSection('feed')">🏠 Feed</button>
         <button class="tab-add" onclick="openSearch()">+</button>
-        <button class="tab-item">📚 My Shows</button>
-        <button class="tab-item">👤 Profile</button>
+        <button class="tab-item" onclick="showSection('myshows')">📚 My Shows</button>
+        <button class="tab-item" onclick="showSection('profile')">👤 Profile</button>
     </nav>
 
     <script>
@@ -885,6 +2117,12 @@
         // Store comments (in real app, this would be in a database)
         let activityComments = JSON.parse(localStorage.getItem('activityComments')) || {};
         let activityLikes = JSON.parse(localStorage.getItem('activityLikes')) || {};
+        
+        // Store social data
+        let following = JSON.parse(localStorage.getItem('following')) || [];
+        let followers = JSON.parse(localStorage.getItem('followers')) || [];
+        let pendingRequests = JSON.parse(localStorage.getItem('pendingRequests')) || [];
+        let sentRequests = JSON.parse(localStorage.getItem('sentRequests')) || [];
         
         // Current search type
         let searchType = 'all';
@@ -1098,7 +2336,7 @@
             showToast('Comment added!');
         }
 
-        // Search functionality
+        // Search functionality with season-specific cards
         async function search(query) {
             if (!query.trim()) {
                 document.getElementById('searchResults').innerHTML = `
@@ -1128,7 +2366,25 @@
                     ? data.results.filter(item => item.media_type !== 'person')
                     : data.results;
                     
-                displaySearchResults(filteredResults);
+                // For TV shows, fetch season details
+                const resultsWithSeasons = await Promise.all(
+                    filteredResults.map(async (item) => {
+                        if (item.media_type === 'tv' || item.first_air_date) {
+                            try {
+                                const detailsResponse = await fetch(`${BASE_URL}/tv/${item.id}?api_key=${API_KEY}`);
+                                const details = await detailsResponse.json();
+                                item.seasons = details.seasons?.filter(s => s.season_number > 0) || [];
+                                item.number_of_seasons = details.number_of_seasons;
+                            } catch (error) {
+                                console.error('Error fetching season details:', error);
+                                item.seasons = [];
+                            }
+                        }
+                        return item;
+                    })
+                );
+                    
+                displaySearchResults(resultsWithSeasons);
             } catch (error) {
                 console.error('Search error:', error);
                 document.getElementById('searchResults').innerHTML = '<div class="no-results">Error searching. Please try again.</div>';
@@ -1143,82 +2399,215 @@
                 return;
             }
 
-            container.innerHTML = results.map(item => {
+            // Create cards for each item AND separate cards for each TV season
+            const allCards = [];
+            
+            results.forEach(item => {
                 const isTV = item.media_type === 'tv' || item.first_air_date;
                 const title = item.title || item.name;
                 const date = item.release_date || item.first_air_date;
                 const year = date ? date.split('-')[0] : 'TBA';
-                const itemId = `${isTV ? 'tv' : 'movie'}-${item.id}`;
-                const savedItem = userShows[itemId];
                 
-                return `
-                    <div class="result-card">
-                        <div class="result-card-header">
-                            <img src="${item.poster_path ? IMAGE_BASE + '/w185' + item.poster_path : ''}" 
-                                 alt="${title}" 
-                                 class="result-poster">
-                            <div class="result-info">
-                                <div class="result-title">
-                                    ${title}
-                                    <span class="result-type-badge">${isTV ? 'TV' : 'Movie'}</span>
-                                </div>
-                                <div class="result-meta">
-                                    ${year} • ⭐ ${Math.round(item.vote_average * 10) / 10}
-                                    <a href="#" class="trailer-btn" onclick="playTrailer('${item.id}', '${isTV ? 'tv' : 'movie'}'); return false;">
-                                        ▶️ Trailer
-                                    </a>
-                                </div>
-                                <div class="result-overview ${item.overview && item.overview.length > 200 ? 'collapsed' : ''}" id="overview-${itemId}">
-                                    ${item.overview || 'No description available'}
-                                </div>
-                                ${item.overview && item.overview.length > 200 ? `
-                                    <button class="expand-btn" onclick="toggleDescription('${itemId}')">
-                                        Read more
-                                    </button>
-                                ` : ''}
+                if (isTV && item.seasons && item.seasons.length > 0) {
+                    // Create a card for each season
+                    item.seasons.forEach(season => {
+                        allCards.push(createResultCard(
+                            item,
+                            title,
+                            year,
+                            'TV',
+                            season.season_number,
+                            season.air_date ? season.air_date.split('-')[0] : year,
+                            season.episode_count
+                        ));
+                    });
+                } else {
+                    // Create a single card for movies or shows without season info
+                    allCards.push(createResultCard(item, title, year, isTV ? 'TV' : 'Movie'));
+                }
+            });
+            
+            container.innerHTML = allCards.join('');
+        }
+
+        function createResultCard(item, title, year, type, seasonNumber = null, seasonYear = null, episodeCount = null) {
+            const isTV = type === 'TV';
+            const displayTitle = seasonNumber ? `${title}` : title;
+            const itemId = seasonNumber 
+                ? `tv-${item.id}-s${seasonNumber}` 
+                : `${isTV ? 'tv' : 'movie'}-${item.id}`;
+            const savedItem = userShows[itemId];
+            
+            // Generate friend stats by status (in real app, from database)
+            const friendsByStatus = generateFriendsByStatus();
+            
+            // Simulate streaming platforms (in real app, from TMDB watch providers API)
+            const platforms = getStreamingPlatforms();
+            
+            // Check if description is long enough to need expand/collapse
+            const needsExpand = item.overview && item.overview.length > 200;
+            
+            return `
+                <div class="result-card">
+                    <div class="result-card-header">
+                        <img src="${item.poster_path ? IMAGE_BASE + '/w185' + item.poster_path : ''}" 
+                             alt="${displayTitle}" 
+                             class="result-poster">
+                        <div class="result-info">
+                            <div class="result-title">
+                                ${displayTitle}
+                                ${seasonNumber ? `<span class="result-season-badge">S${seasonNumber}</span>` : ''}
+                                <span class="result-type-badge">${type}</span>
                             </div>
-                        </div>
-                        
-                        <div class="quick-rate">
-                            <button class="quick-rate-btn meh ${savedItem?.rating === 'meh' ? 'active' : ''}" 
-                                    onclick="quickRate('${itemId}', 'meh', '${title.replace(/'/g, "\\\\'")}')">
-                                😑 Meh
-                            </button>
-                            <button class="quick-rate-btn like ${savedItem?.rating === 'like' ? 'active' : ''}" 
-                                    onclick="quickRate('${itemId}', 'like', '${title.replace(/'/g, "\\\\'")}')">
-                                👍 Like
-                            </button>
-                            <button class="quick-rate-btn love ${savedItem?.rating === 'love' ? 'active' : ''}" 
-                                    onclick="quickRate('${itemId}', 'love', '${title.replace(/'/g, "\\\\'")}')">
-                                ❤️ Love
-                            </button>
-                        </div>
-                        
-                        <div class="quick-status">
-                            <div class="status-btn-group">
-                                <button class="quick-status-btn ${savedItem?.status === 'want' ? 'active' : ''}"
-                                        onclick="setStatus('${itemId}', 'want', '${title.replace(/'/g, "\\\\'")}')">
-                                    ➕ Want to Watch
+                            <div class="result-meta">
+                                ${seasonNumber ? `${seasonYear || year}` : year} 
+                                ${episodeCount ? `• ${episodeCount} episodes` : ''} 
+                                • ⭐ ${Math.round(item.vote_average * 10) / 10}
+                                ${platforms}
+                                <a href="#" class="trailer-btn" onclick="playTrailer('${item.id}', '${isTV ? 'tv' : 'movie'}'); return false;">
+                                    ▶️ Trailer
+                                </a>
+                            </div>
+                            <div class="result-overview ${needsExpand ? 'collapsed' : ''}" id="overview-${itemId}">
+                                ${item.overview || 'No description available'}
+                            </div>
+                            ${needsExpand ? `
+                                <button class="expand-btn" onclick="toggleDescription('${itemId}')">
+                                    Read more
                                 </button>
-                            </div>
-                            
-                            <div class="status-btn-group">
-                                <button class="quick-status-btn ${savedItem?.status === 'watching' ? 'active' : ''}"
-                                        onclick="setStatus('${itemId}', 'watching', '${title.replace(/'/g, "\\\\'")}')">
-                                    ▶️ Watching
-                                </button>
-                            </div>
-                            
-                            <div class="status-btn-group">
-                                <button class="quick-status-btn ${savedItem?.status === 'watched' ? 'active' : ''}"
-                                        onclick="setStatus('${itemId}', 'watched', '${title.replace(/'/g, "\\\\'")}')">
-                                    ✓ Watched
-                                </button>
-                            </div>
+                            ` : ''}
                         </div>
                     </div>
-                `;
-            }).join('');
+                    
+                    <div class="quick-rate">
+                        <button class="quick-rate-btn meh ${savedItem?.rating === 'meh' ? 'active' : ''}" 
+                                onclick="quickRate('${itemId}', 'meh', '${displayTitle.replace(/'/g, "\\\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
+                            😑 Meh
+                        </button>
+                        <button class="quick-rate-btn like ${savedItem?.rating === 'like' ? 'active' : ''}" 
+                                onclick="quickRate('${itemId}', 'like', '${displayTitle.replace(/'/g, "\\\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
+                            👍 Like
+                        </button>
+                        <button class="quick-rate-btn love ${savedItem?.rating === 'love' ? 'active' : ''}" 
+                                onclick="quickRate('${itemId}', 'love', '${displayTitle.replace(/'/g, "\\\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
+                            ❤️ Love
+                        </button>
+                    </div>
+                    
+                    <div class="quick-status">
+                        <div class="status-btn-group">
+                            <button class="quick-status-btn ${savedItem?.status === 'want' ? 'active' : ''}"
+                                    onclick="setStatus('${itemId}', 'want', '${displayTitle.replace(/'/g, "\\\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
+                                ➕ Want to Watch
+                            </button>
+                            ${friendsByStatus.want.count > 0 ? `
+                                <div class="status-friend-count" onclick="showFriendsList('want', '${displayTitle.replace(/'/g, "\\\\'")}')">
+                                    <div class="status-friend-avatars">
+                                        ${friendsByStatus.want.friends.slice(0, 3).map(f => `
+                                            <div class="status-friend-avatar">${f.initials}</div>
+                                        `).join('')}
+                                    </div>
+                                    ${friendsByStatus.want.count > 3 ? `<span>+${friendsByStatus.want.count - 3}</span>` : ''}
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="status-btn-group">
+                            <button class="quick-status-btn ${savedItem?.status === 'watching' ? 'active' : ''}"
+                                    onclick="setStatus('${itemId}', 'watching', '${displayTitle.replace(/'/g, "\\\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
+                                ▶️ Watching
+                            </button>
+                            ${friendsByStatus.watching.count > 0 ? `
+                                <div class="status-friend-count" onclick="showFriendsList('watching', '${displayTitle.replace(/'/g, "\\\\'")}')">
+                                    <div class="status-friend-avatars">
+                                        ${friendsByStatus.watching.friends.slice(0, 3).map(f => `
+                                            <div class="status-friend-avatar">${f.initials}</div>
+                                        `).join('')}
+                                    </div>
+                                    ${friendsByStatus.watching.count > 3 ? `<span>+${friendsByStatus.watching.count - 3}</span>` : ''}
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="status-btn-group">
+                            <button class="quick-status-btn ${savedItem?.status === 'watched' ? 'active' : ''}"
+                                    onclick="setStatus('${itemId}', 'watched', '${displayTitle.replace(/'/g, "\\\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
+                                ✓ Watched
+                            </button>
+                            ${friendsByStatus.watched.count > 0 ? `
+                                <div class="status-friend-count" onclick="showFriendsList('watched', '${displayTitle.replace(/'/g, "\\\\'")}')">
+                                    <div class="status-friend-avatars">
+                                        ${friendsByStatus.watched.friends.slice(0, 3).map(f => `
+                                            <div class="status-friend-avatar">${f.initials}</div>
+                                        `).join('')}
+                                    </div>
+                                    ${friendsByStatus.watched.count > 3 ? `<span>+${friendsByStatus.watched.count - 3}</span>` : ''}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateFriendsByStatus() {
+            // Simulate friend data (in real app, from database)
+            const allFriends = [
+                { name: 'Sarah Chen', initials: 'SC' },
+                { name: 'Mike Rodriguez', initials: 'MR' },
+                { name: 'Emma Wilson', initials: 'EW' },
+                { name: 'Jake Park', initials: 'JP' },
+                { name: 'Tina Kim', initials: 'TK' },
+                { name: 'Alex Lee', initials: 'AL' },
+                { name: 'Sam Jones', initials: 'SJ' },
+                { name: 'Lisa Wang', initials: 'LW' }
+            ];
+            
+            // Randomly assign friends to different statuses
+            const wantCount = Math.floor(Math.random() * 4);
+            const watchingCount = Math.floor(Math.random() * 6);
+            const watchedCount = Math.floor(Math.random() * 10);
+            
+            return {
+                want: {
+                    count: wantCount,
+                    friends: allFriends.slice(0, wantCount)
+                },
+                watching: {
+                    count: watchingCount,
+                    friends: allFriends.slice(2, 2 + watchingCount)
+                },
+                watched: {
+                    count: watchedCount,
+                    friends: allFriends.slice(1, 1 + watchedCount)
+                }
+            };
+        }
+
+        function getStreamingPlatforms() {
+            // Simulate streaming platforms (in real app, from TMDB watch providers API)
+            const allPlatforms = [
+                { name: 'Netflix', class: 'netflix', text: 'N', url: 'https://netflix.com' },
+                { name: 'Prime Video', class: 'prime', text: 'P', url: 'https://primevideo.com' },
+                { name: 'Disney+', class: 'disney', text: 'D+', url: 'https://disneyplus.com' },
+                { name: 'HBO Max', class: 'hbo', text: 'HBO', url: 'https://hbomax.com' },
+                { name: 'Hulu', class: 'hulu', text: 'H', url: 'https://hulu.com' },
+                { name: 'Apple TV+', class: 'apple', text: 'A', url: 'https://tv.apple.com' }
+            ];
+            
+            // Randomly select 1-3 platforms
+            const numPlatforms = Math.floor(Math.random() * 3) + 1;
+            const selectedPlatforms = allPlatforms.sort(() => 0.5 - Math.random()).slice(0, numPlatforms);
+            
+            return `
+                <div class="streaming-platforms">
+                    ${selectedPlatforms.map(p => `
+                        <a href="${p.url}" target="_blank" class="platform-icon platform-${p.class}" title="${p.name}">
+                            ${p.text}
+                        </a>
+                    `).join('')}
+                </div>
+            `;
         }
 
         function toggleDescription(itemId) {
@@ -1371,13 +2760,331 @@
             }
         });
 
-        // Tab navigation
-        document.querySelectorAll('.tab-item').forEach(tab => {
+        // Tab navigation with sections
+        function showSection(section) {
+            // Hide all sections
+            document.getElementById('feedContent').parentElement.style.display = 'none';
+            document.getElementById('myShowsSection').style.display = 'none';
+            document.getElementById('profileSection').style.display = 'none';
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab-item').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected section and activate tab
+            switch(section) {
+                case 'feed':
+                    document.getElementById('feedContent').parentElement.style.display = 'block';
+                    document.querySelectorAll('.tab-item')[0].classList.add('active');
+                    break;
+                case 'myshows':
+                    document.getElementById('myShowsSection').style.display = 'block';
+                    document.querySelectorAll('.tab-item')[1].classList.add('active');
+                    loadMyShows();
+                    break;
+                case 'profile':
+                    document.getElementById('profileSection').style.display = 'block';
+                    document.querySelectorAll('.tab-item')[2].classList.add('active');
+                    loadProfile();
+                    break;
+            }
+        }
+
+        // Load My Shows
+        function loadMyShows() {
+            const shows = userShows;
+            const wantList = [];
+            const watchingList = [];
+            const watchedList = [];
+            
+            // Categorize shows
+            Object.keys(shows).forEach(key => {
+                const show = shows[key];
+                if (show.status) {
+                    const showData = { ...show, id: key };
+                    switch(show.status) {
+                        case 'want':
+                            wantList.push(showData);
+                            break;
+                        case 'watching':
+                            watchingList.push(showData);
+                            break;
+                        case 'watched':
+                            watchedList.push(showData);
+                            break;
+                    }
+                }
+            });
+            
+            // Update stats
+            document.getElementById('totalShowsCount').textContent = 
+                wantList.length + watchingList.length + watchedList.length;
+            document.getElementById('watchedCount').textContent = watchedList.length;
+            document.getElementById('watchingCount').textContent = watchingList.length;
+            
+            // Display lists
+            displayShowsList('wantList', wantList);
+            displayShowsList('watchingList', watchingList);
+            displayShowsList('watchedList', watchedList);
+        }
+
+        function displayShowsList(listId, shows) {
+            const container = document.getElementById(listId);
+            const isGridView = container.classList.contains('grid-view');
+            
+            if (shows.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-secondary);">
+                        No shows yet. Start adding some!
+                    </div>
+                `;
+                return;
+            }
+            
+            if (isGridView) {
+                container.innerHTML = shows.map(show => `
+                    <div class="show-item-grid">
+                        <img src="${getShowPoster(show)}" alt="${show.title}">
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = shows.map(show => `
+                    <div class="show-item-list">
+                        <img src="${getShowPoster(show)}" alt="${show.title}">
+                        <div class="show-item-details">
+                            <div class="show-item-title">${show.title}</div>
+                            <div class="show-item-meta">Added ${getTimeAgo(show.timestamp)}</div>
+                            ${show.rating ? `
+                                <div class="show-item-rating ${show.rating}">
+                                    ${show.rating === 'love' ? '❤️ Loved' :
+                                      show.rating === 'like' ? '👍 Liked' :
+                                      '😑 Meh'}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function getShowPoster(show) {
+            // In a real app, we'd store the poster URL with the show data
+            // For now, return a placeholder
+            return `https://via.placeholder.com/300x450/333/fff?text=${encodeURIComponent(show.title || 'Show')}`;
+        }
+
+        function getTimeAgo(timestamp) {
+            const seconds = Math.floor((Date.now() - timestamp) / 1000);
+            if (seconds < 60) return 'just now';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes}m ago`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours}h ago`;
+            const days = Math.floor(hours / 24);
+            if (days < 30) return `${days}d ago`;
+            const months = Math.floor(days / 30);
+            return `${months}mo ago`;
+        }
+
+        // List tabs
+        document.querySelectorAll('.list-tab').forEach(tab => {
             tab.addEventListener('click', function() {
-                document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.list-tab').forEach(t => t.classList.remove('active'));
                 this.classList.add('active');
+                
+                const list = this.dataset.list;
+                document.querySelectorAll('.shows-list').forEach(l => {
+                    l.style.display = 'none';
+                });
+                
+                switch(list) {
+                    case 'want':
+                        document.getElementById('wantList').style.display = '';
+                        break;
+                    case 'watching':
+                        document.getElementById('watchingList').style.display = '';
+                        break;
+                    case 'watched':
+                        document.getElementById('watchedList').style.display = '';
+                        break;
+                }
             });
         });
+
+        // View toggle
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const view = this.dataset.view;
+                const lists = document.querySelectorAll('.shows-list');
+                
+                lists.forEach(list => {
+                    if (view === 'grid') {
+                        list.classList.add('grid-view');
+                        list.classList.remove('list-view');
+                    } else {
+                        list.classList.add('list-view');
+                        list.classList.remove('grid-view');
+                    }
+                });
+                
+                // Reload current list
+                loadMyShows();
+            });
+        });
+
+        // Load Profile
+        function loadProfile() {
+            const shows = userShows;
+            const showCount = Object.keys(shows).filter(key => shows[key].status).length;
+            document.getElementById('profileTotalShows').textContent = showCount;
+            
+            // Load top 3 shows if saved
+            const topShows = JSON.parse(localStorage.getItem('topThreeShows')) || {};
+            for (let i = 1; i <= 3; i++) {
+                if (topShows[i]) {
+                    document.getElementById(`topShow${i}`).src = topShows[i].poster;
+                }
+            }
+            
+            // Load privacy setting
+            const isPrivate = localStorage.getItem('privateProfile') === 'true';
+            document.getElementById('privateProfile').checked = isPrivate;
+            
+            // Load suggested friends
+            loadSuggestedFriends();
+        }
+
+        // Top 3 Shows functionality
+        let currentSlot = null;
+
+        function selectTopShow(slot) {
+            currentSlot = slot;
+            document.getElementById('slotNumber').textContent = slot;
+            document.getElementById('topShowModal').style.display = 'flex';
+            loadShowsForSelection();
+        }
+
+        function loadShowsForSelection() {
+            const shows = userShows;
+            const showsList = Object.keys(shows)
+                .filter(key => shows[key].status)
+                .map(key => ({ ...shows[key], id: key }));
+            
+            const container = document.getElementById('modalShowsList');
+            container.innerHTML = showsList.map(show => `
+                <div class="modal-show-item" onclick="setTopShow('${show.id}', '${show.title}')">
+                    <img src="${getShowPoster(show)}" class="modal-show-poster">
+                    <div class="modal-show-info">
+                        <div class="modal-show-title">${show.title}</div>
+                        <div class="modal-show-year">${show.rating ? 
+                            (show.rating === 'love' ? '❤️' : 
+                             show.rating === 'like' ? '👍' : '😑') : ''}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function setTopShow(showId, title) {
+            const topShows = JSON.parse(localStorage.getItem('topThreeShows')) || {};
+            const posterUrl = getShowPoster({ title });
+            
+            topShows[currentSlot] = {
+                id: showId,
+                title: title,
+                poster: posterUrl
+            };
+            
+            localStorage.setItem('topThreeShows', JSON.stringify(topShows));
+            document.getElementById(`topShow${currentSlot}`).src = posterUrl;
+            closeTopShowModal();
+        }
+
+        function searchMyShows() {
+            const query = document.getElementById('topShowSearch').value.toLowerCase();
+            const shows = userShows;
+            const filtered = Object.keys(shows)
+                .filter(key => shows[key].status && shows[key].title.toLowerCase().includes(query))
+                .map(key => ({ ...shows[key], id: key }));
+            
+            const container = document.getElementById('modalShowsList');
+            container.innerHTML = filtered.map(show => `
+                <div class="modal-show-item" onclick="setTopShow('${show.id}', '${show.title}')">
+                    <img src="${getShowPoster(show)}" class="modal-show-poster">
+                    <div class="modal-show-info">
+                        <div class="modal-show-title">${show.title}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function closeTopShowModal() {
+            document.getElementById('topShowModal').style.display = 'none';
+            document.getElementById('topShowSearch').value = '';
+        }
+
+        // Privacy toggle
+        function togglePrivacy() {
+            const isPrivate = document.getElementById('privateProfile').checked;
+            localStorage.setItem('privateProfile', isPrivate);
+            showToast(isPrivate ? 'Account is now private' : 'Account is now public');
+        }
+
+        // Friends functionality
+        function loadSuggestedFriends() {
+            // In a real app, this would load from contacts/database
+            const container = document.getElementById('suggestedFriends');
+            container.innerHTML = `
+                <div style="padding: 1rem; text-align: center; color: var(--text-secondary);">
+                    Connect your contacts to find friends
+                </div>
+            `;
+        }
+
+        function showInviteFriends() {
+            document.getElementById('inviteModal').style.display = 'flex';
+        }
+
+        function closeInviteModal() {
+            document.getElementById('inviteModal').style.display = 'none';
+            document.getElementById('contactsList').style.display = 'none';
+            document.getElementById('qrCodeDisplay').style.display = 'none';
+        }
+
+        function shareInviteLink() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Join me on Been Watching',
+                    text: 'Track and share what you\'ve been watching!',
+                    url: 'https://beenwatching.app/invite/yourcode'
+                });
+            } else {
+                navigator.clipboard.writeText('https://beenwatching.app/invite/yourcode');
+                showToast('Invite link copied!');
+            }
+        }
+
+        function showQRCode() {
+            document.getElementById('contactsList').style.display = 'none';
+            document.getElementById('qrCodeDisplay').style.display = 'block';
+        }
+
+        function inviteViaContacts() {
+            document.getElementById('qrCodeDisplay').style.display = 'none';
+            document.getElementById('contactsList').style.display = 'block';
+        }
+
+        function editProfile() {
+            const newName = prompt('Enter your name:', 'Your Name');
+            if (newName) {
+                document.querySelector('.profile-username').textContent = newName;
+                localStorage.setItem('profileName', newName);
+                showToast('Profile updated!');
+            }
+        }
 
         // Load sample data fallback
         function loadSampleData() {
