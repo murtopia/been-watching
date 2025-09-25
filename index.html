@@ -192,24 +192,7 @@
             border-color: var(--accent-primary);
         }
 
-        /* Unified Card Styling */
-        .card {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            transition: all 0.2s;
-        }
-
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Search Results - Card Style */
+        /* Enhanced Result Cards */
         .result-card {
             background: var(--glass);
             backdrop-filter: blur(20px);
@@ -278,77 +261,113 @@
             font-size: 0.8125rem;
             color: var(--text-secondary);
             margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
+        /* Streaming Platforms */
+        .streaming-platforms {
+            display: inline-flex;
+            gap: 0.25rem;
+            margin-left: 0.5rem;
+        }
+
+        .platform-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.625rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .platform-icon:hover {
+            transform: scale(1.1);
+        }
+
+        .platform-netflix { background: #E50914; }
+        .platform-prime { background: #00A8E1; }
+        .platform-disney { background: #113CCF; }
+        .platform-hbo { background: #7C3AED; }
+        .platform-hulu { background: #1CE783; }
+        .platform-apple { background: #000000; }
+        .platform-peacock { background: #000000; }
+
+        /* Trailer Button */
+        .trailer-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: var(--text-primary);
+            margin-left: 0.5rem;
+        }
+
+        .trailer-btn:hover {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+
+        /* Expandable Description */
         .result-overview {
             font-size: 0.8125rem;
             color: var(--text-secondary);
             line-height: 1.4;
+            margin-bottom: 0.75rem;
+            position: relative;
+        }
+
+        .result-overview.collapsed {
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
-            margin-bottom: 0.75rem;
         }
 
-        /* Action Buttons Section */
-        .card-actions {
-            border-top: 1px solid var(--border);
-            padding-top: 0.75rem;
-            margin-top: 0.75rem;
+        .result-overview.expanded {
+            display: block;
         }
 
-        .quick-rate {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .quick-rate-btn {
-            flex: 1;
-            padding: 0.5rem;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            font-size: 0.8125rem;
+        .expand-btn {
+            color: var(--accent-primary);
             cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background: none;
+            border: none;
+            padding: 0;
+            margin-left: 0.25rem;
         }
 
-        .quick-rate-btn:hover {
-            transform: scale(1.02);
-        }
-
-        .quick-rate-btn.active.love {
-            background: var(--love);
-            color: white;
-            border-color: var(--love);
-        }
-
-        .quick-rate-btn.active.like {
-            background: var(--like);
-            color: white;
-            border-color: var(--like);
-        }
-
-        .quick-rate-btn.active.meh {
-            background: var(--meh);
-            color: white;
-            border-color: var(--meh);
-        }
-
+        /* Enhanced Status Buttons with Friend Counts */
         .quick-status {
             display: flex;
             gap: 0.5rem;
         }
 
-        .quick-status-btn {
+        .status-btn-group {
             flex: 1;
-            padding: 0.4rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .quick-status-btn {
+            padding: 0.5rem;
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 8px;
@@ -373,48 +392,129 @@
             border-color: var(--accent-primary);
         }
 
-        /* Friend Stats Section */
-        .friend-stats {
+        .status-friend-count {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem;
-            background: var(--surface);
-            border-radius: 10px;
-            margin-top: 0.75rem;
+            gap: 0.25rem;
+            font-size: 0.625rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.25rem;
+            transition: color 0.2s;
         }
 
-        .friend-avatars {
+        .status-friend-count:hover {
+            color: var(--accent-primary);
+        }
+
+        .status-friend-avatars {
             display: flex;
+            margin-right: 0.25rem;
         }
 
-        .friend-avatar-small {
-            width: 28px;
-            height: 28px;
+        .status-friend-avatar {
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.625rem;
+            font-size: 0.5rem;
             color: white;
             font-weight: 600;
-            border: 2px solid var(--bg-primary);
-            margin-right: -10px;
+            border: 1px solid var(--bg-primary);
+            margin-right: -6px;
         }
 
-        .friend-avatar-small:last-child {
-            margin-right: 0;
+        /* Friends List Modal */
+        .friends-modal {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1rem;
+            width: 90%;
+            max-width: 400px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1001;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
         }
 
-        .friend-count {
-            font-size: 0.8125rem;
+        .friends-modal.active {
+            display: block;
+            animation: slideUp 0.3s;
+        }
+
+        .friends-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .friends-modal-title {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .friends-modal-close {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
             color: var(--text-secondary);
         }
 
-        .friend-count strong {
-            color: var(--text-primary);
+        .friends-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .friend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            background: var(--surface);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .friend-item:hover {
+            background: var(--glass);
+        }
+
+        .friend-item-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
             font-weight: 600;
+            font-size: 0.75rem;
+        }
+
+        .friend-item-name {
+            flex: 1;
+            font-size: 0.875rem;
+        }
+
+        .friend-item-status {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
         }
 
         /* Activity Feed Cards */
@@ -973,8 +1073,11 @@
                 : `${isTV ? 'tv' : 'movie'}-${item.id}`;
             const savedItem = userShows[itemId];
             
-            // Generate friend stats (in real app, this would be from database)
-            const friendStats = generateFriendStats();
+            // Generate friend stats by status (in real app, from database)
+            const friendsByStatus = generateFriendsByStatus();
+            
+            // Simulate streaming platforms (in real app, from TMDB watch providers API)
+            const platforms = getStreamingPlatforms();
             
             return `
                 <div class="result-card">
@@ -992,8 +1095,19 @@
                                 ${seasonNumber ? `${seasonYear || year}` : year} 
                                 ${episodeCount ? `• ${episodeCount} episodes` : ''} 
                                 • ⭐ ${Math.round(item.vote_average * 10) / 10}
+                                ${platforms}
+                                <a href="#" class="trailer-btn" onclick="playTrailer('${item.id}', '${isTV ? 'tv' : 'movie'}'); return false;">
+                                    ▶️ Trailer
+                                </a>
                             </div>
-                            <div class="result-overview">${item.overview || 'No description available'}</div>
+                            <div class="result-overview collapsed" id="overview-${itemId}">
+                                ${item.overview || 'No description available'}
+                                ${item.overview && item.overview.length > 150 ? `
+                                    <button class="expand-btn" onclick="toggleDescription('${itemId}')">
+                                        Read more
+                                    </button>
+                                ` : ''}
+                            </div>
                         </div>
                     </div>
                     
@@ -1014,37 +1128,108 @@
                         </div>
                         
                         <div class="quick-status">
-                            <button class="quick-status-btn ${savedItem?.status === 'want' ? 'active' : ''}"
-                                    onclick="setStatus('${itemId}', 'want', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
-                                ➕ Want
-                            </button>
-                            <button class="quick-status-btn ${savedItem?.status === 'watching' ? 'active' : ''}"
-                                    onclick="setStatus('${itemId}', 'watching', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
-                                ▶️ Watching
-                            </button>
-                            <button class="quick-status-btn ${savedItem?.status === 'watched' ? 'active' : ''}"
-                                    onclick="setStatus('${itemId}', 'watched', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
-                                ✓ Watched
-                            </button>
+                            <div class="status-btn-group">
+                                <button class="quick-status-btn ${savedItem?.status === 'want' ? 'active' : ''}"
+                                        onclick="setStatus('${itemId}', 'want', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
+                                    ➕ Want to Watch
+                                </button>
+                                ${friendsByStatus.want.count > 0 ? `
+                                    <div class="status-friend-count" onclick="showFriendsList('want', '${displayTitle.replace(/'/g, "\\'")}')">
+                                        <div class="status-friend-avatars">
+                                            ${friendsByStatus.want.friends.slice(0, 2).map(f => `
+                                                <div class="status-friend-avatar">${f.initials}</div>
+                                            `).join('')}
+                                        </div>
+                                        <span>${friendsByStatus.want.count} friends</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            
+                            <div class="status-btn-group">
+                                <button class="quick-status-btn ${savedItem?.status === 'watching' ? 'active' : ''}"
+                                        onclick="setStatus('${itemId}', 'watching', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
+                                    ▶️ Watching
+                                </button>
+                                ${friendsByStatus.watching.count > 0 ? `
+                                    <div class="status-friend-count" onclick="showFriendsList('watching', '${displayTitle.replace(/'/g, "\\'")}')">
+                                        <div class="status-friend-avatars">
+                                            ${friendsByStatus.watching.friends.slice(0, 2).map(f => `
+                                                <div class="status-friend-avatar">${f.initials}</div>
+                                            `).join('')}
+                                        </div>
+                                        <span>${friendsByStatus.watching.count} friends</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            
+                            <div class="status-btn-group">
+                                <button class="quick-status-btn ${savedItem?.status === 'watched' ? 'active' : ''}"
+                                        onclick="setStatus('${itemId}', 'watched', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
+                                    ✓ Watched
+                                </button>
+                                ${friendsByStatus.watched.count > 0 ? `
+                                    <div class="status-friend-count" onclick="showFriendsList('watched', '${displayTitle.replace(/'/g, "\\'")}')">
+                                        <div class="status-friend-avatars">
+                                            ${friendsByStatus.watched.friends.slice(0, 2).map(f => `
+                                                <div class="status-friend-avatar">${f.initials}</div>
+                                            `).join('')}
+                                        </div>
+                                        <span>${friendsByStatus.watched.count} friends</span>
+                                    </div>
+                                ` : ''}
+                            </div>
                         </div>
                     </div>
                     
-                    ${friendStats}
+                    ${generateOverallFriendStats()}
                 </div>
             `;
         }
 
-        function generateFriendStats() {
-            // Simulate friend activity (in real app, from database)
+        function generateFriendsByStatus() {
+            // Simulate friend data (in real app, from database)
+            const allFriends = [
+                { name: 'Sarah Chen', initials: 'SC' },
+                { name: 'Mike Rodriguez', initials: 'MR' },
+                { name: 'Emma Wilson', initials: 'EW' },
+                { name: 'Jake Park', initials: 'JP' },
+                { name: 'Tina Kim', initials: 'TK' },
+                { name: 'Alex Lee', initials: 'AL' },
+                { name: 'Sam Jones', initials: 'SJ' },
+                { name: 'Lisa Wang', initials: 'LW' }
+            ];
+            
+            // Randomly assign friends to different statuses
+            const wantCount = Math.floor(Math.random() * 4);
+            const watchingCount = Math.floor(Math.random() * 6);
+            const watchedCount = Math.floor(Math.random() * 10);
+            
+            return {
+                want: {
+                    count: wantCount,
+                    friends: allFriends.slice(0, wantCount)
+                },
+                watching: {
+                    count: watchingCount,
+                    friends: allFriends.slice(2, 2 + watchingCount)
+                },
+                watched: {
+                    count: watchedCount,
+                    friends: allFriends.slice(1, 1 + watchedCount)
+                }
+            };
+        }
+
+        function generateOverallFriendStats() {
+            // Overall stats (different from by-status breakdown)
             const watching = Math.floor(Math.random() * 8);
             const rated = Math.floor(Math.random() * 15);
-            const want = Math.floor(Math.random() * 5);
             
-            if (watching === 0 && rated === 0 && want === 0) {
+            if (watching === 0 && rated === 0) {
                 return '';
             }
             
-            const friends = ['SC', 'MR', 'EW', 'JP', 'TK', 'AL'];
+            const friends = ['SC', 'MR', 'EW', 'JP'];
             const avatarsToShow = Math.min(3, watching + rated);
             
             return `
@@ -1057,14 +1242,132 @@
                         </div>
                     ` : ''}
                     <div class="friend-count">
-                        ${watching > 0 ? `<strong>${watching}</strong> watching` : ''}
-                        ${watching > 0 && rated > 0 ? ' • ' : ''}
-                        ${rated > 0 ? `<strong>${rated}</strong> rated` : ''}
-                        ${(watching > 0 || rated > 0) && want > 0 ? ' • ' : ''}
-                        ${want > 0 ? `<strong>${want}</strong> want` : ''}
+                        <strong>${watching + rated}</strong> friends engaged with this
                     </div>
                 </div>
             `;
+        }
+
+        function getStreamingPlatforms() {
+            // Simulate streaming platforms (in real app, from TMDB watch providers API)
+            const allPlatforms = [
+                { name: 'Netflix', class: 'netflix', text: 'N', url: 'https://netflix.com' },
+                { name: 'Prime Video', class: 'prime', text: 'P', url: 'https://primevideo.com' },
+                { name: 'Disney+', class: 'disney', text: 'D+', url: 'https://disneyplus.com' },
+                { name: 'HBO Max', class: 'hbo', text: 'HBO', url: 'https://hbomax.com' },
+                { name: 'Hulu', class: 'hulu', text: 'H', url: 'https://hulu.com' },
+                { name: 'Apple TV+', class: 'apple', text: 'A', url: 'https://tv.apple.com' }
+            ];
+            
+            // Randomly select 1-3 platforms
+            const numPlatforms = Math.floor(Math.random() * 3) + 1;
+            const selectedPlatforms = allPlatforms.sort(() => 0.5 - Math.random()).slice(0, numPlatforms);
+            
+            return `
+                <div class="streaming-platforms">
+                    ${selectedPlatforms.map(p => `
+                        <a href="${p.url}" target="_blank" class="platform-icon platform-${p.class}" title="${p.name}">
+                            ${p.text}
+                        </a>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function toggleDescription(itemId) {
+            const overview = document.getElementById(`overview-${itemId}`);
+            const button = overview.querySelector('.expand-btn');
+            
+            if (overview.classList.contains('collapsed')) {
+                overview.classList.remove('collapsed');
+                overview.classList.add('expanded');
+                button.textContent = 'Read less';
+            } else {
+                overview.classList.remove('expanded');
+                overview.classList.add('collapsed');
+                button.textContent = 'Read more';
+            }
+        }
+
+        function showFriendsList(status, showTitle) {
+            event.stopPropagation();
+            
+            // Create or update the friends modal
+            let modal = document.getElementById('friendsModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'friendsModal';
+                modal.className = 'friends-modal';
+                document.body.appendChild(modal);
+            }
+            
+            // Generate friend list (in real app, from database)
+            const friends = generateFriendListForStatus(status);
+            
+            modal.innerHTML = `
+                <div class="friends-modal-header">
+                    <div class="friends-modal-title">
+                        ${status === 'want' ? 'Want to Watch' : status === 'watching' ? 'Watching' : 'Watched'} 
+                        "${showTitle}"
+                    </div>
+                    <button class="friends-modal-close" onclick="closeFriendsModal()">✕</button>
+                </div>
+                <div class="friends-list">
+                    ${friends.map(f => `
+                        <div class="friend-item">
+                            <div class="friend-item-avatar">${f.initials}</div>
+                            <div class="friend-item-name">${f.name}</div>
+                            <div class="friend-item-status">${f.rating || ''}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            modal.classList.add('active');
+        }
+
+        function generateFriendListForStatus(status) {
+            // Simulate friend data
+            const friends = [
+                { name: 'Sarah Chen', initials: 'SC', rating: '❤️ Loved' },
+                { name: 'Mike Rodriguez', initials: 'MR', rating: '👍 Liked' },
+                { name: 'Emma Wilson', initials: 'EW', rating: '❤️ Loved' },
+                { name: 'Jake Park', initials: 'JP', rating: '😑 Meh' },
+                { name: 'Tina Kim', initials: 'TK', rating: '👍 Liked' }
+            ];
+            
+            // Return random subset
+            return friends.slice(0, Math.floor(Math.random() * 4) + 2);
+        }
+
+        function closeFriendsModal() {
+            const modal = document.getElementById('friendsModal');
+            if (modal) {
+                modal.classList.remove('active');
+            }
+        }
+
+        async function playTrailer(itemId, mediaType) {
+            event.preventDefault();
+            
+            try {
+                // Fetch videos from TMDB
+                const response = await fetch(`${BASE_URL}/${mediaType}/${itemId}/videos?api_key=${API_KEY}`);
+                const data = await response.json();
+                
+                // Find trailer
+                const trailer = data.results.find(v => v.type === 'Trailer' && v.site === 'YouTube') 
+                    || data.results.find(v => v.site === 'YouTube');
+                
+                if (trailer) {
+                    window.open(`https://www.youtube.com/watch?v=${trailer.key}`, '_blank');
+                } else {
+                    showToast('No trailer available');
+                }
+            } catch (error) {
+                console.error('Error fetching trailer:', error);
+                showToast('Error loading trailer');
+            }
         }
 
         function setStatus(itemId, status, title) {
