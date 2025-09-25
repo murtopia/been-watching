@@ -1,4 +1,4 @@
-function showFriendsList(status, showTitle) {
+        function showFriendsList(status, showTitle) {
             event.stopPropagation();
             
             // Create or update the friends modal
@@ -1145,6 +1145,10 @@ function showFriendsList(status, showTitle) {
             margin-bottom: 1.5rem;
         }
 
+        .profile-avatar-container {
+            position: relative;
+        }
+
         .profile-avatar {
             width: 80px;
             height: 80px;
@@ -1156,6 +1160,47 @@ function showFriendsList(status, showTitle) {
             color: white;
             font-weight: 700;
             font-size: 1.5rem;
+        }
+
+        .profile-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: none;
+            border: 2px solid var(--border);
+        }
+
+        .profile-photo[src]:not([src=""]) {
+            display: block;
+        }
+
+        .profile-photo[src]:not([src=""]) ~ .profile-avatar {
+            display: none;
+        }
+
+        .photo-upload-btn {
+            position: absolute;
+            bottom: 0;
+            right: -5px;
+            width: 28px;
+            height: 28px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px solid var(--bg-primary);
+            transition: transform 0.2s;
+        }
+
+        .photo-upload-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .photo-upload-btn span {
+            font-size: 0.875rem;
         }
 
         .profile-details {
@@ -1940,10 +1985,17 @@ function showFriendsList(status, showTitle) {
     <div class="profile-section" id="profileSection" style="display: none;">
         <div class="profile-header">
             <div class="profile-info">
-                <div class="profile-avatar">YOU</div>
+                <div class="profile-avatar-container">
+                    <img id="profilePhoto" class="profile-photo" src="" alt="">
+                    <div id="profileInitials" class="profile-avatar">YOU</div>
+                    <label for="photoUpload" class="photo-upload-btn">
+                        <span>📷</span>
+                    </label>
+                    <input type="file" id="photoUpload" accept="image/*" onchange="handlePhotoUpload(event)" style="display: none;">
+                </div>
                 <div class="profile-details">
-                    <h2 class="profile-username">Your Name</h2>
-                    <p class="profile-bio">What have you been watching?</p>
+                    <h2 class="profile-username" id="profileUsername">@username</h2>
+                    <p class="profile-bio" id="profileBio">What have you been watching?</p>
                 </div>
                 <button class="edit-profile-btn" onclick="editProfile()">Edit Profile</button>
             </div>
