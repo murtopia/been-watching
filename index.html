@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Been Watching</title>
-    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <style>
         * {
             margin: 0;
@@ -22,6 +21,7 @@
             --accent-purple: #AF52DE;
             --text-primary: #000000;
             --text-secondary: #6B6B75;
+            --text-tertiary: #8E8E93;
             --love: #FF2D55;
             --like: #007AFF;
             --meh: #8E8E93;
@@ -35,6 +35,7 @@
                 --border: rgba(255, 255, 255, 0.12);
                 --text-primary: #FFFFFF;
                 --text-secondary: #8E8E93;
+                --text-tertiary: #6B6B75;
             }
         }
 
@@ -43,6 +44,7 @@
             background: var(--bg-primary);
             color: var(--text-primary);
             padding-bottom: 90px;
+            position: relative;
         }
 
         .nav-header {
@@ -50,6 +52,7 @@
             top: 0;
             background: var(--glass);
             backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border);
             z-index: 100;
         }
@@ -77,24 +80,347 @@
             padding: 1rem;
         }
 
-        .status-message {
-            background: var(--glass);
-            border-radius: 16px;
+        /* Search Modal */
+        .search-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 1000;
             padding: 1rem;
-            margin-bottom: 1.5rem;
+            animation: fadeIn 0.2s;
+        }
+
+        .search-modal.active {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 3rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .search-content {
+            background: var(--bg-primary);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .search-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .search-input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.5;
+        }
+
+        .close-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background: var(--border);
+        }
+
+        /* Search Type Toggle */
+        .search-type-toggle {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0 1.5rem 1rem;
+        }
+
+        .type-btn {
+            padding: 0.5rem 1rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+
+        .type-btn.active {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+
+        /* Search Results */
+        .search-results {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .search-loading {
             text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
         }
 
-        .status-message.success {
-            border: 1px solid #34C759;
-            background: rgba(52, 199, 89, 0.1);
+        .no-results {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
         }
 
-        .status-message.error {
-            border: 1px solid var(--love);
-            background: rgba(255, 45, 85, 0.1);
+        .result-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            background: var(--surface);
+            border-radius: 16px;
+            transition: all 0.2s;
+            cursor: pointer;
         }
 
+        .result-item:hover {
+            transform: translateX(4px);
+            background: var(--glass);
+        }
+
+        .result-poster {
+            width: 80px;
+            height: 120px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: var(--border);
+            flex-shrink: 0;
+        }
+
+        .result-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .result-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .result-meta {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .result-type {
+            display: inline-block;
+            padding: 0.125rem 0.5rem;
+            background: var(--accent-primary);
+            color: white;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-left: 0.5rem;
+        }
+
+        .result-overview {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Season Cards for TV Shows */
+        .seasons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 0.5rem;
+            margin: 0.75rem 0;
+        }
+
+        .season-card {
+            padding: 0.5rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .season-card:hover {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+
+        .season-number {
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .season-year {
+            font-size: 0.625rem;
+            opacity: 0.7;
+        }
+
+        /* Quick Add Section in Results */
+        .quick-actions {
+            margin-top: 0.75rem;
+        }
+
+        .quick-rate {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .quick-rate-btn {
+            flex: 1;
+            padding: 0.4rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-rate-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .quick-rate-btn.active.love {
+            background: var(--love);
+            color: white;
+            border-color: var(--love);
+        }
+
+        .quick-rate-btn.active.like {
+            background: var(--like);
+            color: white;
+            border-color: var(--like);
+        }
+
+        .quick-rate-btn.active.meh {
+            background: var(--meh);
+            color: white;
+            border-color: var(--meh);
+        }
+
+        .quick-status {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .quick-status-btn {
+            flex: 1;
+            padding: 0.4rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.625rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-status-btn:hover {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+
+        .quick-status-btn.active {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+
+        /* Friend Ratings Preview */
+        .friend-stats {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .friend-avatars {
+            display: flex;
+            margin-right: 0.5rem;
+        }
+
+        .friend-avatar-small {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.625rem;
+            color: white;
+            font-weight: 600;
+            border: 2px solid var(--bg-primary);
+            margin-right: -8px;
+        }
+
+        .friend-count {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .friend-count strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Main Feed Styles */
         .trending-section {
             margin-bottom: 2rem;
         }
@@ -138,6 +464,8 @@
 
         .activity-card {
             background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border);
             border-radius: 20px;
             padding: 1rem;
@@ -230,6 +558,28 @@
             color: white;
         }
 
+        /* Success Toast */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--accent-green, #34C759);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Tab Bar */
         .tab-bar {
             position: fixed;
             bottom: 20px;
@@ -237,11 +587,13 @@
             transform: translateX(-50%);
             background: var(--glass);
             backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border);
             border-radius: 30px;
             padding: 0.5rem;
             display: flex;
             gap: 0.5rem;
+            z-index: 99;
         }
 
         .tab-item, .tab-add {
@@ -280,10 +632,6 @@
     </nav>
 
     <div class="main-container">
-        <div id="statusMessage" class="status-message">
-            📡 Loading shows from TMDB...
-        </div>
-
         <div class="trending-section">
             <h2 class="section-title">Trending This Week</h2>
             <div id="trendingShows" class="shows-grid"></div>
@@ -292,9 +640,43 @@
         <div id="feedContent"></div>
     </div>
 
+    <!-- Search Modal -->
+    <div class="search-modal" id="searchModal">
+        <div class="search-content">
+            <div class="search-header">
+                <div class="search-input-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" 
+                           class="search-input" 
+                           id="searchInput" 
+                           placeholder="Search shows or movies..."
+                           autocomplete="off">
+                </div>
+                <button class="close-btn" onclick="closeSearch()">✕</button>
+            </div>
+            
+            <div class="search-type-toggle">
+                <button class="type-btn active" data-type="all">All</button>
+                <button class="type-btn" data-type="tv">TV Shows</button>
+                <button class="type-btn" data-type="movie">Movies</button>
+            </div>
+            
+            <div class="search-results" id="searchResults">
+                <div class="no-results">
+                    <h3>🔍</h3>
+                    <p>Search for your favorite shows and movies</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Tab Bar -->
     <nav class="tab-bar">
         <button class="tab-item active">🏠 Feed</button>
-        <button class="tab-add">+</button>
+        <button class="tab-add" onclick="openSearch()">+</button>
         <button class="tab-item">📚 My Shows</button>
         <button class="tab-item">👤 Profile</button>
     </nav>
@@ -302,112 +684,51 @@
     <script>
         // Your TMDB API key
         const API_KEY = '99b89037cac7fea56692934b534ea26a';
-        
-        // Sample shows data (fallback if API fails)
-        const sampleShows = [
-            {
-                id: 136315,
-                name: "The Bear",
-                poster_path: "/sHFlbKS3WLqMnp9t2bGPnLeYdpc.jpg",
-                overview: "Carmy, a young fine-dining chef, comes home to Chicago...",
-                vote_average: 8.9
-            },
-            {
-                id: 106541,
-                name: "Fallout",
-                poster_path: "/AnsSKR9LuK0T9bAOcPVA3PUvyWj.jpg",
-                overview: "The story of haves and have-nots in a world...",
-                vote_average: 8.4
-            },
-            {
-                id: 126308,
-                name: "Shōgun",
-                poster_path: "/7O4iVfOMQmdCSxhOg1WnzG1AgYT.jpg",
-                overview: "In Japan in the year 1600...",
-                vote_average: 8.6
-            }
-        ];
+        const BASE_URL = 'https://api.themoviedb.org/3';
+        const IMAGE_BASE = 'https://image.tmdb.org/t/p';
 
-        // Try to load TMDB data with multiple approaches
-        async function loadShows() {
-            const statusDiv = document.getElementById('statusMessage');
-            const trendingDiv = document.getElementById('trendingShows');
-            const feedDiv = document.getElementById('feedContent');
-            
-            // Skip trying direct API since we know CORS blocks it
-            console.log('CORS is blocking direct TMDB access, trying alternatives...');
-            
-            // Method 1: Try with allorigins proxy (most reliable)
+        // Store user's shows (in real app, this would be in a database)
+        let userShows = JSON.parse(localStorage.getItem('userShows')) || {};
+        
+        // Current search type
+        let searchType = 'all';
+
+        // Load trending content on page load
+        async function loadTrending() {
             try {
-                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://api.themoviedb.org/3/trending/tv/week?api_key=${API_KEY}`)}`;
-                const response = await fetch(proxyUrl);
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    displayShows(data.results.slice(0, 6));
-                    statusDiv.className = 'status-message success';
-                    statusDiv.innerHTML = '✅ Connected via proxy! Showing live data.';
-                    return;
-                }
+                const response = await fetch(`${BASE_URL}/trending/all/week?api_key=${API_KEY}`);
+                const data = await response.json();
+                displayTrending(data.results.slice(0, 6));
+                displayFeed(data.results.slice(6, 9));
             } catch (error) {
-                console.log('AllOrigins proxy failed:', error.message);
+                console.error('Error loading trending:', error);
+                loadSampleData();
             }
-            
-            // Method 2: Try with cors-anywhere (backup)
-            try {
-                const proxyUrl = `https://cors-anywhere.herokuapp.com/https://api.themoviedb.org/3/trending/tv/week?api_key=${API_KEY}`;
-                const response = await fetch(proxyUrl);
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    displayShows(data.results.slice(0, 6));
-                    statusDiv.className = 'status-message success';
-                    statusDiv.innerHTML = '✅ Connected via backup proxy! Showing live data.';
-                    return;
-                }
-            } catch (error) {
-                console.log('CORS-Anywhere proxy failed:', error.message);
-            }
-            
-            // Method 3: Use sample data with TMDB image URLs
-            console.log('All proxies failed. Using sample data with real TMDB images.');
-            statusDiv.className = 'status-message';
-            statusDiv.style.background = 'rgba(255, 149, 0, 0.1)';
-            statusDiv.style.border = '1px solid #FF9500';
-            statusDiv.innerHTML = `
-                <div>
-                    <strong>📺 Demo Mode - Sample Shows</strong><br>
-                    <small>The app is working! These are real shows with real images.</small><br>
-                    <small style="opacity: 0.7">To get live data: Deploy to Vercel/Netlify or run from a web server.</small>
-                </div>
-            `;
-            displayShows(sampleShows);
         }
 
-        function displayShows(shows) {
-            const trendingDiv = document.getElementById('trendingShows');
-            const feedDiv = document.getElementById('feedContent');
-            
-            // Display trending grid
-            trendingDiv.innerHTML = shows.slice(0, 6).map(show => `
-                <div class="show-card">
-                    <img src="https://image.tmdb.org/t/p/w300${show.poster_path}" 
-                         alt="${show.name}"
+        function displayTrending(items) {
+            const container = document.getElementById('trendingShows');
+            container.innerHTML = items.map(item => `
+                <div class="show-card" onclick="openSearch('${item.title || item.name}')">
+                    <img src="${IMAGE_BASE}/w300${item.poster_path}" 
+                         alt="${item.title || item.name}"
                          class="show-poster"
-                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 300%22%3E%3Crect fill=%22%23ddd%22 width=%22200%22 height=%22300%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23999%22%3ENo Image%3C/text%3E%3C/svg%3E'">
-                    <div class="show-title">${show.name}</div>
+                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 300%22%3E%3Crect fill=%22%23ddd%22 width=%22200%22 height=%22300%22/%3E%3C/svg%3E'">
+                    <div class="show-title">${item.title || item.name}</div>
                 </div>
             `).join('');
+        }
+
+        function displayFeed(items) {
+            const container = document.getElementById('feedContent');
+            const users = [
+                { name: 'Sarah Chen', initials: 'SC', time: '2 hours ago', rating: 'love' },
+                { name: 'Mike Rodriguez', initials: 'MR', time: '5 hours ago', rating: 'like' },
+                { name: 'Emma Wilson', initials: 'EW', time: '1 day ago', rating: 'love' }
+            ];
             
-            // Display feed
-            feedDiv.innerHTML = shows.slice(0, 3).map((show, i) => {
-                const users = [
-                    { name: 'Sarah Chen', initials: 'SC', time: '2 hours ago', rating: 'love' },
-                    { name: 'Mike Rodriguez', initials: 'MR', time: '5 hours ago', rating: 'like' },
-                    { name: 'Emma Wilson', initials: 'EW', time: '1 day ago', rating: 'love' }
-                ];
-                const user = users[i];
-                
+            container.innerHTML = items.map((item, i) => {
+                const user = users[i % users.length];
                 return `
                     <div class="activity-card">
                         <div class="activity-header">
@@ -418,14 +739,13 @@
                             </div>
                         </div>
                         <div class="show-content">
-                            <img src="https://image.tmdb.org/t/p/w200${show.poster_path}" 
-                                 alt="${show.name}"
-                                 class="show-poster-small"
-                                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 80 120%22%3E%3Crect fill=%22%23ddd%22 width=%2280%22 height=%22120%22/%3E%3C/svg%3E'">
+                            <img src="${IMAGE_BASE}/w200${item.poster_path}" 
+                                 alt="${item.title || item.name}"
+                                 class="show-poster-small">
                             <div class="show-info">
-                                <h3>${show.name}</h3>
+                                <h3>${item.title || item.name}</h3>
                                 <p style="font-size: 0.875rem; color: var(--text-secondary);">
-                                    ${show.overview ? show.overview.substring(0, 100) + '...' : 'No description available'}
+                                    ${item.overview ? item.overview.substring(0, 100) + '...' : ''}
                                 </p>
                             </div>
                         </div>
@@ -440,12 +760,327 @@
                 `;
             }).join('');
             
-            // Add event listeners
             attachEventListeners();
         }
 
+        // Search functionality with TV season support
+        async function search(query) {
+            if (!query.trim()) {
+                document.getElementById('searchResults').innerHTML = `
+                    <div class="no-results">
+                        <h3>🔍</h3>
+                        <p>Search for your favorite shows and movies</p>
+                    </div>
+                `;
+                return;
+            }
+
+            document.getElementById('searchResults').innerHTML = '<div class="search-loading">Searching...</div>';
+
+            try {
+                let url;
+                if (searchType === 'all') {
+                    url = `${BASE_URL}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(query)}`;
+                } else {
+                    url = `${BASE_URL}/search/${searchType}?api_key=${API_KEY}&query=${encodeURIComponent(query)}`;
+                }
+
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                // Filter out people from results
+                const filteredResults = searchType === 'all' 
+                    ? data.results.filter(item => item.media_type !== 'person')
+                    : data.results;
+                    
+                // For TV shows, fetch season details
+                const resultsWithSeasons = await Promise.all(
+                    filteredResults.map(async (item) => {
+                        if (item.media_type === 'tv' || item.first_air_date) {
+                            try {
+                                const detailsResponse = await fetch(`${BASE_URL}/tv/${item.id}?api_key=${API_KEY}`);
+                                const details = await detailsResponse.json();
+                                item.seasons = details.seasons?.filter(s => s.season_number > 0) || [];
+                                item.number_of_seasons = details.number_of_seasons;
+                            } catch (error) {
+                                console.error('Error fetching season details:', error);
+                                item.seasons = [];
+                            }
+                        }
+                        return item;
+                    })
+                );
+                    
+                displaySearchResults(resultsWithSeasons);
+            } catch (error) {
+                console.error('Search error:', error);
+                document.getElementById('searchResults').innerHTML = '<div class="no-results">Error searching. Please try again.</div>';
+            }
+        }
+
+        function displaySearchResults(results) {
+            const container = document.getElementById('searchResults');
+            
+            if (!results || results.length === 0) {
+                container.innerHTML = '<div class="no-results">No results found</div>';
+                return;
+            }
+
+            container.innerHTML = results.map(item => {
+                const isTV = item.media_type === 'tv' || item.first_air_date;
+                const title = item.title || item.name;
+                const date = item.release_date || item.first_air_date;
+                const year = date ? date.split('-')[0] : 'TBA';
+                const type = isTV ? 'TV' : 'Movie';
+                const itemId = `${isTV ? 'tv' : 'movie'}-${item.id}`;
+                const savedItem = userShows[itemId];
+                
+                // Generate friend stats (in real app, this would be from database)
+                const friendStats = generateFriendStats();
+                
+                return `
+                    <div class="result-item">
+                        <img src="${item.poster_path ? IMAGE_BASE + '/w200' + item.poster_path : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 80 120%22%3E%3Crect fill=%22%23ddd%22 width=%2280%22 height=%22120%22/%3E%3C/svg%3E'}" 
+                             alt="${title}"
+                             class="result-poster">
+                        <div class="result-info">
+                            <div class="result-title">
+                                ${title}
+                                <span class="result-type">${type}</span>
+                            </div>
+                            <div class="result-meta">${year} • ⭐ ${Math.round(item.vote_average * 10) / 10}</div>
+                            <div class="result-overview">${item.overview || 'No description available'}</div>
+                            
+                            ${isTV && item.seasons && item.seasons.length > 0 ? `
+                                <div class="seasons-grid">
+                                    ${item.seasons.slice(0, 8).map(season => `
+                                        <div class="season-card" onclick="selectSeason('${itemId}', ${season.season_number}, '${title.replace(/'/g, "\\'")} S${season.season_number}')">
+                                            <div class="season-number">S${season.season_number}</div>
+                                            <div class="season-year">${season.air_date ? season.air_date.split('-')[0] : ''}</div>
+                                        </div>
+                                    `).join('')}
+                                    ${item.seasons.length > 8 ? `
+                                        <div class="season-card">
+                                            <div class="season-number">+${item.seasons.length - 8}</div>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            ` : ''}
+                            
+                            <div class="quick-actions">
+                                <div class="quick-rate">
+                                    <button class="quick-rate-btn meh ${savedItem?.rating === 'meh' ? 'active' : ''}" 
+                                            onclick="quickRate('${itemId}', 'meh', '${title.replace(/'/g, "\\'")}')">
+                                        😑 Meh
+                                    </button>
+                                    <button class="quick-rate-btn like ${savedItem?.rating === 'like' ? 'active' : ''}" 
+                                            onclick="quickRate('${itemId}', 'like', '${title.replace(/'/g, "\\'")}')">
+                                        👍 Like
+                                    </button>
+                                    <button class="quick-rate-btn love ${savedItem?.rating === 'love' ? 'active' : ''}" 
+                                            onclick="quickRate('${itemId}', 'love', '${title.replace(/'/g, "\\'")}')">
+                                        ❤️ Love
+                                    </button>
+                                </div>
+                                
+                                <div class="quick-status">
+                                    <button class="quick-status-btn ${savedItem?.status === 'want' ? 'active' : ''}"
+                                            onclick="setStatus('${itemId}', 'want', '${title.replace(/'/g, "\\'")}')">
+                                        ➕ Want
+                                    </button>
+                                    <button class="quick-status-btn ${savedItem?.status === 'watching' ? 'active' : ''}"
+                                            onclick="setStatus('${itemId}', 'watching', '${title.replace(/'/g, "\\'")}')">
+                                        ▶️ Watching
+                                    </button>
+                                    <button class="quick-status-btn ${savedItem?.status === 'watched' ? 'active' : ''}"
+                                            onclick="setStatus('${itemId}', 'watched', '${title.replace(/'/g, "\\'")}')">
+                                        ✓ Watched
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            ${friendStats}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function generateFriendStats() {
+            // Simulate friend activity (in real app, from database)
+            const watching = Math.floor(Math.random() * 8);
+            const rated = Math.floor(Math.random() * 15);
+            const want = Math.floor(Math.random() * 5);
+            
+            if (watching === 0 && rated === 0 && want === 0) {
+                return '';
+            }
+            
+            const friends = ['SC', 'MR', 'EW', 'JP', 'TK', 'AL'];
+            const avatarsToShow = Math.min(3, watching + rated);
+            
+            return `
+                <div class="friend-stats">
+                    ${avatarsToShow > 0 ? `
+                        <div class="friend-avatars">
+                            ${friends.slice(0, avatarsToShow).map(f => `
+                                <div class="friend-avatar-small">${f}</div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    <div class="friend-count">
+                        ${watching > 0 ? `<strong>${watching}</strong> watching` : ''}
+                        ${watching > 0 && rated > 0 ? ' • ' : ''}
+                        ${rated > 0 ? `<strong>${rated}</strong> rated` : ''}
+                        ${(watching > 0 || rated > 0) && want > 0 ? ' • ' : ''}
+                        ${want > 0 ? `<strong>${want}</strong> want` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectSeason(showId, seasonNumber, title) {
+            event.stopPropagation();
+            
+            // Save season-specific data
+            const seasonId = `${showId}-s${seasonNumber}`;
+            if (!userShows[seasonId]) {
+                userShows[seasonId] = {
+                    parentShow: showId,
+                    season: seasonNumber,
+                    title: title
+                };
+            }
+            
+            // Toggle selection visual feedback
+            event.target.classList.toggle('active');
+            
+            showToast(`Selected "${title}"`);
+            localStorage.setItem('userShows', JSON.stringify(userShows));
+        }
+
+        function setStatus(itemId, status, title) {
+            event.stopPropagation();
+            
+            if (!userShows[itemId]) {
+                userShows[itemId] = {};
+            }
+            
+            // Toggle status if clicking same one
+            if (userShows[itemId].status === status) {
+                delete userShows[itemId].status;
+            } else {
+                userShows[itemId].status = status;
+                userShows[itemId].title = title;
+                userShows[itemId].timestamp = Date.now();
+                
+                const statusText = status === 'want' ? 'Want to watch' : status === 'watching' ? 'Watching' : 'Watched';
+                showToast(`${statusText} "${title}"`);
+            }
+            
+            localStorage.setItem('userShows', JSON.stringify(userShows));
+            
+            // Re-search to update buttons
+            const query = document.getElementById('searchInput').value;
+            if (query) search(query);
+        }
+
+        function quickRate(itemId, rating, title) {
+            event.stopPropagation();
+            
+            // Save to localStorage (in real app, would save to database)
+            if (!userShows[itemId]) {
+                userShows[itemId] = {};
+            }
+            
+            // Toggle rating if clicking same one
+            if (userShows[itemId].rating === rating) {
+                delete userShows[itemId].rating;
+            } else {
+                userShows[itemId].rating = rating;
+                userShows[itemId].title = title;
+                userShows[itemId].timestamp = Date.now();
+                
+                // Show success toast
+                showToast(`${rating === 'love' ? '❤️ Loved' : rating === 'like' ? '👍 Liked' : '😑 Meh\'d'} "${title}"`);
+            }
+            
+            localStorage.setItem('userShows', JSON.stringify(userShows));
+            
+            // Re-search to update buttons
+            const query = document.getElementById('searchInput').value;
+            if (query) search(query);
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function openSearch(prefillQuery = '') {
+            document.getElementById('searchModal').classList.add('active');
+            const input = document.getElementById('searchInput');
+            input.value = prefillQuery;
+            input.focus();
+            
+            if (prefillQuery) {
+                search(prefillQuery);
+            }
+        }
+
+        function closeSearch() {
+            document.getElementById('searchModal').classList.remove('active');
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchResults').innerHTML = `
+                <div class="no-results">
+                    <h3>🔍</h3>
+                    <p>Search for your favorite shows and movies</p>
+                </div>
+            `;
+        }
+
+        // Search type toggle
+        document.querySelectorAll('.type-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                searchType = this.dataset.type;
+                
+                // Re-search with current query
+                const query = document.getElementById('searchInput').value;
+                if (query) search(query);
+            });
+        });
+
+        // Search input with debouncing
+        let searchTimeout;
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                search(e.target.value);
+            }, 300);
+        });
+
+        // Close modal on escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeSearch();
+            }
+        });
+
+        // Close modal on background click
+        document.getElementById('searchModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                closeSearch();
+            }
+        });
+
         function attachEventListeners() {
-            // Rating pills
             document.querySelectorAll('.rating-pills').forEach(group => {
                 const pills = group.querySelectorAll('.rating-pill');
                 pills.forEach(pill => {
@@ -463,7 +1098,6 @@
                 });
             });
             
-            // Tab buttons
             document.querySelectorAll('.tab-item').forEach(tab => {
                 tab.addEventListener('click', function() {
                     document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
@@ -472,8 +1106,19 @@
             });
         }
 
-        // Load shows when page loads
-        loadShows();
+        // Load sample data fallback
+        function loadSampleData() {
+            const sampleShows = [
+                { id: 1, name: "The Bear", poster_path: "/sHFlbKS3WLqMnp9t2bGPnLeYdpc.jpg", overview: "Carmen 'Carmy' Berzatto, a young chef from the fine dining world..." },
+                { id: 2, name: "Fallout", poster_path: "/AnsSKR9LuK0T9bAOcPVA3PUvyWj.jpg", overview: "The story of haves and have-nots in a world..." },
+                { id: 3, name: "Shōgun", poster_path: "/7O4iVfOMQmdCSxhOg1WnzG1AgYT.jpg", overview: "In Japan in the year 1600..." }
+            ];
+            displayTrending(sampleShows.concat(sampleShows));
+            displayFeed(sampleShows);
+        }
+
+        // Initialize
+        loadTrending();
     </script>
 </body>
 </html>
