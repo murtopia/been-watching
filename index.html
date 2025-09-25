@@ -80,7 +80,7 @@
             padding: 1rem;
         }
 
-        /* Search Modal */
+        /* Search Modal - FIXED SCROLLING */
         .search-modal {
             display: none;
             position: fixed;
@@ -91,6 +91,7 @@
             z-index: 1000;
             padding: 1rem;
             animation: fadeIn 0.2s;
+            overflow-y: auto; /* Allow modal itself to scroll */
         }
 
         .search-modal.active {
@@ -114,6 +115,7 @@
             display: flex;
             flex-direction: column;
             animation: slideUp 0.3s;
+            position: relative; /* Ensure content stays in place */
         }
 
         @keyframes slideUp {
@@ -127,6 +129,7 @@
             display: flex;
             align-items: center;
             gap: 1rem;
+            flex-shrink: 0; /* Prevent header from shrinking */
         }
 
         .search-input-wrapper {
@@ -174,6 +177,7 @@
             display: flex;
             gap: 0.5rem;
             padding: 0 1.5rem 1rem;
+            flex-shrink: 0; /* Prevent toggle from shrinking */
         }
 
         .type-btn {
@@ -190,6 +194,25 @@
             background: var(--accent-primary);
             color: white;
             border-color: var(--accent-primary);
+        }
+
+        /* FIXED SEARCH RESULTS SCROLLING */
+        .search-results {
+            flex: 1;
+            overflow-y: auto; /* Enable scrolling for results */
+            padding: 1rem 1.5rem;
+            min-height: 0; /* Important for flex child scrolling */
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-secondary);
+        }
+
+        .no-results h3 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
         }
 
         /* Enhanced Result Cards */
@@ -235,6 +258,7 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            flex-wrap: wrap;
         }
 
         .result-season-badge {
@@ -264,6 +288,7 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            flex-wrap: wrap;
         }
 
         /* Streaming Platforms */
@@ -297,7 +322,6 @@
         .platform-hbo { background: #7C3AED; }
         .platform-hulu { background: #1CE783; }
         .platform-apple { background: #000000; }
-        .platform-peacock { background: #000000; }
 
         /* Trailer Button */
         .trailer-btn {
@@ -313,7 +337,6 @@
             transition: all 0.2s;
             text-decoration: none;
             color: var(--text-primary);
-            margin-left: 0.5rem;
         }
 
         .trailer-btn:hover {
@@ -350,11 +373,10 @@
             background: none;
             border: none;
             padding: 0;
-            float: right;
             margin-top: 0.25rem;
         }
 
-        /* Rating Buttons - Moved to header area */
+        /* Rating Buttons */
         .quick-rate {
             display: flex;
             gap: 0.5rem;
@@ -373,6 +395,7 @@
             align-items: center;
             justify-content: center;
             gap: 0.25rem;
+            flex: 1;
         }
 
         .quick-rate-btn:hover {
@@ -397,7 +420,7 @@
             border-color: var(--meh);
         }
 
-        /* Enhanced Status Buttons with Centered Friend Counts */
+        /* Status Buttons */
         .quick-status {
             display: flex;
             gap: 0.5rem;
@@ -437,145 +460,7 @@
             border-color: var(--accent-primary);
         }
 
-        .status-friend-count {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.25rem;
-            font-size: 0.625rem;
-            color: var(--text-secondary);
-            cursor: pointer;
-            padding: 0.25rem;
-            transition: color 0.2s;
-        }
-
-        .status-friend-count:hover {
-            color: var(--accent-primary);
-        }
-
-        .status-friend-avatars {
-            display: flex;
-            justify-content: center;
-        }
-
-        .status-friend-avatar {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.5rem;
-            color: white;
-            font-weight: 600;
-            border: 1px solid var(--bg-primary);
-            margin: 0 -4px;
-        }
-
-        .status-friend-avatar:first-child {
-            z-index: 3;
-        }
-        
-        .status-friend-avatar:nth-child(2) {
-            z-index: 2;
-        }
-        
-        .status-friend-avatar:nth-child(3) {
-            z-index: 1;
-        }
-
-        /* Friends List Modal */
-        .friends-modal {
-            display: none;
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--bg-primary);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1rem;
-            width: 90%;
-            max-width: 400px;
-            max-height: 300px;
-            overflow-y: auto;
-            z-index: 1001;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-        }
-
-        .friends-modal.active {
-            display: block;
-            animation: slideUp 0.3s;
-        }
-
-        .friends-modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .friends-modal-title {
-            font-weight: 600;
-            font-size: 0.875rem;
-        }
-
-        .friends-modal-close {
-            background: none;
-            border: none;
-            font-size: 1.25rem;
-            cursor: pointer;
-            color: var(--text-secondary);
-        }
-
-        .friends-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .friend-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.5rem;
-            background: var(--surface);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .friend-item:hover {
-            background: var(--glass);
-        }
-
-        .friend-item-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 0.75rem;
-        }
-
-        .friend-item-name {
-            flex: 1;
-            font-size: 0.875rem;
-        }
-
-        .friend-item-status {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
-
-        /* Activity Feed Cards */
+        /* ENHANCED ACTIVITY FEED CARDS */
         .activity-card {
             background: var(--glass);
             backdrop-filter: blur(20px);
@@ -596,8 +481,7 @@
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            padding: 1rem;
-            border-bottom: 1px solid var(--border);
+            padding: 1rem 1rem 0.5rem;
         }
 
         .user-avatar {
@@ -610,83 +494,221 @@
             justify-content: center;
             color: white;
             font-weight: 600;
+            flex-shrink: 0;
         }
 
-        .show-content {
+        .user-info {
+            flex: 1;
+        }
+
+        .user-action {
+            font-size: 0.875rem;
+            line-height: 1.4;
+        }
+
+        .user-action strong {
+            font-weight: 600;
+        }
+
+        .action-type {
+            color: var(--text-secondary);
+        }
+
+        .post-time {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-top: 0.125rem;
+        }
+
+        /* Show content in feed */
+        .feed-show-content {
             display: flex;
             gap: 1rem;
-            padding: 1rem;
+            padding: 0.75rem 1rem;
         }
 
-        .show-poster-small {
-            width: 60px;
-            height: 90px;
+        .feed-show-poster {
+            width: 80px;
+            height: 120px;
             border-radius: 8px;
             object-fit: cover;
             background: var(--surface);
             flex-shrink: 0;
         }
 
-        .rating-section {
-            padding: 0 1rem 1rem;
+        .feed-show-info {
+            flex: 1;
         }
 
-        .rating-pills {
-            display: flex;
-            gap: 0.5rem;
+        .feed-show-title {
+            font-weight: 600;
+            font-size: 0.9375rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .feed-show-meta {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
             margin-bottom: 0.5rem;
         }
 
-        .rating-pill {
+        .feed-show-overview {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* User's rating display */
+        .user-rating-display {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            background: var(--surface);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .user-rating-display.love {
+            background: var(--love);
+            color: white;
+        }
+
+        .user-rating-display.like {
+            background: var(--like);
+            color: white;
+        }
+
+        .user-rating-display.meh {
+            background: var(--meh);
+            color: white;
+        }
+
+        /* Comments section */
+        .comments-section {
+            padding: 0.75rem 1rem;
+            border-top: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        .comment-input-wrapper {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .comment-input {
             flex: 1;
             padding: 0.5rem;
-            background: var(--surface);
+            background: var(--bg-primary);
             border: 1px solid var(--border);
-            border-radius: 10px;
-            text-align: center;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            outline: none;
+        }
+
+        .comment-input:focus {
+            border-color: var(--accent-primary);
+        }
+
+        .comment-submit {
+            padding: 0.5rem 1rem;
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 0.875rem;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-        .rating-pill.active.love {
-            background: var(--love);
-            color: white;
-            border-color: var(--love);
+        .comment-submit:hover {
+            transform: scale(1.05);
         }
 
-        .rating-pill.active.like {
-            background: var(--like);
-            color: white;
-            border-color: var(--like);
-        }
-
-        .rating-pill.active.meh {
-            background: var(--meh);
-            color: white;
-            border-color: var(--meh);
-        }
-
-        /* Season Selector for existing shows */
-        .season-selector {
-            display: inline-flex;
-            align-items: center;
+        .comments-list {
+            display: flex;
+            flex-direction: column;
             gap: 0.5rem;
-            padding: 0.25rem 0.5rem;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 0.75rem;
-            margin-left: 0.5rem;
         }
 
-        .season-selector select {
-            background: transparent;
+        .comment {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-start;
+        }
+
+        .comment-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.625rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .comment-content {
+            flex: 1;
+            font-size: 0.8125rem;
+            line-height: 1.3;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            margin-right: 0.25rem;
+        }
+
+        .comment-text {
+            color: var(--text-primary);
+        }
+
+        .comment-time {
+            font-size: 0.6875rem;
+            color: var(--text-tertiary);
+            margin-top: 0.125rem;
+        }
+
+        /* Like/interaction buttons */
+        .activity-interactions {
+            display: flex;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .interaction-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            background: none;
             border: none;
-            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
             cursor: pointer;
+            transition: all 0.2s;
         }
 
-        /* Main Feed Styles */
+        .interaction-btn:hover {
+            color: var(--accent-primary);
+            transform: scale(1.05);
+        }
+
+        .interaction-btn.liked {
+            color: var(--love);
+        }
+
+        /* Trending section */
         .trending-section {
             margin-bottom: 2rem;
         }
@@ -728,103 +750,7 @@
             white-space: nowrap;
         }
 
-        .activity-card {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .activity-header {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-        }
-
-        .user-info {
-            flex: 1;
-        }
-
-        .user-name {
-            font-weight: 600;
-        }
-
-        .post-time {
-            font-size: 0.8125rem;
-            color: var(--text-secondary);
-        }
-
-        .show-content {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .show-poster-small {
-            width: 80px;
-            height: 120px;
-            border-radius: 8px;
-            object-fit: cover;
-            background: var(--surface);
-        }
-
-        .show-info {
-            flex: 1;
-        }
-
-        .rating-section {
-            padding-top: 1rem;
-            border-top: 1px solid var(--border);
-        }
-
-        .rating-pills {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .rating-pill {
-            flex: 1;
-            padding: 0.5rem;
-            background: var(--surface);
-            border: 2px solid transparent;
-            border-radius: 12px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .rating-pill.active.love {
-            background: var(--love);
-            color: white;
-        }
-
-        .rating-pill.active.like {
-            background: var(--like);
-            color: white;
-        }
-
-        .rating-pill.active.meh {
-            background: var(--meh);
-            color: white;
-        }
-
-        /* Success Toast */
+        /* Toast */
         .toast {
             position: fixed;
             bottom: 100px;
@@ -956,6 +882,10 @@
         // Store user's shows (in real app, this would be in a database)
         let userShows = JSON.parse(localStorage.getItem('userShows')) || {};
         
+        // Store comments (in real app, this would be in a database)
+        let activityComments = JSON.parse(localStorage.getItem('activityComments')) || {};
+        let activityLikes = JSON.parse(localStorage.getItem('activityLikes')) || {};
+        
         // Current search type
         let searchType = 'all';
 
@@ -965,7 +895,7 @@
                 const response = await fetch(`${BASE_URL}/trending/all/week?api_key=${API_KEY}`);
                 const data = await response.json();
                 displayTrending(data.results.slice(0, 6));
-                displayFeed(data.results.slice(6, 9));
+                displayEnhancedFeed(data.results.slice(6, 15));
             } catch (error) {
                 console.error('Error loading trending:', error);
                 loadSampleData();
@@ -975,61 +905,200 @@
         function displayTrending(items) {
             const container = document.getElementById('trendingShows');
             container.innerHTML = items.map(item => `
-                <div class="show-card" onclick="openSearch('${item.title || item.name}')">
-                    <img src="${IMAGE_BASE}/w300${item.poster_path}" 
-                         alt="${item.title || item.name}"
-                         class="show-poster"
-                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 300%22%3E%3Crect fill=%22%23ddd%22 width=%22200%22 height=%22300%22/%3E%3C/svg%3E'">
+                <div class="show-card" onclick="openSearch('${(item.title || item.name).replace(/'/g, "\\''")}')">
+                    <img src="${item.poster_path ? IMAGE_BASE + '/w342' + item.poster_path : ''}" 
+                         alt="${item.title || item.name}" 
+                         class="show-poster">
                     <div class="show-title">${item.title || item.name}</div>
                 </div>
             `).join('');
         }
 
-        function displayFeed(items) {
+        function displayEnhancedFeed(items) {
             const container = document.getElementById('feedContent');
-            const users = [
-                { name: 'Sarah Chen', initials: 'SC', time: '2 hours ago', rating: 'love' },
-                { name: 'Mike Rodriguez', initials: 'MR', time: '5 hours ago', rating: 'like' },
-                { name: 'Emma Wilson', initials: 'EW', time: '1 day ago', rating: 'love' }
+            const activities = [
+                { name: 'Sarah Chen', initials: 'SC', time: '2 hours ago', action: 'loved', rating: 'love' },
+                { name: 'Mike Rodriguez', initials: 'MR', time: '5 hours ago', action: 'added to Want to Watch', rating: null },
+                { name: 'Emma Wilson', initials: 'EW', time: '1 day ago', action: 'finished watching', rating: 'like' },
+                { name: 'Jake Park', initials: 'JP', time: '1 day ago', action: 'started watching', rating: null },
+                { name: 'Lisa Wang', initials: 'LW', time: '2 days ago', action: 'gave Meh to', rating: 'meh' },
+                { name: 'Alex Lee', initials: 'AL', time: '3 days ago', action: 'loved', rating: 'love' },
+                { name: 'Tina Kim', initials: 'TK', time: '3 days ago', action: 'liked', rating: 'like' },
+                { name: 'Sam Jones', initials: 'SJ', time: '4 days ago', action: 'finished watching', rating: 'love' },
+                { name: 'Chris Davis', initials: 'CD', time: '1 week ago', action: 'started watching', rating: null }
             ];
             
             container.innerHTML = items.map((item, i) => {
-                const user = users[i % users.length];
+                const activity = activities[i % activities.length];
+                const activityId = `activity-${i}`;
+                const comments = activityComments[activityId] || [];
+                const likes = activityLikes[activityId] || 0;
+                const isLiked = localStorage.getItem(`liked-${activityId}`) === 'true';
+                
                 return `
                     <div class="activity-card">
                         <div class="activity-header">
-                            <div class="user-avatar">${user.initials}</div>
+                            <div class="user-avatar">${activity.initials}</div>
                             <div class="user-info">
-                                <div class="user-name">${user.name}</div>
-                                <div class="post-time">${user.time}</div>
+                                <div class="user-action">
+                                    <strong>${activity.name}</strong>
+                                    <span class="action-type">${activity.action}</span>
+                                    <strong>${item.title || item.name}</strong>
+                                </div>
+                                <div class="post-time">${activity.time}</div>
                             </div>
                         </div>
-                        <div class="show-content">
-                            <img src="${IMAGE_BASE}/w200${item.poster_path}" 
-                                 alt="${item.title || item.name}"
-                                 class="show-poster-small">
-                            <div class="show-info">
-                                <h3>${item.title || item.name}</h3>
-                                <p style="font-size: 0.875rem; color: var(--text-secondary);">
-                                    ${item.overview ? item.overview.substring(0, 100) + '...' : ''}
-                                </p>
+                        
+                        <div class="feed-show-content">
+                            <img src="${item.poster_path ? IMAGE_BASE + '/w185' + item.poster_path : ''}" 
+                                 alt="${item.title || item.name}" 
+                                 class="feed-show-poster">
+                            <div class="feed-show-info">
+                                <div class="feed-show-title">${item.title || item.name}</div>
+                                <div class="feed-show-meta">
+                                    ${item.release_date || item.first_air_date ? 
+                                        (item.release_date || item.first_air_date).split('-')[0] : 'TBA'}
+                                    • ⭐ ${Math.round(item.vote_average * 10) / 10}
+                                </div>
+                                <div class="feed-show-overview">
+                                    ${item.overview || 'No description available'}
+                                </div>
+                                ${activity.rating ? `
+                                    <div class="user-rating-display ${activity.rating}">
+                                        ${activity.rating === 'love' ? '❤️ Loved' :
+                                          activity.rating === 'like' ? '👍 Liked' :
+                                          '😑 Meh'}
+                                    </div>
+                                ` : ''}
                             </div>
                         </div>
-                        <div class="rating-section">
-                            <div class="rating-pills">
-                                <button class="rating-pill ${user.rating === 'meh' ? 'active meh' : ''}">😑 Meh</button>
-                                <button class="rating-pill ${user.rating === 'like' ? 'active like' : ''}">👍 Like</button>
-                                <button class="rating-pill ${user.rating === 'love' ? 'active love' : ''}">❤️ Love</button>
+                        
+                        <div class="activity-interactions">
+                            <button class="interaction-btn ${isLiked ? 'liked' : ''}" 
+                                    onclick="toggleLike('${activityId}')">
+                                <span id="like-icon-${activityId}">${isLiked ? '❤️' : '🤍'}</span>
+                                <span id="like-count-${activityId}">${likes > 0 ? likes : ''}</span>
+                            </button>
+                            <button class="interaction-btn" 
+                                    onclick="focusComment('${activityId}')">
+                                💬 <span id="comment-count-${activityId}">${comments.length > 0 ? comments.length : ''}</span>
+                            </button>
+                            <button class="interaction-btn">
+                                📤
+                            </button>
+                        </div>
+                        
+                        <div class="comments-section">
+                            ${comments.length > 0 ? `
+                                <div class="comments-list" id="comments-${activityId}">
+                                    ${comments.map(comment => `
+                                        <div class="comment">
+                                            <div class="comment-avatar">${comment.initials}</div>
+                                            <div class="comment-content">
+                                                <span class="comment-author">${comment.author}</span>
+                                                <span class="comment-text">${comment.text}</span>
+                                                <div class="comment-time">${comment.time}</div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : '<div class="comments-list" id="comments-' + activityId + '"></div>'}
+                            
+                            <div class="comment-input-wrapper">
+                                <input type="text" 
+                                       class="comment-input" 
+                                       id="comment-input-${activityId}"
+                                       placeholder="Add a comment..."
+                                       onkeypress="handleCommentKeypress(event, '${activityId}')">
+                                <button class="comment-submit" 
+                                        onclick="addComment('${activityId}')">Post</button>
                             </div>
                         </div>
                     </div>
                 `;
             }).join('');
-            
-            attachEventListeners();
         }
 
-        // Search functionality with season-specific cards
+        function toggleLike(activityId) {
+            const isLiked = localStorage.getItem(`liked-${activityId}`) === 'true';
+            const likeIcon = document.getElementById(`like-icon-${activityId}`);
+            const likeCount = document.getElementById(`like-count-${activityId}`);
+            
+            if (!activityLikes[activityId]) {
+                activityLikes[activityId] = Math.floor(Math.random() * 5);
+            }
+            
+            if (isLiked) {
+                localStorage.setItem(`liked-${activityId}`, 'false');
+                likeIcon.textContent = '🤍';
+                activityLikes[activityId]--;
+                likeIcon.parentElement.classList.remove('liked');
+            } else {
+                localStorage.setItem(`liked-${activityId}`, 'true');
+                likeIcon.textContent = '❤️';
+                activityLikes[activityId]++;
+                likeIcon.parentElement.classList.add('liked');
+            }
+            
+            likeCount.textContent = activityLikes[activityId] > 0 ? activityLikes[activityId] : '';
+            localStorage.setItem('activityLikes', JSON.stringify(activityLikes));
+        }
+
+        function focusComment(activityId) {
+            document.getElementById(`comment-input-${activityId}`).focus();
+        }
+
+        function handleCommentKeypress(event, activityId) {
+            if (event.key === 'Enter') {
+                addComment(activityId);
+            }
+        }
+
+        function addComment(activityId) {
+            const input = document.getElementById(`comment-input-${activityId}`);
+            const text = input.value.trim();
+            
+            if (!text) return;
+            
+            if (!activityComments[activityId]) {
+                activityComments[activityId] = [];
+            }
+            
+            const comment = {
+                author: 'You',
+                initials: 'Y',
+                text: text,
+                time: 'just now'
+            };
+            
+            activityComments[activityId].push(comment);
+            localStorage.setItem('activityComments', JSON.stringify(activityComments));
+            
+            // Add comment to DOM
+            const commentsList = document.getElementById(`comments-${activityId}`);
+            const newComment = document.createElement('div');
+            newComment.className = 'comment';
+            newComment.innerHTML = `
+                <div class="comment-avatar">${comment.initials}</div>
+                <div class="comment-content">
+                    <span class="comment-author">${comment.author}</span>
+                    <span class="comment-text">${comment.text}</span>
+                    <div class="comment-time">${comment.time}</div>
+                </div>
+            `;
+            commentsList.appendChild(newComment);
+            
+            // Update comment count
+            const commentCount = document.getElementById(`comment-count-${activityId}`);
+            commentCount.textContent = activityComments[activityId].length;
+            
+            // Clear input
+            input.value = '';
+            
+            showToast('Comment added!');
+        }
+
+        // Search functionality
         async function search(query) {
             if (!query.trim()) {
                 document.getElementById('searchResults').innerHTML = `
@@ -1059,25 +1128,7 @@
                     ? data.results.filter(item => item.media_type !== 'person')
                     : data.results;
                     
-                // For TV shows, fetch season details
-                const resultsWithSeasons = await Promise.all(
-                    filteredResults.map(async (item) => {
-                        if (item.media_type === 'tv' || item.first_air_date) {
-                            try {
-                                const detailsResponse = await fetch(`${BASE_URL}/tv/${item.id}?api_key=${API_KEY}`);
-                                const details = await detailsResponse.json();
-                                item.seasons = details.seasons?.filter(s => s.season_number > 0) || [];
-                                item.number_of_seasons = details.number_of_seasons;
-                            } catch (error) {
-                                console.error('Error fetching season details:', error);
-                                item.seasons = [];
-                            }
-                        }
-                        return item;
-                    })
-                );
-                    
-                displaySearchResults(resultsWithSeasons);
+                displaySearchResults(filteredResults);
             } catch (error) {
                 console.error('Search error:', error);
                 document.getElementById('searchResults').innerHTML = '<div class="no-results">Error searching. Please try again.</div>';
@@ -1092,215 +1143,82 @@
                 return;
             }
 
-            // Create cards for each item AND separate cards for each TV season
-            const allCards = [];
-            
-            results.forEach(item => {
+            container.innerHTML = results.map(item => {
                 const isTV = item.media_type === 'tv' || item.first_air_date;
                 const title = item.title || item.name;
                 const date = item.release_date || item.first_air_date;
                 const year = date ? date.split('-')[0] : 'TBA';
+                const itemId = `${isTV ? 'tv' : 'movie'}-${item.id}`;
+                const savedItem = userShows[itemId];
                 
-                if (isTV && item.seasons && item.seasons.length > 0) {
-                    // Create a card for each season
-                    item.seasons.forEach(season => {
-                        allCards.push(createResultCard(
-                            item,
-                            title,
-                            year,
-                            'TV',
-                            season.season_number,
-                            season.air_date ? season.air_date.split('-')[0] : year,
-                            season.episode_count
-                        ));
-                    });
-                } else {
-                    // Create a single card for movies or shows without season info
-                    allCards.push(createResultCard(item, title, year, isTV ? 'TV' : 'Movie'));
-                }
-            });
-            
-            container.innerHTML = allCards.join('');
-        }
-
-        function createResultCard(item, title, year, type, seasonNumber = null, seasonYear = null, episodeCount = null) {
-            const isTV = type === 'TV';
-            const displayTitle = seasonNumber ? `${title}` : title;
-            const itemId = seasonNumber 
-                ? `tv-${item.id}-s${seasonNumber}` 
-                : `${isTV ? 'tv' : 'movie'}-${item.id}`;
-            const savedItem = userShows[itemId];
-            
-            // Generate friend stats by status (in real app, from database)
-            const friendsByStatus = generateFriendsByStatus();
-            
-            // Simulate streaming platforms (in real app, from TMDB watch providers API)
-            const platforms = getStreamingPlatforms();
-            
-            // Check if description is long enough to need expand/collapse
-            const needsExpand = item.overview && item.overview.length > 200;
-            
-            return `
-                <div class="result-card">
-                    <div class="result-card-header">
-                        <img src="${item.poster_path ? IMAGE_BASE + '/w200' + item.poster_path : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 150%22%3E%3Crect fill=%22%23ddd%22 width=%22100%22 height=%22150%22/%3E%3C/svg%3E'}" 
-                             alt="${displayTitle}"
-                             class="result-poster">
-                        <div class="result-info">
-                            <div class="result-title">
-                                ${displayTitle}
-                                ${seasonNumber ? `<span class="result-season-badge">S${seasonNumber}</span>` : ''}
-                                <span class="result-type-badge">${type}</span>
+                return `
+                    <div class="result-card">
+                        <div class="result-card-header">
+                            <img src="${item.poster_path ? IMAGE_BASE + '/w185' + item.poster_path : ''}" 
+                                 alt="${title}" 
+                                 class="result-poster">
+                            <div class="result-info">
+                                <div class="result-title">
+                                    ${title}
+                                    <span class="result-type-badge">${isTV ? 'TV' : 'Movie'}</span>
+                                </div>
+                                <div class="result-meta">
+                                    ${year} • ⭐ ${Math.round(item.vote_average * 10) / 10}
+                                    <a href="#" class="trailer-btn" onclick="playTrailer('${item.id}', '${isTV ? 'tv' : 'movie'}'); return false;">
+                                        ▶️ Trailer
+                                    </a>
+                                </div>
+                                <div class="result-overview ${item.overview && item.overview.length > 200 ? 'collapsed' : ''}" id="overview-${itemId}">
+                                    ${item.overview || 'No description available'}
+                                </div>
+                                ${item.overview && item.overview.length > 200 ? `
+                                    <button class="expand-btn" onclick="toggleDescription('${itemId}')">
+                                        Read more
+                                    </button>
+                                ` : ''}
                             </div>
-                            <div class="result-meta">
-                                ${seasonNumber ? `${seasonYear || year}` : year} 
-                                ${episodeCount ? `• ${episodeCount} episodes` : ''} 
-                                • ⭐ ${Math.round(item.vote_average * 10) / 10}
-                                ${platforms}
-                                <a href="#" class="trailer-btn" onclick="playTrailer('${item.id}', '${isTV ? 'tv' : 'movie'}'); return false;">
-                                    ▶️ Trailer
-                                </a>
-                            </div>
-                            <div class="result-overview ${needsExpand ? 'collapsed' : ''}" id="overview-${itemId}">
-                                ${item.overview || 'No description available'}
-                            </div>
-                            ${needsExpand ? `
-                                <button class="expand-btn" onclick="toggleDescription('${itemId}')">
-                                    Read more
+                        </div>
+                        
+                        <div class="quick-rate">
+                            <button class="quick-rate-btn meh ${savedItem?.rating === 'meh' ? 'active' : ''}" 
+                                    onclick="quickRate('${itemId}', 'meh', '${title.replace(/'/g, "\\\\'")}')">
+                                😑 Meh
+                            </button>
+                            <button class="quick-rate-btn like ${savedItem?.rating === 'like' ? 'active' : ''}" 
+                                    onclick="quickRate('${itemId}', 'like', '${title.replace(/'/g, "\\\\'")}')">
+                                👍 Like
+                            </button>
+                            <button class="quick-rate-btn love ${savedItem?.rating === 'love' ? 'active' : ''}" 
+                                    onclick="quickRate('${itemId}', 'love', '${title.replace(/'/g, "\\\\'")}')">
+                                ❤️ Love
+                            </button>
+                        </div>
+                        
+                        <div class="quick-status">
+                            <div class="status-btn-group">
+                                <button class="quick-status-btn ${savedItem?.status === 'want' ? 'active' : ''}"
+                                        onclick="setStatus('${itemId}', 'want', '${title.replace(/'/g, "\\\\'")}')">
+                                    ➕ Want to Watch
                                 </button>
-                            ` : ''}
+                            </div>
+                            
+                            <div class="status-btn-group">
+                                <button class="quick-status-btn ${savedItem?.status === 'watching' ? 'active' : ''}"
+                                        onclick="setStatus('${itemId}', 'watching', '${title.replace(/'/g, "\\\\'")}')">
+                                    ▶️ Watching
+                                </button>
+                            </div>
+                            
+                            <div class="status-btn-group">
+                                <button class="quick-status-btn ${savedItem?.status === 'watched' ? 'active' : ''}"
+                                        onclick="setStatus('${itemId}', 'watched', '${title.replace(/'/g, "\\\\'")}')">
+                                    ✓ Watched
+                                </button>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="quick-rate">
-                        <button class="quick-rate-btn meh ${savedItem?.rating === 'meh' ? 'active' : ''}" 
-                                onclick="quickRate('${itemId}', 'meh', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
-                            😑 Meh
-                        </button>
-                        <button class="quick-rate-btn like ${savedItem?.rating === 'like' ? 'active' : ''}" 
-                                onclick="quickRate('${itemId}', 'like', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
-                            👍 Like
-                        </button>
-                        <button class="quick-rate-btn love ${savedItem?.rating === 'love' ? 'active' : ''}" 
-                                onclick="quickRate('${itemId}', 'love', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
-                            ❤️ Love
-                        </button>
-                    </div>
-                    
-                    <div class="quick-status">
-                        <div class="status-btn-group">
-                            <button class="quick-status-btn ${savedItem?.status === 'want' ? 'active' : ''}"
-                                    onclick="setStatus('${itemId}', 'want', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
-                                ➕ Want to Watch
-                            </button>
-                            ${friendsByStatus.want.count > 0 ? `
-                                <div class="status-friend-count" onclick="showFriendsList('want', '${displayTitle.replace(/'/g, "\\'")}')">
-                                    <div class="status-friend-avatars">
-                                        ${friendsByStatus.want.friends.slice(0, 3).map(f => `
-                                            <div class="status-friend-avatar">${f.initials}</div>
-                                        `).join('')}
-                                    </div>
-                                    ${friendsByStatus.want.count > 3 ? `<span>+${friendsByStatus.want.count - 3}</span>` : ''}
-                                </div>
-                            ` : ''}
-                        </div>
-                        
-                        <div class="status-btn-group">
-                            <button class="quick-status-btn ${savedItem?.status === 'watching' ? 'active' : ''}"
-                                    onclick="setStatus('${itemId}', 'watching', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
-                                ▶️ Watching
-                            </button>
-                            ${friendsByStatus.watching.count > 0 ? `
-                                <div class="status-friend-count" onclick="showFriendsList('watching', '${displayTitle.replace(/'/g, "\\'")}')">
-                                    <div class="status-friend-avatars">
-                                        ${friendsByStatus.watching.friends.slice(0, 3).map(f => `
-                                            <div class="status-friend-avatar">${f.initials}</div>
-                                        `).join('')}
-                                    </div>
-                                    ${friendsByStatus.watching.count > 3 ? `<span>+${friendsByStatus.watching.count - 3}</span>` : ''}
-                                </div>
-                            ` : ''}
-                        </div>
-                        
-                        <div class="status-btn-group">
-                            <button class="quick-status-btn ${savedItem?.status === 'watched' ? 'active' : ''}"
-                                    onclick="setStatus('${itemId}', 'watched', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
-                                ✓ Watched
-                            </button>
-                            ${friendsByStatus.watched.count > 0 ? `
-                                <div class="status-friend-count" onclick="showFriendsList('watched', '${displayTitle.replace(/'/g, "\\'")}')">
-                                    <div class="status-friend-avatars">
-                                        ${friendsByStatus.watched.friends.slice(0, 3).map(f => `
-                                            <div class="status-friend-avatar">${f.initials}</div>
-                                        `).join('')}
-                                    </div>
-                                    ${friendsByStatus.watched.count > 3 ? `<span>+${friendsByStatus.watched.count - 3}</span>` : ''}
-                                </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function generateFriendsByStatus() {
-            // Simulate friend data (in real app, from database)
-            const allFriends = [
-                { name: 'Sarah Chen', initials: 'SC' },
-                { name: 'Mike Rodriguez', initials: 'MR' },
-                { name: 'Emma Wilson', initials: 'EW' },
-                { name: 'Jake Park', initials: 'JP' },
-                { name: 'Tina Kim', initials: 'TK' },
-                { name: 'Alex Lee', initials: 'AL' },
-                { name: 'Sam Jones', initials: 'SJ' },
-                { name: 'Lisa Wang', initials: 'LW' }
-            ];
-            
-            // Randomly assign friends to different statuses
-            const wantCount = Math.floor(Math.random() * 4);
-            const watchingCount = Math.floor(Math.random() * 6);
-            const watchedCount = Math.floor(Math.random() * 10);
-            
-            return {
-                want: {
-                    count: wantCount,
-                    friends: allFriends.slice(0, wantCount)
-                },
-                watching: {
-                    count: watchingCount,
-                    friends: allFriends.slice(2, 2 + watchingCount)
-                },
-                watched: {
-                    count: watchedCount,
-                    friends: allFriends.slice(1, 1 + watchedCount)
-                }
-            };
-        }
-
-        function getStreamingPlatforms() {
-            // Simulate streaming platforms (in real app, from TMDB watch providers API)
-            const allPlatforms = [
-                { name: 'Netflix', class: 'netflix', text: 'N', url: 'https://netflix.com' },
-                { name: 'Prime Video', class: 'prime', text: 'P', url: 'https://primevideo.com' },
-                { name: 'Disney+', class: 'disney', text: 'D+', url: 'https://disneyplus.com' },
-                { name: 'HBO Max', class: 'hbo', text: 'HBO', url: 'https://hbomax.com' },
-                { name: 'Hulu', class: 'hulu', text: 'H', url: 'https://hulu.com' },
-                { name: 'Apple TV+', class: 'apple', text: 'A', url: 'https://tv.apple.com' }
-            ];
-            
-            // Randomly select 1-3 platforms
-            const numPlatforms = Math.floor(Math.random() * 3) + 1;
-            const selectedPlatforms = allPlatforms.sort(() => 0.5 - Math.random()).slice(0, numPlatforms);
-            
-            return `
-                <div class="streaming-platforms">
-                    ${selectedPlatforms.map(p => `
-                        <a href="${p.url}" target="_blank" class="platform-icon platform-${p.class}" title="${p.name}">
-                            ${p.text}
-                        </a>
-                    `).join('')}
-                </div>
-            `;
+                `;
+            }).join('');
         }
 
         function toggleDescription(itemId) {
@@ -1318,73 +1236,13 @@
             }
         }
 
-        function showFriendsList(status, showTitle) {
-            event.stopPropagation();
-            
-            // Create or update the friends modal
-            let modal = document.getElementById('friendsModal');
-            if (!modal) {
-                modal = document.createElement('div');
-                modal.id = 'friendsModal';
-                modal.className = 'friends-modal';
-                document.body.appendChild(modal);
-            }
-            
-            // Generate friend list (in real app, from database)
-            const friends = generateFriendListForStatus(status);
-            
-            modal.innerHTML = `
-                <div class="friends-modal-header">
-                    <div class="friends-modal-title">
-                        ${status === 'want' ? 'Want to Watch' : status === 'watching' ? 'Watching' : 'Watched'} 
-                        "${showTitle}"
-                    </div>
-                    <button class="friends-modal-close" onclick="closeFriendsModal()">✕</button>
-                </div>
-                <div class="friends-list">
-                    ${friends.map(f => `
-                        <div class="friend-item">
-                            <div class="friend-item-avatar">${f.initials}</div>
-                            <div class="friend-item-name">${f.name}</div>
-                            <div class="friend-item-status">${f.rating || ''}</div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-            
-            modal.classList.add('active');
-        }
-
-        function generateFriendListForStatus(status) {
-            // Simulate friend data
-            const friends = [
-                { name: 'Sarah Chen', initials: 'SC', rating: '❤️ Loved' },
-                { name: 'Mike Rodriguez', initials: 'MR', rating: '👍 Liked' },
-                { name: 'Emma Wilson', initials: 'EW', rating: '❤️ Loved' },
-                { name: 'Jake Park', initials: 'JP', rating: '😑 Meh' },
-                { name: 'Tina Kim', initials: 'TK', rating: '👍 Liked' }
-            ];
-            
-            // Return random subset
-            return friends.slice(0, Math.floor(Math.random() * 4) + 2);
-        }
-
-        function closeFriendsModal() {
-            const modal = document.getElementById('friendsModal');
-            if (modal) {
-                modal.classList.remove('active');
-            }
-        }
-
         async function playTrailer(itemId, mediaType) {
             event.preventDefault();
             
             try {
-                // Fetch videos from TMDB
                 const response = await fetch(`${BASE_URL}/${mediaType}/${itemId}/videos?api_key=${API_KEY}`);
                 const data = await response.json();
                 
-                // Find trailer
                 const trailer = data.results.find(v => v.type === 'Trailer' && v.site === 'YouTube') 
                     || data.results.find(v => v.site === 'YouTube');
                 
@@ -1406,7 +1264,6 @@
                 userShows[itemId] = {};
             }
             
-            // Toggle status if clicking same one
             if (userShows[itemId].status === status) {
                 delete userShows[itemId].status;
             } else {
@@ -1420,7 +1277,6 @@
             
             localStorage.setItem('userShows', JSON.stringify(userShows));
             
-            // Re-search to update buttons
             const query = document.getElementById('searchInput').value;
             if (query) search(query);
         }
@@ -1428,12 +1284,10 @@
         function quickRate(itemId, rating, title) {
             event.stopPropagation();
             
-            // Save to localStorage (in real app, would save to database)
             if (!userShows[itemId]) {
                 userShows[itemId] = {};
             }
             
-            // Toggle rating if clicking same one
             if (userShows[itemId].rating === rating) {
                 delete userShows[itemId].rating;
             } else {
@@ -1441,13 +1295,11 @@
                 userShows[itemId].title = title;
                 userShows[itemId].timestamp = Date.now();
                 
-                // Show success toast
                 showToast(`${rating === 'love' ? '❤️ Loved' : rating === 'like' ? '👍 Liked' : '😑 Meh\'d'} "${title}"`);
             }
             
             localStorage.setItem('userShows', JSON.stringify(userShows));
             
-            // Re-search to update buttons
             const query = document.getElementById('searchInput').value;
             if (query) search(query);
         }
@@ -1491,7 +1343,6 @@
                 this.classList.add('active');
                 searchType = this.dataset.type;
                 
-                // Re-search with current query
                 const query = document.getElementById('searchInput').value;
                 if (query) search(query);
             });
@@ -1520,31 +1371,13 @@
             }
         });
 
-        function attachEventListeners() {
-            document.querySelectorAll('.rating-pills').forEach(group => {
-                const pills = group.querySelectorAll('.rating-pill');
-                pills.forEach(pill => {
-                    pill.addEventListener('click', function() {
-                        pills.forEach(p => p.classList.remove('active', 'love', 'like', 'meh'));
-                        
-                        if (this.textContent.includes('Love')) {
-                            this.classList.add('active', 'love');
-                        } else if (this.textContent.includes('Like')) {
-                            this.classList.add('active', 'like');
-                        } else {
-                            this.classList.add('active', 'meh');
-                        }
-                    });
-                });
+        // Tab navigation
+        document.querySelectorAll('.tab-item').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
             });
-            
-            document.querySelectorAll('.tab-item').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                });
-            });
-        }
+        });
 
         // Load sample data fallback
         function loadSampleData() {
@@ -1554,7 +1387,7 @@
                 { id: 3, name: "Shōgun", poster_path: "/7O4iVfOMQmdCSxhOg1WnzG1AgYT.jpg", overview: "In Japan in the year 1600..." }
             ];
             displayTrending(sampleShows.concat(sampleShows));
-            displayFeed(sampleShows);
+            displayEnhancedFeed(sampleShows.concat(sampleShows));
         }
 
         // Initialize
