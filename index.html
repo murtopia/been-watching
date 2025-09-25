@@ -212,13 +212,13 @@
         .result-card-header {
             display: flex;
             gap: 1rem;
-            margin-bottom: 0.75rem;
+            margin-bottom: 1rem;
         }
 
         .result-poster {
-            width: 60px;
-            height: 90px;
-            border-radius: 8px;
+            width: 100px;
+            height: 150px;
+            border-radius: 12px;
             object-fit: cover;
             background: var(--border);
             flex-shrink: 0;
@@ -260,7 +260,7 @@
         .result-meta {
             font-size: 0.8125rem;
             color: var(--text-secondary);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
@@ -327,13 +327,13 @@
             font-size: 0.8125rem;
             color: var(--text-secondary);
             line-height: 1.4;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.5rem;
             position: relative;
         }
 
         .result-overview.collapsed {
             display: -webkit-box;
-            -webkit-line-clamp: 2;
+            -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
@@ -350,13 +350,58 @@
             background: none;
             border: none;
             padding: 0;
-            margin-left: 0.25rem;
+            float: right;
+            margin-top: 0.25rem;
         }
 
-        /* Enhanced Status Buttons with Friend Counts */
+        /* Rating Buttons - Moved to header area */
+        .quick-rate {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .quick-rate-btn {
+            padding: 0.5rem 1rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.8125rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+        }
+
+        .quick-rate-btn:hover {
+            transform: scale(1.02);
+        }
+
+        .quick-rate-btn.active.love {
+            background: var(--love);
+            color: white;
+            border-color: var(--love);
+        }
+
+        .quick-rate-btn.active.like {
+            background: var(--like);
+            color: white;
+            border-color: var(--like);
+        }
+
+        .quick-rate-btn.active.meh {
+            background: var(--meh);
+            color: white;
+            border-color: var(--meh);
+        }
+
+        /* Enhanced Status Buttons with Centered Friend Counts */
         .quick-status {
             display: flex;
             gap: 0.5rem;
+            margin-top: 0.75rem;
         }
 
         .status-btn-group {
@@ -395,6 +440,7 @@
         .status-friend-count {
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 0.25rem;
             font-size: 0.625rem;
             color: var(--text-secondary);
@@ -409,12 +455,12 @@
 
         .status-friend-avatars {
             display: flex;
-            margin-right: 0.25rem;
+            justify-content: center;
         }
 
         .status-friend-avatar {
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
             display: flex;
@@ -424,7 +470,19 @@
             color: white;
             font-weight: 600;
             border: 1px solid var(--bg-primary);
-            margin-right: -6px;
+            margin: 0 -4px;
+        }
+
+        .status-friend-avatar:first-child {
+            z-index: 3;
+        }
+        
+        .status-friend-avatar:nth-child(2) {
+            z-index: 2;
+        }
+        
+        .status-friend-avatar:nth-child(3) {
+            z-index: 1;
         }
 
         /* Friends List Modal */
@@ -1080,12 +1138,12 @@
             const platforms = getStreamingPlatforms();
             
             // Check if description is long enough to need expand/collapse
-            const needsExpand = item.overview && item.overview.length > 150;
+            const needsExpand = item.overview && item.overview.length > 200;
             
             return `
                 <div class="result-card">
                     <div class="result-card-header">
-                        <img src="${item.poster_path ? IMAGE_BASE + '/w200' + item.poster_path : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 80 120%22%3E%3Crect fill=%22%23ddd%22 width=%2280%22 height=%22120%22/%3E%3C/svg%3E'}" 
+                        <img src="${item.poster_path ? IMAGE_BASE + '/w200' + item.poster_path : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 150%22%3E%3Crect fill=%22%23ddd%22 width=%22100%22 height=%22150%22/%3E%3C/svg%3E'}" 
                              alt="${displayTitle}"
                              class="result-poster">
                         <div class="result-info">
@@ -1114,73 +1172,71 @@
                         </div>
                     </div>
                     
-                    <div class="card-actions">
-                        <div class="quick-rate">
-                            <button class="quick-rate-btn meh ${savedItem?.rating === 'meh' ? 'active' : ''}" 
-                                    onclick="quickRate('${itemId}', 'meh', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
-                                😑 Meh
+                    <div class="quick-rate">
+                        <button class="quick-rate-btn meh ${savedItem?.rating === 'meh' ? 'active' : ''}" 
+                                onclick="quickRate('${itemId}', 'meh', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
+                            😑 Meh
+                        </button>
+                        <button class="quick-rate-btn like ${savedItem?.rating === 'like' ? 'active' : ''}" 
+                                onclick="quickRate('${itemId}', 'like', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
+                            👍 Like
+                        </button>
+                        <button class="quick-rate-btn love ${savedItem?.rating === 'love' ? 'active' : ''}" 
+                                onclick="quickRate('${itemId}', 'love', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
+                            ❤️ Love
+                        </button>
+                    </div>
+                    
+                    <div class="quick-status">
+                        <div class="status-btn-group">
+                            <button class="quick-status-btn ${savedItem?.status === 'want' ? 'active' : ''}"
+                                    onclick="setStatus('${itemId}', 'want', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
+                                ➕ Want to Watch
                             </button>
-                            <button class="quick-rate-btn like ${savedItem?.rating === 'like' ? 'active' : ''}" 
-                                    onclick="quickRate('${itemId}', 'like', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
-                                👍 Like
-                            </button>
-                            <button class="quick-rate-btn love ${savedItem?.rating === 'love' ? 'active' : ''}" 
-                                    onclick="quickRate('${itemId}', 'love', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
-                                ❤️ Love
-                            </button>
+                            ${friendsByStatus.want.count > 0 ? `
+                                <div class="status-friend-count" onclick="showFriendsList('want', '${displayTitle.replace(/'/g, "\\'")}')">
+                                    <div class="status-friend-avatars">
+                                        ${friendsByStatus.want.friends.slice(0, 3).map(f => `
+                                            <div class="status-friend-avatar">${f.initials}</div>
+                                        `).join('')}
+                                    </div>
+                                    ${friendsByStatus.want.count > 3 ? `<span>+${friendsByStatus.want.count - 3}</span>` : ''}
+                                </div>
+                            ` : ''}
                         </div>
                         
-                        <div class="quick-status">
-                            <div class="status-btn-group">
-                                <button class="quick-status-btn ${savedItem?.status === 'want' ? 'active' : ''}"
-                                        onclick="setStatus('${itemId}', 'want', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
-                                    ➕ Want to Watch
-                                </button>
-                                ${friendsByStatus.want.count > 0 ? `
-                                    <div class="status-friend-count" onclick="showFriendsList('want', '${displayTitle.replace(/'/g, "\\'")}')">
-                                        <div class="status-friend-avatars">
-                                            ${friendsByStatus.want.friends.slice(0, 2).map(f => `
-                                                <div class="status-friend-avatar">${f.initials}</div>
-                                            `).join('')}
-                                        </div>
-                                        <span>${friendsByStatus.want.count} friends</span>
+                        <div class="status-btn-group">
+                            <button class="quick-status-btn ${savedItem?.status === 'watching' ? 'active' : ''}"
+                                    onclick="setStatus('${itemId}', 'watching', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
+                                ▶️ Watching
+                            </button>
+                            ${friendsByStatus.watching.count > 0 ? `
+                                <div class="status-friend-count" onclick="showFriendsList('watching', '${displayTitle.replace(/'/g, "\\'")}')">
+                                    <div class="status-friend-avatars">
+                                        ${friendsByStatus.watching.friends.slice(0, 3).map(f => `
+                                            <div class="status-friend-avatar">${f.initials}</div>
+                                        `).join('')}
                                     </div>
-                                ` : ''}
-                            </div>
-                            
-                            <div class="status-btn-group">
-                                <button class="quick-status-btn ${savedItem?.status === 'watching' ? 'active' : ''}"
-                                        onclick="setStatus('${itemId}', 'watching', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
-                                    ▶️ Watching
-                                </button>
-                                ${friendsByStatus.watching.count > 0 ? `
-                                    <div class="status-friend-count" onclick="showFriendsList('watching', '${displayTitle.replace(/'/g, "\\'")}')">
-                                        <div class="status-friend-avatars">
-                                            ${friendsByStatus.watching.friends.slice(0, 2).map(f => `
-                                                <div class="status-friend-avatar">${f.initials}</div>
-                                            `).join('')}
-                                        </div>
-                                        <span>${friendsByStatus.watching.count} friends</span>
+                                    ${friendsByStatus.watching.count > 3 ? `<span>+${friendsByStatus.watching.count - 3}</span>` : ''}
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="status-btn-group">
+                            <button class="quick-status-btn ${savedItem?.status === 'watched' ? 'active' : ''}"
+                                    onclick="setStatus('${itemId}', 'watched', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
+                                ✓ Watched
+                            </button>
+                            ${friendsByStatus.watched.count > 0 ? `
+                                <div class="status-friend-count" onclick="showFriendsList('watched', '${displayTitle.replace(/'/g, "\\'")}')">
+                                    <div class="status-friend-avatars">
+                                        ${friendsByStatus.watched.friends.slice(0, 3).map(f => `
+                                            <div class="status-friend-avatar">${f.initials}</div>
+                                        `).join('')}
                                     </div>
-                                ` : ''}
-                            </div>
-                            
-                            <div class="status-btn-group">
-                                <button class="quick-status-btn ${savedItem?.status === 'watched' ? 'active' : ''}"
-                                        onclick="setStatus('${itemId}', 'watched', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
-                                    ✓ Watched
-                                </button>
-                                ${friendsByStatus.watched.count > 0 ? `
-                                    <div class="status-friend-count" onclick="showFriendsList('watched', '${displayTitle.replace(/'/g, "\\'")}')">
-                                        <div class="status-friend-avatars">
-                                            ${friendsByStatus.watched.friends.slice(0, 2).map(f => `
-                                                <div class="status-friend-avatar">${f.initials}</div>
-                                            `).join('')}
-                                        </div>
-                                        <span>${friendsByStatus.watched.count} friends</span>
-                                    </div>
-                                ` : ''}
-                            </div>
+                                    ${friendsByStatus.watched.count > 3 ? `<span>+${friendsByStatus.watched.count - 3}</span>` : ''}
+                                </div>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
