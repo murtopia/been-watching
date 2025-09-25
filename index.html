@@ -192,44 +192,49 @@
             border-color: var(--accent-primary);
         }
 
-        /* Search Results */
-        .search-results {
-            flex: 1;
-            overflow-y: auto;
+        /* Unified Card Styling */
+        .card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
             padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s;
         }
 
-        .search-loading {
-            text-align: center;
-            padding: 2rem;
-            color: var(--text-secondary);
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
-        .no-results {
-            text-align: center;
-            padding: 3rem;
-            color: var(--text-secondary);
+        /* Search Results - Card Style */
+        .result-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s;
         }
 
-        .result-item {
+        .result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-card-header {
             display: flex;
             gap: 1rem;
-            padding: 1rem;
             margin-bottom: 0.75rem;
-            background: var(--surface);
-            border-radius: 16px;
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-
-        .result-item:hover {
-            transform: translateX(4px);
-            background: var(--glass);
         }
 
         .result-poster {
-            width: 80px;
-            height: 120px;
+            width: 60px;
+            height: 90px;
             border-radius: 8px;
             object-fit: cover;
             background: var(--border);
@@ -238,78 +243,58 @@
 
         .result-info {
             flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
         }
 
         .result-title {
             font-weight: 600;
+            font-size: 1rem;
             margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .result-meta {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-        }
-
-        .result-type {
+        .result-season-badge {
             display: inline-block;
-            padding: 0.125rem 0.5rem;
-            background: var(--accent-primary);
+            padding: 0.125rem 0.375rem;
+            background: var(--accent-purple);
             color: white;
             border-radius: 4px;
             font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .result-type-badge {
+            display: inline-block;
+            padding: 0.125rem 0.375rem;
+            background: var(--accent-primary);
+            color: white;
+            border-radius: 4px;
+            font-size: 0.625rem;
             font-weight: 500;
-            margin-left: 0.5rem;
+        }
+
+        .result-meta {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
         }
 
         .result-overview {
             font-size: 0.8125rem;
             color: var(--text-secondary);
+            line-height: 1.4;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
+            margin-bottom: 0.75rem;
         }
 
-        /* Season Cards for TV Shows */
-        .seasons-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 0.5rem;
-            margin: 0.75rem 0;
-        }
-
-        .season-card {
-            padding: 0.5rem;
-            background: var(--bg-primary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .season-card:hover {
-            background: var(--accent-primary);
-            color: white;
-            border-color: var(--accent-primary);
-        }
-
-        .season-number {
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .season-year {
-            font-size: 0.625rem;
-            opacity: 0.7;
-        }
-
-        /* Quick Add Section in Results */
-        .quick-actions {
+        /* Action Buttons Section */
+        .card-actions {
+            border-top: 1px solid var(--border);
+            padding-top: 0.75rem;
             margin-top: 0.75rem;
         }
 
@@ -321,17 +306,21 @@
 
         .quick-rate-btn {
             flex: 1;
-            padding: 0.4rem;
-            background: var(--bg-primary);
+            padding: 0.5rem;
+            background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 0.75rem;
+            border-radius: 10px;
+            font-size: 0.8125rem;
             cursor: pointer;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
         }
 
         .quick-rate-btn:hover {
-            transform: scale(1.05);
+            transform: scale(1.02);
         }
 
         .quick-rate-btn.active.love {
@@ -360,12 +349,16 @@
         .quick-status-btn {
             flex: 1;
             padding: 0.4rem;
-            background: var(--bg-primary);
+            background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 8px;
-            font-size: 0.625rem;
+            font-size: 0.75rem;
             cursor: pointer;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
         }
 
         .quick-status-btn:hover {
@@ -380,24 +373,24 @@
             border-color: var(--accent-primary);
         }
 
-        /* Friend Ratings Preview */
+        /* Friend Stats Section */
         .friend-stats {
             display: flex;
             align-items: center;
-            gap: 1rem;
-            margin-top: 0.5rem;
-            padding-top: 0.5rem;
-            border-top: 1px solid var(--border);
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--surface);
+            border-radius: 10px;
+            margin-top: 0.75rem;
         }
 
         .friend-avatars {
             display: flex;
-            margin-right: 0.5rem;
         }
 
         .friend-avatar-small {
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
             display: flex;
@@ -407,17 +400,132 @@
             color: white;
             font-weight: 600;
             border: 2px solid var(--bg-primary);
-            margin-right: -8px;
+            margin-right: -10px;
+        }
+
+        .friend-avatar-small:last-child {
+            margin-right: 0;
         }
 
         .friend-count {
-            font-size: 0.75rem;
+            font-size: 0.8125rem;
             color: var(--text-secondary);
         }
 
         .friend-count strong {
             color: var(--text-primary);
             font-weight: 600;
+        }
+
+        /* Activity Feed Cards */
+        .activity-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            transition: all 0.2s;
+        }
+
+        .activity-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .activity-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .show-content {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .show-poster-small {
+            width: 60px;
+            height: 90px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: var(--surface);
+            flex-shrink: 0;
+        }
+
+        .rating-section {
+            padding: 0 1rem 1rem;
+        }
+
+        .rating-pills {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .rating-pill {
+            flex: 1;
+            padding: 0.5rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .rating-pill.active.love {
+            background: var(--love);
+            color: white;
+            border-color: var(--love);
+        }
+
+        .rating-pill.active.like {
+            background: var(--like);
+            color: white;
+            border-color: var(--like);
+        }
+
+        .rating-pill.active.meh {
+            background: var(--meh);
+            color: white;
+            border-color: var(--meh);
+        }
+
+        /* Season Selector for existing shows */
+        .season-selector {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+        }
+
+        .season-selector select {
+            background: transparent;
+            border: none;
+            font-size: 0.75rem;
+            cursor: pointer;
         }
 
         /* Main Feed Styles */
@@ -763,7 +871,7 @@
             attachEventListeners();
         }
 
-        // Search functionality with TV season support
+        // Search functionality with season-specific cards
         async function search(query) {
             if (!query.trim()) {
                 document.getElementById('searchResults').innerHTML = `
@@ -826,84 +934,104 @@
                 return;
             }
 
-            container.innerHTML = results.map(item => {
+            // Create cards for each item AND separate cards for each TV season
+            const allCards = [];
+            
+            results.forEach(item => {
                 const isTV = item.media_type === 'tv' || item.first_air_date;
                 const title = item.title || item.name;
                 const date = item.release_date || item.first_air_date;
                 const year = date ? date.split('-')[0] : 'TBA';
-                const type = isTV ? 'TV' : 'Movie';
-                const itemId = `${isTV ? 'tv' : 'movie'}-${item.id}`;
-                const savedItem = userShows[itemId];
                 
-                // Generate friend stats (in real app, this would be from database)
-                const friendStats = generateFriendStats();
-                
-                return `
-                    <div class="result-item">
+                if (isTV && item.seasons && item.seasons.length > 0) {
+                    // Create a card for each season
+                    item.seasons.forEach(season => {
+                        allCards.push(createResultCard(
+                            item,
+                            title,
+                            year,
+                            'TV',
+                            season.season_number,
+                            season.air_date ? season.air_date.split('-')[0] : year,
+                            season.episode_count
+                        ));
+                    });
+                } else {
+                    // Create a single card for movies or shows without season info
+                    allCards.push(createResultCard(item, title, year, isTV ? 'TV' : 'Movie'));
+                }
+            });
+            
+            container.innerHTML = allCards.join('');
+        }
+
+        function createResultCard(item, title, year, type, seasonNumber = null, seasonYear = null, episodeCount = null) {
+            const isTV = type === 'TV';
+            const displayTitle = seasonNumber ? `${title}` : title;
+            const itemId = seasonNumber 
+                ? `tv-${item.id}-s${seasonNumber}` 
+                : `${isTV ? 'tv' : 'movie'}-${item.id}`;
+            const savedItem = userShows[itemId];
+            
+            // Generate friend stats (in real app, this would be from database)
+            const friendStats = generateFriendStats();
+            
+            return `
+                <div class="result-card">
+                    <div class="result-card-header">
                         <img src="${item.poster_path ? IMAGE_BASE + '/w200' + item.poster_path : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 80 120%22%3E%3Crect fill=%22%23ddd%22 width=%2280%22 height=%22120%22/%3E%3C/svg%3E'}" 
-                             alt="${title}"
+                             alt="${displayTitle}"
                              class="result-poster">
                         <div class="result-info">
                             <div class="result-title">
-                                ${title}
-                                <span class="result-type">${type}</span>
+                                ${displayTitle}
+                                ${seasonNumber ? `<span class="result-season-badge">S${seasonNumber}</span>` : ''}
+                                <span class="result-type-badge">${type}</span>
                             </div>
-                            <div class="result-meta">${year} • ⭐ ${Math.round(item.vote_average * 10) / 10}</div>
+                            <div class="result-meta">
+                                ${seasonNumber ? `${seasonYear || year}` : year} 
+                                ${episodeCount ? `• ${episodeCount} episodes` : ''} 
+                                • ⭐ ${Math.round(item.vote_average * 10) / 10}
+                            </div>
                             <div class="result-overview">${item.overview || 'No description available'}</div>
-                            
-                            ${isTV && item.seasons && item.seasons.length > 0 ? `
-                                <div class="seasons-grid">
-                                    ${item.seasons.slice(0, 8).map(season => `
-                                        <div class="season-card" onclick="selectSeason('${itemId}', ${season.season_number}, '${title.replace(/'/g, "\\'")} S${season.season_number}')">
-                                            <div class="season-number">S${season.season_number}</div>
-                                            <div class="season-year">${season.air_date ? season.air_date.split('-')[0] : ''}</div>
-                                        </div>
-                                    `).join('')}
-                                    ${item.seasons.length > 8 ? `
-                                        <div class="season-card">
-                                            <div class="season-number">+${item.seasons.length - 8}</div>
-                                        </div>
-                                    ` : ''}
-                                </div>
-                            ` : ''}
-                            
-                            <div class="quick-actions">
-                                <div class="quick-rate">
-                                    <button class="quick-rate-btn meh ${savedItem?.rating === 'meh' ? 'active' : ''}" 
-                                            onclick="quickRate('${itemId}', 'meh', '${title.replace(/'/g, "\\'")}')">
-                                        😑 Meh
-                                    </button>
-                                    <button class="quick-rate-btn like ${savedItem?.rating === 'like' ? 'active' : ''}" 
-                                            onclick="quickRate('${itemId}', 'like', '${title.replace(/'/g, "\\'")}')">
-                                        👍 Like
-                                    </button>
-                                    <button class="quick-rate-btn love ${savedItem?.rating === 'love' ? 'active' : ''}" 
-                                            onclick="quickRate('${itemId}', 'love', '${title.replace(/'/g, "\\'")}')">
-                                        ❤️ Love
-                                    </button>
-                                </div>
-                                
-                                <div class="quick-status">
-                                    <button class="quick-status-btn ${savedItem?.status === 'want' ? 'active' : ''}"
-                                            onclick="setStatus('${itemId}', 'want', '${title.replace(/'/g, "\\'")}')">
-                                        ➕ Want
-                                    </button>
-                                    <button class="quick-status-btn ${savedItem?.status === 'watching' ? 'active' : ''}"
-                                            onclick="setStatus('${itemId}', 'watching', '${title.replace(/'/g, "\\'")}')">
-                                        ▶️ Watching
-                                    </button>
-                                    <button class="quick-status-btn ${savedItem?.status === 'watched' ? 'active' : ''}"
-                                            onclick="setStatus('${itemId}', 'watched', '${title.replace(/'/g, "\\'")}')">
-                                        ✓ Watched
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            ${friendStats}
                         </div>
                     </div>
-                `;
-            }).join('');
+                    
+                    <div class="card-actions">
+                        <div class="quick-rate">
+                            <button class="quick-rate-btn meh ${savedItem?.rating === 'meh' ? 'active' : ''}" 
+                                    onclick="quickRate('${itemId}', 'meh', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
+                                😑 Meh
+                            </button>
+                            <button class="quick-rate-btn like ${savedItem?.rating === 'like' ? 'active' : ''}" 
+                                    onclick="quickRate('${itemId}', 'like', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
+                                👍 Like
+                            </button>
+                            <button class="quick-rate-btn love ${savedItem?.rating === 'love' ? 'active' : ''}" 
+                                    onclick="quickRate('${itemId}', 'love', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
+                                ❤️ Love
+                            </button>
+                        </div>
+                        
+                        <div class="quick-status">
+                            <button class="quick-status-btn ${savedItem?.status === 'want' ? 'active' : ''}"
+                                    onclick="setStatus('${itemId}', 'want', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
+                                ➕ Want
+                            </button>
+                            <button class="quick-status-btn ${savedItem?.status === 'watching' ? 'active' : ''}"
+                                    onclick="setStatus('${itemId}', 'watching', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
+                                ▶️ Watching
+                            </button>
+                            <button class="quick-status-btn ${savedItem?.status === 'watched' ? 'active' : ''}"
+                                    onclick="setStatus('${itemId}', 'watched', '${displayTitle.replace(/'/g, "\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
+                                ✓ Watched
+                            </button>
+                        </div>
+                    </div>
+                    
+                    ${friendStats}
+                </div>
+            `;
         }
 
         function generateFriendStats() {
@@ -937,26 +1065,6 @@
                     </div>
                 </div>
             `;
-        }
-
-        function selectSeason(showId, seasonNumber, title) {
-            event.stopPropagation();
-            
-            // Save season-specific data
-            const seasonId = `${showId}-s${seasonNumber}`;
-            if (!userShows[seasonId]) {
-                userShows[seasonId] = {
-                    parentShow: showId,
-                    season: seasonNumber,
-                    title: title
-                };
-            }
-            
-            // Toggle selection visual feedback
-            event.target.classList.toggle('active');
-            
-            showToast(`Selected "${title}"`);
-            localStorage.setItem('userShows', JSON.stringify(userShows));
         }
 
         function setStatus(itemId, status, title) {
