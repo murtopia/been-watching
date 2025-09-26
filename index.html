@@ -1,1412 +1,4 @@
-autocomplete="off">
-                </div>
-                <button class="close-btn" onclick="closeSearch()">✕</button>
-            </div>
-            
-            <div class="search-type-toggle">
-                <button class="type-btn active" data-type="all">All</button>
-                <button class="type-btn" data-type="tv">TV Shows</button>
-                <button class="type-btn" data-type="movie">Movies</button>
-            </div>
-            
-            <div class="search-results" id="searchResults">
-                <div class="no-results">
-                    <h3>🔍</h3>
-                    <p>Search for your favorite shows and movies</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Top Show Selector Modal -->
-    <div class="top-show-modal" id="topShowModal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Select Top Show #<span id="slotNumber"></span></h3>
-                <button class="close-modal" onclick="closeTopShowModal()">✕</button>
-            </div>
-            <div class="modal-search">
-                <input type="text" id="topShowSearch" placeholder="Search your shows..." oninput="searchMyShows()">
-            </div>
-            <div class="modal-shows-list" id="modalShowsList"></div>
-        </div>
-    </div>
-
-    <!-- Invite Friends Modal -->
-    <div class="invite-modal" id="inviteModal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Invite Friends</h3>
-                <button class="close-modal" onclick="closeInviteModal()">✕</button>
-            </div>
-            <div class="invite-methods">
-                <button class="invite-method" onclick="shareInviteLink()">
-                    <span>🔗</span>
-                    <div>Share Link</div>
-                </button>
-                <button class="invite-method" onclick="showQRCode()">
-                    <span>📱</span>
-                    <div>QR Code</div>
-                </button>
-                <button class="invite-method" onclick="inviteViaContacts()">
-                    <span>📧</span>
-                    <div>From Contacts</div>
-                </button>
-            </div>
-            <div class="contacts-list" id="contactsList" style="display: none;">
-                <div class="contact-item">
-                    <div class="contact-avatar">JD</div>
-                    <div class="contact-info">
-                        <div class="contact-name">John Doe</div>
-                        <div class="contact-status">Not on Been Watching</div>
-                    </div>
-                    <button class="invite-btn" onclick="inviteContact('John Doe')">Invite</button>
-                </div>
-                <div class="contact-item">
-                    <div class="contact-avatar">AS</div>
-                    <div class="contact-info">
-                        <div class="contact-name">Alice Smith</div>
-                        <div class="contact-status on-app">@alicesmith</div>
-                    </div>
-                    <button class="follow-btn" onclick="toggleFollow('alicesmith', 'Alice Smith', true)">Follow</button>
-                </div>
-                <div class="contact-item">
-                    <div class="contact-avatar">BP</div>
-                    <div class="contact-info">
-                        <div class="contact-name">Bob Peterson</div>
-                        <div class="contact-status on-app">@bobp • Private</div>
-                    </div>
-                    <button class="follow-btn" onclick="toggleFollow('bobp', 'Bob Peterson', true)">Request</button>
-                </div>
-            </div>
-            <div class="qr-code-display" id="qrCodeDisplay" style="display: none;">
-                <div class="qr-placeholder">📱 QR Code</div>
-                <p>Friends can scan this to join Been Watching!</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Success Toast -->
-    <div class="toast" id="toast"></div>
-
-    <!-- Tab Bar -->
-    <nav class="tab-bar">
-        <button class="tab-item active" onclick="showSection('feed')">🏠 Feed</button>
-        <button class="tab-add" onclick="openSearch()">+</button>
-        <button class="tab-item" onclick="showSection('myshows')">📚 My Shows</button>
-        <button class="tab-item" onclick="showSection('profile')">👤 Profile</button>
-    </nav>
-
-    <script>
-        // Your TMDB API key
-        const API_KEY = '99b89037cac7fea56692934b534ea26a';
-        const BASE_URL = 'https://api.themoviedb.org/3';
-        const IMAGE_BASE = 'https://image.tmdb.org/t/p';
-
-        // Store user's shows (in real app, this would be in a database)
-        let userShows = JSON.parse(localStorage.getItem('userShows')) || {};
-        
-        // Store comments (in real app, this would be in a database)
-        let activityComments = JSON.parse(localStorage.getItem('activityComments')) || {};
-        let activityLikes = JSON.parse(localStorage.getItem('activityLikes')) || {};
-        
-        // Store social data
-        let following = JSON.parse(localStorage.getItem('following')) || [];
-        let followers = JSON.parse(localStorage.getItem('followers')) || [];
-        let pendingRequests = JSON.parse(localStorage.getItem('pendingRequests')) || [];
-        let sentRequests = JSON.parse(localStorage.getItem('sentRequests')) || [];
-        
-        // Current search type
-        let searchType = 'all';
-
-        // Load trending content on page load
-        async function loadTrending() {
-            try {
-                const response = await fetch(`${BASE_URL}/trending/all/week?api_key=${API_KEY}`);
-                const data = await response.json();
-                displayTrending(data.results.slice(0, 6));
-                displayEnhancedFeed(data.results.slice(6, 15));
-            } catch (error) {
-                console.error('Error loading trending:', error);
-                loadSampleData();
-            }
-        }
-
-        function displayTrending(items) {
-            const container = document.getElementById('trendingShows');
-            container.innerHTML = items.map(item => `
-                <div class="show-card" onclick="openSearch('${(item.title || item.name).replace(/'/g, "\\''")}')">
-                    <img src="${item.poster_path ? IMAGE_BASE + '/w342' + item.poster_path : ''}" 
-                         alt="${item.title || item.name}" 
-                         class="show-poster">
-                    <div class="show-title">${item.title || item.name}</div>
-                </div>
-            `).join('');
-        }
-
-        function displayEnhancedFeed(items) {
-            const container = document.getElementById('feedContent');
-            const activities = [
-                { name: 'Sarah Chen', initials: 'SC', time: '2 hours ago', action: 'loved', rating: 'love' },
-                { name: 'Mike Rodriguez', initials: 'MR', time: '5 hours ago', action: 'added to Want to Watch', rating: null },
-                { name: 'Emma Wilson', initials: 'EW', time: '1 day ago', action: 'finished watching', rating: 'like' },
-                { name: 'Jake Park', initials: 'JP', time: '1 day ago', action: 'started watching', rating: null },
-                { name: 'Lisa Wang', initials: 'LW', time: '2 days ago', action: 'gave Meh to', rating: 'meh' },
-                { name: 'Alex Lee', initials: 'AL', time: '3 days ago', action: 'loved', rating: 'love' },
-                { name: 'Tina Kim', initials: 'TK', time: '3 days ago', action: 'liked', rating: 'like' },
-                { name: 'Sam Jones', initials: 'SJ', time: '4 days ago', action: 'finished watching', rating: 'love' },
-                { name: 'Chris Davis', initials: 'CD', time: '1 week ago', action: 'started watching', rating: null }
-            ];
-            
-            container.innerHTML = items.map((item, i) => {
-                const activity = activities[i % activities.length];
-                const activityId = `activity-${i}`;
-                const comments = activityComments[activityId] || [];
-                const likes = activityLikes[activityId] || 0;
-                const isLiked = localStorage.getItem(`liked-${activityId}`) === 'true';
-                
-                return `
-                    <div class="activity-card">
-                        <div class="activity-header">
-                            <div class="user-avatar">${activity.initials}</div>
-                            <div class="user-info">
-                                <div class="user-action">
-                                    <strong>${activity.name}</strong>
-                                    <span class="action-type">${activity.action}</span>
-                                    <strong>${item.title || item.name}</strong>
-                                </div>
-                                <div class="post-time">${activity.time}</div>
-                            </div>
-                        </div>
-                        
-                        <div class="feed-show-content">
-                            <img src="${item.poster_path ? IMAGE_BASE + '/w185' + item.poster_path : ''}" 
-                                 alt="${item.title || item.name}" 
-                                 class="feed-show-poster">
-                            <div class="feed-show-info">
-                                <div class="feed-show-title">${item.title || item.name}</div>
-                                <div class="feed-show-meta">
-                                    ${item.release_date || item.first_air_date ? 
-                                        (item.release_date || item.first_air_date).split('-')[0] : 'TBA'}
-                                    • ⭐ ${Math.round(item.vote_average * 10) / 10}
-                                </div>
-                                <div class="feed-show-overview">
-                                    ${item.overview || 'No description available'}
-                                </div>
-                                ${activity.rating ? `
-                                    <div class="user-rating-display ${activity.rating}">
-                                        ${activity.rating === 'love' ? '❤️ Loved' :
-                                          activity.rating === 'like' ? '👍 Liked' :
-                                          '😑 Meh'}
-                                    </div>
-                                ` : ''}
-                            </div>
-                        </div>
-                        
-                        <div class="activity-interactions">
-                            <button class="interaction-btn ${isLiked ? 'liked' : ''}" 
-                                    onclick="toggleLike('${activityId}')">
-                                <span id="like-icon-${activityId}">${isLiked ? '❤️' : '🤍'}</span>
-                                <span id="like-count-${activityId}">${likes > 0 ? likes : ''}</span>
-                            </button>
-                            <button class="interaction-btn" 
-                                    onclick="focusComment('${activityId}')">
-                                💬 <span id="comment-count-${activityId}">${comments.length > 0 ? comments.length : ''}</span>
-                            </button>
-                            <button class="interaction-btn">
-                                📤
-                            </button>
-                        </div>
-                        
-                        <div class="comments-section">
-                            ${comments.length > 0 ? `
-                                <div class="comments-list" id="comments-${activityId}">
-                                    ${comments.map(comment => `
-                                        <div class="comment">
-                                            <div class="comment-avatar">${comment.initials}</div>
-                                            <div class="comment-content">
-                                                <span class="comment-author">${comment.author}</span>
-                                                <span class="comment-text">${comment.text}</span>
-                                                <div class="comment-time">${comment.time}</div>
-                                            </div>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            ` : '<div class="comments-list" id="comments-' + activityId + '"></div>'}
-                            
-                            <div class="comment-input-wrapper">
-                                <input type="text" 
-                                       class="comment-input" 
-                                       id="comment-input-${activityId}"
-                                       placeholder="Add a comment..."
-                                       onkeypress="handleCommentKeypress(event, '${activityId}')">
-                                <button class="comment-submit" 
-                                        onclick="addComment('${activityId}')">Post</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // All the rest of the JavaScript functions
-        function toggleLike(activityId) {
-            const isLiked = localStorage.getItem(`liked-${activityId}`) === 'true';
-            const likeIcon = document.getElementById(`like-icon-${activityId}`);
-            const likeCount = document.getElementById(`like-count-${activityId}`);
-            
-            if (!activityLikes[activityId]) {
-                activityLikes[activityId] = Math.floor(Math.random() * 5);
-            }
-            
-            if (isLiked) {
-                localStorage.setItem(`liked-${activityId}`, 'false');
-                likeIcon.textContent = '🤍';
-                activityLikes[activityId]--;
-                likeIcon.parentElement.classList.remove('liked');
-            } else {
-                localStorage.setItem(`liked-${activityId}`, 'true');
-                likeIcon.textContent = '❤️';
-                activityLikes[activityId]++;
-                likeIcon.parentElement.classList.add('liked');
-            }
-            
-            likeCount.textContent = activityLikes[activityId] > 0 ? activityLikes[activityId] : '';
-            localStorage.setItem('activityLikes', JSON.stringify(activityLikes));
-        }
-
-        function focusComment(activityId) {
-            document.getElementById(`comment-input-${activityId}`).focus();
-        }
-
-        function handleCommentKeypress(event, activityId) {
-            if (event.key === 'Enter') {
-                addComment(activityId);
-            }
-        }
-
-        function addComment(activityId) {
-            const input = document.getElementById(`comment-input-${activityId}`);
-            const text = input.value.trim();
-            
-            if (!text) return;
-            
-            if (!activityComments[activityId]) {
-                activityComments[activityId] = [];
-            }
-            
-            const comment = {
-                author: 'You',
-                initials: 'Y',
-                text: text,
-                time: 'just now'
-            };
-            
-            activityComments[activityId].push(comment);
-            localStorage.setItem('activityComments', JSON.stringify(activityComments));
-            
-            const commentsList = document.getElementById(`comments-${activityId}`);
-            const newComment = document.createElement('div');
-            newComment.className = 'comment';
-            newComment.innerHTML = `
-                <div class="comment-avatar">${comment.initials}</div>
-                <div class="comment-content">
-                    <span class="comment-author">${comment.author}</span>
-                    <span class="comment-text">${comment.text}</span>
-                    <div class="comment-time">${comment.time}</div>
-                </div>
-            `;
-            commentsList.appendChild(newComment);
-            
-            const commentCount = document.getElementById(`comment-count-${activityId}`);
-            commentCount.textContent = activityComments[activityId].length;
-            
-            input.value = '';
-            showToast('Comment added!');
-        }
-
-        // Search functionality with season-specific cards
-        async function search(query) {
-            if (!query.trim()) {
-                document.getElementById('searchResults').innerHTML = `
-                    <div class="no-results">
-                        <h3>🔍</h3>
-                        <p>Search for your favorite shows and movies</p>
-                    </div>
-                `;
-                return;
-            }
-
-            document.getElementById('searchResults').innerHTML = '<div class="search-loading">Searching...</div>';
-
-            try {
-                let url;
-                if (searchType === 'all') {
-                    url = `${BASE_URL}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(query)}`;
-                } else {
-                    url = `${BASE_URL}/search/${searchType}?api_key=${API_KEY}&query=${encodeURIComponent(query)}`;
-                }
-
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                const filteredResults = searchType === 'all' 
-                    ? data.results.filter(item => item.media_type !== 'person')
-                    : data.results;
-                    
-                const resultsWithSeasons = await Promise.all(
-                    filteredResults.map(async (item) => {
-                        if (item.media_type === 'tv' || item.first_air_date) {
-                            try {
-                                const detailsResponse = await fetch(`${BASE_URL}/tv/${item.id}?api_key=${API_KEY}`);
-                                const details = await detailsResponse.json();
-                                item.seasons = details.seasons?.filter(s => s.season_number > 0) || [];
-                                item.number_of_seasons = details.number_of_seasons;
-                            } catch (error) {
-                                console.error('Error fetching season details:', error);
-                                item.seasons = [];
-                            }
-                        }
-                        return item;
-                    })
-                );
-                    
-                displaySearchResults(resultsWithSeasons);
-            } catch (error) {
-                console.error('Search error:', error);
-                document.getElementById('searchResults').innerHTML = '<div class="no-results">Error searching. Please try again.</div>';
-            }
-        }
-
-        function displaySearchResults(results) {
-            const container = document.getElementById('searchResults');
-            
-            if (!results || results.length === 0) {
-                container.innerHTML = '<div class="no-results">No results found</div>';
-                return;
-            }
-
-            const allCards = [];
-            
-            results.forEach(item => {
-                const isTV = item.media_type === 'tv' || item.first_air_date;
-                const title = item.title || item.name;
-                const date = item.release_date || item.first_air_date;
-                const year = date ? date.split('-')[0] : 'TBA';
-                
-                if (isTV && item.seasons && item.seasons.length > 0) {
-                    item.seasons.forEach(season => {
-                        allCards.push(createResultCard(
-                            item,
-                            title,
-                            year,
-                            'TV',
-                            season.season_number,
-                            season.air_date ? season.air_date.split('-')[0] : year,
-                            season.episode_count
-                        ));
-                    });
-                } else {
-                    allCards.push(createResultCard(item, title, year, isTV ? 'TV' : 'Movie'));
-                }
-            });
-            
-            container.innerHTML = allCards.join('');
-        }
-
-        function createResultCard(item, title, year, type, seasonNumber = null, seasonYear = null, episodeCount = null) {
-            const isTV = type === 'TV';
-            const displayTitle = seasonNumber ? `${title}` : title;
-            const itemId = seasonNumber 
-                ? `tv-${item.id}-s${seasonNumber}` 
-                : `${isTV ? 'tv' : 'movie'}-${item.id}`;
-            const savedItem = userShows[itemId];
-            
-            const friendsByStatus = generateFriendsByStatus();
-            const platforms = getStreamingPlatforms();
-            const needsExpand = item.overview && item.overview.length > 200;
-            
-            return `
-                <div class="result-card">
-                    <div class="result-card-header">
-                        <img src="${item.poster_path ? IMAGE_BASE + '/w185' + item.poster_path : ''}" 
-                             alt="${displayTitle}" 
-                             class="result-poster">
-                        <div class="result-info">
-                            <div class="result-title">
-                                ${displayTitle}
-                                ${seasonNumber ? `<span class="result-season-badge">S${seasonNumber}</span>` : ''}
-                                <span class="result-type-badge">${type}</span>
-                            </div>
-                            <div class="result-meta">
-                                ${seasonNumber ? `${seasonYear || year}` : year} 
-                                ${episodeCount ? `• ${episodeCount} episodes` : ''} 
-                                • ⭐ ${Math.round(item.vote_average * 10) / 10}
-                                ${platforms}
-                                <a href="#" class="trailer-btn" onclick="playTrailer('${item.id}', '${isTV ? 'tv' : 'movie'}'); return false;">
-                                    ▶️ Trailer
-                                </a>
-                            </div>
-                            <div class="result-overview ${needsExpand ? 'collapsed' : ''}" id="overview-${itemId}">
-                                ${item.overview || 'No description available'}
-                            </div>
-                            ${needsExpand ? `
-                                <button class="expand-btn" onclick="toggleDescription('${itemId}')">
-                                    Read more
-                                </button>
-                            ` : ''}
-                        </div>
-                    </div>
-                    
-                    <div class="quick-rate">
-                        <button class="quick-rate-btn meh ${savedItem?.rating === 'meh' ? 'active' : ''}" 
-                                onclick="quickRate('${itemId}', 'meh', '${displayTitle.replace(/'/g, "\\\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
-                            😑 Meh
-                        </button>
-                        <button class="quick-rate-btn like ${savedItem?.rating === 'like' ? 'active' : ''}" 
-                                onclick="quickRate('${itemId}', 'like', '${displayTitle.replace(/'/g, "\\\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
-                            👍 Like
-                        </button>
-                        <button class="quick-rate-btn love ${savedItem?.rating === 'love' ? 'active' : ''}" 
-                                onclick="quickRate('${itemId}', 'love', '${displayTitle.replace(/'/g, "\\\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
-                            ❤️ Love
-                        </button>
-                    </div>
-                    
-                    <div class="quick-status">
-                        <div class="status-btn-group">
-                            <button class="quick-status-btn ${savedItem?.status === 'want' ? 'active' : ''}"
-                                    onclick="setStatus('${itemId}', 'want', '${displayTitle.replace(/'/g, "\\\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
-                                ➕ Want to Watch
-                            </button>
-                            ${friendsByStatus.want.count > 0 ? `
-                                <div class="status-friend-count" onclick="showFriendsList('want', '${displayTitle.replace(/'/g, "\\\\'")}')">
-                                    <div class="status-friend-avatars">
-                                        ${friendsByStatus.want.friends.slice(0, 3).map(f => `
-                                            <div class="status-friend-avatar">${f.initials}</div>
-                                        `).join('')}
-                                    </div>
-                                    ${friendsByStatus.want.count > 3 ? `<span>+${friendsByStatus.want.count - 3}</span>` : ''}
-                                </div>
-                            ` : ''}
-                        </div>
-                        
-                        <div class="status-btn-group">
-                            <button class="quick-status-btn ${savedItem?.status === 'watching' ? 'active' : ''}"
-                                    onclick="setStatus('${itemId}', 'watching', '${displayTitle.replace(/'/g, "\\\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
-                                ▶️ Watching
-                            </button>
-                            ${friendsByStatus.watching.count > 0 ? `
-                                <div class="status-friend-count" onclick="showFriendsList('watching', '${displayTitle.replace(/'/g, "\\\\'")}')">
-                                    <div class="status-friend-avatars">
-                                        ${friendsByStatus.watching.friends.slice(0, 3).map(f => `
-                                            <div class="status-friend-avatar">${f.initials}</div>
-                                        `).join('')}
-                                    </div>
-                                    ${friendsByStatus.watching.count > 3 ? `<span>+${friendsByStatus.watching.count - 3}</span>` : ''}
-                                </div>
-                            ` : ''}
-                        </div>
-                        
-                        <div class="status-btn-group">
-                            <button class="quick-status-btn ${savedItem?.status === 'watched' ? 'active' : ''}"
-                                    onclick="setStatus('${itemId}', 'watched', '${displayTitle.replace(/'/g, "\\\\'")}${seasonNumber ? ' S' + seasonNumber : ''}')">
-                                ✓ Watched
-                            </button>
-                            ${friendsByStatus.watched.count > 0 ? `
-                                <div class="status-friend-count" onclick="showFriendsList('watched', '${displayTitle.replace(/'/g, "\\\\'")}')">
-                                    <div class="status-friend-avatars">
-                                        ${friendsByStatus.watched.friends.slice(0, 3).map(f => `
-                                            <div class="status-friend-avatar">${f.initials}</div>
-                                        `).join('')}
-                                    </div>
-                                    ${friendsByStatus.watched.count > 3 ? `<span>+${friendsByStatus.watched.count - 3}</span>` : ''}
-                                </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function generateFriendsByStatus() {
-            const allFriends = [
-                { name: 'Sarah Chen', initials: 'SC' },
-                { name: 'Mike Rodriguez', initials: 'MR' },
-                { name: 'Emma Wilson', initials: 'EW' },
-                { name: 'Jake Park', initials: 'JP' },
-                { name: 'Tina Kim', initials: 'TK' },
-                { name: 'Alex Lee', initials: 'AL' },
-                { name: 'Sam Jones', initials: 'SJ' },
-                { name: 'Lisa Wang', initials: 'LW' }
-            ];
-            
-            const wantCount = Math.floor(Math.random() * 4);
-            const watchingCount = Math.floor(Math.random() * 6);
-            const watchedCount = Math.floor(Math.random() * 10);
-            
-            return {
-                want: {
-                    count: wantCount,
-                    friends: allFriends.slice(0, wantCount)
-                },
-                watching: {
-                    count: watchingCount,
-                    friends: allFriends.slice(2, 2 + watchingCount)
-                },
-                watched: {
-                    count: watchedCount,
-                    friends: allFriends.slice(1, 1 + watchedCount)
-                }
-            };
-        }
-
-        function getStreamingPlatforms() {
-            const allPlatforms = [
-                { name: 'Netflix', class: 'netflix', text: 'N', url: 'https://netflix.com' },
-                { name: 'Prime Video', class: 'prime', text: 'P', url: 'https://primevideo.com' },
-                { name: 'Disney+', class: 'disney', text: 'D+', url: 'https://disneyplus.com' },
-                { name: 'HBO Max', class: 'hbo', text: 'HBO', url: 'https://hbomax.com' },
-                { name: 'Hulu', class: 'hulu', text: 'H', url: 'https://hulu.com' },
-                { name: 'Apple TV+', class: 'apple', text: 'A', url: 'https://tv.apple.com' }
-            ];
-            
-            const numPlatforms = Math.floor(Math.random() * 3) + 1;
-            const selectedPlatforms = allPlatforms.sort(() => 0.5 - Math.random()).slice(0, numPlatforms);
-            
-            return `
-                <div class="streaming-platforms">
-                    ${selectedPlatforms.map(p => `
-                        <a href="${p.url}" target="_blank" class="platform-icon platform-${p.class}" title="${p.name}">
-                            ${p.text}
-                        </a>
-                    `).join('')}
-                </div>
-            `;
-        }
-
-        function showFriendsList(status, showTitle) {
-            event.stopPropagation();
-            
-            let modal = document.getElementById('friendsModal');
-            if (!modal) {
-                modal = document.createElement('div');
-                modal.id = 'friendsModal';
-                modal.className = 'friends-modal';
-                document.body.appendChild(modal);
-            }
-            
-            const friends = generateFriendListForStatus(status);
-            
-            modal.innerHTML = `
-                <div class="friends-modal-header">
-                    <div class="friends-modal-title">
-                        ${status === 'want' ? 'Want to Watch' : status === 'watching' ? 'Watching' : 'Watched'} 
-                        "${showTitle}"
-                    </div>
-                    <button class="friends-modal-close" onclick="closeFriendsModal()">✕</button>
-                </div>
-                <div class="friends-list">
-                    ${friends.map(f => `
-                        <div class="friend-item">
-                            <div class="friend-item-avatar">${f.initials}</div>
-                            <div class="friend-item-name">${f.name}</div>
-                            <div class="friend-item-status">${f.rating || ''}</div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-            
-            modal.classList.add('active');
-        }
-
-        function generateFriendListForStatus(status) {
-            const friends = [
-                { name: 'Sarah Chen', initials: 'SC', rating: '❤️ Loved' },
-                { name: 'Mike Rodriguez', initials: 'MR', rating: '👍 Liked' },
-                { name: 'Emma Wilson', initials: 'EW', rating: '❤️ Loved' },
-                { name: 'Jake Park', initials: 'JP', rating: '😑 Meh' },
-                { name: 'Tina Kim', initials: 'TK', rating: '👍 Liked' }
-            ];
-            
-            return friends.slice(0, Math.floor(Math.random() * 4) + 2);
-        }
-
-        function closeFriendsModal() {
-            const modal = document.getElementById('friendsModal');
-            if (modal) {
-                modal.classList.remove('active');
-            }
-        }
-
-        async function playTrailer(itemId, mediaType) {
-            event.preventDefault();
-            
-            try {
-                const response = await fetch(`${BASE_URL}/${mediaType}/${itemId}/videos?api_key=${API_KEY}`);
-                const data = await response.json();
-                
-                const trailer = data.results.find(v => v.type === 'Trailer' && v.site === 'YouTube') 
-                    || data.results.find(v => v.site === 'YouTube');
-                
-                if (trailer) {
-                    window.open(`https://www.youtube.com/watch?v=${trailer.key}`, '_blank');
-                } else {
-                    showToast('No trailer available');
-                }
-            } catch (error) {
-                console.error('Error fetching trailer:', error);
-                showToast('Error loading trailer');
-            }
-        }
-
-        function setStatus(itemId, status, title) {
-            event.stopPropagation();
-            
-            if (!userShows[itemId]) {
-                userShows[itemId] = {};
-            }
-            
-            if (userShows[itemId].status === status) {
-                delete userShows[itemId].status;
-            } else {
-                userShows[itemId].status = status;
-                userShows[itemId].title = title;
-                userShows[itemId].timestamp = Date.now();
-                
-                const statusText = status === 'want' ? 'Want to watch' : status === 'watching' ? 'Watching' : 'Watched';
-                showToast(`${statusText} "${title}"`);
-            }
-            
-            localStorage.setItem('userShows', JSON.stringify(userShows));
-            
-            const query = document.getElementById('searchInput').value;
-            if (query) search(query);
-        }
-
-        function quickRate(itemId, rating, title) {
-            event.stopPropagation();
-            
-            if (!userShows[itemId]) {
-                userShows[itemId] = {};
-            }
-            
-            if (userShows[itemId].rating === rating) {
-                delete userShows[itemId].rating;
-            } else {
-                userShows[itemId].rating = rating;
-                userShows[itemId].title = title;
-                userShows[itemId].timestamp = Date.now();
-                
-                showToast(`${rating === 'love' ? '❤️ Loved' : rating === 'like' ? '👍 Liked' : '😑 Meh\'d'} "${title}"`);
-            }
-            
-            localStorage.setItem('userShows', JSON.stringify(userShows));
-            
-            const query = document.getElementById('searchInput').value;
-            if (query) search(query);
-        }
-
-        function toggleDescription(itemId) {
-            const overview = document.getElementById(`overview-${itemId}`);
-            const button = event.target;
-            
-            if (overview.classList.contains('collapsed')) {
-                overview.classList.remove('collapsed');
-                overview.classList.add('expanded');
-                button.textContent = 'Read less';
-            } else {
-                overview.classList.remove('expanded');
-                overview.classList.add('collapsed');
-                button.textContent = 'Read more';
-            }
-        }
-
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.classList.add('show');
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
-
-        function openSearch(prefillQuery = '') {
-            document.getElementById('searchModal').classList.add('active');
-            const input = document.getElementById('searchInput');
-            input.value = prefillQuery;
-            input.focus();
-            
-            if (prefillQuery) {
-                search(prefillQuery);
-            }
-        }
-
-        function closeSearch() {
-            document.getElementById('searchModal').classList.remove('active');
-            document.getElementById('searchInput').value = '';
-            document.getElementById('searchResults').innerHTML = `
-                <div class="no-results">
-                    <h3>🔍</h3>
-                    <p>Search for your favorite shows and movies</p>
-                </div>
-            `;
-        }
-
-        // Tab navigation with sections
-        function showSection(section) {
-            document.getElementById('feedContent').parentElement.style.display = 'none';
-            document.getElementById('myShowsSection').style.display = 'none';
-            document.getElementById('profileSection').style.display = 'none';
-            
-            document.querySelectorAll('.tab-item').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            switch(section) {
-                case 'feed':
-                    document.getElementById('feedContent').parentElement.style.display = 'block';
-                    document.querySelectorAll('.tab-item')[0].classList.add('active');
-                    break;
-                case 'myshows':
-                    document.getElementById('myShowsSection').style.display = 'block';
-                    document.querySelectorAll('.tab-item')[1].classList.add('active');
-                    loadMyShows();
-                    break;
-                case 'profile':
-                    document.getElementById('profileSection').style.display = 'block';
-                    document.querySelectorAll('.tab-item')[2].classList.add('active');
-                    loadProfile();
-                    break;
-            }
-        }
-
-        // Load My Shows
-        function loadMyShows() {
-            const shows = userShows;
-            const wantList = [];
-            const watchingList = [];
-            const watchedList = [];
-            
-            Object.keys(shows).forEach(key => {
-                const show = shows[key];
-                if (show.status) {
-                    const showData = { ...show, id: key };
-                    switch(show.status) {
-                        case 'want':
-                            wantList.push(showData);
-                            break;
-                        case 'watching':
-                            watchingList.push(showData);
-                            break;
-                        case 'watched':
-                            watchedList.push(showData);
-                            break;
-                    }
-                }
-            });
-            
-            document.getElementById('totalShowsCount').textContent = 
-                wantList.length + watchingList.length + watchedList.length;
-            document.getElementById('watchedCount').textContent = watchedList.length;
-            document.getElementById('watchingCount').textContent = watchingList.length;
-            
-            displayShowsList('wantList', wantList);
-            displayShowsList('watchingList', watchingList);
-            displayShowsList('watchedList', watchedList);
-        }
-
-        function displayShowsList(listId, shows) {
-            const container = document.getElementById(listId);
-            const isGridView = container.classList.contains('grid-view');
-            
-            if (shows.length === 0) {
-                container.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-secondary);">
-                        No shows yet. Start adding some!
-                    </div>
-                `;
-                return;
-            }
-            
-            if (isGridView) {
-                container.innerHTML = shows.map(show => `
-                    <div class="show-item-grid">
-                        <img src="${getShowPoster(show)}" alt="${show.title}">
-                    </div>
-                `).join('');
-            } else {
-                container.innerHTML = shows.map(show => `
-                    <div class="show-item-list">
-                        <img src="${getShowPoster(show)}" alt="${show.title}">
-                        <div class="show-item-details">
-                            <div class="show-item-title">${show.title}</div>
-                            <div class="show-item-meta">Added ${getTimeAgo(show.timestamp)}</div>
-                            ${show.rating ? `
-                                <div class="show-item-rating ${show.rating}">
-                                    ${show.rating === 'love' ? '❤️ Loved' :
-                                      show.rating === 'like' ? '👍 Liked' :
-                                      '😑 Meh'}
-                                </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                `).join('');
-            }
-        }
-
-        function getShowPoster(show) {
-            return `https://via.placeholder.com/300x450/333/fff?text=${encodeURIComponent(show.title || 'Show')}`;
-        }
-
-        function getTimeAgo(timestamp) {
-            const seconds = Math.floor((Date.now() - timestamp) / 1000);
-            if (seconds < 60) return 'just now';
-            const minutes = Math.floor(seconds / 60);
-            if (minutes < 60) return `${minutes}m ago`;
-            const hours = Math.floor(minutes / 60);
-            if (hours < 24) return `${hours}h ago`;
-            const days = Math.floor(hours / 24);
-            if (days < 30) return `${days}d ago`;
-            const months = Math.floor(days / 30);
-            return `${months}mo ago`;
-        }
-
-        // Load Profile
-        function loadProfile() {
-            const shows = userShows;
-            const showCount = Object.keys(shows).filter(key => shows[key].status).length;
-            document.getElementById('profileTotalShows').textContent = showCount;
-            
-            const username = localStorage.getItem('profileUsername') || 'username';
-            const bio = localStorage.getItem('profileBio') || 'What have you been watching?';
-            document.getElementById('profileUsername').textContent = '@' + username;
-            document.getElementById('profileBio').textContent = bio;
-            
-            const profilePhoto = localStorage.getItem('profilePhoto');
-            if (profilePhoto) {
-                document.getElementById('profilePhoto').src = profilePhoto;
-            }
-            
-            const initials = username.substring(0, 2).toUpperCase();
-            document.getElementById('profileInitials').textContent = initials;
-            
-            document.getElementById('profileFollowers').textContent = followers.length;
-            document.getElementById('profileFollowing').textContent = following.length;
-            document.getElementById('followersCount').textContent = followers.length;
-            document.getElementById('followingCount').textContent = following.length;
-            
-            const topShows = JSON.parse(localStorage.getItem('topThreeShows')) || {};
-            for (let i = 1; i <= 3; i++) {
-                if (topShows[i]) {
-                    document.getElementById(`topShow${i}`).src = topShows[i].poster;
-                }
-            }
-            
-            const isPrivate = localStorage.getItem('privateProfile') === 'true';
-            document.getElementById('privateProfile').checked = isPrivate;
-            
-            if (isPrivate && pendingRequests.length > 0) {
-                document.getElementById('friendRequestsSection').style.display = 'block';
-                document.getElementById('requestCount').textContent = pendingRequests.length;
-                loadFriendRequests();
-            } else {
-                document.getElementById('friendRequestsSection').style.display = 'none';
-            }
-            
-            showFriendsList('following');
-            loadSuggestedFriends();
-        }
-
-        // Profile Photo Upload
-        function handlePhotoUpload(event) {
-            const file = event.target.files[0];
-            if (file && file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const imageData = e.target.result;
-                    document.getElementById('profilePhoto').src = imageData;
-                    localStorage.setItem('profilePhoto', imageData);
-                    showToast('Profile photo updated!');
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        // Edit Profile
-        function editProfile() {
-            const modal = document.createElement('div');
-            modal.className = 'edit-profile-modal';
-            modal.innerHTML = `
-                <div class="edit-modal-content">
-                    <div class="modal-header">
-                        <h3>Edit Profile</h3>
-                        <button class="close-modal" onclick="closeEditModal()">✕</button>
-                    </div>
-                    <div class="edit-form">
-                        <div class="form-group">
-                            <label>Username</label>
-                            <div class="username-input-wrapper">
-                                <span class="username-prefix">@</span>
-                                <input type="text" id="editUsername" placeholder="username" 
-                                       value="${localStorage.getItem('profileUsername') || ''}"
-                                       pattern="[a-zA-Z0-9_]+" maxlength="20">
-                            </div>
-                            <div class="input-hint">Letters, numbers, and underscores only</div>
-                        </div>
-                        <div class="form-group">
-                            <label>Bio</label>
-                            <textarea id="editBio" placeholder="Tell us what you've been watching..." 
-                                      maxlength="150">${localStorage.getItem('profileBio') || ''}</textarea>
-                            <div class="char-count" id="bioCharCount">0/150</div>
-                        </div>
-                        <button class="save-profile-btn" onclick="saveProfile()">Save Changes</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-            
-            const bioInput = document.getElementById('editBio');
-            const charCount = document.getElementById('bioCharCount');
-            charCount.textContent = bioInput.value.length + '/150';
-            
-            bioInput.addEventListener('input', function() {
-                charCount.textContent = this.value.length + '/150';
-            });
-            
-            document.getElementById('editUsername').addEventListener('input', function(e) {
-                this.value = this.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
-            });
-        }
-
-        function closeEditModal() {
-            const modal = document.querySelector('.edit-profile-modal');
-            if (modal) {
-                modal.remove();
-            }
-        }
-
-        function saveProfile() {
-            const username = document.getElementById('editUsername').value.trim();
-            const bio = document.getElementById('editBio').value.trim();
-            
-            if (!username) {
-                showToast('Username is required');
-                return;
-            }
-            
-            if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-                showToast('Username can only contain letters, numbers, and underscores');
-                return;
-            }
-            
-            localStorage.setItem('profileUsername', username);
-            localStorage.setItem('profileBio', bio || 'What have you been watching?');
-            
-            document.getElementById('profileUsername').textContent = '@' + username;
-            document.getElementById('profileBio').textContent = bio || 'What have you been watching?';
-            document.getElementById('profileInitials').textContent = username.substring(0, 2).toUpperCase();
-            
-            closeEditModal();
-            showToast('Profile updated!');
-        }
-
-        // Friend Requests Management
-        function loadFriendRequests() {
-            const container = document.getElementById('requestsList');
-            
-            if (pendingRequests.length === 0) {
-                container.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 1rem;">No pending requests</div>';
-                return;
-            }
-            
-            container.innerHTML = pendingRequests.map(request => `
-                <div class="request-item">
-                    <div class="request-avatar">${request.initials}</div>
-                    <div class="request-info">
-                        <div class="request-name">${request.name}</div>
-                        <div class="request-username">@${request.username}</div>
-                    </div>
-                    <div class="request-actions">
-                        <button class="accept-btn" onclick="acceptRequest('${request.username}')">Accept</button>
-                        <button class="decline-btn" onclick="declineRequest('${request.username}')">Decline</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function acceptRequest(username) {
-            const request = pendingRequests.find(r => r.username === username);
-            if (request) {
-                followers.push(request);
-                localStorage.setItem('followers', JSON.stringify(followers));
-                
-                pendingRequests = pendingRequests.filter(r => r.username !== username);
-                localStorage.setItem('pendingRequests', JSON.stringify(pendingRequests));
-                
-                loadProfile();
-                showToast(`Accepted ${request.name}'s request`);
-            }
-        }
-
-        function declineRequest(username) {
-            const request = pendingRequests.find(r => r.username === username);
-            if (request) {
-                pendingRequests = pendingRequests.filter(r => r.username !== username);
-                localStorage.setItem('pendingRequests', JSON.stringify(pendingRequests));
-                
-                loadProfile();
-                showToast('Request declined');
-            }
-        }
-
-        // Follow/Unfollow functionality
-        function toggleFollow(username, name, isPrivate) {
-            const user = { username, name, initials: name.split(' ').map(n => n[0]).join('') };
-            
-            const isFollowing = following.some(f => f.username === username);
-            const isPending = sentRequests.some(r => r.username === username);
-            
-            if (isFollowing) {
-                following = following.filter(f => f.username !== username);
-                localStorage.setItem('following', JSON.stringify(following));
-        }
-
-        // Initialize
-        loadTrending();
-    </script>
-</body>
-</html>.stringify(following));
-                showToast(`Unfollowed ${name}`);
-            } else if (isPending) {
-                sentRequests = sentRequests.filter(r => r.username !== username);
-                localStorage.setItem('sentRequests', JSON.stringify(sentRequests));
-                showToast('Request cancelled');
-            } else if (isPrivate) {
-                sentRequests.push(user);
-                localStorage.setItem('sentRequests', JSON.stringify(sentRequests));
-                showToast(`Follow request sent to ${name}`);
-                
-                setTimeout(() => {
-                    if (Math.random() > 0.5) {
-                        pendingRequests.push({
-                            username: 'demo_user',
-                            name: 'Demo User',
-                            initials: 'DU'
-                        });
-                        localStorage.setItem('pendingRequests', JSON.stringify(pendingRequests));
-                    }
-                }, 2000);
-            } else {
-                following.push(user);
-                localStorage.setItem('following', JSON.stringify(following));
-                showToast(`Following ${name}`);
-            }
-            
-            updateFollowButtons();
-        }
-
-        function updateFollowButtons() {
-            document.querySelectorAll('.follow-btn').forEach(btn => {
-                const username = btn.onclick?.toString().match(/'([^']+)'/)?.[1];
-                if (username) {
-                    const isFollowing = following.some(f => f.username === username);
-                    const isPending = sentRequests.some(r => r.username === username);
-                    
-                    if (isFollowing) {
-                        btn.textContent = 'Following';
-                        btn.classList.add('following');
-                    } else if (isPending) {
-                        btn.textContent = 'Requested';
-                        btn.classList.add('requested');
-                    } else {
-                        btn.textContent = btn.textContent.includes('Private') ? 'Request' : 'Follow';
-                        btn.classList.remove('following', 'requested');
-                    }
-                }
-            });
-        }
-
-        function showFriendsList(type) {
-            document.querySelectorAll('.friend-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            const container = document.getElementById('friendsListContainer');
-            const list = type === 'following' ? following : followers;
-            
-            if (list.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align: center; color: var(--text-secondary); padding: 2rem;">
-                        ${type === 'following' ? 'Not following anyone yet' : 'No followers yet'}
-                    </div>
-                `;
-                return;
-            }
-            
-            container.innerHTML = list.map(friend => {
-                const isFollowingThem = following.some(f => f.username === friend.username);
-                const isFollower = followers.some(f => f.username === friend.username);
-                
-                return `
-                    <div class="friend-list-item">
-                        <div class="friend-avatar">${friend.initials}</div>
-                        <div class="friend-info">
-                            <div class="friend-name">${friend.name}</div>
-                            <div class="friend-username">@${friend.username}</div>
-                        </div>
-                        ${type === 'following' ? 
-                            `<button class="unfollow-btn" onclick="toggleFollow('${friend.username}', '${friend.name}', false)">Unfollow</button>` :
-                            (isFollowingThem ? 
-                                `<button class="unfollow-btn" onclick="toggleFollow('${friend.username}', '${friend.name}', false)">Following</button>` :
-                                `<button class="follow-back-btn" onclick="toggleFollow('${friend.username}', '${friend.name}', false)">Follow Back</button>`
-                            )
-                        }
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Privacy toggle
-        function togglePrivacy() {
-            const isPrivate = document.getElementById('privateProfile').checked;
-            localStorage.setItem('privateProfile', isPrivate);
-            
-            if (isPrivate && pendingRequests.length > 0) {
-                document.getElementById('friendRequestsSection').style.display = 'block';
-                loadFriendRequests();
-            } else {
-                document.getElementById('friendRequestsSection').style.display = 'none';
-            }
-            
-            showToast(isPrivate ? 'Account is now private' : 'Account is now public');
-        }
-
-        // Top 3 Shows functionality
-        let currentSlot = null;
-
-        function selectTopShow(slot) {
-            currentSlot = slot;
-            document.getElementById('slotNumber').textContent = slot;
-            document.getElementById('topShowModal').style.display = 'flex';
-            loadShowsForSelection();
-        }
-
-        function loadShowsForSelection() {
-            const shows = userShows;
-            const showsList = Object.keys(shows)
-                .filter(key => shows[key].status)
-                .map(key => ({ ...shows[key], id: key }));
-            
-            const container = document.getElementById('modalShowsList');
-            container.innerHTML = showsList.map(show => `
-                <div class="modal-show-item" onclick="setTopShow('${show.id}', '${show.title}')">
-                    <img src="${getShowPoster(show)}" class="modal-show-poster">
-                    <div class="modal-show-info">
-                        <div class="modal-show-title">${show.title}</div>
-                        <div class="modal-show-year">${show.rating ? 
-                            (show.rating === 'love' ? '❤️' : 
-                             show.rating === 'like' ? '👍' : '😑') : ''}</div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function setTopShow(showId, title) {
-            const topShows = JSON.parse(localStorage.getItem('topThreeShows')) || {};
-            const posterUrl = getShowPoster({ title });
-            
-            topShows[currentSlot] = {
-                id: showId,
-                title: title,
-                poster: posterUrl
-            };
-            
-            localStorage.setItem('topThreeShows', JSON.stringify(topShows));
-            document.getElementById(`topShow${currentSlot}`).src = posterUrl;
-            closeTopShowModal();
-        }
-
-        function searchMyShows() {
-            const query = document.getElementById('topShowSearch').value.toLowerCase();
-            const shows = userShows;
-            const filtered = Object.keys(shows)
-                .filter(key => shows[key].status && shows[key].title.toLowerCase().includes(query))
-                .map(key => ({ ...shows[key], id: key }));
-            
-            const container = document.getElementById('modalShowsList');
-            container.innerHTML = filtered.map(show => `
-                <div class="modal-show-item" onclick="setTopShow('${show.id}', '${show.title}')">
-                    <img src="${getShowPoster(show)}" class="modal-show-poster">
-                    <div class="modal-show-info">
-                        <div class="modal-show-title">${show.title}</div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function closeTopShowModal() {
-            document.getElementById('topShowModal').style.display = 'none';
-            document.getElementById('topShowSearch').value = '';
-        }
-
-        // Invite functionality
-        function showInviteFriends() {
-            document.getElementById('inviteModal').style.display = 'flex';
-        }
-
-        function closeInviteModal() {
-            document.getElementById('inviteModal').style.display = 'none';
-            document.getElementById('contactsList').style.display = 'none';
-            document.getElementById('qrCodeDisplay').style.display = 'none';
-        }
-
-        function shareInviteLink() {
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Join me on Been Watching',
-                    text: 'Track and share what you\'ve been watching!',
-                    url: 'https://beenwatching.app/invite/yourcode'
-                });
-            } else {
-                navigator.clipboard.writeText('https://beenwatching.app/invite/yourcode');
-                showToast('Invite link copied!');
-            }
-        }
-
-        function showQRCode() {
-            document.getElementById('contactsList').style.display = 'none';
-            document.getElementById('qrCodeDisplay').style.display = 'block';
-        }
-
-        function inviteViaContacts() {
-            document.getElementById('qrCodeDisplay').style.display = 'none';
-            document.getElementById('contactsList').style.display = 'block';
-        }
-
-        function inviteContact(name) {
-            showToast(`Invitation sent to ${name}`);
-        }
-
-        function loadSuggestedFriends() {
-            const container = document.getElementById('suggestedFriends');
-            container.innerHTML = `
-                <div style="padding: 1rem; text-align: center; color: var(--text-secondary);">
-                    Connect your contacts to find friends
-                </div>
-            `;
-        }
-
-        // Search type toggle
-        document.querySelectorAll('.type-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                searchType = this.dataset.type;
-                
-                const query = document.getElementById('searchInput').value;
-                if (query) search(query);
-            });
-        });
-
-        // Search input with debouncing
-        let searchTimeout;
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                search(e.target.value);
-            }, 300);
-        });
-
-        // Close modal on escape
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeSearch();
-            }
-        });
-
-        // Close modal on background click
-        document.getElementById('searchModal').addEventListener('click', (e) => {
-            if (e.target === e.currentTarget) {
-                closeSearch();
-            }
-        });
-
-        // List tabs
-        document.querySelectorAll('.list-tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                document.querySelectorAll('.list-tab').forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                
-                const list = this.dataset.list;
-                document.querySelectorAll('.shows-list').forEach(l => {
-                    l.style.display = 'none';
-                });
-                
-                switch(list) {
-                    case 'want':
-                        document.getElementById('wantList').style.display = '';
-                        break;
-                    case 'watching':
-                        document.getElementById('watchingList').style.display = '';
-                        break;
-                    case 'watched':
-                        document.getElementById('watchedList').style.display = '';
-                        break;
-                }
-            });
-        });
-
-        // View toggle
-        document.querySelectorAll('.view-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                
-                const view = this.dataset.view;
-                const lists = document.querySelectorAll('.shows-list');
-                
-                lists.forEach(list => {
-                    if (view === 'grid') {
-                        list.classList.add('grid-view');
-                        list.classList.remove('list-view');
-                    } else {
-                        list.classList.add('list-view');
-                        list.classList.remove('grid-view');
-                    }
-                });
-                
-                loadMyShows();
-            });
-        });
-
-        // Load sample data fallback
-        function loadSampleData() {
-            const sampleShows = [
-                { id: 1, name: "The Bear", poster_path: "/sHFlbKS3WLqMnp9t2bGPnLeYdpc.jpg", overview: "Carmen 'Carmy' Berzatto, a young chef from the fine dining world..." },
-                { id: 2, name: "Fallout", poster_path: "/AnsSKR9LuK0T9bAOcPVA3PUvyWj.jpg", overview: "The story of haves and have-nots in a world..." },
-                { id: 3, name: "Shōgun", poster_path: "/7O4iVfOMQmdCSxhOg1WnzG1AgYT.jpg", overview: "In Japan in the year 1600..." }
-            ];
-            displayTrending(sampleShows.concat(sampleShows));
-            displayEnhancedFeed(sampleShows.concat(sampleShows));
-        }
-
-        // Initialize some demo data if first time
-        if (following.length === 0 && followers.length === 0) {
-            followers = [
-                { username: 'sarah_chen', name: 'Sarah Chen', initials: 'SC' },
-                { username: 'mike_r', name: 'Mike Rodriguez', initials: 'MR' }
-            ];
-            localStorage.setItem('followers', JSON.stringify(followers));
-            
-            following = [
-                { username: 'sarah_chen', name: 'Sarah Chen', initials: 'SC' },
-                { username: 'emma_w', name: 'Emma Wilson', initials: 'EW' },
-                { username: 'jake_park', name: 'Jake Park', initials: 'JP' }
-            ];
-            localStorage.setItem('following', JSON<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1488,773 +80,6 @@ autocomplete="off">
             padding: 1rem;
         }
 
-        /* Search Modal - FIXED SCROLLING */
-        .search-modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            z-index: 1000;
-            padding: 1rem;
-            animation: fadeIn 0.2s;
-            overflow-y: auto;
-        }
-
-        .search-modal.active {
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-            padding-top: 3rem;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .search-content {
-            background: var(--bg-primary);
-            border-radius: 24px;
-            width: 100%;
-            max-width: 600px;
-            max-height: 85vh;
-            display: flex;
-            flex-direction: column;
-            animation: slideUp 0.3s;
-            position: relative;
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .search-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            flex-shrink: 0;
-        }
-
-        .search-input-wrapper {
-            flex: 1;
-            position: relative;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 0.75rem 1rem 0.75rem 2.5rem;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            font-size: 1rem;
-            color: var(--text-primary);
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 0.75rem;
-            top: 50%;
-            transform: translateY(-50%);
-            opacity: 0.5;
-        }
-
-        .close-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .close-btn:hover {
-            background: var(--border);
-        }
-
-        /* Search Type Toggle */
-        .search-type-toggle {
-            display: flex;
-            gap: 0.5rem;
-            padding: 0 1.5rem 1rem;
-            flex-shrink: 0;
-        }
-
-        .type-btn {
-            padding: 0.5rem 1rem;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.875rem;
-        }
-
-        .type-btn.active {
-            background: var(--accent-primary);
-            color: white;
-            border-color: var(--accent-primary);
-        }
-
-        /* FIXED SEARCH RESULTS SCROLLING */
-        .search-results {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1rem 1.5rem;
-            min-height: 0;
-        }
-
-        .no-results {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: var(--text-secondary);
-        }
-
-        .no-results h3 {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        /* Enhanced Result Cards */
-        .result-card {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            transition: all 0.2s;
-        }
-
-        .result-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .result-card-header {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .result-poster {
-            width: 100px;
-            height: 150px;
-            border-radius: 12px;
-            object-fit: cover;
-            background: var(--border);
-            flex-shrink: 0;
-        }
-
-        .result-info {
-            flex: 1;
-        }
-
-        .result-title {
-            font-weight: 600;
-            font-size: 1rem;
-            margin-bottom: 0.25rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-
-        .result-season-badge {
-            display: inline-block;
-            padding: 0.125rem 0.375rem;
-            background: var(--accent-purple);
-            color: white;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .result-type-badge {
-            display: inline-block;
-            padding: 0.125rem 0.375rem;
-            background: var(--accent-primary);
-            color: white;
-            border-radius: 4px;
-            font-size: 0.625rem;
-            font-weight: 500;
-        }
-
-        .result-meta {
-            font-size: 0.8125rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-
-        /* Streaming Platforms */
-        .streaming-platforms {
-            display: inline-flex;
-            gap: 0.25rem;
-            margin-left: 0.5rem;
-        }
-
-        .platform-icon {
-            width: 24px;
-            height: 24px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: transform 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.625rem;
-            font-weight: bold;
-            color: white;
-        }
-
-        .platform-icon:hover {
-            transform: scale(1.1);
-        }
-
-        .platform-netflix { background: #E50914; }
-        .platform-prime { background: #00A8E1; }
-        .platform-disney { background: #113CCF; }
-        .platform-hbo { background: #7C3AED; }
-        .platform-hulu { background: #1CE783; }
-        .platform-apple { background: #000000; }
-
-        /* Trailer Button */
-        .trailer-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-            padding: 0.25rem 0.5rem;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 0.75rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-            color: var(--text-primary);
-        }
-
-        .trailer-btn:hover {
-            background: var(--accent-primary);
-            color: white;
-            border-color: var(--accent-primary);
-        }
-
-        /* Expandable Description */
-        .result-overview {
-            font-size: 0.8125rem;
-            color: var(--text-secondary);
-            line-height: 1.4;
-            margin-bottom: 0.5rem;
-            position: relative;
-        }
-
-        .result-overview.collapsed {
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .result-overview.expanded {
-            display: block;
-        }
-
-        .expand-btn {
-            color: var(--accent-primary);
-            cursor: pointer;
-            font-size: 0.75rem;
-            font-weight: 500;
-            background: none;
-            border: none;
-            padding: 0;
-            margin-top: 0.25rem;
-        }
-
-        /* Rating Buttons */
-        .quick-rate {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .quick-rate-btn {
-            padding: 0.5rem 1rem;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            font-size: 0.8125rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.25rem;
-            flex: 1;
-        }
-
-        .quick-rate-btn:hover {
-            transform: scale(1.02);
-        }
-
-        .quick-rate-btn.active.love {
-            background: var(--love);
-            color: white;
-            border-color: var(--love);
-        }
-
-        .quick-rate-btn.active.like {
-            background: var(--like);
-            color: white;
-            border-color: var(--like);
-        }
-
-        .quick-rate-btn.active.meh {
-            background: var(--meh);
-            color: white;
-            border-color: var(--meh);
-        }
-
-        /* Status Buttons with Friend Counts */
-        .quick-status {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 0.75rem;
-        }
-
-        .status-btn-group {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-        }
-
-        .quick-status-btn {
-            padding: 0.5rem;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 0.75rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.25rem;
-        }
-
-        .quick-status-btn:hover {
-            background: var(--accent-primary);
-            color: white;
-            border-color: var(--accent-primary);
-        }
-
-        .quick-status-btn.active {
-            background: var(--accent-primary);
-            color: white;
-            border-color: var(--accent-primary);
-        }
-
-        .status-friend-count {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.25rem;
-            font-size: 0.625rem;
-            color: var(--text-secondary);
-            cursor: pointer;
-            padding: 0.25rem;
-            transition: color 0.2s;
-        }
-
-        .status-friend-count:hover {
-            color: var(--accent-primary);
-        }
-
-        .status-friend-avatars {
-            display: flex;
-            justify-content: center;
-        }
-
-        .status-friend-avatar {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.5rem;
-            color: white;
-            font-weight: 600;
-            border: 1px solid var(--bg-primary);
-            margin: 0 -4px;
-        }
-
-        .status-friend-avatar:first-child {
-            z-index: 3;
-        }
-        
-        .status-friend-avatar:nth-child(2) {
-            z-index: 2;
-        }
-        
-        .status-friend-avatar:nth-child(3) {
-            z-index: 1;
-        }
-
-        /* Friends List Modal */
-        .friends-modal {
-            display: none;
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--bg-primary);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1rem;
-            width: 90%;
-            max-width: 400px;
-            max-height: 300px;
-            overflow-y: auto;
-            z-index: 1001;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-        }
-
-        .friends-modal.active {
-            display: block;
-            animation: slideUp 0.3s;
-        }
-
-        .friends-modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .friends-modal-title {
-            font-weight: 600;
-            font-size: 0.875rem;
-        }
-
-        .friends-modal-close {
-            background: none;
-            border: none;
-            font-size: 1.25rem;
-            cursor: pointer;
-            color: var(--text-secondary);
-        }
-
-        .friends-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .friend-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.5rem;
-            background: var(--surface);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .friend-item:hover {
-            background: var(--glass);
-        }
-
-        .friend-item-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 0.75rem;
-        }
-
-        .friend-item-name {
-            flex: 1;
-            font-size: 0.875rem;
-        }
-
-        .friend-item-status {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
-
-        /* ENHANCED ACTIVITY FEED CARDS */
-        .activity-card {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            overflow: hidden;
-            margin-bottom: 1rem;
-            transition: all 0.2s;
-        }
-
-        .activity-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .activity-header {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 1rem 1rem 0.5rem;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            flex-shrink: 0;
-        }
-
-        .user-info {
-            flex: 1;
-        }
-
-        .user-action {
-            font-size: 0.875rem;
-            line-height: 1.4;
-        }
-
-        .user-action strong {
-            font-weight: 600;
-        }
-
-        .action-type {
-            color: var(--text-secondary);
-        }
-
-        .post-time {
-            font-size: 0.75rem;
-            color: var(--text-tertiary);
-            margin-top: 0.125rem;
-        }
-
-        /* Show content in feed */
-        .feed-show-content {
-            display: flex;
-            gap: 1rem;
-            padding: 0.75rem 1rem;
-        }
-
-        .feed-show-poster {
-            width: 80px;
-            height: 120px;
-            border-radius: 8px;
-            object-fit: cover;
-            background: var(--surface);
-            flex-shrink: 0;
-        }
-
-        .feed-show-info {
-            flex: 1;
-        }
-
-        .feed-show-title {
-            font-weight: 600;
-            font-size: 0.9375rem;
-            margin-bottom: 0.25rem;
-        }
-
-        .feed-show-meta {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-        }
-
-        .feed-show-overview {
-            font-size: 0.8125rem;
-            color: var(--text-secondary);
-            line-height: 1.4;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        /* User's rating display */
-        .user-rating-display {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-            padding: 0.25rem 0.5rem;
-            background: var(--surface);
-            border-radius: 20px;
-            font-size: 0.75rem;
-            margin-top: 0.5rem;
-        }
-
-        .user-rating-display.love {
-            background: var(--love);
-            color: white;
-        }
-
-        .user-rating-display.like {
-            background: var(--like);
-            color: white;
-        }
-
-        .user-rating-display.meh {
-            background: var(--meh);
-            color: white;
-        }
-
-        /* Comments section */
-        .comments-section {
-            padding: 0.75rem 1rem;
-            border-top: 1px solid var(--border);
-            background: var(--surface);
-        }
-
-        .comment-input-wrapper {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .comment-input {
-            flex: 1;
-            padding: 0.5rem;
-            background: var(--bg-primary);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            font-size: 0.875rem;
-            color: var(--text-primary);
-            outline: none;
-        }
-
-        .comment-input:focus {
-            border-color: var(--accent-primary);
-        }
-
-        .comment-submit {
-            padding: 0.5rem 1rem;
-            background: var(--accent-primary);
-            color: white;
-            border: none;
-            border-radius: 20px;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .comment-submit:hover {
-            transform: scale(1.05);
-        }
-
-        .comments-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .comment {
-            display: flex;
-            gap: 0.5rem;
-            align-items: flex-start;
-        }
-
-        .comment-avatar {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 0.625rem;
-            font-weight: 600;
-            flex-shrink: 0;
-        }
-
-        .comment-content {
-            flex: 1;
-            font-size: 0.8125rem;
-            line-height: 1.3;
-        }
-
-        .comment-author {
-            font-weight: 600;
-            margin-right: 0.25rem;
-        }
-
-        .comment-text {
-            color: var(--text-primary);
-        }
-
-        .comment-time {
-            font-size: 0.6875rem;
-            color: var(--text-tertiary);
-            margin-top: 0.125rem;
-        }
-
-        /* Like/interaction buttons */
-        .activity-interactions {
-            display: flex;
-            gap: 1rem;
-            padding: 0.75rem 1rem;
-            border-top: 1px solid var(--border);
-        }
-
-        .interaction-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .interaction-btn:hover {
-            color: var(--accent-primary);
-            transform: scale(1.05);
-        }
-
-        .interaction-btn.liked {
-            color: var(--love);
-        }
-
-        /* Trending section */
         .trending-section {
             margin-bottom: 2rem;
         }
@@ -2296,916 +121,142 @@ autocomplete="off">
             white-space: nowrap;
         }
 
-        /* My Shows Section Styles */
-        .my-shows-section {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 1rem;
-        }
-
-        .my-shows-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .my-shows-header h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-        }
-
-        .shows-stats {
-            display: flex;
-            justify-content: center;
-            gap: 3rem;
-        }
-
-        .stat {
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        .stat-label {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
-
-        .list-tabs {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .list-tab {
-            flex: 1;
-            padding: 0.75rem;
-            background: none;
-            border: none;
-            border-bottom: 2px solid transparent;
-            color: var(--text-secondary);
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .list-tab.active {
-            color: var(--text-primary);
-            border-bottom-color: var(--accent-primary);
-        }
-
-        .view-toggle {
-            display: flex;
-            gap: 0.5rem;
-            justify-content: flex-end;
-            margin-bottom: 1rem;
-        }
-
-        .view-btn {
-            padding: 0.5rem;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .view-btn.active {
-            background: var(--accent-primary);
-            color: white;
-        }
-
-        .shows-container {
-            min-height: 300px;
-        }
-
-        .shows-list.grid-view {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.5rem;
-        }
-
-        .shows-list.list-view {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .show-item-grid {
-            position: relative;
-            aspect-ratio: 2/3;
-            border-radius: 8px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .show-item-grid:hover {
-            transform: scale(1.05);
-        }
-
-        .show-item-grid img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .show-item-list {
-            display: flex;
-            gap: 1rem;
-            padding: 1rem;
+        .activity-card {
             background: var(--glass);
-            border-radius: 12px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border);
-        }
-
-        .show-item-list img {
-            width: 60px;
-            height: 90px;
-            border-radius: 8px;
-            object-fit: cover;
-        }
-
-        .show-item-details {
-            flex: 1;
-        }
-
-        .show-item-title {
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-        }
-
-        .show-item-meta {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
-
-        .show-item-rating {
-            display: inline-block;
-            padding: 0.25rem 0.5rem;
-            background: var(--surface);
-            border-radius: 20px;
-            font-size: 0.75rem;
-            margin-top: 0.5rem;
-        }
-
-        .show-item-rating.love { background: var(--love); color: white; }
-        .show-item-rating.like { background: var(--like); color: white; }
-        .show-item-rating.meh { background: var(--meh); color: white; }
-
-        /* Profile Section Styles */
-        .profile-section {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 1rem;
-        }
-
-        .profile-header {
-            margin-bottom: 2rem;
-        }
-
-        .profile-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .profile-avatar-container {
-            position: relative;
-        }
-
-        .profile-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 1.5rem;
-        }
-
-        .profile-photo {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            display: none;
-            border: 2px solid var(--border);
-        }
-
-        .profile-photo[src]:not([src=""]) {
-            display: block;
-        }
-
-        .profile-photo[src]:not([src=""]) ~ .profile-avatar {
-            display: none;
-        }
-
-        .photo-upload-btn {
-            position: absolute;
-            bottom: 0;
-            right: -5px;
-            width: 28px;
-            height: 28px;
-            background: var(--accent-primary);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border: 2px solid var(--bg-primary);
-            transition: transform 0.2s;
-        }
-
-        .photo-upload-btn:hover {
-            transform: scale(1.1);
-        }
-
-        .photo-upload-btn span {
-            font-size: 0.875rem;
-        }
-
-        .profile-details {
-            flex: 1;
-        }
-
-        .profile-username {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-        }
-
-        .profile-bio {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-        }
-
-        .edit-profile-btn {
-            padding: 0.5rem 1rem;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .edit-profile-btn:hover {
-            background: var(--accent-primary);
-            color: white;
-        }
-
-        .profile-stats {
-            display: flex;
-            justify-content: space-around;
-            padding: 1rem 0;
-            border-top: 1px solid var(--border);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .profile-stat {
-            text-align: center;
-        }
-
-        /* Top 3 Shows Section */
-        .top-three-section {
-            margin: 2rem 0;
-        }
-
-        .top-three-section h3 {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-
-        .top-three-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-        }
-
-        .top-show-slot {
-            position: relative;
-            aspect-ratio: 2/3;
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
-            cursor: pointer;
-            background: var(--surface);
-            border: 2px dashed var(--border);
+            margin-bottom: 1rem;
             transition: all 0.2s;
         }
 
-        .top-show-slot:hover {
-            transform: scale(1.05);
-            border-color: var(--accent-primary);
-        }
-
-        .slot-number {
-            position: absolute;
-            top: 0.5rem;
-            left: 0.5rem;
-            width: 24px;
-            height: 24px;
-            background: var(--accent-primary);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 0.875rem;
-            z-index: 1;
-        }
-
-        .top-show-poster {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: none;
-        }
-
-        .top-show-poster[src]:not([src=""]) {
-            display: block;
-        }
-
-        .add-icon {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 2rem;
-            color: var(--text-secondary);
-        }
-
-        .top-show-poster[src]:not([src=""]) ~ .add-icon {
-            display: none;
-        }
-
-        /* Privacy Settings */
-        .privacy-settings {
-            margin: 2rem 0;
-            padding: 1.5rem;
-            background: var(--surface);
-            border-radius: 12px;
-        }
-
-        .privacy-settings h3 {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-
-        .privacy-option {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 50px;
-            height: 28px;
-        }
-
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: var(--border);
-            transition: 0.3s;
-            border-radius: 28px;
-        }
-
-        .toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 20px;
-            width: 20px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: 0.3s;
-            border-radius: 50%;
-        }
-
-        input:checked + .toggle-slider {
-            background-color: var(--accent-primary);
-        }
-
-        input:checked + .toggle-slider:before {
-            transform: translateX(22px);
-        }
-
-        .privacy-text {
-            flex: 1;
-        }
-
-        .privacy-label {
-            font-weight: 500;
-            margin-bottom: 0.25rem;
-        }
-
-        .privacy-description {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
-
-        /* Friend Requests Section */
-        #friendRequestsSection {
-            margin: 1.5rem 0;
-            padding: 1rem;
-            background: var(--surface);
-            border-radius: 12px;
-        }
-
-        .requests-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .requests-header h4 {
-            font-size: 1rem;
-            font-weight: 600;
-        }
-
-        .request-count {
-            background: var(--accent-pink);
-            color: white;
-            padding: 0.125rem 0.5rem;
-            border-radius: 12px;
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
-
-        .requests-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .request-item {
+        .activity-header {
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            padding: 0.5rem;
-            background: var(--bg-primary);
-            border-radius: 8px;
+            padding: 1rem 1rem 0.5rem;
         }
 
-        .request-avatar {
+        .user-avatar {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-weight: 600;
-            font-size: 0.875rem;
+            flex-shrink: 0;
         }
 
-        .request-info {
+        .user-info {
             flex: 1;
         }
 
-        .request-name {
-            font-weight: 500;
-            font-size: 0.875rem;
-        }
-
-        .request-username {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
-
-        .request-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .accept-btn, .decline-btn {
-            padding: 0.375rem 0.75rem;
-            border: none;
-            border-radius: 16px;
-            font-size: 0.75rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .accept-btn {
-            background: var(--accent-primary);
-            color: white;
-        }
-
-        .decline-btn {
-            background: var(--surface);
-            color: var(--text-primary);
-        }
-
-        .accept-btn:hover {
-            transform: scale(1.05);
-        }
-
-        .decline-btn:hover {
-            background: var(--border);
-        }
-
-        /* Friends Tabs */
-        .friends-tabs {
-            display: flex;
-            gap: 0.5rem;
-            margin: 1.5rem 0 1rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .friend-tab {
-            flex: 1;
-            padding: 0.75rem;
-            background: none;
-            border: none;
-            border-bottom: 2px solid transparent;
-            color: var(--text-secondary);
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .friend-tab.active {
-            color: var(--text-primary);
-            border-bottom-color: var(--accent-primary);
-        }
-
-        .friend-tab span {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            margin-left: 0.25rem;
-        }
-
-        .friends-list-container {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .friend-list-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem;
-            background: var(--surface);
-            border-radius: 10px;
-            transition: background 0.2s;
-        }
-
-        .friend-list-item:hover {
-            background: var(--glass);
-        }
-
-        .friend-avatar {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-        }
-
-        .friend-info {
-            flex: 1;
-        }
-
-        .friend-name {
-            font-weight: 500;
-            margin-bottom: 0.125rem;
-        }
-
-        .friend-username {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
-
-        .unfollow-btn, .remove-btn, .follow-back-btn {
-            padding: 0.5rem 1rem;
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            background: var(--surface);
-            color: var(--text-primary);
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .follow-back-btn {
-            background: var(--accent-primary);
-            color: white;
-            border-color: var(--accent-primary);
-        }
-
-        .unfollow-btn:hover, .remove-btn:hover {
-            background: var(--border);
-        }
-
-        .pending-badge {
-            padding: 0.25rem 0.5rem;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
-
-        /* Friends Section */
-        .friends-section {
-            margin: 2rem 0;
-        }
-
-        .friends-section h3 {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-
-        .invite-friends-btn {
-            width: 100%;
-            padding: 1rem;
-            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            transition: transform 0.2s;
-        }
-
-        .invite-friends-btn:hover {
-            transform: scale(1.02);
-        }
-
-        /* Modals */
-        .top-show-modal, .invite-modal {
+        .search-modal {
             display: none;
             position: fixed;
             inset: 0;
             background: rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             z-index: 1000;
-            padding: 2rem;
+            padding: 1rem;
+            animation: fadeIn 0.2s;
+            overflow-y: auto;
         }
 
-        .modal-content {
+        .search-modal.active {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 3rem;
+        }
+
+        .search-content {
             background: var(--bg-primary);
-            border-radius: 20px;
-            max-width: 500px;
-            max-height: 80vh;
-            margin: 0 auto;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 85vh;
             display: flex;
             flex-direction: column;
+            animation: slideUp 0.3s;
         }
 
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .search-header {
             padding: 1.5rem;
             border-bottom: 1px solid var(--border);
-        }
-
-        .modal-header h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-        }
-
-        .close-modal {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: var(--text-secondary);
-        }
-
-        .modal-search {
-            padding: 1rem 1.5rem;
-        }
-
-        .modal-search input {
-            width: 100%;
-            padding: 0.75rem;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            font-size: 1rem;
-        }
-
-        .modal-shows-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1rem;
-        }
-
-        .modal-show-item {
             display: flex;
             align-items: center;
             gap: 1rem;
-            padding: 0.75rem;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: background 0.2s;
+            flex-shrink: 0;
         }
 
-        .modal-show-item:hover {
-            background: var(--surface);
-        }
-
-        .modal-show-poster {
-            width: 50px;
-            height: 75px;
-            border-radius: 6px;
-            object-fit: cover;
-        }
-
-        .modal-show-info {
+        .search-input-wrapper {
             flex: 1;
+            position: relative;
         }
 
-        .modal-show-title {
-            font-weight: 500;
-            margin-bottom: 0.25rem;
-        }
-
-        .modal-show-year {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
-
-        /* Invite Modal Styles */
-        .invite-methods {
-            display: flex;
-            gap: 1rem;
-            padding: 1.5rem;
-        }
-
-        .invite-method {
-            flex: 1;
-            padding: 1.5rem 0.5rem;
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 12px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
+            font-size: 1rem;
+            color: var(--text-primary);
         }
 
-        .invite-method:hover {
-            background: var(--accent-primary);
-            color: white;
-        }
-
-        .invite-method span {
-            display: block;
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .contacts-list {
-            max-height: 400px;
-            overflow-y: auto;
-            padding: 1rem;
-        }
-
-        .contact-item {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 0.75rem;
-            border-radius: 10px;
-            transition: background 0.2s;
-        }
-
-        .contact-item:hover {
-            background: var(--surface);
-        }
-
-        .contact-avatar {
-            width: 40px;
-            height: 40px;
+        .close-btn {
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            background: var(--surface);
+            border: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 0.875rem;
+            cursor: pointer;
         }
 
-        .contact-info {
-            flex: 1;
+        .search-type-toggle {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0 1.5rem 1rem;
         }
 
-        .contact-name {
-            font-weight: 500;
-            margin-bottom: 0.125rem;
-        }
-
-        .contact-status {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
-
-        .contact-status.on-app {
-            color: var(--accent-primary);
-        }
-
-        .invite-btn, .follow-btn {
+        .type-btn {
             padding: 0.5rem 1rem;
-            background: var(--accent-primary);
-            color: white;
-            border: none;
+            background: var(--surface);
+            border: 1px solid var(--border);
             border-radius: 20px;
             cursor: pointer;
-            transition: all 0.2s;
+            font-size: 0.875rem;
         }
 
-        .follow-btn {
-            background: var(--surface);
-            color: var(--text-primary);
-            border: 1px solid var(--border);
-        }
-
-        .follow-btn:hover {
+        .type-btn.active {
             background: var(--accent-primary);
             color: white;
+            border-color: var(--accent-primary);
         }
 
-        .qr-placeholder {
-            width: 200px;
-            height: 200px;
-            margin: 2rem auto;
-            background: var(--surface);
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
+        .search-results {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem 1.5rem;
+            min-height: 0;
         }
 
-        .qr-code-display p {
+        .no-results {
             text-align: center;
+            padding: 3rem 1rem;
             color: var(--text-secondary);
         }
 
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: var(--accent-green, #34C759);
-            color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 12px;
-            font-weight: 500;
-            opacity: 0;
-            transition: all 0.3s;
-            z-index: 2000;
-        }
-
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
-
-        /* Tab Bar */
         .tab-bar {
             position: fixed;
             bottom: 20px;
@@ -3248,114 +299,41 @@ autocomplete="off">
             color: white;
         }
 
-        /* Edit Profile Modal Styles */
-        .edit-profile-modal {
+        .toast {
             position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(10px);
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #34C759;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.3s;
             z-index: 2000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .my-shows-section, .profile-section {
+            display: none;
+            max-width: 600px;
+            margin: 0 auto;
             padding: 1rem;
         }
-        
-        .edit-modal-content {
-            background: var(--bg-primary);
-            border-radius: 20px;
-            max-width: 450px;
-            width: 100%;
-            padding: 1.5rem;
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
-        
-        .edit-form {
-            margin-top: 1.5rem;
-        }
-        
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        
-        .form-group label {
-            display: block;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-            font-size: 0.875rem;
-        }
-        
-        .username-input-wrapper {
-            display: flex;
-            align-items: center;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        
-        .username-prefix {
-            padding: 0.75rem 0 0.75rem 1rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-        
-        .username-input-wrapper input {
-            flex: 1;
-            padding: 0.75rem 1rem 0.75rem 0.25rem;
-            background: transparent;
-            border: none;
-            font-size: 1rem;
-            outline: none;
-            color: var(--text-primary);
-        }
-        
-        .input-hint {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            margin-top: 0.25rem;
-        }
-        
-        .form-group textarea {
-            width: 100%;
-            padding: 0.75rem;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            font-size: 0.9375rem;
-            resize: vertical;
-            min-height: 80px;
-            max-height: 150px;
-            outline: none;
-            color: var(--text-primary);
-            font-family: inherit;
-        }
-        
-        .form-group textarea:focus,
-        .username-input-wrapper:focus-within {
-            border-color: var(--accent-primary);
-        }
-        
-        .char-count {
-            text-align: right;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            margin-top: 0.25rem;
-        }
-        
-        .save-profile-btn {
-            width: 100%;
-            padding: 0.875rem;
-            background: var(--accent-primary);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        
-        .save-profile-btn:hover {
-            transform: scale(1.02);
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
     </style>
 </head>
@@ -3367,160 +345,192 @@ autocomplete="off">
         </div>
     </nav>
 
-    <div class="main-container">
+    <div class="main-container" id="mainContainer">
         <div class="trending-section">
             <h2 class="section-title">Trending This Week</h2>
-            <div id="trendingShows" class="shows-grid"></div>
-        </div>
-
-        <div id="feedContent"></div>
-    </div>
-
-    <!-- My Shows Section -->
-    <div class="my-shows-section" id="myShowsSection" style="display: none;">
-        <div class="my-shows-header">
-            <h1>My Shows</h1>
-            <div class="shows-stats">
-                <div class="stat">
-                    <div class="stat-number" id="totalShowsCount">0</div>
-                    <div class="stat-label">Total</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-number" id="watchedCount">0</div>
-                    <div class="stat-label">Watched</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-number" id="watchingCount">0</div>
-                    <div class="stat-label">Watching</div>
-                </div>
+            <div id="trendingShows" class="shows-grid">
+                <!-- Trending shows will be loaded here -->
             </div>
         </div>
 
-        <div class="list-tabs">
-            <button class="list-tab active" data-list="want">Want to Watch</button>
-            <button class="list-tab" data-list="watching">Watching</button>
-            <button class="list-tab" data-list="watched">Watched</button>
-        </div>
-
-        <div class="view-toggle">
-            <button class="view-btn active" data-view="grid">⊞</button>
-            <button class="view-btn" data-view="list">☰</button>
-        </div>
-
-        <div class="shows-container">
-            <div id="wantList" class="shows-list active grid-view"></div>
-            <div id="watchingList" class="shows-list grid-view" style="display: none;"></div>
-            <div id="watchedList" class="shows-list grid-view" style="display: none;"></div>
+        <div id="feedContent">
+            <!-- Activity feed will be loaded here -->
         </div>
     </div>
 
-    <!-- Profile Section -->
-    <div class="profile-section" id="profileSection" style="display: none;">
-        <div class="profile-header">
-            <div class="profile-info">
-                <div class="profile-avatar-container">
-                    <img id="profilePhoto" class="profile-photo" src="" alt="">
-                    <div id="profileInitials" class="profile-avatar">YOU</div>
-                    <label for="photoUpload" class="photo-upload-btn">
-                        <span>📷</span>
-                    </label>
-                    <input type="file" id="photoUpload" accept="image/*" onchange="handlePhotoUpload(event)" style="display: none;">
-                </div>
-                <div class="profile-details">
-                    <h2 class="profile-username" id="profileUsername">@username</h2>
-                    <p class="profile-bio" id="profileBio">What have you been watching?</p>
-                </div>
-                <button class="edit-profile-btn" onclick="editProfile()">Edit Profile</button>
-            </div>
-
-            <div class="profile-stats">
-                <div class="profile-stat">
-                    <div class="stat-number" id="profileTotalShows">0</div>
-                    <div class="stat-label">Shows</div>
-                </div>
-                <div class="profile-stat">
-                    <div class="stat-number" id="profileFollowers">42</div>
-                    <div class="stat-label">Followers</div>
-                </div>
-                <div class="profile-stat">
-                    <div class="stat-number" id="profileFollowing">38</div>
-                    <div class="stat-label">Following</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="top-three-section">
-            <h3>My Top 3 Shows</h3>
-            <div class="top-three-grid">
-                <div class="top-show-slot" data-slot="1" onclick="selectTopShow(1)">
-                    <div class="slot-number">1</div>
-                    <img class="top-show-poster" id="topShow1" src="" alt="Add show">
-                    <div class="add-icon">+</div>
-                </div>
-                <div class="top-show-slot" data-slot="2" onclick="selectTopShow(2)">
-                    <div class="slot-number">2</div>
-                    <img class="top-show-poster" id="topShow2" src="" alt="Add show">
-                    <div class="add-icon">+</div>
-                </div>
-                <div class="top-show-slot" data-slot="3" onclick="selectTopShow(3)">
-                    <div class="slot-number">3</div>
-                    <img class="top-show-poster" id="topShow3" src="" alt="Add show">
-                    <div class="add-icon">+</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="privacy-settings">
-            <h3>Privacy</h3>
-            <div class="privacy-option">
-                <label class="toggle-switch">
-                    <input type="checkbox" id="privateProfile" onchange="togglePrivacy()">
-                    <span class="toggle-slider"></span>
-                </label>
-                <div class="privacy-text">
-                    <div class="privacy-label">Private Account</div>
-                    <div class="privacy-description">Only approved followers can see your activity</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="friends-section">
-            <h3>Friends</h3>
-            <button class="invite-friends-btn" onclick="showInviteFriends()">
-                <span>📱</span> Find Friends from Contacts
-            </button>
-            
-            <!-- Friend Requests Section (only shown for private accounts) -->
-            <div id="friendRequestsSection" style="display: none;">
-                <div class="requests-header">
-                    <h4>Friend Requests</h4>
-                    <span class="request-count" id="requestCount">0</span>
-                </div>
-                <div class="requests-list" id="requestsList"></div>
-            </div>
-            
-            <!-- Following/Followers Lists -->
-            <div class="friends-tabs">
-                <button class="friend-tab active" onclick="showFriendsList('following')">
-                    Following <span id="followingCount">0</span>
-                </button>
-                <button class="friend-tab" onclick="showFriendsList('followers')">
-                    Followers <span id="followersCount">0</span>
-                </button>
-            </div>
-            <div class="friends-list-container" id="friendsListContainer"></div>
-            
-            <div class="suggested-friends" id="suggestedFriends"></div>
+    <div class="my-shows-section" id="myShowsSection">
+        <h1 style="text-align: center; margin-bottom: 2rem;">My Shows</h1>
+        <div style="text-align: center; color: var(--text-secondary); padding: 3rem;">
+            Your saved shows will appear here
         </div>
     </div>
 
-    <!-- Search Modal -->
+    <div class="profile-section" id="profileSection">
+        <h1 style="text-align: center; margin-bottom: 2rem;">Profile</h1>
+        <div style="text-align: center;">
+            <div class="user-avatar" style="width: 80px; height: 80px; margin: 0 auto 1rem; font-size: 1.5rem;">YOU</div>
+            <h2>@username</h2>
+            <p style="color: var(--text-secondary); margin-top: 0.5rem;">What have you been watching?</p>
+        </div>
+    </div>
+
     <div class="search-modal" id="searchModal">
         <div class="search-content">
             <div class="search-header">
                 <div class="search-input-wrapper">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" 
-                           class="search-input" 
-                           id="searchInput" 
-                           placeholder="Search shows or movies..."
+                    <span style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%);">🔍</span>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search shows or movies...">
+                </div>
+                <button class="close-btn" id="closeSearchBtn">✕</button>
+            </div>
+            
+            <div class="search-type-toggle">
+                <button class="type-btn active" data-type="all">All</button>
+                <button class="type-btn" data-type="tv">TV Shows</button>
+                <button class="type-btn" data-type="movie">Movies</button>
+            </div>
+            
+            <div class="search-results" id="searchResults">
+                <div class="no-results">
+                    <h3 style="font-size: 2rem; margin-bottom: 0.5rem;">🔍</h3>
+                    <p>Search for your favorite shows and movies</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <nav class="tab-bar">
+        <button class="tab-item active" data-section="feed">🏠 Feed</button>
+        <button class="tab-add" id="addBtn">+</button>
+        <button class="tab-item" data-section="myshows">📚 My Shows</button>
+        <button class="tab-item" data-section="profile">👤 Profile</button>
+    </nav>
+
+    <script>
+    (function() {
+        'use strict';
+        
+        // Initialize the app
+        const API_KEY = '99b89037cac7fea56692934b534ea26a';
+        const BASE_URL = 'https://api.themoviedb.org/3';
+        const IMAGE_BASE = 'https://image.tmdb.org/t/p';
+        
+        // Load sample data
+        function initApp() {
+            loadTrendingShows();
+            loadActivityFeed();
+            setupEventListeners();
+        }
+        
+        function loadTrendingShows() {
+            const container = document.getElementById('trendingShows');
+            const shows = [
+                { title: 'The Bear', poster: '🎬' },
+                { title: 'Fallout', poster: '🎬' },
+                { title: 'Shogun', poster: '🎬' },
+                { title: 'The Last of Us', poster: '🎬' },
+                { title: 'Wednesday', poster: '🎬' },
+                { title: 'Succession', poster: '🎬' }
+            ];
+            
+            container.innerHTML = shows.map(show => `
+                <div class="show-card">
+                    <div class="show-poster" style="display: flex; align-items: center; justify-content: center; font-size: 3rem; background: var(--surface);">
+                        ${show.poster}
+                    </div>
+                    <div class="show-title">${show.title}</div>
+                </div>
+            `).join('');
+        }
+        
+        function loadActivityFeed() {
+            const container = document.getElementById('feedContent');
+            const activities = [
+                { user: 'Sarah Chen', initials: 'SC', action: 'loved', show: 'The Bear', time: '2 hours ago' },
+                { user: 'Mike Rodriguez', initials: 'MR', action: 'started watching', show: 'Fallout', time: '5 hours ago' },
+                { user: 'Emma Wilson', initials: 'EW', action: 'finished', show: 'Shogun', time: '1 day ago' }
+            ];
+            
+            container.innerHTML = activities.map(activity => `
+                <div class="activity-card">
+                    <div class="activity-header">
+                        <div class="user-avatar">${activity.initials}</div>
+                        <div class="user-info">
+                            <div><strong>${activity.user}</strong> ${activity.action} <strong>${activity.show}</strong></div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">${activity.time}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function setupEventListeners() {
+            // Tab navigation
+            document.querySelectorAll('.tab-item').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const section = this.dataset.section;
+                    
+                    // Hide all sections
+                    document.getElementById('mainContainer').style.display = 'none';
+                    document.getElementById('myShowsSection').style.display = 'none';
+                    document.getElementById('profileSection').style.display = 'none';
+                    
+                    // Remove active class
+                    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Show selected section
+                    switch(section) {
+                        case 'feed':
+                            document.getElementById('mainContainer').style.display = 'block';
+                            break;
+                        case 'myshows':
+                            document.getElementById('myShowsSection').style.display = 'block';
+                            break;
+                        case 'profile':
+                            document.getElementById('profileSection').style.display = 'block';
+                            break;
+                    }
+                });
+            });
+            
+            // Add button
+            document.getElementById('addBtn').addEventListener('click', function() {
+                document.getElementById('searchModal').classList.add('active');
+            });
+            
+            // Close search
+            document.getElementById('closeSearchBtn').addEventListener('click', function() {
+                document.getElementById('searchModal').classList.remove('active');
+            });
+            
+            // Search type toggle
+            document.querySelectorAll('.type-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        }
+        
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
+    })();
+    </script>
+</body>
+</html>
