@@ -1,60 +1,4 @@
-        function showFriendsList(status, showTitle) {
-            event.stopPropagation();
-            
-            // Create or update the friends modal
-            let modal = document.getElementById('friendsModal');
-            if (!modal) {
-                modal = document.createElement('div');
-                modal.id = 'friendsModal';
-                modal.className = 'friends-modal';
-                document.body.appendChild(modal);
-            }
-            
-            // Generate friend list (in real app, from database)
-            const friends = generateFriendListForStatus(status);
-            
-            modal.innerHTML = `
-                <div class="friends-modal-header">
-                    <div class="friends-modal-title">
-                        ${status === 'want' ? 'Want to Watch' : status === 'watching' ? 'Watching' : 'Watched'} 
-                        "${showTitle}"
-                    </div>
-                    <button class="friends-modal-close" onclick="closeFriendsModal()">✕</button>
-                </div>
-                <div class="friends-list">
-                    ${friends.map(f => `
-                        <div class="friend-item">
-                            <div class="friend-item-avatar">${f.initials}</div>
-                            <div class="friend-item-name">${f.name}</div>
-                            <div class="friend-item-status">${f.rating || ''}</div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-            
-            modal.classList.add('active');
-        }
-
-        function generateFriendListForStatus(status) {
-            // Simulate friend data
-            const friends = [
-                { name: 'Sarah Chen', initials: 'SC', rating: '❤️ Loved' },
-                { name: 'Mike Rodriguez', initials: 'MR', rating: '👍 Liked' },
-                { name: 'Emma Wilson', initials: 'EW', rating: '❤️ Loved' },
-                { name: 'Jake Park', initials: 'JP', rating: '😑 Meh' },
-                { name: 'Tina Kim', initials: 'TK', rating: '👍 Liked' }
-            ];
-            
-            // Return random subset
-            return friends.slice(0, Math.floor(Math.random() * 4) + 2);
-        }
-
-        function closeFriendsModal() {
-            const modal = document.getElementById('friendsModal');
-            if (modal) {
-                modal.classList.remove('active');
-            }
-        }<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -251,6 +195,66 @@
             color: white;
             border-color: var(--accent-primary);
         }
+
+            <script>
+function showFriendsList(status, showTitle) {
+    event.stopPropagation();
+    // Create or update the friends modal
+    let modal = document.getElementById('friendsModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'friendsModal';
+        modal.className = 'friends-modal';
+        document.body.appendChild(modal);
+    }
+    
+    // Generate friend list (in real app, from database)
+    const friends = generateFriendListForStatus(status);
+    
+    modal.innerHTML = `
+        <div class="friends-modal-content">
+            <div class="friends-modal-header">
+                <h3>${status === 'want' ? 'Want to Watch' : status === 'watching' ? 'Watching' : 'Watched'} "${showTitle}"</h3>
+                <button onclick="closeFriendsModal()" class="close-modal">✕</button>
+            </div>
+            <div class="friends-list">
+                ${friends.map(f => `
+                    <div class="friend-item">
+                        <div class="friend-avatar">${f.initials}</div>
+                        <div class="friend-info">
+                            <div class="friend-name">${f.name}</div>
+                            <div class="friend-rating">${f.rating || ''}</div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    
+    modal.classList.add('active');
+}
+
+function generateFriendListForStatus(status) {
+    // Simulate friend data
+    const friends = [
+        { name: 'Sarah Chen', initials: 'SC', rating: '❤️ Loved' },
+        { name: 'Mike Rodriguez', initials: 'MR', rating: '👍 Liked' },
+        { name: 'Emma Wilson', initials: 'EW', rating: '❤️ Loved' },
+        { name: 'Jake Park', initials: 'JP', rating: '😑 Meh' },
+        { name: 'Tina Kim', initials: 'TK', rating: '👍 Liked' }
+    ];
+    
+    // Return random subset
+    return friends.slice(0, Math.floor(Math.random() * 4) + 2);
+}
+
+function closeFriendsModal() {
+    const modal = document.getElementById('friendsModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+}
+</script>
 
         /* FIXED SEARCH RESULTS SCROLLING */
         .search-results {
