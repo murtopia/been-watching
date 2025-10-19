@@ -1,0 +1,758 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { createClient } from '@/utils/supabase/client'
+import { useRouter } from 'next/navigation'
+import BottomNav from '@/components/navigation/BottomNav'
+import SearchModal from '@/components/search/SearchModal'
+import MediaDetailModal from '@/components/media/MediaDetailModal'
+import MediaBadges from '@/components/media/MediaBadges'
+import TopShowModal from '@/components/profile/TopShowModal'
+import { Grid3x3, List } from 'lucide-react'
+
+export default function MyShowsPage() {
+  const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
+  const [activeTab, setActiveTab] = useState<'want' | 'watching' | 'watched'>('want')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [mediaItems, setMediaItems] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [counts, setCounts] = useState({ wantCount: 0, watchingCount: 0, watchedCount: 0, totalCount: 0 })
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [detailModalOpen, setDetailModalOpen] = useState(false)
+  const [selectedMedia, setSelectedMedia] = useState<any>(null)
+  const [showTopShowModal, setShowTopShowModal] = useState(false)
+  const [selectedSlot, setSelectedSlot] = useState<number | null>(null)
+  const [topShows, setTopShows] = useState<any[]>([null, null, null])
+  const router = useRouter()
+  const supabase = createClient()
+
+  useEffect(() => {
+    checkUser()
+  }, [])
+
+  useEffect(() => {
+    if (user) {
+      loadMediaForTab(activeTab)
+      loadCounts()
+    }
+  }, [user, activeTab])
+
+  const checkUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      router.push('/auth')
+    } else {
+      setUser(user)
+      loadProfile(user.id)
+    }
+  }
+
+  const loadProfile = async (userId: string) => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle()
+
+    if (data) {
+      setProfile(data)
+      // Load top 3 shows if they exist
+      if (data.top_show_1) setTopShows(prev => [data.top_show_1, prev[1], prev[2]])
+      if (data.top_show_2) setTopShows(prev => [prev[0], data.top_show_2, prev[2]])
+      if (data.top_show_3) setTopShows(prev => [prev[0], prev[1], data.top_show_3])
+    }
+  }
+
+  const loadCounts = async () => {
+    if (!user) return
+
+    const { count: wantCount } = await supabase
+      .from('watch_status')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('status', 'want')
+
+    const { count: watchingCount } = await supabase
+      .from('watch_status')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('status', 'watching')
+
+    const { count: watchedCount } = await supabase
+      .from('watch_status')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('status', 'watched')
+
+    const totalCount = (wantCount || 0) + (watchingCount || 0) + (watchedCount || 0)
+    setCounts({ wantCount: wantCount || 0, watchingCount: watchingCount || 0, watchedCount: watchedCount || 0, totalCount })
+  }
+
+  const loadMediaForTab = async (status: string) => {
+    setLoading(true)
+    try {
+      const { data, error } = await supabase
+        .from('watch_status')
+        .select(`
+          *,
+          media (*)
+        `)
+        .eq('user_id', user.id)
+        .eq('status', status)
+        .order('created_at', { ascending: false })
+
+      if (data) {
+        // Fetch ratings for each media item
+        const mediaWithRatings = await Promise.all(
+          data.map(async (item) => {
+            const { data: ratingData } = await supabase
+              .from('ratings')
+              .select('rating')
+              .eq('user_id', user.id)
+              .eq('media_id', item.media_id)
+              .maybeSingle()
+
+            return {
+              ...item,
+              user_rating: ratingData?.rating || null
+            }
+          })
+        )
+        setMediaItems(mediaWithRatings)
+      }
+    } catch (error) {
+      console.error('Error loading media:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleMediaSelect = async (media: any, rating?: string, status?: string) => {
+    if (!user) return
+
+    try {
+      // Create media ID format
+      const mediaType = media.media_type || (media.first_air_date ? 'tv' : 'movie')
+      const mediaId = `${mediaType}-${media.id}`
+
+      // First, ensure media exists in database
+      await supabase
+        .from('media')
+        .upsert({
+          id: mediaId,
+          tmdb_id: media.id,
+          media_type: mediaType,
+          title: media.title || media.name,
+          poster_path: media.poster_path,
+          backdrop_path: media.backdrop_path,
+          overview: media.overview,
+          release_date: media.release_date || media.first_air_date,
+          vote_average: media.vote_average,
+          tmdb_data: media
+        }, { onConflict: 'id' })
+
+      // Save rating if provided
+      if (rating) {
+        await supabase
+          .from('ratings')
+          .upsert({
+            user_id: user.id,
+            media_id: mediaId,
+            rating: rating
+          }, { onConflict: 'user_id,media_id' })
+      }
+
+      // Save status if provided
+      if (status) {
+        await supabase
+          .from('watch_status')
+          .upsert({
+            user_id: user.id,
+            media_id: mediaId,
+            status: status
+          }, { onConflict: 'user_id,media_id' })
+      }
+
+      // Reload data (keep modal open)
+      loadMediaForTab(activeTab)
+      loadCounts()
+    } catch (error) {
+      console.error('Error handling media select:', error)
+    }
+  }
+
+  const handlePosterClick = (mediaItem: any) => {
+    // Convert media item format to match what MediaDetailModal expects
+    const media = {
+      ...mediaItem.media.tmdb_data,
+      id: mediaItem.media.tmdb_id,
+      media_type: mediaItem.media.media_type,
+      tmdb_id: mediaItem.media.tmdb_id,
+      poster_path: mediaItem.media.poster_path,
+      title: mediaItem.media.title
+    }
+    setSelectedMedia(media)
+    setDetailModalOpen(true)
+  }
+
+  const handleDetailModalRate = (rating: string) => {
+    if (selectedMedia) {
+      handleMediaSelect(selectedMedia, rating, undefined)
+    }
+  }
+
+  const handleDetailModalStatus = (status: string) => {
+    if (selectedMedia) {
+      handleMediaSelect(selectedMedia, undefined, status)
+    }
+  }
+
+  const handleSelectTopShow = (slot: number) => {
+    // Always open the selector modal to allow changing the selection
+    setSelectedSlot(slot)
+    setShowTopShowModal(true)
+  }
+
+  const handleViewTopShow = async (show: any, e: React.MouseEvent) => {
+    // Stop propagation to prevent triggering the parent onClick
+    e.stopPropagation()
+
+    if (!show) return
+
+    // Fetch full media details from TMDB
+    const mediaType = show.media_type || (show.first_air_date ? 'tv' : 'movie')
+    try {
+      const response = await fetch(
+        `https://api.themoviedb.org/3/${mediaType}/${show.tmdb_id || show.id}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY || '99b89037cac7fea56692934b534ea26a'}`
+      )
+      const fullMediaData = await response.json()
+
+      setSelectedMedia(fullMediaData)
+      setDetailModalOpen(true)
+    } catch (error) {
+      console.error('Error fetching media details:', error)
+    }
+  }
+
+  const handleSetTopShow = async (media: any) => {
+    if (selectedSlot === null) return
+
+    const column = `top_show_${selectedSlot}`
+    const { error } = await supabase
+      .from('profiles')
+      .update({ [column]: media })
+      .eq('id', user.id)
+
+    if (!error) {
+      const newTopShows = [...topShows]
+      newTopShows[selectedSlot - 1] = media
+      setTopShows(newTopShows)
+      setShowTopShowModal(false)
+    }
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'white', paddingBottom: '100px' }}>
+      {/* Header */}
+      <div style={{
+        padding: '1rem 1.5rem',
+        background: 'white',
+        borderBottom: '1px solid #f0f0f0',
+        maxWidth: '600px',
+        margin: '0 auto'
+      }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <h1 style={{
+            background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            fontSize: '1.25rem',
+            fontWeight: '700',
+            margin: 0
+          }}>
+            Been Watching
+          </h1>
+          <button
+            onClick={() => router.push('/profile')}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: '1.5rem',
+              cursor: 'pointer',
+              position: 'relative',
+              padding: '0.5rem'
+            }}
+          >
+            {profile?.avatar_url ? (
+              <div style={{ position: 'relative' }}>
+                <img
+                  src={profile.avatar_url}
+                  alt={profile.display_name}
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    objectFit: 'cover'
+                  }}
+                />
+                <div style={{
+                  position: 'absolute',
+                  top: '-4px',
+                  right: '-4px',
+                  fontSize: '1rem'
+                }}>
+                  ✨
+                </div>
+              </div>
+            ) : (
+              <div style={{ position: 'relative' }}>
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontSize: '0.875rem',
+                  fontWeight: '700'
+                }}>
+                  {profile?.display_name?.[0] || '?'}
+                </div>
+                <div style={{
+                  position: 'absolute',
+                  top: '-4px',
+                  right: '-4px',
+                  fontSize: '1rem'
+                }}>
+                  ✨
+                </div>
+              </div>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* My Shows Section */}
+      <div style={{ maxWidth: '600px', margin: '0 auto', background: 'white', padding: '2rem 1.5rem' }}>
+        <h2 style={{ textAlign: 'center', marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: '700' }}>My Shows</h2>
+
+        {/* Top 3 Shows */}
+        <div style={{
+          padding: '1.5rem',
+          background: '#fafafa',
+          borderRadius: '12px',
+          marginBottom: '2rem'
+        }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0' }}>My Top 3 Shows</h3>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: '0.75rem'
+          }}>
+            {[1, 2, 3].map((slot) => {
+              const show = topShows[slot - 1]
+              return (
+                <div
+                  key={slot}
+                  style={{
+                    position: 'relative',
+                    aspectRatio: '2/3',
+                    border: '2px dashed #ddd',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'white'
+                  }}
+                >
+                  {show?.poster_path ? (
+                    <>
+                      {/* Clickable poster image - opens detail modal */}
+                      <div
+                        onClick={(e) => handleViewTopShow(show, e)}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <img
+                          src={`https://image.tmdb.org/t/p/w342${show.poster_path}`}
+                          alt={show.title || show.name}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover'
+                          }}
+                        />
+                      </div>
+
+                      {/* Slot number badge */}
+                      <div style={{
+                        position: 'absolute',
+                        top: '8px',
+                        left: '8px',
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        background: '#0095f6',
+                        color: 'white',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '0.75rem',
+                        fontWeight: '700',
+                        pointerEvents: 'none'
+                      }}>
+                        {slot}
+                      </div>
+
+                      {/* Edit button to change selection */}
+                      <button
+                        onClick={() => handleSelectTopShow(slot)}
+                        style={{
+                          position: 'absolute',
+                          bottom: '8px',
+                          right: '8px',
+                          padding: '6px 12px',
+                          background: 'rgba(0, 0, 0, 0.7)',
+                          backdropFilter: 'blur(10px)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          fontSize: '0.7rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}
+                      >
+                        ✏️ Edit
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      {/* Empty slot - click to add */}
+                      <div
+                        onClick={() => handleSelectTopShow(slot)}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <span style={{ fontSize: '2rem', color: '#ccc' }}>+</span>
+                      </div>
+                      <div style={{
+                        position: 'absolute',
+                        top: '8px',
+                        left: '8px',
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        background: '#0095f6',
+                        color: 'white',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '0.75rem',
+                        fontWeight: '700',
+                        pointerEvents: 'none'
+                      }}>
+                        {slot}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div style={{
+          display: 'flex',
+          borderBottom: '1px solid #f0f0f0',
+          marginBottom: '1.5rem'
+        }}>
+          <button
+            onClick={() => setActiveTab('want')}
+            style={{
+              flex: 1,
+              padding: '0.75rem',
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === 'want' ? '2px solid #0095f6' : '2px solid transparent',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '0.25rem'
+            }}
+          >
+            <div style={{
+              fontSize: '2rem',
+              fontWeight: '700',
+              color: '#000'
+            }}>
+              {counts.wantCount}
+            </div>
+            <div style={{
+              fontSize: '0.9rem',
+              color: activeTab === 'want' ? '#0095f6' : '#666',
+              fontWeight: activeTab === 'want' ? '600' : '400'
+            }}>
+              Want to Watch
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab('watching')}
+            style={{
+              flex: 1,
+              padding: '0.75rem',
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === 'watching' ? '2px solid #0095f6' : '2px solid transparent',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '0.25rem'
+            }}
+          >
+            <div style={{
+              fontSize: '2rem',
+              fontWeight: '700',
+              color: '#000'
+            }}>
+              {counts.watchingCount}
+            </div>
+            <div style={{
+              fontSize: '0.9rem',
+              color: activeTab === 'watching' ? '#0095f6' : '#666',
+              fontWeight: activeTab === 'watching' ? '600' : '400'
+            }}>
+              Watching
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab('watched')}
+            style={{
+              flex: 1,
+              padding: '0.75rem',
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === 'watched' ? '2px solid #0095f6' : '2px solid transparent',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '0.25rem'
+            }}
+          >
+            <div style={{
+              fontSize: '2rem',
+              fontWeight: '700',
+              color: '#000'
+            }}>
+              {counts.watchedCount}
+            </div>
+            <div style={{
+              fontSize: '0.9rem',
+              color: activeTab === 'watched' ? '#0095f6' : '#666',
+              fontWeight: activeTab === 'watched' ? '600' : '400'
+            }}>
+              Watched
+            </div>
+          </button>
+        </div>
+
+        {/* View Toggle */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          gap: '0.5rem',
+          marginBottom: '1rem'
+        }}>
+          <button
+            onClick={() => setViewMode('grid')}
+            style={{
+              width: '44px',
+              height: '44px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: viewMode === 'grid' ? '#0095f6' : 'white',
+              color: viewMode === 'grid' ? 'white' : '#666',
+              border: '1px solid #ddd',
+              borderRadius: '8px',
+              cursor: 'pointer'
+            }}
+            aria-label="Grid view"
+          >
+            <Grid3x3 size={20} />
+          </button>
+          <button
+            onClick={() => setViewMode('list')}
+            style={{
+              width: '44px',
+              height: '44px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: viewMode === 'list' ? '#0095f6' : 'white',
+              color: viewMode === 'list' ? 'white' : '#666',
+              border: '1px solid #ddd',
+              borderRadius: '8px',
+              cursor: 'pointer'
+            }}
+            aria-label="List view"
+          >
+            <List size={20} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div>
+          {loading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem 0' }}>
+              <div style={{ width: '32px', height: '32px', border: '4px solid #e94d88', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+            </div>
+          ) : mediaItems.length > 0 ? (
+            viewMode === 'grid' ? (
+              <div className="shows-grid">
+                {mediaItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="show-card"
+                    onClick={() => handlePosterClick(item)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <div className="poster-container">
+                      <img
+                        src={`https://image.tmdb.org/t/p/w342${item.media.poster_path}`}
+                        alt={item.media.title}
+                        className="show-poster"
+                      />
+                    </div>
+                    <div className="show-title">{item.media.title}</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {mediaItems.map((item) => {
+                  const mediaType = item.media.media_type || (item.media.tmdb_data?.first_air_date ? 'tv' : 'movie')
+                  const tmdbId = item.media.tmdb_id
+
+                  // Extract season number from ID if it's a season-specific record
+                  const seasonNumber = item.media.id?.includes('-s')
+                    ? parseInt(item.media.id.split('-s')[1])
+                    : (item.media.tmdb_data?.season_number || null)
+
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => handlePosterClick(item)}
+                      style={{
+                        display: 'flex',
+                        gap: '1rem',
+                        padding: '0.75rem',
+                        background: '#fafafa',
+                        borderRadius: '12px',
+                        alignItems: 'center',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <img
+                        src={`https://image.tmdb.org/t/p/w185${item.media.poster_path}`}
+                        alt={item.media.title}
+                        style={{
+                          width: '60px',
+                          height: '90px',
+                          borderRadius: '8px',
+                          objectFit: 'cover'
+                        }}
+                      />
+                      <div style={{ flex: 1 }}>
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          marginBottom: '0.25rem'
+                        }}>
+                          <div style={{ fontWeight: '600', fontSize: '1rem' }}>
+                            {item.media.title}
+                          </div>
+                          {item.user_rating && (
+                            <span style={{ fontSize: '1.25rem' }}>
+                              {item.user_rating === 'love' ? '❤️' : item.user_rating === 'like' ? '👍' : '😐'}
+                            </span>
+                          )}
+                        </div>
+                        <MediaBadges
+                          mediaType={mediaType as 'tv' | 'movie'}
+                          seasonNumber={seasonNumber || undefined}
+                          season={!seasonNumber && mediaType === 'tv' ? (item.media.tmdb_data?.number_of_seasons || 1) : undefined}
+                          networks={item.media.tmdb_data?.networks || []}
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )
+          ) : (
+            <div style={{ textAlign: 'center', padding: '4rem 2rem', color: '#999' }}>
+              <p style={{ fontSize: '1rem' }}>
+                No shows yet. Start adding some!
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <SearchModal
+        isOpen={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        onSelectMedia={handleMediaSelect}
+        user={user}
+      />
+
+      <MediaDetailModal
+        isOpen={detailModalOpen}
+        onClose={() => {
+          setDetailModalOpen(false)
+          setSelectedMedia(null)
+        }}
+        media={selectedMedia}
+        onRate={handleDetailModalRate}
+        onStatus={handleDetailModalStatus}
+        user={user}
+      />
+
+      {showTopShowModal && selectedSlot && user && (
+        <TopShowModal
+          onClose={() => setShowTopShowModal(false)}
+          onSelect={handleSetTopShow}
+          slotNumber={selectedSlot}
+          userId={user.id}
+        />
+      )}
+
+      <BottomNav onSearchOpen={() => setSearchOpen(true)} />
+    </div>
+  )
+}

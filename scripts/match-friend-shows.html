@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TMDB Friend Data Matcher</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress {
+            background: #f0f0f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .progress.active {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+            width: 0%;
+        }
+
+        .progress-text {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .results {
+            margin-top: 20px;
+        }
+
+        .friend-section {
+            margin-bottom: 30px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .friend-header {
+            background: #f8f8f8;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .friend-name {
+            font-weight: 600;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .friend-stats {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .category {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .category:last-child {
+            border-bottom: none;
+        }
+
+        .category-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .match {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .match:last-child {
+            border-bottom: none;
+        }
+
+        .match-status {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        .match.success .match-status {
+            color: #34c759;
+        }
+
+        .match.failed .match-status {
+            color: #ff3b30;
+        }
+
+        .match-original {
+            flex: 1;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .match-arrow {
+            margin: 0 10px;
+            color: #ccc;
+        }
+
+        .match-result {
+            flex: 2;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .match.success .match-result {
+            font-weight: 500;
+        }
+
+        .match.failed .match-result {
+            color: #ff3b30;
+            font-style: italic;
+        }
+
+        .summary {
+            background: #f8f8f8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .summary h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .summary-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .summary-item strong {
+            display: block;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .download-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f0f7ff;
+            border-radius: 8px;
+            border: 2px dashed #667eea;
+        }
+
+        .download-section h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .download-section p {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 TMDB Friend Data Matcher</h1>
+        <p class="subtitle">This will search TMDB for all your friends' shows and match them automatically</p>
+
+        <div class="controls">
+            <button id="startBtn" onclick="startMatching()">Start Matching</button>
+            <button id="downloadBtn" onclick="downloadResults()" disabled>Download Results (JSON)</button>
+            <button id="copyBtn" onclick="copyToClipboard()" disabled>Copy to Clipboard</button>
+        </div>
+
+        <div class="progress" id="progress">
+            <div class="progress-bar">
+                <div class="progress-bar-fill" id="progressBar"></div>
+            </div>
+            <div class="progress-text" id="progressText">Processing...</div>
+        </div>
+
+        <div class="results" id="results"></div>
+    </div>
+
+    <script>
+        const TMDB_API_KEY = '99b89037cac7fea56692934b534ea26a';
+        let matchResults = {};
+
+        const FRIENDS = {
+            taylor: {
+                username: 'Taylor.Murto',
+                display_name: 'Taylor Murto',
+                bio: 'What have you been watching?'
+            },
+            todd: {
+                username: 'Toddles',
+                display_name: 'Todd Williams',
+                bio: 'What have you been watching?'
+            },
+            pat: {
+                username: 'Mossy',
+                display_name: 'Pat Moss',
+                bio: 'What have you been watching?'
+            }
+        };
+
+        const FRIEND_DATA = {
+            taylor: {
+                topShows: ['MobLand', 'Peacemaker', 'The Morning Show'],
+                needToWatch: ['The Old Man', 'The Order', 'Silo', 'Black Rabbit', 'Slow Horses'],
+                currentlyWatching: ['Acapulco', 'Platonic', 'Peacemaker', 'Dept Q', 'The Terminal List: Dark Wolf', 'The Morning Show'],
+                paused: ['The Curse', 'Acolyte', 'Griselda', 'Killers of the Flower Moon', 'Horizon: An American Saga', 'Cross'],
+                watched: [
+                    { title: 'Black Bag', rating: 'love' },
+                    { title: 'F1', rating: 'like' },
+                    { title: 'Smoke', rating: 'love' },
+                    { title: 'Happy Gilmore 2', rating: 'like' },
+                    { title: 'Superman', rating: 'love' },
+                    { title: 'Sinners', rating: 'like' },
+                    { title: 'The Bear', rating: 'like' },
+                    { title: 'Heads of State', rating: 'like' },
+                    { title: 'Sirens', rating: 'like' },
+                    { title: 'MobLand', rating: 'love' },
+                    { title: 'Zero Day', rating: 'love' },
+                    { title: 'White Lotus', rating: 'love' },
+                    { title: 'Reacher', rating: 'like' },
+                    { title: 'Beast Games', rating: 'love' },
+                    { title: 'Paradise', rating: 'love' },
+                    { title: 'The Recruit', rating: 'love' },
+                    { title: 'The Night Agent', rating: 'like' },
+                    { title: 'The Agency', rating: 'love' },
+                    { title: 'The Diplomat', rating: 'love' },
+                    { title: 'Landman', rating: 'love' },
+                    { title: 'Shrinking', rating: 'love' },
+                    { title: 'Carry On', rating: 'like' },
+                    { title: 'Black Doves', rating: 'love' },
+                    { title: 'Day of the Jackal', rating: 'love' },
+                    { title: 'Yellowstone', rating: 'love' },
+                    { title: 'Lioness', rating: 'love' },
+                    { title: 'Deadpool & Wolverine', rating: 'like' },
+                    { title: 'The Penguin', rating: 'like' },
+                    { title: 'Disclaimer', rating: 'love' },
+                    { title: 'Bad Monkey', rating: 'love' },
+                    { title: 'Slow Horses', rating: 'love' },
+                    { title: 'Nobody Wants This', rating: 'love' }
+                ]
+            },
+            todd: {
+                topShows: ['Slow Horses', 'Department Q', 'Terminal List'],
+                needToWatch: ['The Bear', 'The Madness', 'Ballard'],
+                currentlyWatching: ['The Task', 'Peacemaker'],
+                watched: [
+                    { title: 'Dune: Part Two', rating: 'love' },
+                    { title: 'Sugar', rating: 'love' },
+                    { title: 'The Gilded Age', rating: 'love' },
+                    { title: 'Slow Horses', rating: 'love' },
+                    { title: 'Fargo', rating: 'love' },
+                    { title: 'Reacher', rating: 'love' },
+                    { title: 'Killing Eve', rating: 'love' },
+                    { title: 'Bad Monkey', rating: 'love' },
+                    { title: 'The Rings of Power', rating: 'love' },
+                    { title: 'The Old Man', rating: 'love' },
+                    { title: 'Rebel Ridge', rating: 'love' },
+                    { title: 'Lioness', rating: 'love' },
+                    { title: 'Shrinking', rating: 'love' },
+                    { title: 'The Diplomat', rating: 'love' },
+                    { title: 'Landman', rating: 'love' },
+                    { title: 'The Recruit', rating: 'love' },
+                    { title: 'The Night Agent', rating: 'love' },
+                    { title: 'Silo', rating: 'love' },
+                    { title: 'White Lotus', rating: 'like' },
+                    { title: 'MobLand', rating: 'love' },
+                    { title: 'Department Q', rating: 'love' },
+                    { title: 'Terminal List', rating: 'love' }
+                ]
+            },
+            pat: {
+                topShows: ['Dune: Part Two', 'The Gentleman', 'Lioness'],
+                needToWatch: ['Road House', 'Star Trek Discovery', 'Three Body Problem'],
+                currentlyWatching: ['Fallout', 'Mr. & Mrs. Smith', 'Halo', 'For All Mankind', 'The Gentleman'],
+                watched: [
+                    { title: 'Invincible', rating: 'love' },
+                    { title: 'Jack Reacher', rating: 'love' },
+                    { title: 'Gen V', rating: 'love' },
+                    { title: 'The Boys', rating: 'love' },
+                    { title: 'Dune', rating: 'love' },
+                    { title: 'Peacemaker', rating: 'love' },
+                    { title: 'Saltburn', rating: 'love' },
+                    { title: 'Oppenheimer', rating: 'love' },
+                    { title: 'Lioness', rating: 'love' },
+                    { title: 'Dune: Part Two', rating: 'love' }
+                ]
+            }
+        };
+
+        function parseRating(stars) {
+            if (stars === 'love') return 'love';
+            if (stars === 'like') return 'like';
+            if (stars === 'meh') return 'meh';
+            return null;
+        }
+
+        async function searchTMDB(title) {
+            try {
+                const response = await fetch(
+                    `https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(title)}`
+                );
+                const data = await response.json();
+                return data.results?.[0] || null;
+            } catch (error) {
+                console.error(`Error searching for "${title}":`, error);
+                return null;
+            }
+        }
+
+        async function startMatching() {
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('progress').classList.add('active');
+            document.getElementById('results').innerHTML = '';
+
+            matchResults = {};
+            let totalShows = 0;
+            let processedShows = 0;
+
+            // Count total shows
+            for (const [friendKey, data] of Object.entries(FRIEND_DATA)) {
+                totalShows += data.needToWatch.length;
+                totalShows += data.currentlyWatching.length;
+                totalShows += data.paused?.length || 0;
+                totalShows += data.watched.length;
+            }
+
+            // Process each friend
+            for (const [friendKey, data] of Object.entries(FRIEND_DATA)) {
+                const friendProfile = FRIENDS[friendKey];
+                matchResults[friendKey] = {
+                    profile: friendProfile,
+                    shows: {
+                        want: [],
+                        watching: [],
+                        watched: [],
+                        paused: []
+                    },
+                    matches: {
+                        want: [],
+                        watching: [],
+                        watched: [],
+                        paused: []
+                    }
+                };
+
+                // Process each category
+                const categories = [
+                    { key: 'needToWatch', status: 'want', matches: 'want' },
+                    { key: 'currentlyWatching', status: 'watching', matches: 'watching' },
+                    { key: 'paused', status: 'watching', matches: 'paused' },
+                    { key: 'watched', status: 'watched', matches: 'watched' }
+                ];
+
+                for (const category of categories) {
+                    const shows = data[category.key] || [];
+
+                    for (const show of shows) {
+                        const title = typeof show === 'string' ? show : show.title;
+                        const rating = typeof show === 'object' ? show.rating : null;
+
+                        const match = await searchTMDB(title);
+                        processedShows++;
+
+                        // Update progress
+                        const percent = Math.round((processedShows / totalShows) * 100);
+                        document.getElementById('progressBar').style.width = percent + '%';
+                        document.getElementById('progressText').textContent =
+                            `Processing ${processedShows} of ${totalShows} shows (${percent}%)...`;
+
+                        if (match) {
+                            const matchedTitle = match.title || match.name;
+                            const year = (match.release_date || match.first_air_date || '').split('-')[0];
+
+                            matchResults[friendKey].shows[category.status].push({
+                                tmdb_id: match.id,
+                                media_type: match.media_type,
+                                title: matchedTitle,
+                                poster_path: match.poster_path,
+                                rating: rating,
+                                status: category.status,
+                                paused: category.key === 'paused'
+                            });
+
+                            matchResults[friendKey].matches[category.matches].push({
+                                original: title,
+                                matched: `${matchedTitle} (${year})`,
+                                type: match.media_type,
+                                success: true
+                            });
+                        } else {
+                            matchResults[friendKey].matches[category.matches].push({
+                                original: title,
+                                matched: 'NO MATCH FOUND',
+                                success: false
+                            });
+                        }
+
+                        // Rate limit
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                    }
+                }
+            }
+
+            // Display results
+            displayResults();
+            document.getElementById('downloadBtn').disabled = false;
+            document.getElementById('copyBtn').disabled = false;
+            document.getElementById('progress').classList.remove('active');
+        }
+
+        function displayResults() {
+            const resultsDiv = document.getElementById('results');
+            let html = '<div class="summary"><h3>Summary</h3><div class="summary-grid">';
+
+            let totalMatches = 0;
+            let totalFailed = 0;
+
+            for (const [friendKey, data] of Object.entries(matchResults)) {
+                const total = data.shows.want.length + data.shows.watching.length + data.shows.watched.length;
+                const failed = Object.values(data.matches).flat().filter(m => !m.success).length;
+                totalMatches += total;
+                totalFailed += failed;
+
+                html += `
+                    <div class="summary-item">
+                        <strong>${data.profile.display_name}</strong>
+                        <div>✓ ${total} matched</div>
+                        <div>✗ ${failed} failed</div>
+                    </div>
+                `;
+            }
+
+            html += `
+                <div class="summary-item">
+                    <strong>Total</strong>
+                    <div>✓ ${totalMatches} matched</div>
+                    <div>✗ ${totalFailed} failed</div>
+                </div>
+            `;
+
+            html += '</div></div>';
+
+            // Display detailed matches
+            for (const [friendKey, data] of Object.entries(matchResults)) {
+                html += `
+                    <div class="friend-section">
+                        <div class="friend-header">
+                            <div class="friend-name">${data.profile.display_name} (@${data.profile.username})</div>
+                            <div class="friend-stats">
+                                ${data.shows.want.length} Want ·
+                                ${data.shows.watching.filter(s => !s.paused).length} Watching ·
+                                ${data.shows.watching.filter(s => s.paused).length} Paused ·
+                                ${data.shows.watched.length} Watched
+                            </div>
+                        </div>
+                `;
+
+                for (const [category, matches] of Object.entries(data.matches)) {
+                    if (matches.length > 0) {
+                        html += `
+                            <div class="category">
+                                <div class="category-title">${category}</div>
+                        `;
+
+                        for (const match of matches) {
+                            const statusClass = match.success ? 'success' : 'failed';
+                            const icon = match.success ? '✓' : '✗';
+
+                            html += `
+                                <div class="match ${statusClass}">
+                                    <div class="match-status">${icon}</div>
+                                    <div class="match-original">${match.original}</div>
+                                    <div class="match-arrow">→</div>
+                                    <div class="match-result">${match.matched}</div>
+                                </div>
+                            `;
+                        }
+
+                        html += '</div>';
+                    }
+                }
+
+                html += '</div>';
+            }
+
+            html += `
+                <div class="download-section">
+                    <h3>✅ Matching Complete!</h3>
+                    <p>Click "Copy to Clipboard" and send the results to Claude so we can generate the SQL insert statements.</p>
+                </div>
+            `;
+
+            resultsDiv.innerHTML = html;
+        }
+
+        function downloadResults() {
+            const dataStr = JSON.stringify(matchResults, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'friend-data-matches.json';
+            link.click();
+        }
+
+        function copyToClipboard() {
+            const dataStr = JSON.stringify(matchResults, null, 2);
+            navigator.clipboard.writeText(dataStr).then(() => {
+                const btn = document.getElementById('copyBtn');
+                const originalText = btn.textContent;
+                btn.textContent = '✓ Copied!';
+                btn.style.background = '#34c759';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '#667eea';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
