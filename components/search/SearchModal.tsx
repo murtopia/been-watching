@@ -23,12 +23,15 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
 
   const debouncedQuery = useDebounce(query, 300)
 
-  // Prevent body scroll when modal is open
+  // Prevent body scroll when modal is open and clear search on close
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = 'unset'
+      // Clear search query when modal closes
+      setQuery('')
+      setResults([])
     }
     return () => {
       document.body.style.overflow = 'unset'
@@ -96,8 +99,8 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search Input - At Top */}
-        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #f0f0f0' }}>
-          <div style={{ position: 'relative' }}>
+        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ position: 'relative', flex: 1 }}>
             <Search style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', width: '20px', height: '20px', color: '#999' }} />
             <input
               type="text"
@@ -106,7 +109,7 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
               placeholder="Search shows or movies..."
               style={{
                 width: '100%',
-                padding: '0.875rem 1rem 0.875rem 3rem',
+                padding: '0.875rem 3rem 0.875rem 3rem',
                 border: '1px solid #e0e0e0',
                 borderRadius: '12px',
                 fontSize: '1rem',
@@ -114,23 +117,64 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
               }}
               autoFocus
             />
-            <button
-              onClick={onClose}
-              style={{
-                position: 'absolute',
-                right: '0.75rem',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                padding: '0.25rem',
-                color: '#666'
-              }}
-            >
-              <X style={{ width: '20px', height: '20px' }} />
-            </button>
+            {query && (
+              <button
+                onClick={() => {
+                  setQuery('')
+                  setResults([])
+                }}
+                style={{
+                  position: 'absolute',
+                  right: '0.75rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '0.25rem',
+                  color: '#666',
+                  transition: 'color 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#e94d88'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = '#666'
+                }}
+              >
+                <X style={{ width: '20px', height: '20px' }} />
+              </button>
+            )}
           </div>
+
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            style={{
+              width: '44px',
+              height: '44px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+              flexShrink: 0
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.05)'
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)'
+              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.15)'
+            }}
+          >
+            <X style={{ width: '24px', height: '24px', color: 'white' }} />
+          </button>
         </div>
 
         {/* Type Filter */}
