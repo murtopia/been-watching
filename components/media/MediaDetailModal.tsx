@@ -9,7 +9,7 @@ interface MediaDetailModalProps {
   onClose: () => void
   media: any
   onRate?: (rating: string) => void
-  onStatus?: (status: string) => void
+  onStatus?: (status: string, currentStatus?: string) => void
   user?: any
 }
 
@@ -41,7 +41,13 @@ export default function MediaDetailModal({
   // Fetch existing rating/status and full media details when modal opens
   useEffect(() => {
     async function fetchData() {
-      if (!isOpen || !media) return
+      if (!isOpen || !media) {
+        // Reset state when modal closes
+        setSelectedRating(null)
+        setSelectedStatus(null)
+        setFullMediaData(null)
+        return
+      }
 
       setLoading(true)
 
@@ -58,7 +64,15 @@ export default function MediaDetailModal({
         // Fetch existing rating/status if user is logged in
         if (user) {
           const supabase = createClient()
-          const mediaId = media.media_type === 'movie' ? `movie-${tmdbId}` : `tv-${tmdbId}`
+
+          // IMPORTANT: For shows from the database (clicked from myshows page),
+          // media.id will be the full ID like "tv-12345-s1"
+          // For new shows (from search), we need to construct it
+          const mediaId = media.id && (media.id.startsWith('tv-') || media.id.startsWith('movie-'))
+            ? media.id  // Already have the correct format from database
+            : (media.media_type === 'movie' ? `movie-${tmdbId}` : `tv-${tmdbId}`) // Construct for new shows
+
+          console.log('MediaDetailModal: Looking up rating/status for mediaId:', mediaId)
 
           // Fetch rating
           const { data: ratingData } = await supabase
@@ -66,10 +80,12 @@ export default function MediaDetailModal({
             .select('rating')
             .eq('user_id', user.id)
             .eq('media_id', mediaId)
-            .single()
+            .maybeSingle()
 
           if (ratingData) {
             setSelectedRating(ratingData.rating)
+          } else {
+            setSelectedRating(null)
           }
 
           // Fetch watch status
@@ -78,10 +94,12 @@ export default function MediaDetailModal({
             .select('status')
             .eq('user_id', user.id)
             .eq('media_id', mediaId)
-            .single()
+            .maybeSingle()
 
           if (statusData) {
             setSelectedStatus(statusData.status)
+          } else {
+            setSelectedStatus(null)
           }
         }
       } catch (error) {
@@ -94,17 +112,19 @@ export default function MediaDetailModal({
     fetchData()
   }, [isOpen, media, user])
 
-  const handleRating = (rating: string) => {
-    setSelectedRating(rating === selectedRating ? null : rating)
+  const handleRating = async (rating: string) => {
+    const newRating = rating === selectedRating ? null : rating
+    setSelectedRating(newRating)
     if (onRate) {
-      onRate(rating)
+      await onRate(newRating as any) // Pass null when unchecking
     }
   }
 
-  const handleStatus = (status: string) => {
-    setSelectedStatus(status === selectedStatus ? null : status)
+  const handleStatus = async (status: string) => {
+    const newStatus = status === selectedStatus ? null : status
+    setSelectedStatus(newStatus)
     if (onStatus) {
-      onStatus(status)
+      await onStatus(newStatus as any, selectedStatus as any) // Pass current status so parent can show confirmation
     }
   }
 

@@ -83,7 +83,7 @@ export default function MediaCard({
           <div className="feed-show-title">{title}</div>
           <div className="feed-show-meta">
             {releaseDate && (
-              <span>{new Date(releaseDate).getFullYear()}</span>
+              <span>{releaseDate.substring(0, 4)}</span>
             )}
             {media.vote_average && (
               <span> • ⭐ {media.vote_average.toFixed(1)}</span>

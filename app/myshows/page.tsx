@@ -24,6 +24,8 @@ export default function MyShowsPage() {
   const [showTopShowModal, setShowTopShowModal] = useState(false)
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null)
   const [topShows, setTopShows] = useState<any[]>([null, null, null])
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
+  const [pendingRemoval, setPendingRemoval] = useState<{media: any, currentStatus: string} | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -132,16 +134,32 @@ export default function MyShowsPage() {
     if (!user) return
 
     try {
-      // Create media ID format
+      // Determine media type first
       const mediaType = media.media_type || (media.first_air_date ? 'tv' : 'movie')
-      const mediaId = `${mediaType}-${media.id}`
+
+      // Get the media ID - it might already be in the correct format (e.g., "tv-12345-s1")
+      // or it might just be the TMDB ID that needs formatting
+      let mediaId: string
+      let tmdbId: number
+
+      if (media.id && typeof media.id === 'string' && (media.id.startsWith('tv-') || media.id.startsWith('movie-'))) {
+        // Already in correct format (from database)
+        mediaId = media.id
+        tmdbId = media.tmdb_id || parseInt(media.id.split('-')[1])
+      } else {
+        // Need to construct it (from search/new media)
+        tmdbId = media.tmdb_id || media.id
+        mediaId = `${mediaType}-${tmdbId}`
+      }
+
+      console.log('handleMediaSelect: Using mediaId:', mediaId, 'for media:', media)
 
       // First, ensure media exists in database
       await supabase
         .from('media')
         .upsert({
           id: mediaId,
-          tmdb_id: media.id,
+          tmdb_id: tmdbId,
           media_type: mediaType,
           title: media.title || media.name,
           poster_path: media.poster_path,
@@ -153,25 +171,43 @@ export default function MyShowsPage() {
         }, { onConflict: 'id' })
 
       // Save rating if provided
-      if (rating) {
-        await supabase
-          .from('ratings')
-          .upsert({
-            user_id: user.id,
-            media_id: mediaId,
-            rating: rating
-          }, { onConflict: 'user_id,media_id' })
+      if (rating !== undefined) {
+        if (rating === null) {
+          // Delete rating if null (user unchecked)
+          await supabase
+            .from('ratings')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('media_id', mediaId)
+        } else {
+          await supabase
+            .from('ratings')
+            .upsert({
+              user_id: user.id,
+              media_id: mediaId,
+              rating: rating
+            }, { onConflict: 'user_id,media_id' })
+        }
       }
 
       // Save status if provided
-      if (status) {
-        await supabase
-          .from('watch_status')
-          .upsert({
-            user_id: user.id,
-            media_id: mediaId,
-            status: status
-          }, { onConflict: 'user_id,media_id' })
+      if (status !== undefined) {
+        if (status === null) {
+          // Delete watch_status if null (user unchecked)
+          await supabase
+            .from('watch_status')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('media_id', mediaId)
+        } else {
+          await supabase
+            .from('watch_status')
+            .upsert({
+              user_id: user.id,
+              media_id: mediaId,
+              status: status
+            }, { onConflict: 'user_id,media_id' })
+        }
       }
 
       // Reload data (keep modal open)
@@ -186,7 +222,7 @@ export default function MyShowsPage() {
     // Convert media item format to match what MediaDetailModal expects
     const media = {
       ...mediaItem.media.tmdb_data,
-      id: mediaItem.media.tmdb_id,
+      id: mediaItem.media.id, // Use the full media ID (e.g., tv-12345-s1) not just tmdb_id
       media_type: mediaItem.media.media_type,
       tmdb_id: mediaItem.media.tmdb_id,
       poster_path: mediaItem.media.poster_path,
@@ -196,16 +232,38 @@ export default function MyShowsPage() {
     setDetailModalOpen(true)
   }
 
-  const handleDetailModalRate = (rating: string) => {
+  const handleDetailModalRate = async (rating: string) => {
     if (selectedMedia) {
-      handleMediaSelect(selectedMedia, rating, undefined)
+      await handleMediaSelect(selectedMedia, rating, undefined)
     }
   }
 
-  const handleDetailModalStatus = (status: string) => {
-    if (selectedMedia) {
-      handleMediaSelect(selectedMedia, undefined, status)
+  const handleDetailModalStatus = async (status: string, currentStatus?: string) => {
+    if (!selectedMedia) return
+
+    // If user is unchecking (removing from list), show confirmation
+    if (status === null && currentStatus) {
+      setPendingRemoval({ media: selectedMedia, currentStatus })
+      setShowRemoveConfirm(true)
+    } else {
+      // Adding or changing status - proceed normally
+      await handleMediaSelect(selectedMedia, undefined, status)
     }
+  }
+
+  const confirmRemoval = async () => {
+    if (pendingRemoval) {
+      await handleMediaSelect(pendingRemoval.media, undefined, null)
+      setShowRemoveConfirm(false)
+      setPendingRemoval(null)
+      setDetailModalOpen(false)
+      setSelectedMedia(null)
+    }
+  }
+
+  const cancelRemoval = () => {
+    setShowRemoveConfirm(false)
+    setPendingRemoval(null)
   }
 
   const handleSelectTopShow = (slot: number) => {
@@ -750,6 +808,90 @@ export default function MyShowsPage() {
           slotNumber={selectedSlot}
           userId={user.id}
         />
+      )}
+
+      {/* Remove Confirmation Dialog */}
+      {showRemoveConfirm && pendingRemoval && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+            padding: '1rem'
+          }}
+          onClick={cancelRemoval}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '400px',
+              background: 'white',
+              borderRadius: '16px',
+              overflow: 'hidden',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ padding: '1.5rem 1.5rem 1rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700', color: '#000' }}>
+                Remove from list?
+              </h3>
+              <p style={{ margin: '0.75rem 0 0', fontSize: '0.9375rem', color: '#666', lineHeight: '1.5' }}>
+                Remove <strong>{selectedMedia?.title || selectedMedia?.name}</strong> from your{' '}
+                <strong>
+                  {pendingRemoval.currentStatus === 'want' ? 'Want to Watch' :
+                   pendingRemoval.currentStatus === 'watching' ? 'Watching' : 'Watched'}
+                </strong> list?
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div style={{
+              display: 'flex',
+              gap: '0.75rem',
+              padding: '1rem 1.5rem 1.5rem',
+              borderTop: '1px solid #f0f0f0'
+            }}>
+              <button
+                onClick={cancelRemoval}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  background: 'white',
+                  border: '1px solid #ddd',
+                  borderRadius: '8px',
+                  fontSize: '0.9375rem',
+                  fontWeight: '600',
+                  color: '#666',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmRemoval}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  background: '#dc3545',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '0.9375rem',
+                  fontWeight: '600',
+                  color: 'white',
+                  cursor: 'pointer'
+                }}
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <BottomNav onSearchOpen={() => setSearchOpen(true)} />
