@@ -1,0 +1,2153 @@
+[
+  {
+    "id": "36ba27f9-74ba-4e8f-bcbe-7929400af9d3",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-60622-s2",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:15:59.24403+00:00",
+    "updated_at": "2025-10-19T17:43:15.460453+00:00"
+  },
+  {
+    "id": "0b31d987-8c15-46a9-a9df-7ead9ae625d7",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-2122-s1",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:06.326751+00:00",
+    "updated_at": "2025-10-19T17:43:16.023804+00:00"
+  },
+  {
+    "id": "ab57713c-bc3b-4825-b9a6-26d3ca2811e2",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-194764",
+    "status": "watching",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:13.581107+00:00",
+    "updated_at": "2025-10-19T17:43:16.294075+00:00"
+  },
+  {
+    "id": "c6d92b85-926d-4e3a-a51e-7a1ea039ab81",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-72750-s2",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:17.040343+00:00",
+    "updated_at": "2025-10-19T17:43:16.701183+00:00"
+  },
+  {
+    "id": "18c0f7b9-78b0-4506-a941-21b068711bae",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-533533",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-16T03:06:52.996982+00:00",
+    "updated_at": "2025-10-19T17:43:16.872863+00:00"
+  },
+  {
+    "id": "9c90cad3-5376-4035-870b-3f042f1fce9b",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-100088-s1",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:34.016276+00:00",
+    "updated_at": "2025-10-19T17:43:17.269201+00:00"
+  },
+  {
+    "id": "e74a5c29-e338-4aad-970b-d69955cbd602",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-153312-s2",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-18T21:46:40.590611+00:00",
+    "updated_at": "2025-10-19T17:43:17.430124+00:00"
+  },
+  {
+    "id": "f7c60dce-d1d8-44b1-85da-c6da968b635a",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-215995",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:43.731801+00:00",
+    "updated_at": "2025-10-19T17:43:17.828621+00:00"
+  },
+  {
+    "id": "d0abc95c-8015-47bd-a0e7-b8c65e2749da",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-212246",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:46.854172+00:00",
+    "updated_at": "2025-10-19T17:43:18.004103+00:00"
+  },
+  {
+    "id": "286b5c9d-f274-414e-8733-a3f8019a5c37",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-60622",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:07.711952+00:00",
+    "updated_at": "2025-10-19T17:43:18.424475+00:00"
+  },
+  {
+    "id": "adafc6f3-3317-4e73-bc5a-2dc783f74ae0",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-574052",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:19.844591+00:00",
+    "updated_at": "2025-10-19T17:43:18.581669+00:00"
+  },
+  {
+    "id": "ebfbe260-a61e-4482-bf9f-e3e1fd7929a0",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-396232",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:09.644377+00:00",
+    "updated_at": "2025-10-19T17:43:19.037928+00:00"
+  },
+  {
+    "id": "0d7def39-cd5b-487a-8cac-cfe00eda5470",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-334543",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:10.944932+00:00",
+    "updated_at": "2025-10-19T17:43:19.245092+00:00"
+  },
+  {
+    "id": "d0924e5f-2713-4df5-a4a5-e24992614e49",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-253321",
+    "status": "watching",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:15.195015+00:00",
+    "updated_at": "2025-10-19T17:43:19.654025+00:00"
+  },
+  {
+    "id": "8efe14ba-1d0a-4a13-87a9-3dca27754bfa",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-249039",
+    "status": "watching",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:16.672068+00:00",
+    "updated_at": "2025-10-19T17:43:19.804272+00:00"
+  },
+  {
+    "id": "4a702b86-44d7-4a18-8196-05398e983890",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-156819",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:19.726968+00:00",
+    "updated_at": "2025-10-19T17:43:20.204454+00:00"
+  },
+  {
+    "id": "d55476c0-eeae-4829-9857-1e6551befcdd",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-90296",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:20.963866+00:00",
+    "updated_at": "2025-10-19T17:43:20.358378+00:00"
+  },
+  {
+    "id": "584bf1b0-f9b5-48e6-8461-f30f20f266cb",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-108545",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:24.292766+00:00",
+    "updated_at": "2025-10-19T17:43:20.766291+00:00"
+  },
+  {
+    "id": "111cb95b-4fab-40ee-abd6-9912a69812f6",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-106379",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:25.445563+00:00",
+    "updated_at": "2025-10-19T17:43:20.926107+00:00"
+  },
+  {
+    "id": "6324932c-3a57-4966-96f0-26163c7f33f7",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-969492",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:29.056308+00:00",
+    "updated_at": "2025-10-19T17:43:21.324973+00:00"
+  },
+  {
+    "id": "4f799fb5-d0e6-439f-885f-3e8291320912",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-76479",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:30.475605+00:00",
+    "updated_at": "2025-10-19T17:43:21.491316+00:00"
+  },
+  {
+    "id": "9555a80e-c9bd-4aaf-8d4f-9ecfc8b92058",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-157080",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:32.522722+00:00",
+    "updated_at": "2025-10-19T17:43:21.914612+00:00"
+  },
+  {
+    "id": "6a50a70d-6fce-49a1-a540-468f3959a6a8",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-116799",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:35.587541+00:00",
+    "updated_at": "2025-10-19T17:43:22.095261+00:00"
+  },
+  {
+    "id": "4313212e-981d-438b-a7b9-58658379579f",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-1436-s1",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:05.632119+00:00",
+    "updated_at": "2025-10-19T17:43:22.508304+00:00"
+  },
+  {
+    "id": "23c3a5a5-dfa7-4b4d-a206-e7c447995000",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-95480-s3",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:09.894783+00:00",
+    "updated_at": "2025-10-19T17:43:22.669032+00:00"
+  },
+  {
+    "id": "f29e71f5-b40d-4ee6-8292-6b7f2f4641b4",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-220056-s1",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:22.920804+00:00",
+    "updated_at": "2025-10-19T17:43:23.212231+00:00"
+  },
+  {
+    "id": "bf3a1445-800c-4597-8e68-405766648efe",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-211039",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:52.34583+00:00",
+    "updated_at": "2025-10-19T17:43:23.397114+00:00"
+  },
+  {
+    "id": "434ee90e-0131-497f-9976-bd6a1525fd4c",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-823464",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:02.214495+00:00",
+    "updated_at": "2025-10-19T17:43:23.851395+00:00"
+  },
+  {
+    "id": "61cf70f3-e6b0-4201-89de-50b3bcd9e396",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-95480-s2",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:09.122146+00:00",
+    "updated_at": "2025-10-19T17:43:24.028738+00:00"
+  },
+  {
+    "id": "47654f58-6008-4a7e-b319-5d8d5a2289ab",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-787699",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:26.429114+00:00",
+    "updated_at": "2025-10-19T17:43:24.477758+00:00"
+  },
+  {
+    "id": "87d3e9fb-42e8-49d6-91d8-6ece6b69c21e",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-9156",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:28.459771+00:00",
+    "updated_at": "2025-10-19T17:43:24.695267+00:00"
+  },
+  {
+    "id": "ff1966ab-31d6-4664-9ba1-19ec45e41617",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-4464-s1",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:01.218613+00:00",
+    "updated_at": "2025-10-19T17:43:25.128283+00:00"
+  },
+  {
+    "id": "38c93019-6dce-4bc1-91fb-71f6e4a0ea71",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-90296-s2",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:12.657807+00:00",
+    "updated_at": "2025-10-19T17:43:25.305121+00:00"
+  },
+  {
+    "id": "c69d6698-9100-4c40-9277-ea019a4c363d",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-108978-s2",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:35.863279+00:00",
+    "updated_at": "2025-10-19T17:43:25.762256+00:00"
+  },
+  {
+    "id": "b0d02d90-935d-4bca-9ab4-54fbf834931a",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-82782-s4",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:37.959036+00:00",
+    "updated_at": "2025-10-19T17:43:25.955939+00:00"
+  },
+  {
+    "id": "34bef662-c258-49db-8702-2fea3120befb",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-136315-s3",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:57.892771+00:00",
+    "updated_at": "2025-10-19T17:43:26.415739+00:00"
+  },
+  {
+    "id": "073fa56a-dd25-409a-afdf-29e7115e6f84",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-46518",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:05.561629+00:00",
+    "updated_at": "2025-10-19T17:43:26.5911+00:00"
+  },
+  {
+    "id": "c748b686-dd7a-4ff0-8b39-652cba9d1bc8",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-96580-s4",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:15.057416+00:00",
+    "updated_at": "2025-10-19T17:43:27.065088+00:00"
+  },
+  {
+    "id": "131efbf5-986a-44fd-b21c-e80fdd87ce4e",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-18676",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:22.869904+00:00",
+    "updated_at": "2025-10-19T17:43:27.257455+00:00"
+  },
+  {
+    "id": "8cd4c849-1a62-4723-826f-7c71f24e9ea2",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-156812-s1",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:00.372163+00:00",
+    "updated_at": "2025-10-19T17:43:27.713436+00:00"
+  },
+  {
+    "id": "5ab3e40b-978a-4eda-b092-4c86ce32e036",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-203857-s1",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:13.517975+00:00",
+    "updated_at": "2025-10-19T17:43:27.887894+00:00"
+  },
+  {
+    "id": "6ccc0ec6-fc70-4253-9e48-c01eda2d6be6",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-106158-s1",
+    "status": "watching",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:35.543902+00:00",
+    "updated_at": "2025-10-19T17:43:28.30584+00:00"
+  },
+  {
+    "id": "539800fb-2014-4973-bf16-410a06d564d7",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-112211-s2",
+    "status": "watching",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:26.203661+00:00",
+    "updated_at": "2025-10-19T17:43:28.48055+00:00"
+  },
+  {
+    "id": "7d30ca5c-74c3-4fad-aa1f-38109f725003",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-83867-s2",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:48.315098+00:00",
+    "updated_at": "2025-10-19T17:43:28.935401+00:00"
+  },
+  {
+    "id": "e91cc175-2eb8-464f-ab0d-dc4de48c2a85",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-246381",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:49.450024+00:00",
+    "updated_at": "2025-10-19T17:43:29.105834+00:00"
+  },
+  {
+    "id": "8a811685-fb98-47a9-9595-dc8433da4594",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-572802",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:24.872668+00:00",
+    "updated_at": "2025-10-19T17:43:29.503573+00:00"
+  },
+  {
+    "id": "72df8072-eeab-4b5c-8d41-4c6db63040de",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-8771",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:28.061288+00:00",
+    "updated_at": "2025-10-19T17:43:29.68497+00:00"
+  },
+  {
+    "id": "6165971b-531b-490b-b149-bc4d21823829",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-147050",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:36.619202+00:00",
+    "updated_at": "2025-10-19T17:43:30.114332+00:00"
+  },
+  {
+    "id": "43d960f6-14d0-4c5d-8c36-029c341914f4",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-225385",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:38.420033+00:00",
+    "updated_at": "2025-10-19T17:43:30.291172+00:00"
+  },
+  {
+    "id": "8d7c7033-f5ce-4502-82fd-5828df8d28c0",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-85021-s1",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:04.805966+00:00",
+    "updated_at": "2025-10-19T17:43:30.729283+00:00"
+  },
+  {
+    "id": "7ce2376a-4293-4f29-93f6-7f960fee3351",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-157239-s1",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:05.96095+00:00",
+    "updated_at": "2025-10-19T17:43:30.894153+00:00"
+  },
+  {
+    "id": "0a20912b-14ac-434a-b607-ae78ce3b93d8",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-247718",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:43.657286+00:00",
+    "updated_at": "2025-10-19T17:43:31.292955+00:00"
+  },
+  {
+    "id": "9e60befb-1a81-4045-b3e8-bd599466b4ee",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-749170",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:44.541966+00:00",
+    "updated_at": "2025-10-19T17:43:31.481781+00:00"
+  },
+  {
+    "id": "f5cec530-3eba-4aae-ae1c-09122e4fe310",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-248937",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:46.573585+00:00",
+    "updated_at": "2025-10-19T17:43:31.94861+00:00"
+  },
+  {
+    "id": "d2825f53-f4f4-47a2-b0ce-3a15b589655a",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-129552",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:47.351176+00:00",
+    "updated_at": "2025-10-19T17:43:32.134255+00:00"
+  },
+  {
+    "id": "c67809ca-6baf-4ef5-b342-abbe051e4493",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-848326",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:50.954506+00:00",
+    "updated_at": "2025-10-19T17:43:32.575882+00:00"
+  },
+  {
+    "id": "93320855-7372-4029-8ac9-0b22c646c44f",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-934632",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:51.844014+00:00",
+    "updated_at": "2025-10-19T17:43:32.750209+00:00"
+  },
+  {
+    "id": "b42b9862-ecdc-465e-be66-be20df442af8",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-203857-s2",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:51.259289+00:00",
+    "updated_at": "2025-10-19T17:43:33.19306+00:00"
+  },
+  {
+    "id": "f26c6274-49f7-42c0-bc34-221a484f528a",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-974950",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:54.82278+00:00",
+    "updated_at": "2025-10-19T17:43:33.359968+00:00"
+  },
+  {
+    "id": "7499a773-1901-41f8-8c61-a7c9fde376ba",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-9857",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:59.876064+00:00",
+    "updated_at": "2025-10-19T17:43:33.77113+00:00"
+  },
+  {
+    "id": "4ee13f21-e992-4447-bc32-cfe28851efd0",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-95557",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:04.024943+00:00",
+    "updated_at": "2025-10-19T17:43:33.937609+00:00"
+  },
+  {
+    "id": "14734b08-0393-44e8-8482-d6c8fc6a9c21",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-67198-s1",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:16.337293+00:00",
+    "updated_at": "2025-10-19T17:43:34.381984+00:00"
+  },
+  {
+    "id": "d911c3bb-7406-4569-bbe9-d17f2cf1c1c5",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-746036",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:58:27.587709+00:00",
+    "updated_at": "2025-10-19T17:43:34.542335+00:00"
+  },
+  {
+    "id": "7d0389b1-44eb-4ce2-bfc6-f406e639dd91",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-1222248",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:58:36.980374+00:00",
+    "updated_at": "2025-10-19T17:43:34.962826+00:00"
+  },
+  {
+    "id": "2cd2c27b-4245-4f15-883b-1010fb6bb99e",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-15420",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:23.48645+00:00",
+    "updated_at": "2025-10-19T17:43:35.20828+00:00"
+  },
+  {
+    "id": "d967a332-e377-4ea4-bfc0-fc7f4382b41d",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-365620",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:07:40.304213+00:00",
+    "updated_at": "2025-10-19T17:43:35.947384+00:00"
+  },
+  {
+    "id": "cace4bf6-5147-408e-9e02-07e4888a1f72",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-273481",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:07:43.344347+00:00",
+    "updated_at": "2025-10-19T17:43:36.111956+00:00"
+  },
+  {
+    "id": "dcd777a7-739b-41ef-809e-5c6de2c5b7fe",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-877817",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:07:56.124954+00:00",
+    "updated_at": "2025-10-19T17:43:36.564705+00:00"
+  },
+  {
+    "id": "19033767-818d-4f6e-9b7c-0bbf0f51d070",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-668489",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:08:04.784087+00:00",
+    "updated_at": "2025-10-19T17:43:36.721139+00:00"
+  },
+  {
+    "id": "2a7bf044-778b-4173-a579-57f8ed2c9473",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-3602-s1",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:01.712867+00:00",
+    "updated_at": "2025-10-19T17:43:15.593039+00:00"
+  },
+  {
+    "id": "75b6df48-feb6-4e35-8995-57c621668b00",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-120911-s2",
+    "status": "watching",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:07.969866+00:00",
+    "updated_at": "2025-10-19T17:43:16.213055+00:00"
+  },
+  {
+    "id": "d5fc3594-dfd9-45c6-902d-b2408fd9b714",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-136311",
+    "status": "watching",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:13.903601+00:00",
+    "updated_at": "2025-10-19T17:43:16.375471+00:00"
+  },
+  {
+    "id": "b8fab591-030c-460b-8076-7a673bbc6f50",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-110492-s2",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-16T02:33:54.051338+00:00",
+    "updated_at": "2025-10-19T17:43:16.785122+00:00"
+  },
+  {
+    "id": "3272be58-6df3-4b5c-b712-5da142c52f67",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-799583",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-18T17:53:40.813673+00:00",
+    "updated_at": "2025-10-19T17:43:16.952874+00:00"
+  },
+  {
+    "id": "eb8a6fbe-b5f1-4c51-949b-f3fcf2534c0b",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-153312-s1",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-18T21:46:35.098023+00:00",
+    "updated_at": "2025-10-19T17:43:17.348853+00:00"
+  },
+  {
+    "id": "91978714-3157-48ab-875d-056f97714e37",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-153312-s3",
+    "status": "watching",
+    "progress": 0,
+    "created_at": "2025-10-18T21:46:43.993994+00:00",
+    "updated_at": "2025-10-19T17:43:17.517172+00:00"
+  },
+  {
+    "id": "ee6c992b-200a-44f3-ba13-5867407c1886",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-10223",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:44.532199+00:00",
+    "updated_at": "2025-10-19T17:43:17.916948+00:00"
+  },
+  {
+    "id": "f3feb27d-8868-46d8-92dc-1b2841a1b874",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-996821",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:50.671768+00:00",
+    "updated_at": "2025-10-19T17:43:18.074151+00:00"
+  },
+  {
+    "id": "218c638c-c4f8-44d6-82d5-c84201864237",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-197449",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:10.099136+00:00",
+    "updated_at": "2025-10-19T17:43:18.507107+00:00"
+  },
+  {
+    "id": "3e5dfc4c-f557-4264-ac65-40b915e1b4b8",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-68788",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:20.663726+00:00",
+    "updated_at": "2025-10-19T17:43:18.660132+00:00"
+  },
+  {
+    "id": "c8dfd1f7-6fc1-426a-920e-5bffa1c01aa2",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-2039",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:09.973351+00:00",
+    "updated_at": "2025-10-19T17:43:19.120966+00:00"
+  },
+  {
+    "id": "47270890-1477-4072-b4ca-d49cbf358278",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-696506",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:11.587842+00:00",
+    "updated_at": "2025-10-19T17:43:19.321859+00:00"
+  },
+  {
+    "id": "2f4a0500-66fc-44bd-88dd-bb8735a37dca",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-120911",
+    "status": "watching",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:15.51386+00:00",
+    "updated_at": "2025-10-19T17:43:19.730523+00:00"
+  },
+  {
+    "id": "52e33e3d-b29b-4c46-b1b4-cdcb3d9e15e7",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-125713",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:17.319512+00:00",
+    "updated_at": "2025-10-19T17:43:19.882637+00:00"
+  },
+  {
+    "id": "3438c9fd-b022-4569-a7a5-bada8c42bd20",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-236235",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:20.548571+00:00",
+    "updated_at": "2025-10-19T17:43:20.281864+00:00"
+  },
+  {
+    "id": "0525f782-564f-490b-bfdd-008986a70963",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-1022690",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:21.812645+00:00",
+    "updated_at": "2025-10-19T17:43:20.441799+00:00"
+  },
+  {
+    "id": "9a0849df-b63c-4cae-85cc-2142940ddbda",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-325789",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:24.694714+00:00",
+    "updated_at": "2025-10-19T17:43:20.847372+00:00"
+  },
+  {
+    "id": "1e37252c-6be5-4dda-a1d7-ab1bc9b51ce4",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-218961",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:26.435399+00:00",
+    "updated_at": "2025-10-19T17:43:21.008405+00:00"
+  },
+  {
+    "id": "55668ff1-31b9-43ab-a078-e0bf8f1c1a8b",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-4546",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:30.067311+00:00",
+    "updated_at": "2025-10-19T17:43:21.409893+00:00"
+  },
+  {
+    "id": "20993b98-1f02-4535-b467-4b749fefbd9d",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-866398",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:30.876366+00:00",
+    "updated_at": "2025-10-19T17:43:21.593764+00:00"
+  },
+  {
+    "id": "62df5abd-ef9c-4cbc-85af-abb32f59676a",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-646097",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:32.941721+00:00",
+    "updated_at": "2025-10-19T17:43:22.006849+00:00"
+  },
+  {
+    "id": "d6d1d30b-9353-4334-a928-32012034a150",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-157741",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:37.994956+00:00",
+    "updated_at": "2025-10-19T17:43:22.177365+00:00"
+  },
+  {
+    "id": "d75d79d3-b111-4207-a351-34cf2c8f7ba3",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-136311-s2",
+    "status": "watching",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:06.817956+00:00",
+    "updated_at": "2025-10-19T17:43:22.589568+00:00"
+  },
+  {
+    "id": "8af34060-3cbe-4125-901f-404cab8d2200",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-100095-s5",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:14.223426+00:00",
+    "updated_at": "2025-10-19T17:43:22.746353+00:00"
+  },
+  {
+    "id": "58cbc320-6ff6-4fe5-b4f9-ab13b7972472",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-221300-s2",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:45.893337+00:00",
+    "updated_at": "2025-10-19T17:43:23.317407+00:00"
+  },
+  {
+    "id": "af68c34a-836b-4ce7-bf1c-267c73a6b929",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-937287",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:54.880905+00:00",
+    "updated_at": "2025-10-19T17:43:23.487143+00:00"
+  },
+  {
+    "id": "3bc8e059-5bfd-4c34-8efd-04866167b99b",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-72750",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:08.313866+00:00",
+    "updated_at": "2025-10-19T17:43:23.945585+00:00"
+  },
+  {
+    "id": "23e0f159-d444-41c3-91e3-427f10484216",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-100088",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:11.868223+00:00",
+    "updated_at": "2025-10-19T17:43:24.112149+00:00"
+  },
+  {
+    "id": "54cf912f-ddcc-44bd-a342-09603fa7fd84",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-271264",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:27.633237+00:00",
+    "updated_at": "2025-10-19T17:43:24.574117+00:00"
+  },
+  {
+    "id": "68be84d8-b457-4b62-a41c-7aec9a4b2349",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-39050",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:30.877966+00:00",
+    "updated_at": "2025-10-19T17:43:24.778382+00:00"
+  },
+  {
+    "id": "ba274362-9e81-48ac-9767-0103f545e2f4",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-112091-s1",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:03.752614+00:00",
+    "updated_at": "2025-10-19T17:43:25.213524+00:00"
+  },
+  {
+    "id": "c2465352-5cf9-4bca-acad-fb337320b09f",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-72750-s1",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:16.582738+00:00",
+    "updated_at": "2025-10-19T17:43:25.392137+00:00"
+  },
+  {
+    "id": "bb3b1dca-a570-47c3-8d2e-6376c2175b2f",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-111803-s3",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:37.531165+00:00",
+    "updated_at": "2025-10-19T17:43:25.868897+00:00"
+  },
+  {
+    "id": "fdfdbc6e-12d8-4c70-b4d1-7937b19ef9b1",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-82104-s1",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:21.297115+00:00",
+    "updated_at": "2025-10-19T17:43:26.045676+00:00"
+  },
+  {
+    "id": "59c10672-7213-477b-af4b-277df0983578",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-205715",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:04.424089+00:00",
+    "updated_at": "2025-10-19T17:43:26.502375+00:00"
+  },
+  {
+    "id": "9804ede5-0bd2-427c-8d88-30a38a958702",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-81723",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:06.484255+00:00",
+    "updated_at": "2025-10-19T17:43:26.679664+00:00"
+  },
+  {
+    "id": "696488d7-6dbe-42ab-8244-6a2b4ba294af",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-575265",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:21.476131+00:00",
+    "updated_at": "2025-10-19T17:43:27.162667+00:00"
+  },
+  {
+    "id": "e1a8db2b-46f9-4e83-b5c5-6c7a87767e0f",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-930564",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:27.231663+00:00",
+    "updated_at": "2025-10-19T17:43:27.370893+00:00"
+  },
+  {
+    "id": "e987215b-d309-4127-b2cf-98b31bed5928",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-95480-s5",
+    "status": "watching",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:09.247892+00:00",
+    "updated_at": "2025-10-19T17:43:27.79957+00:00"
+  },
+  {
+    "id": "7138df72-32b9-461c-80f3-b012c967cae6",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-95480-s4",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:22.949356+00:00",
+    "updated_at": "2025-10-19T17:43:27.967209+00:00"
+  },
+  {
+    "id": "12106dc0-13f1-4960-ae50-1221a3c383b6",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-125988-s1",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:21.620867+00:00",
+    "updated_at": "2025-10-19T17:43:28.396153+00:00"
+  },
+  {
+    "id": "d1daa507-2d94-4678-997a-604f3f1410b7",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-90282-s4",
+    "status": "watching",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:26.885356+00:00",
+    "updated_at": "2025-10-19T17:43:28.569939+00:00"
+  },
+  {
+    "id": "1aa3e4a7-aa70-4346-b616-f2593012f399",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-157744-s2",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:48.877523+00:00",
+    "updated_at": "2025-10-19T17:43:29.023963+00:00"
+  },
+  {
+    "id": "9f509ce5-3376-488d-bd5f-7b4f69ca80ad",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-1008409",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:56.392181+00:00",
+    "updated_at": "2025-10-19T17:43:29.190936+00:00"
+  },
+  {
+    "id": "df9f635a-22ac-445a-bdc1-c3ce7441e40b",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-86046",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:26.027059+00:00",
+    "updated_at": "2025-10-19T17:43:29.584902+00:00"
+  },
+  {
+    "id": "da76d1c0-fc76-426c-ba58-216ed8a5438c",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-1416745",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:30.297456+00:00",
+    "updated_at": "2025-10-19T17:43:29.789308+00:00"
+  },
+  {
+    "id": "d750d9c0-382b-4fec-9e56-82444d6f7266",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-957452",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:37.220473+00:00",
+    "updated_at": "2025-10-19T17:43:30.209071+00:00"
+  },
+  {
+    "id": "f36f89b6-edd5-4d98-af3d-20ac0c78be1d",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-9571",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:38.875733+00:00",
+    "updated_at": "2025-10-19T17:43:30.372964+00:00"
+  },
+  {
+    "id": "68d3fdc1-d118-4419-a3a0-e4e335e92c0f",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-1537",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:40.955829+00:00",
+    "updated_at": "2025-10-19T17:43:30.808611+00:00"
+  },
+  {
+    "id": "7339d837-edaf-41ca-b02f-e2169d0ae3a6",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-67384",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:41.772811+00:00",
+    "updated_at": "2025-10-19T17:43:30.974324+00:00"
+  },
+  {
+    "id": "409d3861-4e8c-45ac-8c87-00d76c6b9bbb",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-60766",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:44.068529+00:00",
+    "updated_at": "2025-10-19T17:43:31.375639+00:00"
+  },
+  {
+    "id": "8f42b5bc-8d3c-4ddb-a2e4-ca94331db792",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-1491570",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:44.947082+00:00",
+    "updated_at": "2025-10-19T17:43:31.576868+00:00"
+  },
+  {
+    "id": "0635c037-30fb-4c43-a8d3-e22a3368b29c",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-911430",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:47.005221+00:00",
+    "updated_at": "2025-10-19T17:43:32.051491+00:00"
+  },
+  {
+    "id": "6c879c77-3295-4b69-a6ff-5314145bbfe2",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-724665",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:47.763439+00:00",
+    "updated_at": "2025-10-19T17:43:32.244426+00:00"
+  },
+  {
+    "id": "9a7fb6eb-1b7f-4cbf-8372-81bd682dee91",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-108978-s3",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:30.285735+00:00",
+    "updated_at": "2025-10-19T17:43:32.666544+00:00"
+  },
+  {
+    "id": "325fe237-bd03-4586-8ab6-1410b98a3410",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-693134",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:52.250653+00:00",
+    "updated_at": "2025-10-19T17:43:32.838188+00:00"
+  },
+  {
+    "id": "538fbf6a-b013-4a1a-9c61-0a07ce9ce4aa",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-222766",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:54.408492+00:00",
+    "updated_at": "2025-10-19T17:43:33.285178+00:00"
+  },
+  {
+    "id": "c36922cd-5179-47de-8efd-ca3c17ff5eec",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-111803",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:55.234743+00:00",
+    "updated_at": "2025-10-19T17:43:33.436329+00:00"
+  },
+  {
+    "id": "433b527d-0a3b-457b-9a64-39fccc38d391",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-1072790",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:02.599199+00:00",
+    "updated_at": "2025-10-19T17:43:33.857448+00:00"
+  },
+  {
+    "id": "39481c76-eebc-4670-b8d6-c21fcf3c0b57",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-110492",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:04.991086+00:00",
+    "updated_at": "2025-10-19T17:43:34.041533+00:00"
+  },
+  {
+    "id": "f75d14ca-4a78-4520-adf8-713c7682d7c9",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-348350",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:58:25.940311+00:00",
+    "updated_at": "2025-10-19T17:43:34.467822+00:00"
+  },
+  {
+    "id": "1876a0b5-76fd-4a74-8af6-235f47df84dc",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-248053",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:58:30.001403+00:00",
+    "updated_at": "2025-10-19T17:43:34.618162+00:00"
+  },
+  {
+    "id": "d2a716a8-242e-48e4-85c4-8c02b4f8b7ce",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-140032",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:58:37.667239+00:00",
+    "updated_at": "2025-10-19T17:43:35.093128+00:00"
+  },
+  {
+    "id": "45cbcf75-c3d3-4599-ab2f-d36fcf217d60",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-76486",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:26.827261+00:00",
+    "updated_at": "2025-10-19T17:43:35.300838+00:00"
+  },
+  {
+    "id": "e307b2bf-e2fa-4048-a361-d20e5edc2a54",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-1214506",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:07:41.730549+00:00",
+    "updated_at": "2025-10-19T17:43:36.031092+00:00"
+  },
+  {
+    "id": "6bbe8bdc-ee39-4cbf-ac6d-f149e7bc6e5b",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-753342",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:07:47.754176+00:00",
+    "updated_at": "2025-10-19T17:43:36.221026+00:00"
+  },
+  {
+    "id": "a4ae4f2b-61e5-4ae1-b81d-7e89dffe87fa",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-1005331",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:07:58.929223+00:00",
+    "updated_at": "2025-10-19T17:43:36.638633+00:00"
+  },
+  {
+    "id": "5edd78e3-cde6-4e3e-8063-0828ca9f74f1",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-70523-s1",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:02.575036+00:00",
+    "updated_at": "2025-10-19T17:43:15.727165+00:00"
+  },
+  {
+    "id": "da38f5d2-09e4-4447-bf39-dcffd8bea7d7",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-60622-s5",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:10.368285+00:00",
+    "updated_at": "2025-10-19T17:43:16.45171+00:00"
+  },
+  {
+    "id": "8c71665e-3872-4a26-9c70-aac592ca51c3",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-72750-s3",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:18.417058+00:00",
+    "updated_at": "2025-10-19T17:43:17.034598+00:00"
+  },
+  {
+    "id": "acae83f5-96aa-4761-a00a-6e459ae33aeb",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-250923",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T01:27:19.587533+00:00",
+    "updated_at": "2025-10-19T17:43:17.591462+00:00"
+  },
+  {
+    "id": "52285bf3-c792-45dc-b752-5e267faf0a6e",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-844185",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:55.431975+00:00",
+    "updated_at": "2025-10-19T17:43:18.158995+00:00"
+  },
+  {
+    "id": "bd9c7d69-e58e-4b5b-bb11-f43844564b1d",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-116799-s3",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:23.882045+00:00",
+    "updated_at": "2025-10-19T17:43:18.735312+00:00"
+  },
+  {
+    "id": "8d27d90c-a3a3-41dc-9b2a-c77bc9b8a8d4",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-157744",
+    "status": "watching",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:14.229426+00:00",
+    "updated_at": "2025-10-19T17:43:19.4048+00:00"
+  },
+  {
+    "id": "239ce6c4-0c8a-4abb-97c4-a6ae8af68482",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-227004",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:18.083346+00:00",
+    "updated_at": "2025-10-19T17:43:19.964231+00:00"
+  },
+  {
+    "id": "66afdb94-cc88-4d26-999a-b08e4f818ab4",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-100095",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:23.06533+00:00",
+    "updated_at": "2025-10-19T17:43:20.525989+00:00"
+  },
+  {
+    "id": "a92c413d-0789-4cb8-8587-b830e1f17247",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-203744",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:26.867976+00:00",
+    "updated_at": "2025-10-19T17:43:21.082067+00:00"
+  },
+  {
+    "id": "f49ffa44-5a97-4f96-ab44-f68c0be60c97",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-1059064",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:31.282651+00:00",
+    "updated_at": "2025-10-19T17:43:21.678134+00:00"
+  },
+  {
+    "id": "78cfe795-8d33-4467-a581-5eb721d473be",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-60622-s3",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:15:59.636925+00:00",
+    "updated_at": "2025-10-19T17:43:22.254543+00:00"
+  },
+  {
+    "id": "2eb689d6-19b2-4a37-9e0c-1ced0bd017fa",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-111800-s1",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:23.664452+00:00",
+    "updated_at": "2025-10-19T17:43:22.835512+00:00"
+  },
+  {
+    "id": "2f4cdab1-eeb4-4416-8b84-70fa72c214b4",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-9766",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:55.999559+00:00",
+    "updated_at": "2025-10-19T17:43:23.588404+00:00"
+  },
+  {
+    "id": "e7cf28e5-2c89-41de-a662-4ab180150a48",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-154827",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:14.459153+00:00",
+    "updated_at": "2025-10-19T17:43:24.194136+00:00"
+  },
+  {
+    "id": "99bfa9eb-556e-488a-b476-ade5227ce87e",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-228305",
+    "status": "watching",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:27.717765+00:00",
+    "updated_at": "2025-10-19T17:43:24.878206+00:00"
+  },
+  {
+    "id": "e0c3bae4-ad8b-4e96-9ea7-8c6cb51bd9ca",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-203857",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:24.908879+00:00",
+    "updated_at": "2025-10-19T17:43:25.483732+00:00"
+  },
+  {
+    "id": "b4faf37f-d63e-46e1-b211-332587610149",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-41822-s22",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:46.462654+00:00",
+    "updated_at": "2025-10-19T17:43:26.133318+00:00"
+  },
+  {
+    "id": "1c5aea83-9526-49cd-991c-788412d54b27",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-84773",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:09.700056+00:00",
+    "updated_at": "2025-10-19T17:43:26.762167+00:00"
+  },
+  {
+    "id": "9d859df6-009f-4558-9290-cf2a9eae9656",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-95954",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:29.034779+00:00",
+    "updated_at": "2025-10-19T17:43:27.450672+00:00"
+  },
+  {
+    "id": "e783dd6d-afad-423b-a86e-31b4621c5fc2",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-116799-s2",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:24.372211+00:00",
+    "updated_at": "2025-10-19T17:43:28.047641+00:00"
+  },
+  {
+    "id": "181e8fa7-f2aa-42d1-9978-e9ed73e3e20e",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-1233575",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:42.957213+00:00",
+    "updated_at": "2025-10-19T17:43:28.677546+00:00"
+  },
+  {
+    "id": "618d84fc-3174-4c59-ba04-c62176e0e776",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-199318",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:08.715942+00:00",
+    "updated_at": "2025-10-19T17:43:29.269453+00:00"
+  },
+  {
+    "id": "97f0506f-1878-47a2-86f0-8f28672007b4",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-245703",
+    "status": "watching",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:17.176055+00:00",
+    "updated_at": "2025-10-19T17:43:29.867636+00:00"
+  },
+  {
+    "id": "9200836f-4d58-43ab-a785-cd94127370cf",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-1042650",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:39.289682+00:00",
+    "updated_at": "2025-10-19T17:43:30.490825+00:00"
+  },
+  {
+    "id": "1c7c4b7b-7100-48de-b016-3a491a0a53d0",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-108978",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:42.204751+00:00",
+    "updated_at": "2025-10-19T17:43:31.050095+00:00"
+  },
+  {
+    "id": "67870ccd-8019-456d-87c0-d03e87c6a17e",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-457332",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:45.353859+00:00",
+    "updated_at": "2025-10-19T17:43:31.675865+00:00"
+  },
+  {
+    "id": "b9635a32-8c06-406e-9cdd-824ffa735b0d",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-72750-s4",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:19.13805+00:00",
+    "updated_at": "2025-10-19T17:43:32.326119+00:00"
+  },
+  {
+    "id": "30605228-2bc2-4911-9777-d82dd7017189",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-249039-s1",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:21.938861+00:00",
+    "updated_at": "2025-10-19T17:43:32.933825+00:00"
+  },
+  {
+    "id": "11049362-c93c-4f92-ad30-60e16eb54b1f",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-82782",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:55.641089+00:00",
+    "updated_at": "2025-10-19T17:43:33.51136+00:00"
+  },
+  {
+    "id": "2ff62e8a-daff-4911-8ea6-0546b7dc9896",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-95480",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:07.27235+00:00",
+    "updated_at": "2025-10-19T17:43:34.138554+00:00"
+  },
+  {
+    "id": "2605da14-bc35-44de-8823-b85a09f4c796",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-154301",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:20.248631+00:00",
+    "updated_at": "2025-10-19T17:43:34.715942+00:00"
+  },
+  {
+    "id": "45c1dc29-fd9b-4ad9-a002-dccf840ee2ce",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-73586-s5",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:29.886022+00:00",
+    "updated_at": "2025-10-19T17:43:35.384891+00:00"
+  },
+  {
+    "id": "14aa4a75-f8d1-46f7-82b4-f198b07d4593",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-359410",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:07:48.337552+00:00",
+    "updated_at": "2025-10-19T17:43:36.302066+00:00"
+  },
+  {
+    "id": "41fcd30e-47a7-4c12-9155-1f54227adf8d",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-36994-s1",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:04.257143+00:00",
+    "updated_at": "2025-10-19T17:43:15.835886+00:00"
+  },
+  {
+    "id": "d90668d1-41ce-43f3-be9c-a049d0095eec",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-250988",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-15T22:21:36.572081+00:00",
+    "updated_at": "2025-10-19T17:43:16.538686+00:00"
+  },
+  {
+    "id": "7d4548f4-4fb2-4871-b5c1-78b457cb9789",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-4546-s12",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:19.79941+00:00",
+    "updated_at": "2025-10-19T17:43:17.11424+00:00"
+  },
+  {
+    "id": "733d99a3-a742-47f2-95b1-cce38a42023a",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-93685-s1",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:34.393093+00:00",
+    "updated_at": "2025-10-19T17:43:17.667957+00:00"
+  },
+  {
+    "id": "913c9cd1-4b8c-4d32-adf3-e197ea92e22c",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-940721",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:00.61989+00:00",
+    "updated_at": "2025-10-19T17:43:18.260636+00:00"
+  },
+  {
+    "id": "658ee0d8-3eca-409f-aa4a-3b62b40984b6",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-110492-s1",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T03:17:15.886883+00:00",
+    "updated_at": "2025-10-19T17:43:18.847549+00:00"
+  },
+  {
+    "id": "d4b5556e-0029-44cf-bec6-9d301169a638",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-125988",
+    "status": "watching",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:14.555803+00:00",
+    "updated_at": "2025-10-19T17:43:19.477727+00:00"
+  },
+  {
+    "id": "7a2cfb57-4606-4aa6-a65b-377d27805970",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-10058",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:18.49586+00:00",
+    "updated_at": "2025-10-19T17:43:20.045882+00:00"
+  },
+  {
+    "id": "0aed2a62-ae1c-4a55-9e39-37c3467347ce",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-747188",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:23.473867+00:00",
+    "updated_at": "2025-10-19T17:43:20.598129+00:00"
+  },
+  {
+    "id": "ab5bcfd6-c9f6-4807-8a66-5163e48af133",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-41822",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:27.879632+00:00",
+    "updated_at": "2025-10-19T17:43:21.159561+00:00"
+  },
+  {
+    "id": "01a0eba4-690c-484b-8bd2-223fc29e41ba",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-156933",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:31.707438+00:00",
+    "updated_at": "2025-10-19T17:43:21.755286+00:00"
+  },
+  {
+    "id": "cd442ed8-0050-43ce-a9ad-7f9f17ba3be5",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-126929-s1",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:00.888483+00:00",
+    "updated_at": "2025-10-19T17:43:22.338462+00:00"
+  },
+  {
+    "id": "80a75e55-8a87-4154-bb3f-407529f429a4",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-203857-s3",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:26.565535+00:00",
+    "updated_at": "2025-10-19T17:43:22.946957+00:00"
+  },
+  {
+    "id": "a031ba3a-595e-4c88-a293-038f2ef4599b",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-94997-s2",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:57.166333+00:00",
+    "updated_at": "2025-10-19T17:43:23.678899+00:00"
+  },
+  {
+    "id": "3db11e39-2f2b-419c-ae5e-069ca3c5060e",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-87083-s7",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:22.052852+00:00",
+    "updated_at": "2025-10-19T17:43:24.293992+00:00"
+  },
+  {
+    "id": "e67647e3-8490-4f6a-8277-2d4eaa4e066b",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-220564",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:33.355056+00:00",
+    "updated_at": "2025-10-19T17:43:24.966044+00:00"
+  },
+  {
+    "id": "32efd599-1394-44ea-90ba-55dfe7f9abad",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-129552-s2",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:33.348743+00:00",
+    "updated_at": "2025-10-19T17:43:25.56611+00:00"
+  },
+  {
+    "id": "baadbe5b-be35-4928-b8e0-e36274012ccf",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-241609",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:47.582858+00:00",
+    "updated_at": "2025-10-19T17:43:26.23973+00:00"
+  },
+  {
+    "id": "6332a302-578a-4c15-b13e-3c3ec82a4599",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-231990",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:11.469162+00:00",
+    "updated_at": "2025-10-19T17:43:26.862221+00:00"
+  },
+  {
+    "id": "5c8d1b70-346f-441d-801e-9b6382304157",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-213306",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:29.492891+00:00",
+    "updated_at": "2025-10-19T17:43:27.534702+00:00"
+  },
+  {
+    "id": "46a5bd2e-4f80-4563-bbcc-84b5a517e3a8",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-111800-s2",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:25.844223+00:00",
+    "updated_at": "2025-10-19T17:43:28.126603+00:00"
+  },
+  {
+    "id": "f6427522-466a-4b53-82aa-8a7a1bc777ce",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-136315-s4",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:44.934931+00:00",
+    "updated_at": "2025-10-19T17:43:28.761443+00:00"
+  },
+  {
+    "id": "5f6f22fa-2976-4c73-9139-b0a2b0256d88",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-33129",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:21.065426+00:00",
+    "updated_at": "2025-10-19T17:43:29.347806+00:00"
+  },
+  {
+    "id": "9e2f9a18-b67b-4a4a-b2ab-2d486cf92b26",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-67070-s1",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:02.221361+00:00",
+    "updated_at": "2025-10-19T17:43:29.950974+00:00"
+  },
+  {
+    "id": "ecaceb65-16be-43ec-b084-0c3689c7ed8c",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-249522",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:39.69741+00:00",
+    "updated_at": "2025-10-19T17:43:30.569712+00:00"
+  },
+  {
+    "id": "2bf05108-ea21-4f5b-9973-5eabb47415cd",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-157744-s1",
+    "status": "watching",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:07.133073+00:00",
+    "updated_at": "2025-10-19T17:43:31.131814+00:00"
+  },
+  {
+    "id": "f5dfa4cf-a289-43fc-b31b-1178d986994a",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-247767",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:45.755961+00:00",
+    "updated_at": "2025-10-19T17:43:31.755639+00:00"
+  },
+  {
+    "id": "6fcb9b41-e472-40bb-9612-3626e0246eb2",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-76479-s4",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:20.260176+00:00",
+    "updated_at": "2025-10-19T17:43:32.410151+00:00"
+  },
+  {
+    "id": "fc0162dd-d237-4df8-834c-faa2e6e20a77",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-1039773",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:53.056721+00:00",
+    "updated_at": "2025-10-19T17:43:33.02558+00:00"
+  },
+  {
+    "id": "2f3b7ecc-470d-47cd-9277-cbc60104583a",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-221300",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:56.050619+00:00",
+    "updated_at": "2025-10-19T17:43:33.588448+00:00"
+  },
+  {
+    "id": "e3628e18-6fd7-435c-99c5-51fb0c27aa7c",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-64121",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:58:24.151937+00:00",
+    "updated_at": "2025-10-19T17:43:34.213877+00:00"
+  },
+  {
+    "id": "cf5633cd-9faa-4b2c-bfda-a3cf73ff91c9",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-10060",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:58:35.629858+00:00",
+    "updated_at": "2025-10-19T17:43:34.796685+00:00"
+  },
+  {
+    "id": "787fcebb-e7da-476e-985d-3c39980690b4",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-77184",
+    "status": "watching",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:17.512474+00:00",
+    "updated_at": "2025-10-19T17:43:35.578861+00:00"
+  },
+  {
+    "id": "210e60ae-1c78-485a-b760-b9c41f436919",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-955916",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:07:53.060281+00:00",
+    "updated_at": "2025-10-19T17:43:36.384831+00:00"
+  },
+  {
+    "id": "0b5e9293-fa29-4885-a880-6338b3650406",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-124101-s1",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:05.135247+00:00",
+    "updated_at": "2025-10-19T17:43:15.94307+00:00"
+  },
+  {
+    "id": "bd38aa5b-7263-41a9-aa5d-dc4cdd08c3d0",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-644495",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-15T22:21:46.260461+00:00",
+    "updated_at": "2025-10-19T17:43:16.614218+00:00"
+  },
+  {
+    "id": "81f3a09e-84b9-4488-a741-9596b7a55be3",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-210916-s2",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:29.623772+00:00",
+    "updated_at": "2025-10-19T17:43:17.191846+00:00"
+  },
+  {
+    "id": "320bd330-97db-407b-b194-3a7850f38516",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-108545-s1",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:22.603966+00:00",
+    "updated_at": "2025-10-19T17:43:17.744929+00:00"
+  },
+  {
+    "id": "420799cb-9895-482b-a21b-3568a9a617d5",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-46648",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:06.870211+00:00",
+    "updated_at": "2025-10-19T17:43:18.341723+00:00"
+  },
+  {
+    "id": "71dcd0bc-c081-43da-80ab-38995a15ba2e",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-30231",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:08.6807+00:00",
+    "updated_at": "2025-10-19T17:43:18.948107+00:00"
+  },
+  {
+    "id": "522de185-670f-4cc7-8379-a82b87707d3f",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-277685",
+    "status": "watching",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:14.874958+00:00",
+    "updated_at": "2025-10-19T17:43:19.55222+00:00"
+  },
+  {
+    "id": "238479bd-9e11-49db-bf09-be5cd13a9cb2",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-157732",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:18.910822+00:00",
+    "updated_at": "2025-10-19T17:43:20.127895+00:00"
+  },
+  {
+    "id": "480ffe61-6b12-4bae-bfe2-0f439803d27a",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-220801",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:23.892562+00:00",
+    "updated_at": "2025-10-19T17:43:20.680724+00:00"
+  },
+  {
+    "id": "58a69f3e-52d7-4593-86f0-e2a9db10470c",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-196322",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:28.472816+00:00",
+    "updated_at": "2025-10-19T17:43:21.243876+00:00"
+  },
+  {
+    "id": "b206243c-4c0c-4217-bbb7-3c6801bf26d1",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-786892",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:32.11379+00:00",
+    "updated_at": "2025-10-19T17:43:21.839399+00:00"
+  },
+  {
+    "id": "a13ab14f-c72a-4778-9d85-0e1a71a6a83f",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-63726-s1",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:03.433785+00:00",
+    "updated_at": "2025-10-19T17:43:22.415476+00:00"
+  },
+  {
+    "id": "17cc93b3-c068-4294-a503-ebf8b147220b",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-271560-s1",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:34.750356+00:00",
+    "updated_at": "2025-10-19T17:43:23.100096+00:00"
+  },
+  {
+    "id": "a4bb2b56-9247-40da-ab2b-29e124338edd",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-850165",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:58.28227+00:00",
+    "updated_at": "2025-10-19T17:43:23.760757+00:00"
+  },
+  {
+    "id": "ccbeb59f-9ecb-41d1-acd8-c08a6b8b8d9f",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-87083-s6",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:25.272818+00:00",
+    "updated_at": "2025-10-19T17:43:24.385982+00:00"
+  },
+  {
+    "id": "adf53391-d3e0-4adb-b429-66cf80741f49",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-73200-s1",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:00.030929+00:00",
+    "updated_at": "2025-10-19T17:43:25.045679+00:00"
+  },
+  {
+    "id": "8229b75e-2f5d-42a4-b7e8-2f6ffab58fc0",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-257027-s1",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:35.19931+00:00",
+    "updated_at": "2025-10-19T17:43:25.664167+00:00"
+  },
+  {
+    "id": "c6dc7d23-89dd-4df3-a0ef-a688fab52c41",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-573435",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:54.499647+00:00",
+    "updated_at": "2025-10-19T17:43:26.320382+00:00"
+  },
+  {
+    "id": "7089ad7d-e6a5-40e0-854d-59bfa1e160c1",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-468225",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:12.637087+00:00",
+    "updated_at": "2025-10-19T17:43:26.974748+00:00"
+  },
+  {
+    "id": "1052879a-72c1-42ae-8631-2937a84ab2df",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-130853",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:34.131223+00:00",
+    "updated_at": "2025-10-19T17:43:27.627462+00:00"
+  },
+  {
+    "id": "8cf9f7a3-7dfa-4efa-9d49-25207a376612",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-113962-s2",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:27.335626+00:00",
+    "updated_at": "2025-10-19T17:43:28.230485+00:00"
+  },
+  {
+    "id": "f7490c0d-629f-46f8-b092-dba8cd8f2c89",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-254544",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:45.497297+00:00",
+    "updated_at": "2025-10-19T17:43:28.845673+00:00"
+  },
+  {
+    "id": "412a240a-63d4-4594-938b-87df8b29bd56",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-84773-s2",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:24.299906+00:00",
+    "updated_at": "2025-10-19T17:43:29.424014+00:00"
+  },
+  {
+    "id": "9060d3da-ba42-48d5-bd5a-4f69a48df09b",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-533535",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:36.205122+00:00",
+    "updated_at": "2025-10-19T17:43:30.025416+00:00"
+  },
+  {
+    "id": "a504149b-450f-4045-b1bd-80d5084dcaf1",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-216082",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:40.130429+00:00",
+    "updated_at": "2025-10-19T17:43:30.649599+00:00"
+  },
+  {
+    "id": "800df05c-6abc-4752-bcbd-33ecf7ab0575",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-113962",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:16:11.415589+00:00",
+    "updated_at": "2025-10-19T17:43:31.206654+00:00"
+  },
+  {
+    "id": "80e2c033-6948-473a-9425-d59253c69efc",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-9614",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:46.16326+00:00",
+    "updated_at": "2025-10-19T17:43:31.846601+00:00"
+  },
+  {
+    "id": "3529f12e-f7d1-4107-bbe1-606851701be7",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-106158",
+    "status": "watching",
+    "progress": 0,
+    "created_at": "2025-10-19T11:17:50.436934+00:00",
+    "updated_at": "2025-10-19T17:43:32.493169+00:00"
+  },
+  {
+    "id": "c1411806-bb36-45fc-89df-68eda4fb3048",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-1263256",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:44.131799+00:00",
+    "updated_at": "2025-10-19T17:43:33.111396+00:00"
+  },
+  {
+    "id": "706d8c66-e279-4793-a2ff-2e9eb857d431",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-90812-s3",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:40:54.109738+00:00",
+    "updated_at": "2025-10-19T17:43:33.67466+00:00"
+  },
+  {
+    "id": "07749fb0-42c2-4566-927c-1db3446ce069",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-848538",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T11:58:24.920367+00:00",
+    "updated_at": "2025-10-19T17:43:34.298835+00:00"
+  },
+  {
+    "id": "5f02cd68-7d61-4bb1-867f-4770a7735e3b",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "tv-26577",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:41:22.464766+00:00",
+    "updated_at": "2025-10-19T17:43:34.884059+00:00"
+  },
+  {
+    "id": "75e7948a-1a23-4d2b-8931-16320c964138",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-77016",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-19T12:07:39.539362+00:00",
+    "updated_at": "2025-10-19T17:43:35.772104+00:00"
+  },
+  {
+    "id": "4c9685d9-4d36-44d0-9217-5aa899377f89",
+    "user_id": "ac15f0ac-ef46-4efc-bee3-96084ede16ad",
+    "media_id": "movie-1094138",
+    "status": "watched",
+    "progress": 0,
+    "created_at": "2025-10-19T12:07:54.553833+00:00",
+    "updated_at": "2025-10-19T17:43:36.470385+00:00"
+  }
+]
