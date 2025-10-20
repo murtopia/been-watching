@@ -54,11 +54,13 @@ export default function HomePage() {
         setProfile(profileData)
 
         // Check if user needs to provide invite code (OAuth users who haven't been approved)
-        if (!profileData.is_approved && !profileData.invited_by_master_code) {
+        if (!profileData.is_approved) {
           setShowInviteCodeGate(true)
         }
-        // Check if username is set (new user check)
-        else if (!profileData.username || profileData.username === user.email?.split('@')[0]) {
+        // Check if username needs to be customized (still has auto-generated username with timestamp or email prefix)
+        else if (!profileData.username ||
+                 profileData.username.includes('_') || // Has timestamp
+                 profileData.username === user.email?.split('@')[0]) {
           setShowProfileSetup(true)
         }
       } else if (profileError) {

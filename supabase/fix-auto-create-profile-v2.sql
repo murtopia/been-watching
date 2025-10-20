@@ -29,12 +29,13 @@ BEGIN
     SPLIT_PART(NEW.email, '@', 1)
   );
 
-  -- Insert profile
+  -- Insert profile with is_approved = false for invite code requirement
   INSERT INTO public.profiles (
     id,
     username,
     display_name,
     bio,
+    is_approved,
     created_at,
     updated_at
   )
@@ -43,6 +44,7 @@ BEGIN
     new_username,
     new_display_name,
     'What have you been watching?',
+    false,  -- Require invite code validation
     NOW(),
     NOW()
   );
