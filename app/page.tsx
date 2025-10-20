@@ -8,11 +8,13 @@ import ActivityCard from '@/components/feed/ActivityCard'
 import SearchModal from '@/components/search/SearchModal'
 import MediaDetailModal from '@/components/media/MediaDetailModal'
 import ProfileSetup from '@/components/onboarding/ProfileSetup'
+import InviteCodeGate from '@/components/onboarding/InviteCodeGate'
 import { Sparkles } from 'lucide-react'
 
 export default function HomePage() {
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
+  const [showInviteCodeGate, setShowInviteCodeGate] = useState(false)
   const [showProfileSetup, setShowProfileSetup] = useState(false)
   const [activities, setActivities] = useState<any[]>([])
   const [trending, setTrending] = useState<any[]>([])
@@ -28,16 +30,16 @@ export default function HomePage() {
   }, [])
 
   useEffect(() => {
-    if (user && !showProfileSetup) {
+    if (user && !showInviteCodeGate && !showProfileSetup) {
       loadFeed()
       loadTrending()
     }
-  }, [user, showProfileSetup])
+  }, [user, showInviteCodeGate, showProfileSetup])
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      router.push('/auth')
+      router.push('/welcome')
     } else {
       setUser(user)
 
@@ -50,12 +52,17 @@ export default function HomePage() {
 
       if (profileData) {
         setProfile(profileData)
+
+        // Check if user needs to provide invite code (OAuth users who haven't been approved)
+        if (!profileData.is_approved && !profileData.invited_by_master_code) {
+          setShowInviteCodeGate(true)
+        }
         // Check if username is set (new user check)
-        if (!profileData.username || profileData.username === user.email?.split('@')[0]) {
+        else if (!profileData.username || profileData.username === user.email?.split('@')[0]) {
           setShowProfileSetup(true)
         }
       } else if (profileError) {
-        // Profile doesn't exist, create it
+        // Profile doesn't exist, create it (shouldn't happen with trigger, but fallback)
         const defaultUsername = user.email?.split('@')[0] || 'user'
         // Add timestamp to make username unique
         const uniqueUsername = `${defaultUsername}_${Date.now()}`
@@ -74,7 +81,8 @@ export default function HomePage() {
           console.error('Error creating profile:', createError)
         } else if (newProfile) {
           setProfile(newProfile)
-          setShowProfileSetup(true)
+          // New OAuth user needs invite code
+          setShowInviteCodeGate(true)
         }
       }
     }
@@ -668,6 +676,17 @@ export default function HomePage() {
 
   return (
     <>
+      {/* Invite Code Gate for OAuth users */}
+      {showInviteCodeGate && user && (
+        <InviteCodeGate
+          userId={user.id}
+          onValidated={() => {
+            setShowInviteCodeGate(false)
+            setShowProfileSetup(true)
+          }}
+        />
+      )}
+
       {/* Profile Setup Modal for new users */}
       {showProfileSetup && user && (
         <ProfileSetup

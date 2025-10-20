@@ -202,17 +202,38 @@ export default function AuthPage() {
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       }}
     >
-      {/* Theme Toggle */}
+      {/* Top Bar */}
       <div
         style={{
           position: 'fixed',
           top: '1rem',
+          left: '1rem',
           right: '1rem',
           display: 'flex',
-          gap: '0.75rem',
+          justifyContent: 'space-between',
           alignItems: 'center',
         }}
       >
+        <a
+          href="/welcome"
+          style={{
+            padding: '0.5rem 1rem',
+            background: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+            border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'}`,
+            borderRadius: '8px',
+            color: textPrimary,
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            backdropFilter: 'blur(10px)',
+            cursor: 'pointer',
+            textDecoration: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+          }}
+        >
+          ← Back
+        </a>
         <button
           onClick={() => setIsDarkMode(!isDarkMode)}
           style={{

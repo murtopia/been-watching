@@ -3,15 +3,13 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
 
-interface ProfileSetupProps {
+interface InviteCodeGateProps {
   userId: string
-  onComplete: () => void
+  onValidated: () => void
 }
 
-export default function ProfileSetup({ userId, onComplete }: ProfileSetupProps) {
-  const [username, setUsername] = useState('')
-  const [displayName, setDisplayName] = useState('')
-  const [bio, setBio] = useState('What have you been watching?')
+export default function InviteCodeGate({ userId, onValidated }: InviteCodeGateProps) {
+  const [inviteCode, setInviteCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isDarkMode, setIsDarkMode] = useState(false)
@@ -26,51 +24,70 @@ export default function ProfileSetup({ userId, onComplete }: ProfileSetupProps) 
     return () => darkModeQuery.removeEventListener('change', handler)
   }, [])
 
+  const validateInviteCode = async (code: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase.rpc('is_master_code_valid', { master_code: code })
+
+      if (error) {
+        console.error('Error validating invite code:', error)
+        return false
+      }
+
+      return data === true
+    } catch (error) {
+      console.error('Error validating invite code:', error)
+      return false
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
 
     try {
-      // Check if username is taken
-      const { data: existingUser } = await supabase
-        .from('profiles')
-        .select('username')
-        .eq('username', username.toLowerCase())
-        .single()
-
-      if (existingUser) {
-        setError('Username is already taken')
+      // Validate invite code
+      const isValid = await validateInviteCode(inviteCode.trim().toUpperCase())
+      if (!isValid) {
+        setError('Invalid or expired invite code')
         setLoading(false)
         return
       }
 
-      // Update profile
-      const { error: updateError } = await supabase
+      // Use the master code
+      await supabase.rpc('use_master_code', {
+        master_code: inviteCode.trim().toUpperCase(),
+        user_id: userId
+      })
+
+      // Update profile with master code and tier
+      const masterCode = inviteCode.trim().toUpperCase()
+      const tier = masterCode === 'BOOZEHOUND' ? 'boozehound' :
+                  masterCode.startsWith('BWALPHA_') ? 'alpha' : 'beta'
+
+      await supabase
         .from('profiles')
         .update({
-          username: username.toLowerCase(),
-          display_name: displayName,
-          bio: bio
+          invited_by_master_code: masterCode,
+          invite_tier: tier,
+          invites_remaining: tier === 'boozehound' ? 10 : tier === 'alpha' ? 3 : 0,
+          is_approved: true
         })
         .eq('id', userId)
 
-      if (updateError) {
-        setError(updateError.message)
-        setLoading(false)
-        return
-      }
-
-      onComplete()
+      // Code is valid, proceed to profile setup
+      onValidated()
     } catch (err) {
       setError('An unexpected error occurred')
       setLoading(false)
     }
   }
 
-  const bgGradient = isDarkMode
-    ? 'linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 100%)'
-    : 'linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%)'
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    window.location.href = '/auth'
+  }
+
   const cardBg = isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.95)'
   const cardBorder = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
   const textPrimary = isDarkMode ? '#ffffff' : '#1a1a1a'
@@ -119,100 +136,14 @@ export default function ProfileSetup({ userId, onComplete }: ProfileSetupProps) 
               marginBottom: '0.5rem',
             }}
           >
-            Welcome to Been Watching!
+            Invite Code Required
           </h1>
           <p style={{ color: textSecondary, fontSize: '0.875rem' }}>
-            Set up your profile to get started
+            Enter your invite code to continue
           </p>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '1.25rem' }}>
-            <label
-              style={{
-                display: 'block',
-                color: textPrimary,
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                marginBottom: '0.5rem',
-              }}
-            >
-              Username *
-            </label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value.replace(/[^a-z0-9_]/g, ''))}
-              placeholder="username"
-              required
-              minLength={3}
-              maxLength={20}
-              style={{
-                width: '100%',
-                padding: '0.875rem 1rem',
-                background: inputBg,
-                border: `1px solid ${inputBorder}`,
-                borderRadius: '12px',
-                color: textPrimary,
-                fontSize: '1rem',
-                outline: 'none',
-                transition: 'all 0.2s',
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = 'rgba(233, 77, 136, 0.5)'
-                e.target.style.background = inputFocusBg
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = inputBorder
-                e.target.style.background = inputBg
-              }}
-            />
-            <p style={{ fontSize: '0.75rem', color: textSecondary, marginTop: '0.5rem' }}>
-              Lowercase letters, numbers, and underscores only
-            </p>
-          </div>
-
-          <div style={{ marginBottom: '1.25rem' }}>
-            <label
-              style={{
-                display: 'block',
-                color: textPrimary,
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                marginBottom: '0.5rem',
-              }}
-            >
-              Display Name *
-            </label>
-            <input
-              type="text"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Your Name"
-              required
-              maxLength={50}
-              style={{
-                width: '100%',
-                padding: '0.875rem 1rem',
-                background: inputBg,
-                border: `1px solid ${inputBorder}`,
-                borderRadius: '12px',
-                color: textPrimary,
-                fontSize: '1rem',
-                outline: 'none',
-                transition: 'all 0.2s',
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = 'rgba(233, 77, 136, 0.5)'
-                e.target.style.background = inputFocusBg
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = inputBorder
-                e.target.style.background = inputBg
-              }}
-            />
-          </div>
-
           <div style={{ marginBottom: '1.5rem' }}>
             <label
               style={{
@@ -223,14 +154,14 @@ export default function ProfileSetup({ userId, onComplete }: ProfileSetupProps) 
                 marginBottom: '0.5rem',
               }}
             >
-              Bio
+              Invite Code
             </label>
-            <textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              placeholder="What have you been watching?"
-              rows={3}
-              maxLength={150}
+            <input
+              type="text"
+              value={inviteCode}
+              onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+              placeholder="BOOZEHOUND"
+              required
               style={{
                 width: '100%',
                 padding: '0.875rem 1rem',
@@ -241,8 +172,7 @@ export default function ProfileSetup({ userId, onComplete }: ProfileSetupProps) 
                 fontSize: '1rem',
                 outline: 'none',
                 transition: 'all 0.2s',
-                resize: 'none',
-                fontFamily: 'inherit',
+                textTransform: 'uppercase',
               }}
               onFocus={(e) => {
                 e.target.style.borderColor = 'rgba(233, 77, 136, 0.5)'
@@ -254,7 +184,13 @@ export default function ProfileSetup({ userId, onComplete }: ProfileSetupProps) 
               }}
             />
             <p style={{ fontSize: '0.75rem', color: textSecondary, marginTop: '0.5rem' }}>
-              {bio.length}/150
+              Don't have a code?{' '}
+              <a
+                href="/waitlist"
+                style={{ color: 'rgba(233, 77, 136, 1)', textDecoration: 'none' }}
+              >
+                Join the waitlist
+              </a>
             </p>
           </div>
 
@@ -276,11 +212,11 @@ export default function ProfileSetup({ userId, onComplete }: ProfileSetupProps) 
 
           <button
             type="submit"
-            disabled={loading || !username || !displayName}
+            disabled={loading || !inviteCode}
             style={{
               width: '100%',
               padding: '1rem',
-              background: loading
+              background: loading || !inviteCode
                 ? (isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)')
                 : 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
               border: 'none',
@@ -288,12 +224,13 @@ export default function ProfileSetup({ userId, onComplete }: ProfileSetupProps) 
               color: '#fff',
               fontSize: '1rem',
               fontWeight: 700,
-              cursor: loading || !username || !displayName ? 'not-allowed' : 'pointer',
+              cursor: loading || !inviteCode ? 'not-allowed' : 'pointer',
               transition: 'all 0.2s',
-              opacity: loading || !username || !displayName ? 0.6 : 1,
+              opacity: loading || !inviteCode ? 0.6 : 1,
+              marginBottom: '0.75rem',
             }}
             onMouseEnter={(e) => {
-              if (!loading && username && displayName) {
+              if (!loading && inviteCode) {
                 e.currentTarget.style.transform = 'translateY(-2px)'
                 e.currentTarget.style.boxShadow = '0 10px 25px rgba(233, 77, 136, 0.3)'
               }
@@ -303,7 +240,32 @@ export default function ProfileSetup({ userId, onComplete }: ProfileSetupProps) 
               e.currentTarget.style.boxShadow = 'none'
             }}
           >
-            {loading ? 'Creating Profile...' : 'Get Started'}
+            {loading ? 'Verifying...' : 'Continue'}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            style={{
+              width: '100%',
+              padding: '0.875rem',
+              background: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
+              border: `1px solid ${inputBorder}`,
+              borderRadius: '12px',
+              color: textPrimary,
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)'
+            }}
+          >
+            Sign Out
           </button>
         </form>
       </div>
