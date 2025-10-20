@@ -5,10 +5,10 @@ const TMDB_BASE_URL = 'https://api.themoviedb.org/3'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { type: string; id: string } }
+  { params }: { params: Promise<{ type: string; id: string }> }
 ) {
   try {
-    const { type, id } = params
+    const { type, id } = await params
 
     const response = await fetch(
       `${TMDB_BASE_URL}/${type}/${id}/videos?api_key=${TMDB_API_KEY}`,
