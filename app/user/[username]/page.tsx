@@ -206,8 +206,19 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         console.error('Error loading activities:', error)
       }
 
-      // Filter out activities without media (orphaned records)
-      const validActivities = (data?.filter(activity => activity.media) || []) as Activity[]
+      // Filter out activities without media (orphaned records) and map to Activity type
+      const validActivities: Activity[] = (data || [])
+        .filter((activity): activity is Activity & { media: NonNullable<Activity['media']> } =>
+          activity.media !== null && activity.media !== undefined
+        )
+        .map(activity => ({
+          id: activity.id,
+          activity_type: activity.activity_type,
+          activity_data: activity.activity_data,
+          created_at: activity.created_at,
+          media: activity.media
+        }))
+
       setActivities(validActivities)
     } catch (error) {
       console.error('Error loading activities:', error)
