@@ -10,6 +10,7 @@ interface MediaDetailModalProps {
   media: any
   onRate?: (rating: string) => void
   onStatus?: (status: string, currentStatus?: string) => void
+  onStatusChange?: () => void | Promise<void>
   user?: any
 }
 
@@ -19,6 +20,7 @@ export default function MediaDetailModal({
   media,
   onRate,
   onStatus,
+  onStatusChange,
   user
 }: MediaDetailModalProps) {
   const [selectedRating, setSelectedRating] = useState<string | null>(null)
@@ -125,6 +127,9 @@ export default function MediaDetailModal({
     setSelectedStatus(newStatus)
     if (onStatus) {
       await onStatus(newStatus as any, selectedStatus as any) // Pass current status so parent can show confirmation
+    }
+    if (onStatusChange) {
+      await onStatusChange()
     }
   }
 
