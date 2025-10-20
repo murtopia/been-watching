@@ -698,12 +698,32 @@ export default function MyShowsPage() {
                     onClick={() => handlePosterClick(item)}
                     style={{ cursor: 'pointer' }}
                   >
-                    <div className="poster-container">
+                    <div className="poster-container" style={{ position: 'relative' }}>
                       <img
                         src={`https://image.tmdb.org/t/p/w342${item.media.poster_path}`}
                         alt={item.media.title}
                         className="show-poster"
                       />
+                      {/* Rating Badge */}
+                      {item.user_rating && (
+                        <div style={{
+                          position: 'absolute',
+                          bottom: '8px',
+                          right: '8px',
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '50%',
+                          background: 'rgba(0, 0, 0, 0.75)',
+                          backdropFilter: 'blur(10px)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '1.125rem',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                        }}>
+                          {item.user_rating === 'love' ? '❤️' : item.user_rating === 'like' ? '👍' : '😐'}
+                        </div>
+                      )}
                     </div>
                     <div className="show-title">{item.media.title}</div>
                   </div>
