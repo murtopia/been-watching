@@ -77,7 +77,7 @@ export default function TVSeasonCard({ show, season, onSelect, user }: TVSeasonC
       poster_path: season.poster_path || show.poster_path,
       overview: season.overview || show.overview
     }
-    onSelect(mediaWithSeason, newRating, selectedStatus)
+    onSelect(mediaWithSeason, newRating ?? undefined, selectedStatus ?? undefined)
   }
 
   const handleStatus = (status: string) => {
@@ -94,7 +94,7 @@ export default function TVSeasonCard({ show, season, onSelect, user }: TVSeasonC
       poster_path: season.poster_path || show.poster_path,
       overview: season.overview || show.overview
     }
-    onSelect(mediaWithSeason, selectedRating, newStatus)
+    onSelect(mediaWithSeason, selectedRating ?? undefined, newStatus ?? undefined)
   }
 
   // Create media object for this season

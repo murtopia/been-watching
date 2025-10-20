@@ -260,7 +260,7 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
   )
 }
 
-function SearchResultCard({ media, onSelect, user }: { media: any; onSelect: Function; user?: any }) {
+function SearchResultCard({ media, onSelect, user }: { media: any; onSelect: (media: any, rating?: string, status?: string) => void; user?: any }) {
   const [selectedRating, setSelectedRating] = useState<string | null>(null)
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -315,14 +315,14 @@ function SearchResultCard({ media, onSelect, user }: { media: any; onSelect: Fun
     const newRating = rating === selectedRating ? null : rating
     setSelectedRating(newRating)
     // Call onSelect to save in background, but don't close modal
-    onSelect(media, newRating, selectedStatus)
+    onSelect(media, newRating ?? undefined, selectedStatus ?? undefined)
   }
 
   const handleStatus = (status: string) => {
     const newStatus = status === selectedStatus ? null : status
     setSelectedStatus(newStatus)
     // Call onSelect to save in background, but don't close modal
-    onSelect(media, selectedRating, newStatus)
+    onSelect(media, selectedRating ?? undefined, newStatus ?? undefined)
   }
 
   return (
@@ -338,7 +338,7 @@ function SearchResultCard({ media, onSelect, user }: { media: any; onSelect: Fun
   )
 }
 
-function TVShowWithSeasons({ show, onSelect, user }: { show: any; onSelect: Function; user?: any }) {
+function TVShowWithSeasons({ show, onSelect, user }: { show: any; onSelect: (media: any, rating?: string, status?: string) => void; user?: any }) {
   const [seasons, setSeasons] = useState<any[]>([])
   const [showData, setShowData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
