@@ -206,16 +206,26 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         console.error('Error loading activities:', error)
       }
 
-      // Filter out activities without media (orphaned records) and map to Activity type
-      const validActivities: Activity[] = (data || [])
-        .filter(activity => activity.media !== null && activity.media !== undefined)
-        .map(activity => ({
-          id: activity.id,
-          activity_type: activity.activity_type,
-          activity_data: activity.activity_data,
-          created_at: activity.created_at,
-          media: activity.media!
-        }))
+      // Filter out activities without media (orphaned records)
+      const validActivities: Activity[] = []
+      if (data) {
+        for (const item of data) {
+          if (item.media && typeof item.media === 'object') {
+            validActivities.push({
+              id: item.id,
+              activity_type: item.activity_type,
+              activity_data: item.activity_data,
+              created_at: item.created_at,
+              media: {
+                id: item.media.id,
+                title: item.media.title,
+                poster_path: item.media.poster_path,
+                media_type: item.media.media_type
+              }
+            })
+          }
+        }
+      }
 
       setActivities(validActivities)
     } catch (error) {
