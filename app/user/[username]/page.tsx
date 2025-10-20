@@ -207,7 +207,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
       }
 
       // Filter out activities without media (orphaned records)
-      const validActivities = data?.filter(activity => activity.media) || []
+      const validActivities = (data?.filter(activity => activity.media) || []) as Activity[]
       setActivities(validActivities)
     } catch (error) {
       console.error('Error loading activities:', error)
