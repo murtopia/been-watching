@@ -208,15 +208,13 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
 
       // Filter out activities without media (orphaned records) and map to Activity type
       const validActivities: Activity[] = (data || [])
-        .filter((activity): activity is Activity & { media: NonNullable<Activity['media']> } =>
-          activity.media !== null && activity.media !== undefined
-        )
+        .filter(activity => activity.media !== null && activity.media !== undefined)
         .map(activity => ({
           id: activity.id,
           activity_type: activity.activity_type,
           activity_data: activity.activity_data,
           created_at: activity.created_at,
-          media: activity.media
+          media: activity.media!
         }))
 
       setActivities(validActivities)
