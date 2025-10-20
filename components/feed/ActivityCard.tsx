@@ -277,19 +277,19 @@ export default function ActivityCard({
         <div className="quick-rate">
           <button
             className={`quick-rate-btn meh ${userRating === 'meh' ? 'active' : ''}`}
-            onClick={() => onQuickRate(activity.media_id, 'meh')}
+            onClick={() => onQuickRate(activity.media.id, 'meh')}
           >
             😐 Meh
           </button>
           <button
             className={`quick-rate-btn like ${userRating === 'like' ? 'active' : ''}`}
-            onClick={() => onQuickRate(activity.media_id, 'like')}
+            onClick={() => onQuickRate(activity.media.id, 'like')}
           >
             👍 Like
           </button>
           <button
             className={`quick-rate-btn love ${userRating === 'love' ? 'active' : ''}`}
-            onClick={() => onQuickRate(activity.media_id, 'love')}
+            onClick={() => onQuickRate(activity.media.id, 'love')}
           >
             ❤️ Love
           </button>
@@ -302,7 +302,7 @@ export default function ActivityCard({
           <div className="status-btn-group">
             <button
               className={`quick-status-btn ${userStatus === 'want' ? 'active' : ''}`}
-              onClick={() => onQuickStatus(activity.media_id, 'want')}
+              onClick={() => onQuickStatus(activity.media.id, 'want')}
             >
               ➕ Want to Watch
             </button>
@@ -310,7 +310,7 @@ export default function ActivityCard({
           <div className="status-btn-group">
             <button
               className={`quick-status-btn ${userStatus === 'watching' ? 'active' : ''}`}
-              onClick={() => onQuickStatus(activity.media_id, 'watching')}
+              onClick={() => onQuickStatus(activity.media.id, 'watching')}
             >
               ▶️ Watching
             </button>
@@ -318,7 +318,7 @@ export default function ActivityCard({
           <div className="status-btn-group">
             <button
               className={`quick-status-btn ${userStatus === 'watched' ? 'active' : ''}`}
-              onClick={() => onQuickStatus(activity.media_id, 'watched')}
+              onClick={() => onQuickStatus(activity.media.id, 'watched')}
             >
               ✓ Watched
             </button>
