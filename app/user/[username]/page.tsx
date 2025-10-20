@@ -210,17 +210,18 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
       const validActivities: Activity[] = []
       if (data) {
         for (const item of data) {
-          if (item.media && typeof item.media === 'object') {
+          if (item.media && typeof item.media === 'object' && !Array.isArray(item.media)) {
+            const mediaObj = item.media as any
             validActivities.push({
               id: item.id,
               activity_type: item.activity_type,
               activity_data: item.activity_data,
               created_at: item.created_at,
               media: {
-                id: item.media.id,
-                title: item.media.title,
-                poster_path: item.media.poster_path,
-                media_type: item.media.media_type
+                id: mediaObj.id,
+                title: mediaObj.title,
+                poster_path: mediaObj.poster_path,
+                media_type: mediaObj.media_type
               }
             })
           }
