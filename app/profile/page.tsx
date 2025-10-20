@@ -8,11 +8,13 @@ import SearchModal from '@/components/search/SearchModal'
 import MediaDetailModal from '@/components/media/MediaDetailModal'
 import EditProfileModal from '@/components/profile/EditProfileModal'
 import AvatarUploadModal from '@/components/profile/AvatarUploadModal'
+import UserCard from '@/components/friends/UserCard'
+import { getTasteMatchBetweenUsers, findSimilarUsers } from '@/utils/tasteMatch'
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
-  const [friendsTab, setFriendsTab] = useState<'following' | 'followers'>('following')
+  const [friendsTab, setFriendsTab] = useState<'following' | 'followers' | 'discover'>('following')
   const [loading, setLoading] = useState(true)
   const [isPrivate, setIsPrivate] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
@@ -23,6 +25,10 @@ export default function ProfilePage() {
   const [following, setFollowing] = useState<any[]>([])
   const [followers, setFollowers] = useState<any[]>([])
   const [suggestedFriends, setSuggestedFriends] = useState<any[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [tasteMatches, setTasteMatches] = useState<Map<string, number>>(new Map())
+  const [mutualFriends, setMutualFriends] = useState<Map<string, any[]>>(new Map())
   const [counts, setCounts] = useState({ wantCount: 0, watchingCount: 0, watchedCount: 0 })
   const router = useRouter()
   const supabase = createClient()
@@ -123,20 +129,103 @@ export default function ProfilePage() {
   }
 
   const loadSuggestedFriends = async () => {
-    // Get users who aren't already followed
+    if (!user) return
+
+    try {
+      // Use taste match algorithm to find similar users
+      const similarUsers = await findSimilarUsers(user.id, {
+        limit: 10,
+        minScore: 30,
+        excludeUserIds: following.map(f => f.id)
+      })
+
+      // Get full profile data for similar users
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('id', similarUsers.map(u => u.userId))
+
+      if (profiles) {
+        // Create taste match map
+        const matches = new Map<string, number>()
+        similarUsers.forEach(u => matches.set(u.userId, u.score))
+        setTasteMatches(matches)
+
+        // Load mutual friends for each suggested user
+        for (const profile of profiles) {
+          const mutuals = await getMutualFriends(profile.id)
+          setMutualFriends(prev => new Map(prev).set(profile.id, mutuals))
+        }
+
+        setSuggestedFriends(profiles)
+      }
+    } catch (error) {
+      console.error('Error loading suggested friends:', error)
+      // Fallback to simple suggestions
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .neq('id', user.id)
+        .limit(5)
+
+      if (data) {
+        const filtered = data.filter(p => !following.some(f => f.id === p.id))
+        setSuggestedFriends(filtered)
+      }
+    }
+  }
+
+  const getMutualFriends = async (targetUserId: string) => {
+    if (!user) return []
+
+    // Get users that both current user and target user follow
+    const { data: myFollowing } = await supabase
+      .from('follows')
+      .select('following_id')
+      .eq('follower_id', user.id)
+
+    const { data: theirFollowing } = await supabase
+      .from('follows')
+      .select('following_id')
+      .eq('follower_id', targetUserId)
+
+    if (!myFollowing || !theirFollowing) return []
+
+    const myFollowingIds = myFollowing.map(f => f.following_id)
+    const theirFollowingIds = theirFollowing.map(f => f.following_id)
+
+    const mutualIds = myFollowingIds.filter(id => theirFollowingIds.includes(id))
+
+    if (mutualIds.length === 0) return []
+
+    const { data: mutualProfiles } = await supabase
+      .from('profiles')
+      .select('*')
+      .in('id', mutualIds)
+
+    return mutualProfiles || []
+  }
+
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query)
+
+    if (query.length < 2) {
+      setSearchResults([])
+      return
+    }
+
     const { data } = await supabase
       .from('profiles')
       .select('*')
+      .or(`username.ilike.%${query}%,display_name.ilike.%${query}%`)
       .neq('id', user?.id)
-      .limit(5)
+      .limit(10)
 
-    if (data) {
-      // Filter out users already followed
-      const filtered = data.filter(p =>
-        !following.some(f => f.id === p.id)
-      )
-      setSuggestedFriends(filtered)
-    }
+    setSearchResults(data || [])
+  }
+
+  const checkIfUserFollowsBack = (userId: string): boolean => {
+    return followers.some(f => f.id === userId)
   }
 
   const handleFollow = async (userId: string) => {
@@ -557,32 +646,12 @@ export default function ProfilePage() {
         maxWidth: '600px'
       }}>
         <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0' }}>Friends</h3>
-        <button
-          style={{
-            width: '100%',
-            padding: '1rem',
-            background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-            color: 'white',
-            border: 'none',
-            borderRadius: '12px',
-            fontSize: '1rem',
-            fontWeight: '600',
-            cursor: 'pointer',
-            marginBottom: '1.5rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '0.5rem'
-          }}
-        >
-          <span>📱</span> Find Friends from Contacts
-        </button>
 
-        {/* Following/Followers Tabs */}
+        {/* Three-Tab System: Following / Followers / Discover */}
         <div style={{
           display: 'flex',
           borderBottom: '1px solid #f0f0f0',
-          marginBottom: '1rem'
+          marginBottom: '1.5rem'
         }}>
           <button
             onClick={() => setFriendsTab('following')}
@@ -591,11 +660,12 @@ export default function ProfilePage() {
               padding: '0.75rem',
               background: 'none',
               border: 'none',
-              borderBottom: friendsTab === 'following' ? '2px solid #0095f6' : '2px solid transparent',
-              color: friendsTab === 'following' ? '#0095f6' : '#666',
-              fontWeight: friendsTab === 'following' ? '600' : '400',
+              borderBottom: friendsTab === 'following' ? '3px solid #e94d88' : '3px solid transparent',
+              color: friendsTab === 'following' ? '#e94d88' : '#666',
+              fontWeight: friendsTab === 'following' ? '700' : '400',
               cursor: 'pointer',
-              fontSize: '0.9rem'
+              fontSize: '0.9rem',
+              transition: 'all 0.2s'
             }}
           >
             Following {following.length}
@@ -607,118 +677,181 @@ export default function ProfilePage() {
               padding: '0.75rem',
               background: 'none',
               border: 'none',
-              borderBottom: friendsTab === 'followers' ? '2px solid #0095f6' : '2px solid transparent',
-              color: friendsTab === 'followers' ? '#0095f6' : '#666',
-              fontWeight: friendsTab === 'followers' ? '600' : '400',
+              borderBottom: friendsTab === 'followers' ? '3px solid #e94d88' : '3px solid transparent',
+              color: friendsTab === 'followers' ? '#e94d88' : '#666',
+              fontWeight: friendsTab === 'followers' ? '700' : '400',
               cursor: 'pointer',
-              fontSize: '0.9rem'
+              fontSize: '0.9rem',
+              transition: 'all 0.2s'
             }}
           >
             Followers {followers.length}
           </button>
+          <button
+            onClick={() => setFriendsTab('discover')}
+            style={{
+              flex: 1,
+              padding: '0.75rem',
+              background: 'none',
+              border: 'none',
+              borderBottom: friendsTab === 'discover' ? '3px solid #e94d88' : '3px solid transparent',
+              color: friendsTab === 'discover' ? '#e94d88' : '#666',
+              fontWeight: friendsTab === 'discover' ? '700' : '400',
+              cursor: 'pointer',
+              fontSize: '0.9rem',
+              transition: 'all 0.2s'
+            }}
+          >
+            Discover 🔍
+          </button>
         </div>
 
-        {/* Friends List */}
-        <div style={{ marginTop: '1rem' }}>
-          {friendsTab === 'following' ? (
-            following.length > 0 ? (
+        {/* Tab Content */}
+        {friendsTab === 'following' && (
+          <div>
+            {following.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {following.map((friend) => (
-                  <div key={friend.id} className="request-item">
-                    <div className="request-avatar">
-                      {getInitials(friend.display_name)}
-                    </div>
-                    <div className="request-info">
-                      <div className="request-name">{friend.display_name}</div>
-                      <div className="request-username">@{friend.username}</div>
-                    </div>
-                    <button
-                      onClick={() => handleUnfollow(friend.id)}
-                      style={{
-                        padding: '0.5rem 1rem',
-                        background: 'var(--surface)',
-                        border: '1px solid var(--border)',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        fontSize: '0.875rem'
-                      }}
-                    >
-                      Unfollow
-                    </button>
-                  </div>
+                  <UserCard
+                    key={friend.id}
+                    user={friend}
+                    currentUserId={user?.id || ''}
+                    isFollowing={true}
+                    followsYou={checkIfUserFollowsBack(friend.id)}
+                    mutualFriends={mutualFriends.get(friend.id) || []}
+                    tasteMatchScore={tasteMatches.get(friend.id)}
+                    onFollow={handleFollow}
+                    onUnfollow={handleUnfollow}
+                    onClick={(username) => router.push(`/user/${username}`)}
+                  />
                 ))}
               </div>
             ) : (
-              <div style={{ textAlign: 'center', padding: '2rem', color: '#999', fontSize: '0.9rem' }}>
-                Connect your contacts to find friends
+              <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#999' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>👥</div>
+                <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>No one yet</div>
+                <div style={{ fontSize: '0.875rem' }}>Find friends in the Discover tab!</div>
               </div>
-            )
-          ) : (
-            followers.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {followers.map((follower) => (
-                  <div key={follower.id} className="request-item">
-                    <div className="request-avatar">
-                      {getInitials(follower.display_name)}
-                    </div>
-                    <div className="request-info">
-                      <div className="request-name">{follower.display_name}</div>
-                      <div className="request-username">@{follower.username}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div style={{ textAlign: 'center', padding: '2rem', color: '#999', fontSize: '0.9rem' }}>
-                Connect your contacts to find friends
-              </div>
-            )
-          )}
-        </div>
-      </div>
-
-        {/* Suggested Friends */}
-        {suggestedFriends.length > 0 && (
-          <div style={{
-            padding: '1.5rem',
-            background: 'white',
-            margin: '0.5rem auto',
-            maxWidth: '600px'
-          }}>
-          <>
-            <h4 style={{ marginTop: '2rem', marginBottom: '1rem', fontSize: '1rem', fontWeight: '600' }}>
-              Suggested
-            </h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {suggestedFriends.map((friend) => (
-                <div key={friend.id} className="request-item">
-                  <div className="request-avatar">
-                    {getInitials(friend.display_name)}
-                  </div>
-                  <div className="request-info">
-                    <div className="request-name">{friend.display_name}</div>
-                    <div className="request-username">@{friend.username}</div>
-                  </div>
-                  <button
-                    onClick={() => handleFollow(friend.id)}
-                    style={{
-                      padding: '0.5rem 1rem',
-                      background: 'var(--accent-primary)',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      fontSize: '0.875rem'
-                    }}
-                  >
-                    Follow
-                  </button>
-                </div>
-              ))}
-            </div>
-          </>
+            )}
           </div>
         )}
+
+        {friendsTab === 'followers' && (
+          <div>
+            {followers.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {followers.map((follower) => (
+                  <UserCard
+                    key={follower.id}
+                    user={follower}
+                    currentUserId={user?.id || ''}
+                    isFollowing={following.some(f => f.id === follower.id)}
+                    followsYou={true}
+                    mutualFriends={mutualFriends.get(follower.id) || []}
+                    tasteMatchScore={tasteMatches.get(follower.id)}
+                    onFollow={handleFollow}
+                    onUnfollow={handleUnfollow}
+                    onClick={(username) => router.push(`/user/${username}`)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#999' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>👤</div>
+                <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>No followers yet</div>
+                <div style={{ fontSize: '0.875rem' }}>Share your profile to get followers!</div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {friendsTab === 'discover' && (
+          <div>
+            {/* Search Bar */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <input
+                type="text"
+                placeholder="Search by username or name..."
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.875rem 1rem',
+                  border: '1px solid #e0e0e0',
+                  borderRadius: '12px',
+                  fontSize: '1rem',
+                  outline: 'none',
+                  transition: 'all 0.2s'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#e94d88'}
+                onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+              />
+            </div>
+
+            {/* Search Results */}
+            {searchQuery.length >= 2 && searchResults.length > 0 && (
+              <div style={{ marginBottom: '2rem' }}>
+                <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: '#666', marginBottom: '1rem' }}>
+                  Search Results
+                </h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {searchResults.map((result) => (
+                    <UserCard
+                      key={result.id}
+                      user={result}
+                      currentUserId={user?.id || ''}
+                      isFollowing={following.some(f => f.id === result.id)}
+                      followsYou={followers.some(f => f.id === result.id)}
+                      mutualFriends={mutualFriends.get(result.id) || []}
+                      tasteMatchScore={tasteMatches.get(result.id)}
+                      onFollow={handleFollow}
+                      onUnfollow={handleUnfollow}
+                      onClick={(username) => router.push(`/user/${username}`)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {searchQuery.length >= 2 && searchResults.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '2rem', color: '#999', marginBottom: '2rem' }}>
+                No users found for "{searchQuery}"
+              </div>
+            )}
+
+            {/* Smart Suggestions */}
+            <div>
+              <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: '#666', marginBottom: '1rem' }}>
+                {searchQuery.length >= 2 ? 'More Suggestions' : 'Suggested For You'}
+              </h4>
+              {suggestedFriends.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {suggestedFriends.map((friend) => (
+                    <UserCard
+                      key={friend.id}
+                      user={friend}
+                      currentUserId={user?.id || ''}
+                      isFollowing={false}
+                      followsYou={followers.some(f => f.id === friend.id)}
+                      mutualFriends={mutualFriends.get(friend.id) || []}
+                      tasteMatchScore={tasteMatches.get(friend.id)}
+                      onFollow={handleFollow}
+                      onUnfollow={handleUnfollow}
+                      onClick={(username) => router.push(`/user/${username}`)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#999' }}>
+                  <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✨</div>
+                  <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>No suggestions yet</div>
+                  <div style={{ fontSize: '0.875rem' }}>Add more shows to get personalized suggestions!</div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
 
       <SearchModal
         isOpen={searchOpen}

@@ -36,6 +36,14 @@ interface AdminUser {
   created_at: string
 }
 
+interface SocialMetrics {
+  totalFollows: number
+  avgFollowsPerUser: number
+  mostFollowed: Array<{ username: string; display_name: string; followerCount: number }>
+  mostActive: Array<{ username: string; display_name: string; activityCount: number }>
+  orphanedUsers: Array<{ username: string; display_name: string }>
+}
+
 export default function AdminPage() {
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
@@ -50,6 +58,8 @@ export default function AdminPage() {
   const [creatingCode, setCreatingCode] = useState(false)
   const [newCode, setNewCode] = useState('')
   const [isDarkMode, setIsDarkMode] = useState(false)
+  const [socialMetrics, setSocialMetrics] = useState<SocialMetrics | null>(null)
+  const [loadingMetrics, setLoadingMetrics] = useState(false)
   const supabase = createClient()
   const router = useRouter()
 
@@ -148,6 +158,122 @@ export default function AdminPage() {
         setAllUsers(users as any)
         setAdminUsers(users.filter(u => u.is_admin) as any)
       }
+    }
+
+    // Load social metrics
+    loadSocialMetrics()
+  }
+
+  const loadSocialMetrics = async () => {
+    setLoadingMetrics(true)
+    try {
+      // Total follows count
+      const { count: totalFollows } = await supabase
+        .from('follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'accepted')
+
+      // Get total users count
+      const { count: totalUsers } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+
+      // Calculate average follows per user
+      const avgFollowsPerUser = totalUsers && totalFollows
+        ? Math.round((totalFollows / totalUsers) * 10) / 10
+        : 0
+
+      // Most followed users
+      const { data: followsData } = await supabase
+        .from('follows')
+        .select('following_id')
+        .eq('status', 'accepted')
+
+      const followCounts: Record<string, number> = {}
+      followsData?.forEach(f => {
+        followCounts[f.following_id] = (followCounts[f.following_id] || 0) + 1
+      })
+
+      const topFollowedIds = Object.entries(followCounts)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 10)
+        .map(([id]) => id)
+
+      const { data: mostFollowedProfiles } = await supabase
+        .from('profiles')
+        .select('username, display_name, id')
+        .in('id', topFollowedIds)
+
+      const mostFollowed = mostFollowedProfiles?.map(p => ({
+        username: p.username,
+        display_name: p.display_name,
+        followerCount: followCounts[p.id]
+      }))
+        .sort((a, b) => b.followerCount - a.followerCount) || []
+
+      // Most active users (last 30 days)
+      const thirtyDaysAgo = new Date()
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+      const { data: activitiesData } = await supabase
+        .from('activities')
+        .select('user_id')
+        .gte('created_at', thirtyDaysAgo.toISOString())
+
+      const activityCounts: Record<string, number> = {}
+      activitiesData?.forEach(a => {
+        activityCounts[a.user_id] = (activityCounts[a.user_id] || 0) + 1
+      })
+
+      const topActiveIds = Object.entries(activityCounts)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 10)
+        .map(([id]) => id)
+
+      const { data: mostActiveProfiles } = await supabase
+        .from('profiles')
+        .select('username, display_name, id')
+        .in('id', topActiveIds)
+
+      const mostActive = mostActiveProfiles?.map(p => ({
+        username: p.username,
+        display_name: p.display_name,
+        activityCount: activityCounts[p.id]
+      }))
+        .sort((a, b) => b.activityCount - a.activityCount) || []
+
+      // Orphaned users (no follows, no followers)
+      const { data: allProfiles } = await supabase
+        .from('profiles')
+        .select('id, username, display_name')
+
+      const { data: allFollows } = await supabase
+        .from('follows')
+        .select('follower_id, following_id')
+
+      const userWithFollows = new Set<string>()
+      allFollows?.forEach(f => {
+        userWithFollows.add(f.follower_id)
+        userWithFollows.add(f.following_id)
+      })
+
+      const orphanedUsers = allProfiles?.filter(p => !userWithFollows.has(p.id))
+        .map(p => ({
+          username: p.username,
+          display_name: p.display_name
+        })) || []
+
+      setSocialMetrics({
+        totalFollows: totalFollows || 0,
+        avgFollowsPerUser,
+        mostFollowed,
+        mostActive,
+        orphanedUsers
+      })
+    } catch (error) {
+      console.error('Error loading social metrics:', error)
+    } finally {
+      setLoadingMetrics(false)
     }
   }
 
@@ -721,6 +847,248 @@ export default function AdminPage() {
               </tbody>
             </table>
           </div>
+        </div>
+
+        {/* Social Metrics Card */}
+        <div
+          style={{
+            background: cardBg,
+            backdropFilter: 'blur(20px)',
+            border: `1px solid ${cardBorder}`,
+            borderRadius: '16px',
+            padding: '2rem',
+            marginBottom: '2rem',
+            boxShadow: isDarkMode
+              ? '0 10px 30px rgba(0, 0, 0, 0.3)'
+              : '0 10px 30px rgba(0, 0, 0, 0.05)',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: textPrimary, margin: 0 }}>
+              📊 Social Metrics
+            </h2>
+            <button
+              onClick={loadSocialMetrics}
+              disabled={loadingMetrics}
+              style={{
+                padding: '0.5rem 1rem',
+                background: inputBg,
+                border: `1px solid ${inputBorder}`,
+                borderRadius: '8px',
+                color: textPrimary,
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                cursor: loadingMetrics ? 'not-allowed' : 'pointer',
+                opacity: loadingMetrics ? 0.6 : 1,
+              }}
+            >
+              {loadingMetrics ? 'Loading...' : '🔄 Refresh'}
+            </button>
+          </div>
+
+          {socialMetrics && (
+            <>
+              {/* Overview Stats */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: '1rem',
+                  marginBottom: '2rem',
+                }}
+              >
+                <div
+                  style={{
+                    padding: '1.5rem',
+                    background: inputBg,
+                    border: `1px solid ${inputBorder}`,
+                    borderRadius: '12px',
+                  }}
+                >
+                  <div style={{ fontSize: '0.75rem', color: textSecondary, fontWeight: 600, marginBottom: '0.5rem', textTransform: 'uppercase' }}>
+                    Total Follows
+                  </div>
+                  <div style={{ fontSize: '2rem', fontWeight: 700, color: textPrimary }}>
+                    {socialMetrics.totalFollows}
+                  </div>
+                </div>
+                <div
+                  style={{
+                    padding: '1.5rem',
+                    background: inputBg,
+                    border: `1px solid ${inputBorder}`,
+                    borderRadius: '12px',
+                  }}
+                >
+                  <div style={{ fontSize: '0.75rem', color: textSecondary, fontWeight: 600, marginBottom: '0.5rem', textTransform: 'uppercase' }}>
+                    Avg per User
+                  </div>
+                  <div style={{ fontSize: '2rem', fontWeight: 700, color: textPrimary }}>
+                    {socialMetrics.avgFollowsPerUser}
+                  </div>
+                </div>
+                <div
+                  style={{
+                    padding: '1.5rem',
+                    background: inputBg,
+                    border: `1px solid ${inputBorder}`,
+                    borderRadius: '12px',
+                  }}
+                >
+                  <div style={{ fontSize: '0.75rem', color: textSecondary, fontWeight: 600, marginBottom: '0.5rem', textTransform: 'uppercase' }}>
+                    Orphaned Users
+                  </div>
+                  <div style={{ fontSize: '2rem', fontWeight: 700, color: socialMetrics.orphanedUsers.length > 0 ? '#ef4444' : '#22c55e' }}>
+                    {socialMetrics.orphanedUsers.length}
+                  </div>
+                </div>
+              </div>
+
+              {/* Most Followed Users */}
+              {socialMetrics.mostFollowed.length > 0 && (
+                <div style={{ marginBottom: '2rem' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 600, color: textPrimary, marginBottom: '1rem' }}>
+                    🏆 Most Followed Users
+                  </h3>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr style={{ borderBottom: `1px solid ${inputBorder}` }}>
+                          <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                            Rank
+                          </th>
+                          <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                            Username
+                          </th>
+                          <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                            Display Name
+                          </th>
+                          <th style={{ padding: '0.75rem', textAlign: 'right', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                            Followers
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {socialMetrics.mostFollowed.map((user, index) => (
+                          <tr key={user.username} style={{ borderBottom: `1px solid ${inputBorder}` }}>
+                            <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem', fontWeight: 700 }}>
+                              {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                            </td>
+                            <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem', fontFamily: 'monospace' }}>
+                              @{user.username}
+                            </td>
+                            <td style={{ padding: '1rem', color: textSecondary, fontSize: '0.875rem' }}>
+                              {user.display_name}
+                            </td>
+                            <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem', fontWeight: 600, textAlign: 'right' }}>
+                              {user.followerCount}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Most Active Users */}
+              {socialMetrics.mostActive.length > 0 && (
+                <div style={{ marginBottom: '2rem' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 600, color: textPrimary, marginBottom: '1rem' }}>
+                    🔥 Most Active (Last 30 Days)
+                  </h3>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr style={{ borderBottom: `1px solid ${inputBorder}` }}>
+                          <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                            Rank
+                          </th>
+                          <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                            Username
+                          </th>
+                          <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                            Display Name
+                          </th>
+                          <th style={{ padding: '0.75rem', textAlign: 'right', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                            Activities
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {socialMetrics.mostActive.map((user, index) => (
+                          <tr key={user.username} style={{ borderBottom: `1px solid ${inputBorder}` }}>
+                            <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem', fontWeight: 700 }}>
+                              {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                            </td>
+                            <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem', fontFamily: 'monospace' }}>
+                              @{user.username}
+                            </td>
+                            <td style={{ padding: '1rem', color: textSecondary, fontSize: '0.875rem' }}>
+                              {user.display_name}
+                            </td>
+                            <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem', fontWeight: 600, textAlign: 'right' }}>
+                              {user.activityCount}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Orphaned Users */}
+              {socialMetrics.orphanedUsers.length > 0 && (
+                <div>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 600, color: textPrimary, marginBottom: '1rem' }}>
+                    ⚠️ Orphaned Users ({socialMetrics.orphanedUsers.length})
+                  </h3>
+                  <p style={{ fontSize: '0.875rem', color: textSecondary, marginBottom: '1rem' }}>
+                    Users with no follows and no followers
+                  </p>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                      gap: '0.75rem',
+                    }}
+                  >
+                    {socialMetrics.orphanedUsers.slice(0, 12).map((user) => (
+                      <div
+                        key={user.username}
+                        style={{
+                          padding: '0.75rem',
+                          background: inputBg,
+                          border: `1px solid ${inputBorder}`,
+                          borderRadius: '8px',
+                        }}
+                      >
+                        <div style={{ fontSize: '0.875rem', fontWeight: 600, color: textPrimary, fontFamily: 'monospace' }}>
+                          @{user.username}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: textSecondary }}>
+                          {user.display_name}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {socialMetrics.orphanedUsers.length > 12 && (
+                    <p style={{ fontSize: '0.75rem', color: textSecondary, marginTop: '0.75rem', textAlign: 'center' }}>
+                      ... and {socialMetrics.orphanedUsers.length - 12} more
+                    </p>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+
+          {!socialMetrics && !loadingMetrics && (
+            <div style={{ textAlign: 'center', padding: '2rem', color: textSecondary }}>
+              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📊</div>
+              <div style={{ fontSize: '0.875rem' }}>Click refresh to load metrics</div>
+            </div>
+          )}
         </div>
 
         {/* Admin Management (Super Admins Only) */}

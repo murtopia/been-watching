@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
+import { suggestUsername, cleanUsername } from '@/utils/usernameValidation'
 
 interface ProfileSetupProps {
   userId: string
@@ -25,6 +26,36 @@ export default function ProfileSetup({ userId, onComplete }: ProfileSetupProps) 
     darkModeQuery.addEventListener('change', handler)
     return () => darkModeQuery.removeEventListener('change', handler)
   }, [])
+
+  useEffect(() => {
+    // Load current profile to pre-fill fields and suggest username
+    const loadProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
+
+      if (profile) {
+        // Pre-fill display name if exists
+        if (profile.display_name) {
+          setDisplayName(profile.display_name)
+        }
+
+        // Suggest a clean username based on display name or email
+        const suggested = suggestUsername(profile.display_name, user?.email)
+        setUsername(suggested)
+
+        // Pre-fill bio if it's not default
+        if (profile.bio && profile.bio !== 'What have you been watching?') {
+          setBio(profile.bio)
+        }
+      }
+    }
+
+    loadProfile()
+  }, [userId])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -142,7 +173,7 @@ export default function ProfileSetup({ userId, onComplete }: ProfileSetupProps) 
             <input
               type="text"
               value={username}
-              onChange={(e) => setUsername(e.target.value.replace(/[^a-z0-9_]/g, ''))}
+              onChange={(e) => setUsername(cleanUsername(e.target.value))}
               placeholder="username"
               required
               minLength={3}

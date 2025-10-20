@@ -1,0 +1,38 @@
+[
+  {
+    "id": "4f178f1d-b42e-4ed8-8f20-5e632b92d646",
+    "user_id": "cdec57bc-12df-4bbf-a80c-81616e6962e7",
+    "media_id": "tv-93740-s3",
+    "status": "watching",
+    "progress": 0,
+    "created_at": "2025-10-20T02:56:36.170679+00:00",
+    "updated_at": "2025-10-20T02:56:36.170679+00:00"
+  },
+  {
+    "id": "046648aa-85b6-4fe9-86de-9c1cf1abd56f",
+    "user_id": "cdec57bc-12df-4bbf-a80c-81616e6962e7",
+    "media_id": "tv-157239-s1",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-20T02:59:29.182666+00:00",
+    "updated_at": "2025-10-20T02:59:29.182666+00:00"
+  },
+  {
+    "id": "16731996-d859-4f9e-8ae7-800390367311",
+    "user_id": "cdec57bc-12df-4bbf-a80c-81616e6962e7",
+    "media_id": "movie-400535",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-20T02:59:43.83568+00:00",
+    "updated_at": "2025-10-20T02:59:43.83568+00:00"
+  },
+  {
+    "id": "9344a73b-2189-4161-abe5-9cdd5c8b53ad",
+    "user_id": "cdec57bc-12df-4bbf-a80c-81616e6962e7",
+    "media_id": "movie-95700",
+    "status": "want",
+    "progress": 0,
+    "created_at": "2025-10-20T02:59:52.527877+00:00",
+    "updated_at": "2025-10-20T02:59:52.527877+00:00"
+  }
+]

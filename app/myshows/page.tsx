@@ -253,7 +253,7 @@ export default function MyShowsPage() {
 
   const confirmRemoval = async () => {
     if (pendingRemoval) {
-      await handleMediaSelect(pendingRemoval.media, undefined, null)
+      await handleMediaSelect(pendingRemoval.media, undefined, undefined)
       setShowRemoveConfirm(false)
       setPendingRemoval(null)
       setDetailModalOpen(false)
