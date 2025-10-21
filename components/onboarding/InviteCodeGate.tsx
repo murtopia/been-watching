@@ -160,7 +160,7 @@ export default function InviteCodeGate({ userId, onValidated }: InviteCodeGatePr
               type="text"
               value={inviteCode}
               onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-              placeholder="BOOZEHOUND"
+              placeholder="Enter your code"
               required
               style={{
                 width: '100%',

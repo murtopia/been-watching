@@ -85,7 +85,7 @@ export default function WelcomePage() {
       <div
         style={{
           width: '100%',
-          maxWidth: '800px',
+          maxWidth: '600px',
           textAlign: 'center',
         }}
       >
