@@ -1,13 +1,16 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
+import { useTheme } from '@/contexts/ThemeContext'
+import ThemeToggle from '@/components/theme/ThemeToggle'
 
 export default function WelcomePage() {
-  const [isDarkMode, setIsDarkMode] = useState(false)
   const router = useRouter()
   const supabase = createClient()
+  const { resolvedTheme } = useTheme()
+  const isDarkMode = resolvedTheme === 'dark'
 
   useEffect(() => {
     // Check if user is already logged in
@@ -18,13 +21,6 @@ export default function WelcomePage() {
       }
     }
     checkAuth()
-
-    const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    setIsDarkMode(darkModeQuery.matches)
-
-    const handler = (e: MediaQueryListEvent) => setIsDarkMode(e.matches)
-    darkModeQuery.addEventListener('change', handler)
-    return () => darkModeQuery.removeEventListener('change', handler)
   }, [])
 
   const bgGradient = isDarkMode
@@ -55,30 +51,10 @@ export default function WelcomePage() {
           position: 'fixed',
           top: '1rem',
           right: '1rem',
-          display: 'flex',
-          gap: '0.75rem',
-          alignItems: 'center',
+          zIndex: 100,
         }}
       >
-        <button
-          onClick={() => setIsDarkMode(!isDarkMode)}
-          style={{
-            padding: '0.5rem 1rem',
-            background: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-            border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'}`,
-            borderRadius: '8px',
-            color: textPrimary,
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            backdropFilter: 'blur(10px)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-          }}
-        >
-          {isDarkMode ? '🌙' : '☀️'} {isDarkMode ? 'Dark' : 'Light'}
-        </button>
+        <ThemeToggle />
       </div>
 
       {/* Main Content */}
@@ -86,6 +62,7 @@ export default function WelcomePage() {
         style={{
           width: '100%',
           maxWidth: '600px',
+          margin: '0 auto',
           textAlign: 'center',
         }}
       >

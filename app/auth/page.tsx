@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
+import { useTheme } from '@/contexts/ThemeContext'
+import ThemeToggle from '@/components/theme/ThemeToggle'
 
 export default function AuthPage() {
   const [email, setEmail] = useState('')
@@ -14,19 +16,10 @@ export default function AuthPage() {
   const [message, setMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [showForgotPassword, setShowForgotPassword] = useState(false)
-  const [isDarkMode, setIsDarkMode] = useState(false)
   const supabase = createClient()
   const router = useRouter()
-
-  // Check system preference on mount
-  useEffect(() => {
-    const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    setIsDarkMode(darkModeQuery.matches)
-
-    const handler = (e: MediaQueryListEvent) => setIsDarkMode(e.matches)
-    darkModeQuery.addEventListener('change', handler)
-    return () => darkModeQuery.removeEventListener('change', handler)
-  }, [])
+  const { resolvedTheme } = useTheme()
+  const isDarkMode = resolvedTheme === 'dark'
 
   // Check if already logged in
   useEffect(() => {
@@ -202,59 +195,6 @@ export default function AuthPage() {
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       }}
     >
-      {/* Top Bar */}
-      <div
-        style={{
-          position: 'fixed',
-          top: '1rem',
-          left: '1rem',
-          right: '1rem',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <a
-          href="/welcome"
-          style={{
-            padding: '0.5rem 1rem',
-            background: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-            border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'}`,
-            borderRadius: '8px',
-            color: textPrimary,
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            backdropFilter: 'blur(10px)',
-            cursor: 'pointer',
-            textDecoration: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-          }}
-        >
-          ← Back
-        </a>
-        <button
-          onClick={() => setIsDarkMode(!isDarkMode)}
-          style={{
-            padding: '0.5rem 1rem',
-            background: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-            border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'}`,
-            borderRadius: '8px',
-            color: textPrimary,
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            backdropFilter: 'blur(10px)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-          }}
-        >
-          {isDarkMode ? '🌙' : '☀️'} {isDarkMode ? 'Dark' : 'Light'}
-        </button>
-      </div>
-
       {/* Login Card */}
       <div
         style={{
@@ -270,6 +210,37 @@ export default function AuthPage() {
             : '0 20px 60px rgba(0, 0, 0, 0.08)',
         }}
       >
+        {/* Top Bar */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '2rem',
+          }}
+        >
+          <a
+            href="/welcome"
+            style={{
+              padding: '0.5rem 1rem',
+              background: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+              border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'}`,
+              borderRadius: '8px',
+              color: textPrimary,
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}
+          >
+            ← Back
+          </a>
+          <ThemeToggle />
+        </div>
+
         {/* Logo/Brand */}
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <h1
