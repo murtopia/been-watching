@@ -4,11 +4,13 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import BottomNav from '@/components/navigation/BottomNav'
+import AppHeader from '@/components/navigation/AppHeader'
 import SearchModal from '@/components/search/SearchModal'
 import MediaDetailModal from '@/components/media/MediaDetailModal'
 import EditProfileModal from '@/components/profile/EditProfileModal'
 import AvatarUploadModal from '@/components/profile/AvatarUploadModal'
 import UserCard from '@/components/friends/UserCard'
+import { useTheme } from '@/contexts/ThemeContext'
 import { getTasteMatchBetweenUsers, findSimilarUsers } from '@/utils/tasteMatch'
 
 export default function ProfilePage() {
@@ -32,6 +34,21 @@ export default function ProfilePage() {
   const [counts, setCounts] = useState({ wantCount: 0, watchingCount: 0, watchedCount: 0 })
   const router = useRouter()
   const supabase = createClient()
+  const { resolvedTheme } = useTheme()
+
+  // Theme-based color variables
+  const isDark = resolvedTheme === 'dark'
+  const bgGradient = isDark
+    ? 'linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 100%)'
+    : '#ffffff'
+  const cardBg = isDark ? 'rgba(255, 255, 255, 0.05)' : '#ffffff'
+  const cardBorder = isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #f0f0f0'
+  const textPrimary = isDark ? '#ffffff' : '#1a1a1a'
+  const textSecondary = isDark ? 'rgba(255, 255, 255, 0.6)' : '#666'
+  const inputBg = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)'
+  const inputBorder = isDark ? 'rgba(255, 255, 255, 0.1)' : '#e0e0e0'
+  const dividerColor = isDark ? 'rgba(255, 255, 255, 0.1)' : '#f0f0f0'
+  const backdropBlur = isDark ? 'blur(20px)' : 'none'
 
   useEffect(() => {
     checkUser()
@@ -349,61 +366,26 @@ export default function ProfilePage() {
 
   if (loading || !profile) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ width: '32px', height: '32px', border: '4px solid var(--accent-pink)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+      <div style={{ minHeight: '100vh', background: bgGradient, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: '32px', height: '32px', border: '4px solid #e94d88', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
       </div>
     )
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', paddingBottom: '100px' }}>
-      {/* Header with Logo */}
-      <div style={{
-        padding: '1rem 1.5rem',
-        background: 'white',
-        borderBottom: '1px solid #f0f0f0',
-        maxWidth: '600px',
-        margin: '0 auto'
-      }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <h1 style={{
-            background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            fontSize: '1.25rem',
-            fontWeight: '700',
-            margin: 0
-          }}>
-            Been Watching
-          </h1>
-          <button
-            onClick={handleLogout}
-            style={{
-              padding: '0.5rem 1rem',
-              background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
-          >
-            Log Out
-          </button>
-        </div>
-      </div>
+    <div style={{ minHeight: '100vh', background: bgGradient, paddingBottom: '100px' }}>
+      {/* Header */}
+      <AppHeader showThemeToggle showLogout onLogout={handleLogout} />
 
       {/* Profile Info */}
       <div style={{
         padding: '1.5rem',
-        background: 'white',
+        background: cardBg,
+        border: cardBorder,
+        borderRadius: '12px',
         margin: '0.5rem auto',
-        maxWidth: '600px'
+        maxWidth: '600px',
+        backdropFilter: backdropBlur
       }}>
         <div style={{
           display: 'flex',
@@ -458,8 +440,8 @@ export default function ProfilePage() {
 
           {/* Name and Bio */}
           <div style={{ flex: 1 }}>
-            <h2 style={{ fontSize: '1.125rem', fontWeight: '700', margin: '0 0 0.25rem 0' }}>{profile.display_name}</h2>
-            <p style={{ fontSize: '0.875rem', color: '#666', margin: 0 }}>{profile.bio || 'What have you been watching?'}</p>
+            <h2 style={{ fontSize: '1.125rem', fontWeight: '700', margin: '0 0 0.25rem 0', color: textPrimary }}>{profile.display_name}</h2>
+            <p style={{ fontSize: '0.875rem', color: textSecondary, margin: 0 }}>{profile.bio || 'What have you been watching?'}</p>
           </div>
 
           {/* Edit Button */}
@@ -467,11 +449,12 @@ export default function ProfilePage() {
             onClick={() => setShowEditModal(true)}
             style={{
               padding: '0.5rem 1rem',
-              background: 'white',
-              border: '1px solid #ddd',
+              background: isDark ? 'rgba(255, 255, 255, 0.1)' : 'white',
+              border: isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #ddd',
               borderRadius: '8px',
               fontSize: '0.875rem',
               fontWeight: '600',
+              color: textPrimary,
               cursor: 'pointer',
               whiteSpace: 'nowrap'
             }}
@@ -485,19 +468,19 @@ export default function ProfilePage() {
           display: 'flex',
           justifyContent: 'space-around',
           paddingTop: '1rem',
-          borderTop: '1px solid #f0f0f0'
+          borderTop: `1px solid ${dividerColor}`
         }}>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: '700' }}>{counts.wantCount}</div>
-            <div style={{ fontSize: '0.875rem', color: '#666' }}>Want to Watch</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: textPrimary }}>{counts.wantCount}</div>
+            <div style={{ fontSize: '0.875rem', color: textSecondary }}>Want to Watch</div>
           </div>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: '700' }}>{counts.watchingCount}</div>
-            <div style={{ fontSize: '0.875rem', color: '#666' }}>Watching</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: textPrimary }}>{counts.watchingCount}</div>
+            <div style={{ fontSize: '0.875rem', color: textSecondary }}>Watching</div>
           </div>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: '700' }}>{counts.watchedCount}</div>
-            <div style={{ fontSize: '0.875rem', color: '#666' }}>Watched</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: textPrimary }}>{counts.watchedCount}</div>
+            <div style={{ fontSize: '0.875rem', color: textSecondary }}>Watched</div>
           </div>
         </div>
       </div>
@@ -505,11 +488,14 @@ export default function ProfilePage() {
       {/* Privacy Settings */}
       <div style={{
         padding: '1.5rem',
-        background: 'white',
+        background: cardBg,
+        border: cardBorder,
+        borderRadius: '12px',
         margin: '0.5rem auto',
-        maxWidth: '600px'
+        maxWidth: '600px',
+        backdropFilter: backdropBlur
       }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0' }}>Privacy</h3>
+        <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0', color: textPrimary }}>Privacy</h3>
         <div style={{
           display: 'flex',
           alignItems: 'flex-start',
@@ -553,8 +539,8 @@ export default function ProfilePage() {
             </span>
           </label>
           <div>
-            <div style={{ fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.25rem' }}>Private Account</div>
-            <div style={{ fontSize: '0.8rem', color: '#666' }}>Only approved followers can see your activity</div>
+            <div style={{ fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.25rem', color: textPrimary }}>Private Account</div>
+            <div style={{ fontSize: '0.8rem', color: textSecondary }}>Only approved followers can see your activity</div>
           </div>
         </div>
       </div>
@@ -563,11 +549,14 @@ export default function ProfilePage() {
       {profile?.is_admin && (
         <div style={{
           padding: '1.5rem',
-          background: 'white',
+          background: cardBg,
+          border: cardBorder,
+          borderRadius: '12px',
           margin: '0.5rem auto',
-          maxWidth: '600px'
+          maxWidth: '600px',
+          backdropFilter: backdropBlur
         }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0' }}>Admin</h3>
+          <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0', color: textPrimary }}>Admin</h3>
           <a
             href="/admin"
             style={{
@@ -590,11 +579,14 @@ export default function ProfilePage() {
       {/* Invites Section */}
       <div style={{
         padding: '1.5rem',
-        background: 'white',
+        background: cardBg,
+        border: cardBorder,
+        borderRadius: '12px',
         margin: '0.5rem auto',
-        maxWidth: '600px'
+        maxWidth: '600px',
+        backdropFilter: backdropBlur
       }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0' }}>Invites</h3>
+        <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0', color: textPrimary }}>Invites</h3>
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -605,8 +597,8 @@ export default function ProfilePage() {
           border: '1px solid rgba(233, 77, 136, 0.2)'
         }}>
           <div>
-            <div style={{ fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.25rem' }}>Invites Remaining</div>
-            <div style={{ fontSize: '0.8rem', color: '#666' }}>Share Been Watching with friends</div>
+            <div style={{ fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.25rem', color: textPrimary }}>Invites Remaining</div>
+            <div style={{ fontSize: '0.8rem', color: textSecondary }}>Share Been Watching with friends</div>
           </div>
           <div style={{
             fontSize: '2rem',
@@ -622,15 +614,16 @@ export default function ProfilePage() {
           <div style={{
             marginTop: '1rem',
             padding: '1rem',
-            background: '#f8f9fa',
-            borderRadius: '8px'
+            background: isDark ? 'rgba(255, 255, 255, 0.03)' : '#f8f9fa',
+            borderRadius: '8px',
+            border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : 'none'
           }}>
-            <div style={{ fontSize: '0.75rem', color: '#666', marginBottom: '0.5rem' }}>Your Personal Invite Code</div>
+            <div style={{ fontSize: '0.75rem', color: textSecondary, marginBottom: '0.5rem' }}>Your Personal Invite Code</div>
             <div style={{
               fontSize: '1.25rem',
               fontWeight: '700',
               fontFamily: 'monospace',
-              color: '#1a1a1a'
+              color: textPrimary
             }}>
               {profile.invite_code}
             </div>
@@ -641,16 +634,19 @@ export default function ProfilePage() {
       {/* Friends Section */}
       <div style={{
         padding: '1.5rem',
-        background: 'white',
+        background: cardBg,
+        border: cardBorder,
+        borderRadius: '12px',
         margin: '0.5rem auto',
-        maxWidth: '600px'
+        maxWidth: '600px',
+        backdropFilter: backdropBlur
       }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0' }}>Friends</h3>
+        <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0', color: textPrimary }}>Friends</h3>
 
         {/* Three-Tab System: Following / Followers / Discover */}
         <div style={{
           display: 'flex',
-          borderBottom: '1px solid #f0f0f0',
+          borderBottom: `1px solid ${dividerColor}`,
           marginBottom: '1.5rem'
         }}>
           <button
@@ -661,7 +657,7 @@ export default function ProfilePage() {
               background: 'none',
               border: 'none',
               borderBottom: friendsTab === 'following' ? '3px solid #e94d88' : '3px solid transparent',
-              color: friendsTab === 'following' ? '#e94d88' : '#666',
+              color: friendsTab === 'following' ? '#e94d88' : textSecondary,
               fontWeight: friendsTab === 'following' ? '700' : '400',
               cursor: 'pointer',
               fontSize: '0.9rem',
@@ -678,7 +674,7 @@ export default function ProfilePage() {
               background: 'none',
               border: 'none',
               borderBottom: friendsTab === 'followers' ? '3px solid #e94d88' : '3px solid transparent',
-              color: friendsTab === 'followers' ? '#e94d88' : '#666',
+              color: friendsTab === 'followers' ? '#e94d88' : textSecondary,
               fontWeight: friendsTab === 'followers' ? '700' : '400',
               cursor: 'pointer',
               fontSize: '0.9rem',
@@ -695,7 +691,7 @@ export default function ProfilePage() {
               background: 'none',
               border: 'none',
               borderBottom: friendsTab === 'discover' ? '3px solid #e94d88' : '3px solid transparent',
-              color: friendsTab === 'discover' ? '#e94d88' : '#666',
+              color: friendsTab === 'discover' ? '#e94d88' : textSecondary,
               fontWeight: friendsTab === 'discover' ? '700' : '400',
               cursor: 'pointer',
               fontSize: '0.9rem',
@@ -727,9 +723,9 @@ export default function ProfilePage() {
                 ))}
               </div>
             ) : (
-              <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#999' }}>
+              <div style={{ textAlign: 'center', padding: '3rem 1rem', color: textSecondary }}>
                 <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>👥</div>
-                <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>No one yet</div>
+                <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem', color: textPrimary }}>No one yet</div>
                 <div style={{ fontSize: '0.875rem' }}>Find friends in the Discover tab!</div>
               </div>
             )}
@@ -756,9 +752,9 @@ export default function ProfilePage() {
                 ))}
               </div>
             ) : (
-              <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#999' }}>
+              <div style={{ textAlign: 'center', padding: '3rem 1rem', color: textSecondary }}>
                 <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>👤</div>
-                <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>No followers yet</div>
+                <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem', color: textPrimary }}>No followers yet</div>
                 <div style={{ fontSize: '0.875rem' }}>Share your profile to get followers!</div>
               </div>
             )}
@@ -777,21 +773,29 @@ export default function ProfilePage() {
                 style={{
                   width: '100%',
                   padding: '0.875rem 1rem',
-                  border: '1px solid #e0e0e0',
+                  background: inputBg,
+                  border: `1px solid ${inputBorder}`,
                   borderRadius: '12px',
                   fontSize: '1rem',
+                  color: textPrimary,
                   outline: 'none',
                   transition: 'all 0.2s'
                 }}
-                onFocus={(e) => e.target.style.borderColor = '#e94d88'}
-                onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#e94d88'
+                  e.target.style.background = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)'
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = inputBorder
+                  e.target.style.background = inputBg
+                }}
               />
             </div>
 
             {/* Search Results */}
             {searchQuery.length >= 2 && searchResults.length > 0 && (
               <div style={{ marginBottom: '2rem' }}>
-                <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: '#666', marginBottom: '1rem' }}>
+                <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: textSecondary, marginBottom: '1rem' }}>
                   Search Results
                 </h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -814,14 +818,14 @@ export default function ProfilePage() {
             )}
 
             {searchQuery.length >= 2 && searchResults.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '2rem', color: '#999', marginBottom: '2rem' }}>
+              <div style={{ textAlign: 'center', padding: '2rem', color: textSecondary, marginBottom: '2rem' }}>
                 No users found for "{searchQuery}"
               </div>
             )}
 
             {/* Smart Suggestions */}
             <div>
-              <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: '#666', marginBottom: '1rem' }}>
+              <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: textSecondary, marginBottom: '1rem' }}>
                 {searchQuery.length >= 2 ? 'More Suggestions' : 'Suggested For You'}
               </h4>
               {suggestedFriends.length > 0 ? (
@@ -831,7 +835,7 @@ export default function ProfilePage() {
                       key={friend.id}
                       user={friend}
                       currentUserId={user?.id || ''}
-                      isFollowing={false}
+                      isFollowing={following.some(f => f.id === friend.id)}
                       followsYou={followers.some(f => f.id === friend.id)}
                       mutualFriends={mutualFriends.get(friend.id) || []}
                       tasteMatchScore={tasteMatches.get(friend.id)}
@@ -842,9 +846,9 @@ export default function ProfilePage() {
                   ))}
                 </div>
               ) : (
-                <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#999' }}>
+                <div style={{ textAlign: 'center', padding: '3rem 1rem', color: textSecondary }}>
                   <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✨</div>
-                  <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>No suggestions yet</div>
+                  <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem', color: textPrimary }}>No suggestions yet</div>
                   <div style={{ fontSize: '0.875rem' }}>Add more shows to get personalized suggestions!</div>
                 </div>
               )}

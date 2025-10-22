@@ -3,7 +3,9 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
+import { useTheme } from '@/contexts/ThemeContext'
 import BottomNav from '@/components/navigation/BottomNav'
+import AppHeader from '@/components/navigation/AppHeader'
 import SearchModal from '@/components/search/SearchModal'
 import MediaDetailModal from '@/components/media/MediaDetailModal'
 import MediaBadges from '@/components/media/MediaBadges'
@@ -28,6 +30,18 @@ export default function MyShowsPage() {
   const [pendingRemoval, setPendingRemoval] = useState<{media: any, currentStatus: string} | null>(null)
   const router = useRouter()
   const supabase = createClient()
+  const { resolvedTheme } = useTheme()
+
+  // Theme-based colors
+  const isDark = resolvedTheme === 'dark'
+  const bgGradient = isDark ? 'linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 100%)' : '#ffffff'
+  const cardBg = isDark ? 'rgba(255, 255, 255, 0.05)' : '#ffffff'
+  const cardBorder = isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #f0f0f0'
+  const textPrimary = isDark ? '#ffffff' : '#1a1a1a'
+  const textSecondary = isDark ? 'rgba(255, 255, 255, 0.6)' : '#666'
+  const buttonBg = isDark ? 'rgba(255, 255, 255, 0.1)' : 'white'
+  const buttonBorder = isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #ddd'
+  const backdropBlur = isDark ? 'blur(20px)' : 'none'
 
   useEffect(() => {
     checkUser()
@@ -311,104 +325,22 @@ export default function MyShowsPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'white', paddingBottom: '100px' }}>
+    <div style={{ minHeight: '100vh', background: bgGradient, paddingBottom: '100px' }}>
       {/* Header */}
-      <div style={{
-        padding: '1rem 1.5rem',
-        background: 'white',
-        borderBottom: '1px solid #f0f0f0',
-        maxWidth: '600px',
-        margin: '0 auto'
-      }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <h1 style={{
-            background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            fontSize: '1.25rem',
-            fontWeight: '700',
-            margin: 0
-          }}>
-            Been Watching
-          </h1>
-          <button
-            onClick={() => router.push('/profile')}
-            style={{
-              background: 'none',
-              border: 'none',
-              fontSize: '1.5rem',
-              cursor: 'pointer',
-              position: 'relative',
-              padding: '0.5rem'
-            }}
-          >
-            {profile?.avatar_url ? (
-              <div style={{ position: 'relative' }}>
-                <img
-                  src={profile.avatar_url}
-                  alt={profile.display_name}
-                  style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    objectFit: 'cover'
-                  }}
-                />
-                <div style={{
-                  position: 'absolute',
-                  top: '-4px',
-                  right: '-4px',
-                  fontSize: '1rem'
-                }}>
-                  ✨
-                </div>
-              </div>
-            ) : (
-              <div style={{ position: 'relative' }}>
-                <div style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontSize: '0.875rem',
-                  fontWeight: '700'
-                }}>
-                  {profile?.display_name?.[0] || '?'}
-                </div>
-                <div style={{
-                  position: 'absolute',
-                  top: '-4px',
-                  right: '-4px',
-                  fontSize: '1rem'
-                }}>
-                  ✨
-                </div>
-              </div>
-            )}
-          </button>
-        </div>
-      </div>
+      <AppHeader profile={profile} />
 
       {/* My Shows Section */}
-      <div style={{ maxWidth: '600px', margin: '0 auto', background: 'white', padding: '2rem 1.5rem' }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: '700' }}>My Shows</h2>
+      <div style={{ maxWidth: '600px', margin: '0 auto', background: cardBg, padding: '2rem 1.5rem', borderRadius: '12px', border: cardBorder, backdropFilter: backdropBlur }}>
+        <h2 style={{ textAlign: 'center', marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: '700', color: textPrimary }}>My Shows</h2>
 
         {/* Top 3 Shows */}
         <div style={{
           padding: '1.5rem',
-          background: '#fafafa',
+          background: isDark ? 'rgba(255, 255, 255, 0.03)' : '#fafafa',
           borderRadius: '12px',
           marginBottom: '2rem'
         }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0' }}>My Top 3 Shows</h3>
+          <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0', color: textPrimary }}>My Top 3 Shows</h3>
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(3, 1fr)',
@@ -422,13 +354,13 @@ export default function MyShowsPage() {
                   style={{
                     position: 'relative',
                     aspectRatio: '2/3',
-                    border: '2px dashed #ddd',
+                    border: isDark ? '2px dashed rgba(255, 255, 255, 0.2)' : '2px dashed #ddd',
                     borderRadius: '12px',
                     overflow: 'hidden',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    background: 'white'
+                    background: isDark ? 'rgba(255, 255, 255, 0.05)' : 'white'
                   }}
                 >
                   {show?.poster_path ? (
@@ -542,7 +474,7 @@ export default function MyShowsPage() {
         {/* Tabs */}
         <div style={{
           display: 'flex',
-          borderBottom: '1px solid #f0f0f0',
+          borderBottom: cardBorder,
           marginBottom: '1.5rem'
         }}>
           <button
@@ -563,13 +495,13 @@ export default function MyShowsPage() {
             <div style={{
               fontSize: '2rem',
               fontWeight: '700',
-              color: '#000'
+              color: textPrimary
             }}>
               {counts.wantCount}
             </div>
             <div style={{
               fontSize: '0.9rem',
-              color: activeTab === 'want' ? '#0095f6' : '#666',
+              color: activeTab === 'want' ? '#0095f6' : textSecondary,
               fontWeight: activeTab === 'want' ? '600' : '400'
             }}>
               Want to Watch
@@ -593,13 +525,13 @@ export default function MyShowsPage() {
             <div style={{
               fontSize: '2rem',
               fontWeight: '700',
-              color: '#000'
+              color: textPrimary
             }}>
               {counts.watchingCount}
             </div>
             <div style={{
               fontSize: '0.9rem',
-              color: activeTab === 'watching' ? '#0095f6' : '#666',
+              color: activeTab === 'watching' ? '#0095f6' : textSecondary,
               fontWeight: activeTab === 'watching' ? '600' : '400'
             }}>
               Watching
@@ -623,13 +555,13 @@ export default function MyShowsPage() {
             <div style={{
               fontSize: '2rem',
               fontWeight: '700',
-              color: '#000'
+              color: textPrimary
             }}>
               {counts.watchedCount}
             </div>
             <div style={{
               fontSize: '0.9rem',
-              color: activeTab === 'watched' ? '#0095f6' : '#666',
+              color: activeTab === 'watched' ? '#0095f6' : textSecondary,
               fontWeight: activeTab === 'watched' ? '600' : '400'
             }}>
               Watched

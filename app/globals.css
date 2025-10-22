@@ -18,17 +18,50 @@
     --love: #FF2D55;
     --like: #007AFF;
     --meh: #8E8E93;
+
+    /* Bottom Nav Colors - Light Mode */
+    --nav-container: rgba(255, 255, 255, 0.6);
+    --nav-button: rgba(0, 0, 0, 0.06);              /* Light grey tint for buttons */
+    --nav-button-active: rgba(0, 0, 0, 0.12);       /* Darker grey for active state */
+    --nav-text: #000000;
+    --nav-text-active: #0095f6;
 }
 
+/* Dark mode - controlled by ThemeContext */
+[data-theme="dark"] {
+    --bg-primary: #0a0a0a;
+    --surface: rgba(255, 255, 255, 0.05);
+    --glass: rgba(255, 255, 255, 0.05);
+    --border: rgba(255, 255, 255, 0.1);
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.9);
+    --text-tertiary: rgba(255, 255, 255, 0.6);
+
+    /* Bottom Nav Colors - Dark Mode (3-level hierarchy) */
+    --nav-container: rgba(255, 255, 255, 0.05);      /* Outer container - same as header for blur visibility */
+    --nav-button: rgba(255, 255, 255, 0.10);         /* Inactive buttons - medium (pop from container) */
+    --nav-button-active: rgba(255, 255, 255, 0.18);  /* Active button - lightest (most prominent) */
+    --nav-text: rgba(255, 255, 255, 0.9);            /* Text - white/light grey */
+    --nav-text-active: #ffffff;                       /* Active text - pure white */
+}
+
+/* Auto mode - fallback to OS preference */
 @media (prefers-color-scheme: dark) {
-    :root {
-        --bg-primary: #000000;
-        --surface: rgba(255, 255, 255, 0.1);
-        --glass: rgba(255, 255, 255, 0.08);
-        --border: rgba(255, 255, 255, 0.12);
-        --text-primary: #FFFFFF;
-        --text-secondary: #8E8E93;
-        --text-tertiary: #6B6B75;
+    [data-theme="auto"] {
+        --bg-primary: #0a0a0a;
+        --surface: rgba(255, 255, 255, 0.05);
+        --glass: rgba(255, 255, 255, 0.05);
+        --border: rgba(255, 255, 255, 0.1);
+        --text-primary: #ffffff;
+        --text-secondary: rgba(255, 255, 255, 0.6);
+        --text-tertiary: rgba(255, 255, 255, 0.4);
+
+        /* Bottom Nav Colors - Dark Mode */
+        --nav-container: rgba(255, 255, 255, 0.05);
+        --nav-button: rgba(255, 255, 255, 0.10);
+        --nav-button-active: rgba(255, 255, 255, 0.18);
+        --nav-text: rgba(255, 255, 255, 0.9);
+        --nav-text-active: #ffffff;
     }
 }
 
@@ -40,20 +73,33 @@ body {
     position: relative;
 }
 
+[data-theme="dark"] body,
+[data-theme="auto"] body {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 100%);
+}
+
+@media (prefers-color-scheme: dark) {
+    [data-theme="auto"] body {
+        background: linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 100%);
+    }
+}
+
 .nav-header {
     position: sticky;
     top: 0;
     background: var(--glass);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--border);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
     z-index: 100;
+    max-width: 600px;
+    margin: 0 auto 0.5rem;
 }
 
 .nav-content {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 1rem;
+    padding: 1rem 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -132,10 +178,11 @@ body {
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: 12px;
     overflow: hidden;
     margin-bottom: 1rem;
     transition: all 0.2s;
+    color: var(--text-primary);
 }
 
 .activity-card:hover {
@@ -178,10 +225,12 @@ body {
 .user-action {
     font-size: 0.875rem;
     line-height: 1.4;
+    color: var(--text-primary);
 }
 
 .user-action strong {
     font-weight: 600;
+    color: var(--text-primary);
 }
 
 .action-type {
@@ -217,6 +266,7 @@ body {
     font-weight: 600;
     font-size: 0.9375rem;
     margin-bottom: 0.25rem;
+    color: var(--text-primary);
 }
 
 .feed-show-meta {
@@ -283,6 +333,7 @@ body {
     font-size: 0.875rem;
     cursor: pointer;
     transition: all 0.2s;
+    color: var(--text-primary);
 }
 
 .quick-rate-btn:hover {
@@ -329,6 +380,7 @@ body {
     cursor: pointer;
     transition: all 0.2s;
     white-space: nowrap;
+    color: var(--text-primary) !important;
 }
 
 .quick-status-btn:hover {
@@ -515,9 +567,9 @@ body {
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background: var(--glass);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: var(--nav-container) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
     border: 1px solid var(--border);
     border-radius: 30px;
     padding: 0.5rem;
@@ -528,30 +580,27 @@ body {
 
 .tab-item, .tab-add {
     padding: 0.75rem 1.5rem;
-    background: transparent;
+    background: var(--nav-button) !important;
     border: none;
     border-radius: 20px;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
+    color: var(--nav-text) !important;
+    font-weight: 500;
 }
 
 .tab-item:hover {
-    background: rgba(255, 255, 255, 0.45) !important;
-    backdrop-filter: blur(20px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    background: var(--nav-button-active) !important;
+    transform: scale(1.02);
 }
 
 .tab-add {
     width: 56px;
     height: 56px;
     padding: 0;
-    background: rgba(255, 255, 255, 0.75) !important;
-    backdrop-filter: blur(40px) saturate(200%) !important;
-    -webkit-backdrop-filter: blur(40px) saturate(200%) !important;
-    border: 2px solid rgba(255, 255, 255, 0.3) !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
-    color: #0095f6;
+    background: var(--nav-button-active) !important;
+    color: var(--nav-text-active) !important;
     font-size: 2rem;
     font-weight: 300;
     display: flex;
@@ -562,17 +611,15 @@ body {
 }
 
 .tab-add:hover {
-    background: rgba(255, 255, 255, 0.85) !important;
     transform: scale(1.05);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+    background: var(--nav-button-active) !important;
+    filter: brightness(1.1);
 }
 
 .tab-item.active {
-    background: rgba(255, 255, 255, 0.55) !important;
-    backdrop-filter: blur(30px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.18) !important;
-    color: #0095f6 !important;
+    background: var(--nav-button-active) !important;
+    color: var(--nav-text-active) !important;
+    font-weight: 600;
 }
 
 /* Tailwind imports */

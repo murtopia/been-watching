@@ -21,7 +21,13 @@ export default function BottomNav({ onSearchOpen }: { onSearchOpen?: () => void 
   }
 
   return (
-    <nav className="tab-bar">
+    <nav
+      className="tab-bar"
+      style={{
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)'
+      }}
+    >
       {tabs.map((tab) => {
         const isActive = tab.path === pathname
 

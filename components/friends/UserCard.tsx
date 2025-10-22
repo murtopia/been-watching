@@ -1,5 +1,6 @@
 'use client'
 
+import { useTheme } from '@/contexts/ThemeContext'
 import { getTasteMatchLabel } from '@/utils/tasteMatch'
 
 interface Profile {
@@ -35,12 +36,29 @@ export default function UserCard({
   onUnfollow,
   onClick
 }: UserCardProps) {
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
+
   const getInitials = (name: string) => {
     if (!name) return '?'
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
   }
 
   const tasteMatch = tasteMatchScore ? getTasteMatchLabel(tasteMatchScore) : null
+
+  // Theme-based colors
+  const cardBg = isDark ? 'rgba(255, 255, 255, 0.05)' : 'white'
+  const cardBgHover = isDark ? 'rgba(255, 255, 255, 0.08)' : '#f8f9fa'
+  const cardBorder = isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #f0f0f0'
+  const backdropBlur = isDark ? 'blur(20px)' : 'none'
+  const textPrimary = isDark ? '#ffffff' : '#1a1a1a'
+  const textSecondary = isDark ? 'rgba(255, 255, 255, 0.6)' : '#666'
+  const textTertiary = isDark ? 'rgba(255, 255, 255, 0.4)' : '#999'
+  const buttonBg = isDark ? 'rgba(255, 255, 255, 0.1)' : 'white'
+  const buttonBgHover = isDark ? 'rgba(255, 255, 255, 0.15)' : '#f8f9fa'
+  const buttonBorder = isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #ddd'
+  const buttonBorderHover = isDark ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid #999'
+  const badgeBg = isDark ? 'rgba(255, 255, 255, 0.15)' : '#e0e0e0'
 
   // Determine follow status
   let followStatus: 'mutual' | 'following' | 'follows-you' | 'none' = 'none'
@@ -55,23 +73,24 @@ export default function UserCard({
         alignItems: 'center',
         gap: '1rem',
         padding: '1rem',
-        background: 'white',
+        background: cardBg,
         borderRadius: '12px',
-        border: '1px solid #f0f0f0',
+        border: cardBorder,
+        backdropFilter: backdropBlur,
         cursor: onClick ? 'pointer' : 'default',
         transition: 'all 0.2s'
       }}
       onClick={() => onClick?.(user.username)}
       onMouseEnter={(e) => {
         if (onClick) {
-          e.currentTarget.style.background = '#f8f9fa'
+          e.currentTarget.style.background = cardBgHover
           e.currentTarget.style.transform = 'translateY(-2px)'
-          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.08)'
+          e.currentTarget.style.boxShadow = isDark ? '0 4px 12px rgba(0, 0, 0, 0.3)' : '0 4px 12px rgba(0, 0, 0, 0.08)'
         }
       }}
       onMouseLeave={(e) => {
         if (onClick) {
-          e.currentTarget.style.background = 'white'
+          e.currentTarget.style.background = cardBg
           e.currentTarget.style.transform = 'translateY(0)'
           e.currentTarget.style.boxShadow = 'none'
         }
@@ -105,7 +124,25 @@ export default function UserCard({
       <div style={{ flex: 1, minWidth: 0 }}>
         {/* Username (bold) and Follow Status Badge */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-          <div style={{ fontSize: '1rem', fontWeight: '700', color: '#1a1a1a' }}>
+          <div
+            style={{
+              fontSize: '1rem',
+              fontWeight: '700',
+              color: textPrimary,
+              cursor: 'pointer',
+              textDecoration: 'none'
+            }}
+            onClick={(e) => {
+              e.stopPropagation()
+              onClick?.(user.username)
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.textDecoration = 'underline'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.textDecoration = 'none'
+            }}
+          >
             @{user.username}
           </div>
           {followStatus !== 'none' && (
@@ -115,8 +152,8 @@ export default function UserCard({
               fontSize: '0.75rem',
               fontWeight: '600',
               background: followStatus === 'mutual' ? 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)' :
-                         followStatus === 'following' ? '#e0e0e0' : '#e0e0e0',
-              color: followStatus === 'mutual' ? 'white' : '#666'
+                         followStatus === 'following' ? badgeBg : badgeBg,
+              color: followStatus === 'mutual' ? 'white' : textSecondary
             }}>
               {followStatus === 'mutual' ? 'Mutual' : followStatus === 'following' ? 'Following' : 'Follows you'}
             </span>
@@ -124,17 +161,17 @@ export default function UserCard({
         </div>
 
         {/* Display Name */}
-        <div style={{ fontSize: '0.875rem', color: '#666', marginBottom: '0.5rem' }}>
+        <div style={{ fontSize: '0.875rem', color: textSecondary, marginBottom: '0.5rem' }}>
           {user.display_name}
         </div>
 
         {/* Mutual Friends */}
         {mutualFriends.length > 0 && (
-          <div style={{ fontSize: '0.75rem', color: '#999', marginBottom: '0.25rem' }}>
+          <div style={{ fontSize: '0.75rem', color: textTertiary, marginBottom: '0.25rem' }}>
             Mutual: {mutualFriends.slice(0, 3).map((f, i) => (
               <span key={f.id}>
                 {i > 0 && ', '}
-                <span style={{ color: '#666', fontWeight: '600' }}>@{f.username}</span>
+                <span style={{ color: textSecondary, fontWeight: '600' }}>@{f.username}</span>
               </span>
             ))}
             {mutualFriends.length > 3 && ` +${mutualFriends.length - 3} more`}
@@ -155,7 +192,7 @@ export default function UserCard({
 
         {/* Latest Activity */}
         {latestActivity && (
-          <div style={{ fontSize: '0.75rem', color: '#999', fontStyle: 'italic' }}>
+          <div style={{ fontSize: '0.75rem', color: textTertiary, fontStyle: 'italic' }}>
             {latestActivity}
           </div>
         )}
@@ -173,9 +210,9 @@ export default function UserCard({
         }}
         style={{
           padding: '0.5rem 1.5rem',
-          background: isFollowing ? 'white' : 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-          color: isFollowing ? '#666' : 'white',
-          border: isFollowing ? '1px solid #ddd' : 'none',
+          background: isFollowing ? buttonBg : 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+          color: isFollowing ? textSecondary : 'white',
+          border: isFollowing ? buttonBorder : 'none',
           borderRadius: '8px',
           fontSize: '0.875rem',
           fontWeight: '600',
@@ -186,22 +223,22 @@ export default function UserCard({
         }}
         onMouseEnter={(e) => {
           if (isFollowing) {
-            e.currentTarget.style.background = '#f8f9fa'
-            e.currentTarget.style.borderColor = '#999'
+            e.currentTarget.style.background = buttonBgHover
+            e.currentTarget.style.borderColor = buttonBorderHover.replace('1px solid ', '')
           } else {
             e.currentTarget.style.transform = 'scale(1.05)'
           }
         }}
         onMouseLeave={(e) => {
           if (isFollowing) {
-            e.currentTarget.style.background = 'white'
-            e.currentTarget.style.borderColor = '#ddd'
+            e.currentTarget.style.background = buttonBg
+            e.currentTarget.style.borderColor = buttonBorder.replace('1px solid ', '')
           } else {
             e.currentTarget.style.transform = 'scale(1)'
           }
         }}
       >
-        {isFollowing ? 'Unfollow' : followsYou ? 'Follow Back' : 'Follow'}
+        {isFollowing ? 'Following' : followsYou ? 'Follow Back' : 'Follow'}
       </button>
     </div>
   )

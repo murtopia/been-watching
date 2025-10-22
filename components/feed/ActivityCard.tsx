@@ -2,6 +2,7 @@
 
 import { formatDistanceToNow } from 'date-fns'
 import { useState, useEffect } from 'react'
+import { useTheme } from '@/contexts/ThemeContext'
 import MediaBadges from '../media/MediaBadges'
 
 interface ActivityCardProps {
@@ -37,6 +38,8 @@ interface ActivityCardProps {
   onDeleteComment?: (commentId: string) => void
   onQuickRate?: (mediaId: string, rating: string) => void
   onQuickStatus?: (mediaId: string, status: string) => void
+  onUserClick?: (username: string) => void
+  onMediaClick?: (media: any) => void
   userRating?: string | null
   userStatus?: string | null
   currentUserId?: string
@@ -49,6 +52,8 @@ export default function ActivityCard({
   onDeleteComment,
   onQuickRate,
   onQuickStatus,
+  onUserClick,
+  onMediaClick,
   userRating,
   userStatus,
   currentUserId
@@ -59,6 +64,11 @@ export default function ActivityCard({
   const [showFullOverview, setShowFullOverview] = useState(false)
   const [lastTap, setLastTap] = useState(0)
   const [trailerKey, setTrailerKey] = useState<string | null>(null)
+  const { resolvedTheme } = useTheme()
+
+  // Theme-based colors
+  const isDark = resolvedTheme === 'dark'
+  const textSecondary = isDark ? 'rgba(255, 255, 255, 0.9)' : '#666'
 
   // Extract media info
   const mediaType = activity.media.media_type || (activity.media.id?.startsWith('tv-') ? 'tv' : 'movie')
@@ -105,9 +115,29 @@ export default function ActivityCard({
                     activity_data.rating === 'like' ? 'liked' : 'felt meh about'
         return (
           <>
-            <strong>{activity.user.display_name}</strong>
+            <strong
+              onClick={(e) => {
+                e.stopPropagation()
+                onUserClick?.(activity.user.username)
+              }}
+              style={{ cursor: onUserClick ? 'pointer' : 'default' }}
+              onMouseEnter={(e) => onUserClick && (e.currentTarget.style.textDecoration = 'underline')}
+              onMouseLeave={(e) => onUserClick && (e.currentTarget.style.textDecoration = 'none')}
+            >
+              {activity.user.display_name}
+            </strong>
             <span className="action-type"> {verb} </span>
-            <strong>{activity.media.title}</strong>
+            <strong
+              onClick={(e) => {
+                e.stopPropagation()
+                onMediaClick?.(activity.media)
+              }}
+              style={{ cursor: onMediaClick ? 'pointer' : 'default' }}
+              onMouseEnter={(e) => onMediaClick && (e.currentTarget.style.textDecoration = 'underline')}
+              onMouseLeave={(e) => onMediaClick && (e.currentTarget.style.textDecoration = 'none')}
+            >
+              {activity.media.title}
+            </strong>
           </>
         )
       case 'status_changed':
@@ -115,17 +145,57 @@ export default function ActivityCard({
                       activity_data.status === 'watching' ? 'started watching' : 'finished watching'
         return (
           <>
-            <strong>{activity.user.display_name}</strong>
+            <strong
+              onClick={(e) => {
+                e.stopPropagation()
+                onUserClick?.(activity.user.username)
+              }}
+              style={{ cursor: onUserClick ? 'pointer' : 'default' }}
+              onMouseEnter={(e) => onUserClick && (e.currentTarget.style.textDecoration = 'underline')}
+              onMouseLeave={(e) => onUserClick && (e.currentTarget.style.textDecoration = 'none')}
+            >
+              {activity.user.display_name}
+            </strong>
             <span className="action-type"> {status} </span>
-            <strong>{activity.media.title}</strong>
+            <strong
+              onClick={(e) => {
+                e.stopPropagation()
+                onMediaClick?.(activity.media)
+              }}
+              style={{ cursor: onMediaClick ? 'pointer' : 'default' }}
+              onMouseEnter={(e) => onMediaClick && (e.currentTarget.style.textDecoration = 'underline')}
+              onMouseLeave={(e) => onMediaClick && (e.currentTarget.style.textDecoration = 'none')}
+            >
+              {activity.media.title}
+            </strong>
           </>
         )
       default:
         return (
           <>
-            <strong>{activity.user.display_name}</strong>
+            <strong
+              onClick={(e) => {
+                e.stopPropagation()
+                onUserClick?.(activity.user.username)
+              }}
+              style={{ cursor: onUserClick ? 'pointer' : 'default' }}
+              onMouseEnter={(e) => onUserClick && (e.currentTarget.style.textDecoration = 'underline')}
+              onMouseLeave={(e) => onUserClick && (e.currentTarget.style.textDecoration = 'none')}
+            >
+              {activity.user.display_name}
+            </strong>
             <span className="action-type"> updated </span>
-            <strong>{activity.media.title}</strong>
+            <strong
+              onClick={(e) => {
+                e.stopPropagation()
+                onMediaClick?.(activity.media)
+              }}
+              style={{ cursor: onMediaClick ? 'pointer' : 'default' }}
+              onMouseEnter={(e) => onMediaClick && (e.currentTarget.style.textDecoration = 'underline')}
+              onMouseLeave={(e) => onMediaClick && (e.currentTarget.style.textDecoration = 'none')}
+            >
+              {activity.media.title}
+            </strong>
           </>
         )
     }
@@ -232,7 +302,7 @@ export default function ActivityCard({
             <div className="feed-show-overview">
               <p style={{
                 fontSize: '0.875rem',
-                color: '#666',
+                color: textSecondary,
                 lineHeight: '1.4',
                 margin: '0.5rem 0 0 0',
                 display: showFullOverview ? 'block' : '-webkit-box',
@@ -261,12 +331,6 @@ export default function ActivityCard({
                   </button>
                 </div>
               )}
-            </div>
-          )}
-          {activity.activity_data.rating && (
-            <div className={`user-rating-display ${activity.activity_data.rating}`}>
-              {activity.activity_data.rating === 'love' ? '❤️ Loved' :
-               activity.activity_data.rating === 'like' ? '👍 Liked' : '😐 Meh'}
             </div>
           )}
         </div>

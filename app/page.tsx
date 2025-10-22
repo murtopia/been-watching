@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import BottomNav from '@/components/navigation/BottomNav'
+import AppHeader from '@/components/navigation/AppHeader'
 import ActivityCard from '@/components/feed/ActivityCard'
 import SearchModal from '@/components/search/SearchModal'
 import MediaDetailModal from '@/components/media/MediaDetailModal'
@@ -701,70 +702,7 @@ export default function HomePage() {
 
     <div>
       {/* Header */}
-      <nav className="nav-header">
-        <div className="nav-content">
-          <div className="logo">Been Watching</div>
-          <button
-            onClick={() => router.push('/profile')}
-            style={{
-              background: 'none',
-              border: 'none',
-              fontSize: '1.5rem',
-              cursor: 'pointer',
-              position: 'relative',
-              padding: '0.5rem'
-            }}
-          >
-            {profile?.avatar_url ? (
-              <div style={{ position: 'relative' }}>
-                <img
-                  src={profile.avatar_url}
-                  alt={profile.display_name}
-                  style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    objectFit: 'cover'
-                  }}
-                />
-                <div style={{
-                  position: 'absolute',
-                  top: '-4px',
-                  right: '-4px',
-                  fontSize: '1rem'
-                }}>
-                  ✨
-                </div>
-              </div>
-            ) : (
-              <div style={{ position: 'relative' }}>
-                <div style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontSize: '0.875rem',
-                  fontWeight: '700'
-                }}>
-                  {profile?.display_name?.[0] || '?'}
-                </div>
-                <div style={{
-                  position: 'absolute',
-                  top: '-4px',
-                  right: '-4px',
-                  fontSize: '1rem'
-                }}>
-                  ✨
-                </div>
-              </div>
-            )}
-          </button>
-        </div>
-      </nav>
+      <AppHeader profile={profile} />
 
       {/* Main Content */}
       <div className="main-container">
@@ -814,6 +752,11 @@ export default function HomePage() {
                   onDeleteComment={handleDeleteComment}
                   onQuickRate={handleQuickRate}
                   onQuickStatus={handleQuickStatus}
+                  onUserClick={(username) => router.push(`/user/${username}`)}
+                  onMediaClick={(media) => {
+                    setSelectedMedia(media)
+                    setDetailModalOpen(true)
+                  }}
                   userRating={activity.user_rating}
                   userStatus={activity.user_status}
                   currentUserId={user?.id}
