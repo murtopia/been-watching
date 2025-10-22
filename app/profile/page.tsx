@@ -254,6 +254,17 @@ export default function ProfilePage() {
       })
 
     if (!error) {
+      // Create notification for the user being followed
+      await supabase
+        .from('notifications')
+        .insert({
+          user_id: userId,
+          actor_id: user.id,
+          type: 'follow',
+          target_type: 'profile',
+          target_id: userId
+        })
+
       loadFollowData()
       loadSuggestedFriends()
     }

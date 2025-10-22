@@ -1,7 +1,7 @@
 'use client'
 
 import { use, useEffect, useState } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { getTasteMatchBetweenUsers } from '@/utils/tasteMatch'
 import MediaDetailModal from '@/components/media/MediaDetailModal'
@@ -44,7 +44,7 @@ interface WatchStats {
 
 export default function UserProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = use(params)
-  const supabase = createClientComponentClient()
+  const supabase = createClient()
   const router = useRouter()
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -286,6 +286,17 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
           follower_id: currentUser.id,
           following_id: profile.id,
           status: 'accepted'
+        })
+
+      // Create notification for the user being followed
+      await supabase
+        .from('notifications')
+        .insert({
+          user_id: profile.id,
+          actor_id: currentUser.id,
+          type: 'follow',
+          target_type: 'profile',
+          target_id: profile.id
         })
 
       setIsFollowing(true)
@@ -556,28 +567,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
               {profile.bio}
             </div>
           )}
-
         </div>
-
-        {/* Follow Button */}
-        {!isOwnProfile && currentUser && (
-          <button
-            onClick={isFollowing ? handleUnfollow : handleFollow}
-            style={{
-              padding: '0.5rem 1rem',
-              background: isFollowing ? 'white' : 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-              color: isFollowing ? '#666' : 'white',
-              border: isFollowing ? '1px solid #ddd' : 'none',
-              borderRadius: '8px',
-              fontSize: '0.875rem',
-              fontWeight: '600',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            {isFollowing ? 'Following' : 'Follow'}
-          </button>
-        )}
       </div>
 
 

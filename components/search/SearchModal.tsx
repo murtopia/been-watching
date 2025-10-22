@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { X, Search } from 'lucide-react'
 import { useDebounce } from '@/hooks/useDebounce'
 import { createClient } from '@/utils/supabase/client'
+import { useTheme } from '@/contexts/ThemeContext'
 import TVSeasonCard from './TVSeasonCard'
 import MediaCard from '@/components/media/MediaCard'
 import MediaBadges from '@/components/media/MediaBadges'
@@ -20,8 +21,21 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
   const [results, setResults] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [mediaType, setMediaType] = useState<'all' | 'movie' | 'tv'>('all')
+  const { resolvedTheme } = useTheme()
 
   const debouncedQuery = useDebounce(query, 300)
+
+  // Theme-based colors
+  const isDark = resolvedTheme === 'dark'
+  const modalBg = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.55)'
+  const modalBorder = isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(255, 255, 255, 0.18)'
+  const textPrimary = isDark ? '#ffffff' : '#1a1a1a'
+  const textSecondary = isDark ? 'rgba(255, 255, 255, 0.6)' : '#666'
+  const inputBg = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)'
+  const inputBorder = isDark ? 'rgba(255, 255, 255, 0.1)' : '#e0e0e0'
+  const buttonBg = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'
+  const buttonBgActive = isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 122, 255, 0.1)'
+  const buttonBorder = isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #ddd'
 
   // Prevent body scroll when modal is open and clear search on close
   useEffect(() => {
@@ -86,22 +100,22 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
           width: '100%',
           maxWidth: '600px',
           height: '85vh',
-          background: 'rgba(255, 255, 255, 0.55)',
+          background: modalBg,
           backdropFilter: 'blur(30px) saturate(180%)',
           WebkitBackdropFilter: 'blur(30px) saturate(180%)',
           borderRadius: '20px',
-          border: '1px solid rgba(255, 255, 255, 0.18)',
+          border: modalBorder,
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.1)'
+          boxShadow: isDark ? '0 8px 32px rgba(0, 0, 0, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.12)'
         }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search Input - At Top */}
-        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div style={{ padding: '1.25rem 1.5rem', borderBottom: modalBorder, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div style={{ position: 'relative', flex: 1 }}>
-            <Search style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', width: '20px', height: '20px', color: '#999' }} />
+            <Search style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', width: '20px', height: '20px', color: textSecondary }} />
             <input
               type="text"
               value={query}
@@ -110,10 +124,12 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
               style={{
                 width: '100%',
                 padding: '0.875rem 3rem 0.875rem 3rem',
-                border: '1px solid #e0e0e0',
+                border: inputBorder,
                 borderRadius: '12px',
                 fontSize: '1rem',
-                outline: 'none'
+                outline: 'none',
+                background: inputBg,
+                color: textPrimary
               }}
               autoFocus
             />
@@ -132,14 +148,14 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
                   border: 'none',
                   cursor: 'pointer',
                   padding: '0.25rem',
-                  color: '#666',
+                  color: textSecondary,
                   transition: 'color 0.2s ease'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.color = '#e94d88'
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.color = '#666'
+                  e.currentTarget.style.color = textSecondary
                 }}
               >
                 <X style={{ width: '20px', height: '20px' }} />
@@ -178,7 +194,7 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
         </div>
 
         {/* Type Filter */}
-        <div style={{ padding: '1rem 1.5rem', display: 'flex', gap: '0.5rem', borderBottom: '1px solid #f0f0f0' }}>
+        <div style={{ padding: '1rem 1.5rem', display: 'flex', gap: '0.5rem', borderBottom: modalBorder }}>
           {(['all', 'tv', 'movie'] as const).map((type) => (
             <button
               key={type}
@@ -190,8 +206,8 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
                 fontWeight: '600',
                 border: 'none',
                 cursor: 'pointer',
-                background: mediaType === type ? '#0095f6' : '#f0f0f0',
-                color: mediaType === type ? 'white' : '#666'
+                background: mediaType === type ? '#0095f6' : buttonBg,
+                color: mediaType === type ? 'white' : textSecondary
               }}
             >
               {type === 'all' ? 'All' : type === 'tv' ? 'TV Shows' : 'Movies'}

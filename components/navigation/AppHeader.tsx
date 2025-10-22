@@ -2,12 +2,15 @@
 
 import { useRouter } from 'next/navigation'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useEffect, useState } from 'react'
 import ThemeToggle from '@/components/theme/ThemeToggle'
+import NotificationDropdown from '@/components/notifications/NotificationDropdown'
 
 interface AppHeaderProps {
   profile?: any
   showThemeToggle?: boolean
   showLogout?: boolean
+  showNotifications?: boolean
   onLogout?: () => void
 }
 
@@ -15,10 +18,44 @@ export default function AppHeader({
   profile,
   showThemeToggle = false,
   showLogout = false,
+  showNotifications = true,
   onLogout
 }: AppHeaderProps) {
   const router = useRouter()
   const { resolvedTheme } = useTheme()
+  const [notificationCount, setNotificationCount] = useState(0)
+  const [showNotificationDropdown, setShowNotificationDropdown] = useState(false)
+
+  // Load unread notification count
+  useEffect(() => {
+    if (profile && showNotifications) {
+      loadNotificationCount()
+
+      // Poll for new notifications every 30 seconds
+      const interval = setInterval(loadNotificationCount, 30000)
+      return () => clearInterval(interval)
+    }
+  }, [profile, showNotifications])
+
+  const loadNotificationCount = async () => {
+    try {
+      const response = await fetch('/api/notifications/unread-count')
+      const data = await response.json()
+      setNotificationCount(data.count || 0)
+    } catch (error) {
+      console.error('Error loading notification count:', error)
+    }
+  }
+
+  const handleNotificationClick = () => {
+    setShowNotificationDropdown(!showNotificationDropdown)
+  }
+
+  const handleNotificationClose = () => {
+    setShowNotificationDropdown(false)
+    // Reload count after closing (in case notifications were marked as read)
+    loadNotificationCount()
+  }
 
   // Theme-based colors
   const isDark = resolvedTheme === 'dark'
@@ -59,8 +96,53 @@ export default function AppHeader({
         </h1>
 
         {/* Right side actions */}
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', position: 'relative' }}>
           {showThemeToggle && <ThemeToggle />}
+
+          {/* Notification Icon */}
+          {showNotifications && profile && (
+            <button
+              onClick={handleNotificationClick}
+              style={{
+                background: 'none',
+                border: 'none',
+                fontSize: '1.5rem',
+                cursor: 'pointer',
+                position: 'relative',
+                padding: '0.5rem'
+              }}
+            >
+              ✨
+              {notificationCount > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '0',
+                  right: '0',
+                  background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+                  color: 'white',
+                  fontSize: '0.625rem',
+                  fontWeight: '700',
+                  borderRadius: '10px',
+                  padding: '0.125rem 0.375rem',
+                  minWidth: '18px',
+                  height: '18px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  {notificationCount > 9 ? '9+' : notificationCount}
+                </span>
+              )}
+            </button>
+          )}
+
+          {/* Notification Dropdown */}
+          {showNotificationDropdown && (
+            <NotificationDropdown
+              isOpen={showNotificationDropdown}
+              onClose={handleNotificationClose}
+            />
+          )}
 
           {showLogout && onLogout && (
             <button

@@ -415,6 +415,13 @@ export default function HomePage() {
     if (!user) return
 
     try {
+      // Get the activity to find the owner
+      const { data: activity } = await supabase
+        .from('activities')
+        .select('user_id')
+        .eq('id', activityId)
+        .single()
+
       // Check if already liked
       const { data: existingLike } = await supabase
         .from('activity_likes')
@@ -424,11 +431,18 @@ export default function HomePage() {
         .maybeSingle()
 
       if (existingLike) {
-        // Unlike
+        // Unlike - also delete the notification
         await supabase
           .from('activity_likes')
           .delete()
           .eq('id', existingLike.id)
+
+        await supabase
+          .from('notifications')
+          .delete()
+          .eq('activity_id', activityId)
+          .eq('actor_id', user.id)
+          .eq('type', 'like_activity')
       } else {
         // Like
         await supabase
@@ -437,6 +451,20 @@ export default function HomePage() {
             activity_id: activityId,
             user_id: user.id
           })
+
+        // Create notification for activity owner (don't notify yourself)
+        if (activity && activity.user_id !== user.id) {
+          await supabase
+            .from('notifications')
+            .insert({
+              user_id: activity.user_id,
+              actor_id: user.id,
+              type: 'like_activity',
+              target_type: 'activity',
+              target_id: activityId,
+              activity_id: activityId
+            })
+        }
       }
 
       // Reload feed to update counts
@@ -450,6 +478,14 @@ export default function HomePage() {
     if (!user || !comment.trim()) return
 
     try {
+      // Get the activity to find the owner
+      const { data: activity } = await supabase
+        .from('activities')
+        .select('user_id')
+        .eq('id', activityId)
+        .single()
+
+      // Insert comment
       await supabase
         .from('comments')
         .insert({
@@ -457,6 +493,20 @@ export default function HomePage() {
           user_id: user.id,
           comment_text: comment.trim()
         })
+
+      // Create notification for activity owner (don't notify yourself)
+      if (activity && activity.user_id !== user.id) {
+        await supabase
+          .from('notifications')
+          .insert({
+            user_id: activity.user_id,
+            actor_id: user.id,
+            type: 'comment',
+            target_type: 'activity',
+            target_id: activityId,
+            activity_id: activityId
+          })
+      }
 
       // Reload feed to update counts
       loadFeed()
