@@ -680,10 +680,12 @@ export default function MyShowsPage() {
                         display: 'flex',
                         gap: '1rem',
                         padding: '0.75rem',
-                        background: '#fafafa',
+                        background: cardBg,
+                        border: cardBorder,
                         borderRadius: '12px',
                         alignItems: 'center',
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        backdropFilter: backdropBlur
                       }}
                     >
                       <img
@@ -703,7 +705,7 @@ export default function MyShowsPage() {
                           gap: '0.5rem',
                           marginBottom: '0.25rem'
                         }}>
-                          <div style={{ fontWeight: '600', fontSize: '1rem' }}>
+                          <div style={{ fontWeight: '600', fontSize: '1rem', color: textPrimary }}>
                             {item.media.title}
                           </div>
                           {item.user_rating && (
@@ -725,7 +727,7 @@ export default function MyShowsPage() {
               </div>
             )
           ) : (
-            <div style={{ textAlign: 'center', padding: '4rem 2rem', color: '#999' }}>
+            <div style={{ textAlign: 'center', padding: '4rem 2rem', color: textSecondary }}>
               <p style={{ fontSize: '1rem' }}>
                 No shows yet. Start adding some!
               </p>
