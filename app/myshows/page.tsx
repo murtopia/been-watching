@@ -353,7 +353,7 @@ export default function MyShowsPage() {
                     justifyContent: 'center',
                     background: colors.cardBg,
                     boxShadow: hasShow
-                      ? `0 0 20px 2px ${slot === 1 ? 'rgba(233, 77, 136, 0.4)' : slot === 2 ? 'rgba(242, 113, 33, 0.4)' : 'rgba(0, 149, 246, 0.4)'}, 0 4px 12px rgba(0, 0, 0, 0.1)`
+                      ? '0 0 20px 2px rgba(242, 113, 33, 0.4), 0 4px 12px rgba(0, 0, 0, 0.1)'
                       : 'none',
                     transition: 'all 0.3s ease'
                   }}
