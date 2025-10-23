@@ -11,7 +11,7 @@ import EditProfileModal from '@/components/profile/EditProfileModal'
 import AvatarUploadModal from '@/components/profile/AvatarUploadModal'
 import UserCard from '@/components/friends/UserCard'
 import Footer from '@/components/navigation/Footer'
-import { useTheme } from '@/contexts/ThemeContext'
+import { useThemeColors } from '@/hooks/useThemeColors'
 import { getTasteMatchBetweenUsers, findSimilarUsers } from '@/utils/tasteMatch'
 
 export default function ProfilePage() {
@@ -35,21 +35,7 @@ export default function ProfilePage() {
   const [counts, setCounts] = useState({ wantCount: 0, watchingCount: 0, watchedCount: 0 })
   const router = useRouter()
   const supabase = createClient()
-  const { resolvedTheme } = useTheme()
-
-  // Theme-based color variables
-  const isDark = resolvedTheme === 'dark'
-  const bgGradient = isDark
-    ? 'linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 100%)'
-    : '#ffffff'
-  const cardBg = isDark ? 'rgba(255, 255, 255, 0.05)' : '#ffffff'
-  const cardBorder = isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #f0f0f0'
-  const textPrimary = isDark ? '#ffffff' : '#1a1a1a'
-  const textSecondary = isDark ? 'rgba(255, 255, 255, 0.6)' : '#666'
-  const inputBg = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)'
-  const inputBorder = isDark ? 'rgba(255, 255, 255, 0.1)' : '#e0e0e0'
-  const dividerColor = isDark ? 'rgba(255, 255, 255, 0.1)' : '#f0f0f0'
-  const backdropBlur = isDark ? 'blur(20px)' : 'none'
+  const colors = useThemeColors()
 
   useEffect(() => {
     checkUser()
@@ -378,26 +364,26 @@ export default function ProfilePage() {
 
   if (loading || !profile) {
     return (
-      <div style={{ minHeight: '100vh', background: bgGradient, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ width: '32px', height: '32px', border: '4px solid #e94d88', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+      <div style={{ minHeight: '100vh', background: colors.bgGradient, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: '32px', height: '32px', border: `4px solid ${colors.brandPink}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
       </div>
     )
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: bgGradient, paddingBottom: '100px' }}>
+    <div style={{ minHeight: '100vh', background: colors.bgGradient, paddingBottom: '100px' }}>
       {/* Header */}
       <AppHeader showThemeToggle showLogout onLogout={handleLogout} />
 
       {/* Profile Info */}
       <div style={{
         padding: '1.5rem',
-        background: cardBg,
-        border: cardBorder,
+        background: colors.cardBg,
+        border: colors.cardBorder,
         borderRadius: '12px',
         margin: '0.5rem auto',
         maxWidth: '600px',
-        backdropFilter: backdropBlur
+        backdropFilter: 'blur(20px)'
       }}>
         <div style={{
           display: 'flex',
@@ -413,7 +399,7 @@ export default function ProfilePage() {
               width: '60px',
               height: '60px',
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+              background: colors.brandGradient,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -437,7 +423,7 @@ export default function ProfilePage() {
               width: '20px',
               height: '20px',
               borderRadius: '50%',
-              background: '#0095f6',
+              background: colors.brandBlue,
               border: '2px solid white',
               display: 'flex',
               alignItems: 'center',
@@ -452,8 +438,8 @@ export default function ProfilePage() {
 
           {/* Name and Bio */}
           <div style={{ flex: 1 }}>
-            <h2 style={{ fontSize: '1.125rem', fontWeight: '700', margin: '0 0 0.25rem 0', color: textPrimary }}>{profile.display_name}</h2>
-            <p style={{ fontSize: '0.875rem', color: textSecondary, margin: 0 }}>{profile.bio || 'What have you been watching?'}</p>
+            <h2 style={{ fontSize: '1.125rem', fontWeight: '700', margin: '0 0 0.25rem 0', color: colors.textPrimary }}>{profile.display_name}</h2>
+            <p style={{ fontSize: '0.875rem', color: colors.textSecondary, margin: 0 }}>{profile.bio || 'What have you been watching?'}</p>
           </div>
 
           {/* Edit Button */}
@@ -461,12 +447,12 @@ export default function ProfilePage() {
             onClick={() => setShowEditModal(true)}
             style={{
               padding: '0.5rem 1rem',
-              background: isDark ? 'rgba(255, 255, 255, 0.1)' : 'white',
-              border: isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #ddd',
+              background: colors.buttonBg,
+              border: colors.buttonBorder,
               borderRadius: '8px',
               fontSize: '0.875rem',
               fontWeight: '600',
-              color: textPrimary,
+              color: colors.textPrimary,
               cursor: 'pointer',
               whiteSpace: 'nowrap'
             }}
@@ -480,19 +466,19 @@ export default function ProfilePage() {
           display: 'flex',
           justifyContent: 'space-around',
           paddingTop: '1rem',
-          borderTop: `1px solid ${dividerColor}`
+          borderTop: `1px solid ${colors.borderColor}`
         }}>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: textPrimary }}>{counts.wantCount}</div>
-            <div style={{ fontSize: '0.875rem', color: textSecondary }}>Want to Watch</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: colors.textPrimary }}>{counts.wantCount}</div>
+            <div style={{ fontSize: '0.875rem', color: colors.textSecondary }}>Want to Watch</div>
           </div>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: textPrimary }}>{counts.watchingCount}</div>
-            <div style={{ fontSize: '0.875rem', color: textSecondary }}>Watching</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: colors.textPrimary }}>{counts.watchingCount}</div>
+            <div style={{ fontSize: '0.875rem', color: colors.textSecondary }}>Watching</div>
           </div>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: textPrimary }}>{counts.watchedCount}</div>
-            <div style={{ fontSize: '0.875rem', color: textSecondary }}>Watched</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: colors.textPrimary }}>{counts.watchedCount}</div>
+            <div style={{ fontSize: '0.875rem', color: colors.textSecondary }}>Watched</div>
           </div>
         </div>
       </div>
@@ -500,14 +486,14 @@ export default function ProfilePage() {
       {/* Privacy Settings */}
       <div style={{
         padding: '1.5rem',
-        background: cardBg,
-        border: cardBorder,
+        background: colors.cardBg,
+        border: colors.cardBorder,
         borderRadius: '12px',
         margin: '0.5rem auto',
         maxWidth: '600px',
-        backdropFilter: backdropBlur
+        backdropFilter: 'blur(20px)'
       }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0', color: textPrimary }}>Privacy</h3>
+        <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0', color: colors.textPrimary }}>Privacy</h3>
         <div style={{
           display: 'flex',
           alignItems: 'flex-start',
@@ -533,7 +519,7 @@ export default function ProfilePage() {
               left: 0,
               right: 0,
               bottom: 0,
-              background: isPrivate ? '#0095f6' : '#ccc',
+              background: isPrivate ? colors.brandBlue : '#ccc',
               borderRadius: '28px',
               transition: '0.3s'
             }}>
@@ -551,8 +537,8 @@ export default function ProfilePage() {
             </span>
           </label>
           <div>
-            <div style={{ fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.25rem', color: textPrimary }}>Private Account</div>
-            <div style={{ fontSize: '0.8rem', color: textSecondary }}>Only approved followers can see your activity</div>
+            <div style={{ fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.25rem', color: colors.textPrimary }}>Private Account</div>
+            <div style={{ fontSize: '0.8rem', color: colors.textSecondary }}>Only approved followers can see your activity</div>
           </div>
         </div>
       </div>
@@ -561,14 +547,14 @@ export default function ProfilePage() {
       {profile?.is_admin && (
         <div style={{
           padding: '1.5rem',
-          background: cardBg,
-          border: cardBorder,
+          background: colors.cardBg,
+          border: colors.cardBorder,
           borderRadius: '12px',
           margin: '0.5rem auto',
           maxWidth: '600px',
-          backdropFilter: backdropBlur
+          backdropFilter: 'blur(20px)'
         }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0', color: textPrimary }}>Admin</h3>
+          <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0', color: colors.textPrimary }}>Admin</h3>
           <a
             href="/admin"
             style={{
@@ -591,14 +577,14 @@ export default function ProfilePage() {
       {/* Invites Section */}
       <div style={{
         padding: '1.5rem',
-        background: cardBg,
-        border: cardBorder,
+        background: colors.cardBg,
+        border: colors.cardBorder,
         borderRadius: '12px',
         margin: '0.5rem auto',
         maxWidth: '600px',
-        backdropFilter: backdropBlur
+        backdropFilter: 'blur(20px)'
       }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0', color: textPrimary }}>Invites</h3>
+        <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0', color: colors.textPrimary }}>Invites</h3>
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -609,13 +595,13 @@ export default function ProfilePage() {
           border: '1px solid rgba(233, 77, 136, 0.2)'
         }}>
           <div>
-            <div style={{ fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.25rem', color: textPrimary }}>Invites Remaining</div>
-            <div style={{ fontSize: '0.8rem', color: textSecondary }}>Share Been Watching with friends</div>
+            <div style={{ fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.25rem', color: colors.textPrimary }}>Invites Remaining</div>
+            <div style={{ fontSize: '0.8rem', color: colors.textSecondary }}>Share Been Watching with friends</div>
           </div>
           <div style={{
             fontSize: '2rem',
             fontWeight: '700',
-            background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+            background: colors.brandGradient,
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent'
           }}>
@@ -626,16 +612,16 @@ export default function ProfilePage() {
           <div style={{
             marginTop: '1rem',
             padding: '1rem',
-            background: isDark ? 'rgba(255, 255, 255, 0.03)' : '#f8f9fa',
+            background: colors.sectionBg,
             borderRadius: '8px',
-            border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : 'none'
+            border: colors.isDark ? `1px solid ${colors.borderColor}` : 'none'
           }}>
-            <div style={{ fontSize: '0.75rem', color: textSecondary, marginBottom: '0.5rem' }}>Your Personal Invite Code</div>
+            <div style={{ fontSize: '0.75rem', color: colors.textSecondary, marginBottom: '0.5rem' }}>Your Personal Invite Code</div>
             <div style={{
               fontSize: '1.25rem',
               fontWeight: '700',
               fontFamily: 'monospace',
-              color: textPrimary
+              color: colors.textPrimary
             }}>
               {profile.invite_code}
             </div>
@@ -646,19 +632,19 @@ export default function ProfilePage() {
       {/* Friends Section */}
       <div style={{
         padding: '1.5rem',
-        background: cardBg,
-        border: cardBorder,
+        background: colors.cardBg,
+        border: colors.cardBorder,
         borderRadius: '12px',
         margin: '0.5rem auto',
         maxWidth: '600px',
-        backdropFilter: backdropBlur
+        backdropFilter: 'blur(20px)'
       }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0', color: textPrimary }}>Friends</h3>
+        <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0', color: colors.textPrimary }}>Friends</h3>
 
         {/* Three-Tab System: Following / Followers / Discover */}
         <div style={{
           display: 'flex',
-          borderBottom: `1px solid ${dividerColor}`,
+          borderBottom: `1px solid ${colors.borderColor}`,
           marginBottom: '1.5rem'
         }}>
           <button
@@ -668,8 +654,8 @@ export default function ProfilePage() {
               padding: '0.75rem',
               background: 'none',
               border: 'none',
-              borderBottom: friendsTab === 'following' ? '3px solid #e94d88' : '3px solid transparent',
-              color: friendsTab === 'following' ? '#e94d88' : textSecondary,
+              borderBottom: friendsTab === 'following' ? `3px solid ${colors.brandPink}` : '3px solid transparent',
+              color: friendsTab === 'following' ? colors.brandPink : colors.textSecondary,
               fontWeight: friendsTab === 'following' ? '700' : '400',
               cursor: 'pointer',
               fontSize: '0.9rem',
@@ -685,8 +671,8 @@ export default function ProfilePage() {
               padding: '0.75rem',
               background: 'none',
               border: 'none',
-              borderBottom: friendsTab === 'followers' ? '3px solid #e94d88' : '3px solid transparent',
-              color: friendsTab === 'followers' ? '#e94d88' : textSecondary,
+              borderBottom: friendsTab === 'followers' ? `3px solid ${colors.brandPink}` : '3px solid transparent',
+              color: friendsTab === 'followers' ? colors.brandPink : colors.textSecondary,
               fontWeight: friendsTab === 'followers' ? '700' : '400',
               cursor: 'pointer',
               fontSize: '0.9rem',
@@ -702,8 +688,8 @@ export default function ProfilePage() {
               padding: '0.75rem',
               background: 'none',
               border: 'none',
-              borderBottom: friendsTab === 'discover' ? '3px solid #e94d88' : '3px solid transparent',
-              color: friendsTab === 'discover' ? '#e94d88' : textSecondary,
+              borderBottom: friendsTab === 'discover' ? `3px solid ${colors.brandPink}` : '3px solid transparent',
+              color: friendsTab === 'discover' ? colors.brandPink : colors.textSecondary,
               fontWeight: friendsTab === 'discover' ? '700' : '400',
               cursor: 'pointer',
               fontSize: '0.9rem',
@@ -735,9 +721,9 @@ export default function ProfilePage() {
                 ))}
               </div>
             ) : (
-              <div style={{ textAlign: 'center', padding: '3rem 1rem', color: textSecondary }}>
+              <div style={{ textAlign: 'center', padding: '3rem 1rem', color: colors.textSecondary }}>
                 <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>👥</div>
-                <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem', color: textPrimary }}>No one yet</div>
+                <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem', color: colors.textPrimary }}>No one yet</div>
                 <div style={{ fontSize: '0.875rem' }}>Find friends in the Discover tab!</div>
               </div>
             )}
@@ -764,9 +750,9 @@ export default function ProfilePage() {
                 ))}
               </div>
             ) : (
-              <div style={{ textAlign: 'center', padding: '3rem 1rem', color: textSecondary }}>
+              <div style={{ textAlign: 'center', padding: '3rem 1rem', color: colors.textSecondary }}>
                 <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>👤</div>
-                <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem', color: textPrimary }}>No followers yet</div>
+                <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem', color: colors.textPrimary }}>No followers yet</div>
                 <div style={{ fontSize: '0.875rem' }}>Share your profile to get followers!</div>
               </div>
             )}
@@ -785,21 +771,21 @@ export default function ProfilePage() {
                 style={{
                   width: '100%',
                   padding: '0.875rem 1rem',
-                  background: inputBg,
-                  border: `1px solid ${inputBorder}`,
+                  background: colors.inputBg,
+                  border: `1px solid ${colors.inputBorder}`,
                   borderRadius: '12px',
                   fontSize: '1rem',
-                  color: textPrimary,
+                  color: colors.textPrimary,
                   outline: 'none',
                   transition: 'all 0.2s'
                 }}
                 onFocus={(e) => {
-                  e.target.style.borderColor = '#e94d88'
-                  e.target.style.background = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)'
+                  e.target.style.borderColor = colors.brandPink
+                  e.target.style.background = colors.inputBgFocus
                 }}
                 onBlur={(e) => {
-                  e.target.style.borderColor = inputBorder
-                  e.target.style.background = inputBg
+                  e.target.style.borderColor = colors.inputBorder
+                  e.target.style.background = colors.inputBg
                 }}
               />
             </div>
@@ -807,7 +793,7 @@ export default function ProfilePage() {
             {/* Search Results */}
             {searchQuery.length >= 2 && searchResults.length > 0 && (
               <div style={{ marginBottom: '2rem' }}>
-                <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: textSecondary, marginBottom: '1rem' }}>
+                <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: colors.textSecondary, marginBottom: '1rem' }}>
                   Search Results
                 </h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -830,14 +816,14 @@ export default function ProfilePage() {
             )}
 
             {searchQuery.length >= 2 && searchResults.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '2rem', color: textSecondary, marginBottom: '2rem' }}>
+              <div style={{ textAlign: 'center', padding: '2rem', color: colors.textSecondary, marginBottom: '2rem' }}>
                 No users found for "{searchQuery}"
               </div>
             )}
 
             {/* Smart Suggestions */}
             <div>
-              <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: textSecondary, marginBottom: '1rem' }}>
+              <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: colors.textSecondary, marginBottom: '1rem' }}>
                 {searchQuery.length >= 2 ? 'More Suggestions' : 'Suggested For You'}
               </h4>
               {suggestedFriends.length > 0 ? (
@@ -858,9 +844,9 @@ export default function ProfilePage() {
                   ))}
                 </div>
               ) : (
-                <div style={{ textAlign: 'center', padding: '3rem 1rem', color: textSecondary }}>
+                <div style={{ textAlign: 'center', padding: '3rem 1rem', color: colors.textSecondary }}>
                   <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✨</div>
-                  <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem', color: textPrimary }}>No suggestions yet</div>
+                  <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem', color: colors.textPrimary }}>No suggestions yet</div>
                   <div style={{ fontSize: '0.875rem' }}>Add more shows to get personalized suggestions!</div>
                 </div>
               )}
