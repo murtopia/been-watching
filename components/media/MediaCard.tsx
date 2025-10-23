@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import MediaBadges from './MediaBadges'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface MediaCardProps {
   media: {
@@ -38,6 +39,7 @@ export default function MediaCard({
 }: MediaCardProps) {
   const [showFullOverview, setShowFullOverview] = useState(false)
   const [trailerKey, setTrailerKey] = useState<string | null>(null)
+  const colors = useThemeColors()
 
   const title = media.title || media.name || 'Untitled'
   const releaseDate = media.release_date || media.first_air_date
@@ -103,7 +105,7 @@ export default function MediaCard({
             <div className="feed-show-overview">
               <p style={{
                 fontSize: '0.875rem',
-                color: '#666',
+                color: colors.textPrimary,
                 lineHeight: '1.4',
                 margin: '0.5rem 0 0 0',
                 display: showFullOverview ? 'block' : '-webkit-box',
@@ -118,7 +120,7 @@ export default function MediaCard({
                   <button
                     onClick={() => setShowFullOverview(!showFullOverview)}
                     style={{
-                      color: '#0095f6',
+                      color: colors.brandBlue,
                       fontSize: '0.875rem',
                       fontWeight: '500',
                       marginTop: '0.25rem',
