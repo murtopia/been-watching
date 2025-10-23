@@ -827,6 +827,22 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* Footer with Legal Links */}
+      <div style={{
+        textAlign: 'center',
+        padding: '1rem',
+        paddingBottom: '5rem',
+        fontSize: '0.875rem',
+        color: '#999'
+      }}>
+        <a href="/privacy" style={{ color: '#e94d88', textDecoration: 'none', marginRight: '1rem' }}>
+          Privacy Policy
+        </a>
+        <a href="/terms" style={{ color: '#e94d88', textDecoration: 'none' }}>
+          Terms of Service
+        </a>
+      </div>
+
       {/* Bottom Navigation */}
       <BottomNav onSearchOpen={() => setSearchOpen(true)} />
 
