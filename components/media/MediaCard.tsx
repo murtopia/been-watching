@@ -72,7 +72,7 @@ export default function MediaCard({
   }
 
   return (
-    <>
+    <div className="media-card-container">
       <div className="feed-show-content">
         {media.poster_path && (
           <img
@@ -192,6 +192,6 @@ export default function MediaCard({
           </div>
         </div>
       )}
-    </>
+    </div>
   )
 }
