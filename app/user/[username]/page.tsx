@@ -5,6 +5,7 @@ import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { getTasteMatchBetweenUsers } from '@/utils/tasteMatch'
 import MediaDetailModal from '@/components/media/MediaDetailModal'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface Profile {
   id: string
@@ -46,6 +47,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
   const { username } = use(params)
   const supabase = createClient()
   const router = useRouter()
+  const colors = useThemeColors()
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [isFollowing, setIsFollowing] = useState(false)
@@ -391,7 +393,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         minHeight: '100vh',
         padding: '2rem'
       }}>
-        <div style={{ fontSize: '1.5rem', color: '#999' }}>Loading...</div>
+        <div style={{ fontSize: '1.5rem', color: colors.textTertiary }}>Loading...</div>
       </div>
     )
   }
@@ -408,12 +410,12 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
       }}>
         <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>😕</div>
         <div style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '0.5rem' }}>User not found</div>
-        <div style={{ fontSize: '1rem', color: '#999', marginBottom: '2rem' }}>@{username} doesn't exist</div>
+        <div style={{ fontSize: '1rem', color: colors.textTertiary, marginBottom: '2rem' }}>@{username} doesn't exist</div>
         <button
           onClick={() => router.push('/profile')}
           style={{
             padding: '0.75rem 1.5rem',
-            background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+            background: colors.brandGradient,
             color: 'white',
             border: 'none',
             borderRadius: '8px',
@@ -446,7 +448,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         left: 0,
         right: 0,
         zIndex: 100,
-        background: 'rgba(255, 255, 255, 0.95)',
+        background: colors.cardBg,
         backdropFilter: 'blur(10px)',
         borderBottom: '1px solid #f0f0f0',
         padding: '1rem 1.5rem',
@@ -468,7 +470,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
             borderRadius: '8px',
             transition: 'background 0.2s',
             fontSize: '1.25rem',
-            color: '#1a1a1a'
+            color: colors.textPrimary
           }}
           onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
           onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
@@ -481,7 +483,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
           <div style={{
             fontSize: '1.125rem',
             fontWeight: '700',
-            color: '#1a1a1a',
+            color: colors.textPrimary,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap'
@@ -491,7 +493,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
           {profile.display_name && (
             <div style={{
               fontSize: '0.875rem',
-              color: '#666',
+              color: colors.textSecondary,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap'
@@ -508,9 +510,9 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
             disabled={!currentUser}
             style={{
               padding: '0.5rem 1rem',
-              background: isFollowing ? 'transparent' : 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-              color: isFollowing ? '#e94d88' : 'white',
-              border: isFollowing ? '2px solid #e94d88' : 'none',
+              background: isFollowing ? 'transparent' : 'linear-gradient(135deg, colors.brandPink 0%, colors.brandOrange 100%)',
+              color: isFollowing ? colors.brandPink : 'white',
+              border: isFollowing ? `2px solid ${colors.brandPink}` : 'none',
               borderRadius: '8px',
               fontSize: '0.875rem',
               fontWeight: '600',
@@ -539,7 +541,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
             width: '60px',
             height: '60px',
             borderRadius: '50%',
-            background: profile.avatar_url ? 'transparent' : 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+            background: profile.avatar_url ? 'transparent' : 'linear-gradient(135deg, colors.brandPink 0%, colors.brandOrange 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -559,11 +561,11 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
 
         {/* Info */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.25rem', color: '#1a1a1a' }}>
+          <div style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.25rem', color: colors.textPrimary }}>
             {profile.display_name}
           </div>
           {profile.bio && (
-            <div style={{ fontSize: '0.875rem', color: '#666', lineHeight: '1.5' }}>
+            <div style={{ fontSize: '0.875rem', color: colors.textSecondary, lineHeight: '1.5' }}>
               {profile.bio}
             </div>
           )}
@@ -583,7 +585,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
           {tasteMatchScore !== null && tasteMatchScore > 0 && (
             <div style={{
               padding: '0.5rem 1rem',
-              background: tasteMatchScore >= 70 ? 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)' : '#f0f0f0',
+              background: tasteMatchScore >= 70 ? 'linear-gradient(135deg, colors.brandPink 0%, colors.brandOrange 100%)' : '#f0f0f0',
               color: tasteMatchScore >= 70 ? 'white' : '#666',
               borderRadius: '8px',
               fontSize: '0.875rem',
@@ -596,7 +598,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
             <div style={{
               padding: '0.5rem 1rem',
               background: '#f0f0f0',
-              color: '#666',
+              color: colors.textSecondary,
               borderRadius: '8px',
               fontSize: '0.875rem',
               fontWeight: '600'
@@ -616,10 +618,10 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
           border: '1px solid #f0f0f0',
           textAlign: 'center'
         }}>
-          <div style={{ fontSize: '2rem', fontWeight: '700', color: '#e94d88', marginBottom: '0.25rem' }}>
+          <div style={{ fontSize: '2rem', fontWeight: '700', color: colors.brandPink, marginBottom: '0.25rem' }}>
             {watchStats.want}
           </div>
-          <div style={{ fontSize: '0.875rem', color: '#999', fontWeight: '600' }}>
+          <div style={{ fontSize: '0.875rem', color: colors.textTertiary, fontWeight: '600' }}>
             Want to Watch
           </div>
         </div>
@@ -630,10 +632,10 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
           border: '1px solid #f0f0f0',
           textAlign: 'center'
         }}>
-          <div style={{ fontSize: '2rem', fontWeight: '700', color: '#f27121', marginBottom: '0.25rem' }}>
+          <div style={{ fontSize: '2rem', fontWeight: '700', color: colors.brandOrange, marginBottom: '0.25rem' }}>
             {watchStats.watching}
           </div>
-          <div style={{ fontSize: '0.875rem', color: '#999', fontWeight: '600' }}>
+          <div style={{ fontSize: '0.875rem', color: colors.textTertiary, fontWeight: '600' }}>
             Watching
           </div>
         </div>
@@ -644,10 +646,10 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
           border: '1px solid #f0f0f0',
           textAlign: 'center'
         }}>
-          <div style={{ fontSize: '2rem', fontWeight: '700', color: '#666', marginBottom: '0.25rem' }}>
+          <div style={{ fontSize: '2rem', fontWeight: '700', color: colors.textSecondary, marginBottom: '0.25rem' }}>
             {watchStats.watched}
           </div>
-          <div style={{ fontSize: '0.875rem', color: '#999', fontWeight: '600' }}>
+          <div style={{ fontSize: '0.875rem', color: colors.textTertiary, fontWeight: '600' }}>
             Watched
           </div>
         </div>
@@ -660,7 +662,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
           padding: '1.5rem',
           marginBottom: '0.5rem'
         }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: '700', marginBottom: '1rem', color: '#1a1a1a' }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: '700', marginBottom: '1rem', color: colors.textPrimary }}>
             📺 Top 3 Shows
           </h3>
           <div style={{
@@ -700,7 +702,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
                       width: '28px',
                       height: '28px',
                       borderRadius: '50%',
-                      background: '#0095f6',
+                      background: colors.brandBlue,
                       color: 'white',
                       display: 'flex',
                       alignItems: 'center',
@@ -714,7 +716,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
                 ) : (
                   <div style={{
                     textAlign: 'center',
-                    color: '#999',
+                    color: colors.textTertiary,
                     padding: '1rem'
                   }}>
                     <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>+</div>
@@ -751,7 +753,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
           padding: '1.5rem',
           marginBottom: '0.5rem'
         }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: '700', marginBottom: '1rem', color: '#1a1a1a' }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: '700', marginBottom: '1rem', color: colors.textPrimary }}>
             📚 Watch Lists
           </h3>
 
@@ -768,7 +770,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
                 padding: '0.75rem',
                 background: 'none',
                 border: 'none',
-                borderBottom: activeWatchTab === 'want' ? '3px solid #0095f6' : '3px solid transparent',
+                borderBottom: activeWatchTab === 'want' ? `3px solid ${colors.brandBlue}` : '3px solid transparent',
                 cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
@@ -779,13 +781,13 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
               <div style={{
                 fontSize: '2rem',
                 fontWeight: '700',
-                color: '#000'
+                color: colors.textPrimary
               }}>
                 {watchStats.want}
               </div>
               <div style={{
                 fontSize: '0.875rem',
-                color: activeWatchTab === 'want' ? '#0095f6' : '#666',
+                color: activeWatchTab === 'want' ? colors.brandBlue : '#666',
                 fontWeight: activeWatchTab === 'want' ? '600' : '400'
               }}>
                 Want to Watch
@@ -798,7 +800,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
                 padding: '0.75rem',
                 background: 'none',
                 border: 'none',
-                borderBottom: activeWatchTab === 'watching' ? '3px solid #0095f6' : '3px solid transparent',
+                borderBottom: activeWatchTab === 'watching' ? `3px solid ${colors.brandBlue}` : '3px solid transparent',
                 cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
@@ -809,13 +811,13 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
               <div style={{
                 fontSize: '2rem',
                 fontWeight: '700',
-                color: '#000'
+                color: colors.textPrimary
               }}>
                 {watchStats.watching}
               </div>
               <div style={{
                 fontSize: '0.875rem',
-                color: activeWatchTab === 'watching' ? '#0095f6' : '#666',
+                color: activeWatchTab === 'watching' ? colors.brandBlue : '#666',
                 fontWeight: activeWatchTab === 'watching' ? '600' : '400'
               }}>
                 Watching
@@ -828,7 +830,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
                 padding: '0.75rem',
                 background: 'none',
                 border: 'none',
-                borderBottom: activeWatchTab === 'watched' ? '3px solid #0095f6' : '3px solid transparent',
+                borderBottom: activeWatchTab === 'watched' ? `3px solid ${colors.brandBlue}` : '3px solid transparent',
                 cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
@@ -839,13 +841,13 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
               <div style={{
                 fontSize: '2rem',
                 fontWeight: '700',
-                color: '#000'
+                color: colors.textPrimary
               }}>
                 {watchStats.watched}
               </div>
               <div style={{
                 fontSize: '0.875rem',
-                color: activeWatchTab === 'watched' ? '#0095f6' : '#666',
+                color: activeWatchTab === 'watched' ? colors.brandBlue : '#666',
                 fontWeight: activeWatchTab === 'watched' ? '600' : '400'
               }}>
                 Watched
@@ -859,7 +861,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
               <div style={{
                 width: '32px',
                 height: '32px',
-                border: '4px solid #e94d88',
+                border: `4px solid ${colors.brandPink}`,
                 borderTopColor: 'transparent',
                 borderRadius: '50%',
                 animation: 'spin 1s linear infinite'
@@ -902,7 +904,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontSize: '0.75rem',
-                      color: '#999',
+                      color: colors.textTertiary,
                       padding: '1rem',
                       textAlign: 'center'
                     }}>
@@ -931,7 +933,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
               ))}
             </div>
           ) : (
-            <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#999' }}>
+            <div style={{ textAlign: 'center', padding: '3rem 1rem', color: colors.textTertiary }}>
               <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📭</div>
               <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>No shows yet</div>
               <div style={{ fontSize: '0.875rem' }}>
@@ -951,7 +953,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
           padding: '1.5rem',
           marginBottom: '5rem'
         }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: '700', marginBottom: '1rem', color: '#1a1a1a' }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: '700', marginBottom: '1rem', color: colors.textPrimary }}>
             📺 Recent Activity
           </h3>
           {activities.length > 0 ? (
@@ -976,10 +978,10 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
                     />
                   )}
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '0.9375rem', fontWeight: '600', color: '#1a1a1a', marginBottom: '0.25rem' }}>
+                    <div style={{ fontSize: '0.9375rem', fontWeight: '600', color: colors.textPrimary, marginBottom: '0.25rem' }}>
                       {formatActivityText(activity)}
                     </div>
-                    <div style={{ fontSize: '0.8125rem', color: '#999' }}>
+                    <div style={{ fontSize: '0.8125rem', color: colors.textTertiary }}>
                       {formatTimeAgo(activity.created_at)}
                     </div>
                   </div>
@@ -987,7 +989,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
               ))}
             </div>
           ) : (
-            <div style={{ textAlign: 'center', padding: '2rem', color: '#999' }}>
+            <div style={{ textAlign: 'center', padding: '2rem', color: colors.textTertiary }}>
               <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📭</div>
               <div style={{ fontSize: '0.9375rem' }}>No activity yet</div>
             </div>
@@ -1001,10 +1003,10 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
           marginBottom: '5rem'
         }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔒</div>
-          <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem', color: '#1a1a1a' }}>
+          <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem', color: colors.textPrimary }}>
             This profile is private
           </div>
-          <div style={{ fontSize: '0.9375rem', color: '#999' }}>
+          <div style={{ fontSize: '0.9375rem', color: colors.textTertiary }}>
             Follow @{profile.username} to see their activity
           </div>
         </div>
@@ -1017,7 +1019,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
           style={{
             padding: '0.75rem 2rem',
             background: 'white',
-            color: '#666',
+            color: colors.textSecondary,
             border: '1px solid #ddd',
             borderRadius: '8px',
             fontSize: '0.9375rem',
