@@ -541,7 +541,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
             width: '60px',
             height: '60px',
             borderRadius: '50%',
-            background: profile.avatar_url ? 'transparent' : 'linear-gradient(135deg, colors.brandPink 0%, colors.brandOrange 100%)',
+            background: profile.avatar_url ? 'transparent' : colors.brandGradient,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -585,11 +585,12 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
           {tasteMatchScore !== null && tasteMatchScore > 0 && (
             <div style={{
               padding: '0.5rem 1rem',
-              background: tasteMatchScore >= 70 ? 'linear-gradient(135deg, colors.brandPink 0%, colors.brandOrange 100%)' : '#f0f0f0',
-              color: tasteMatchScore >= 70 ? 'white' : '#666',
+              background: tasteMatchScore >= 70 ? colors.brandGradient : colors.cardBg,
+              color: tasteMatchScore >= 70 ? 'white' : colors.textSecondary,
               borderRadius: '8px',
               fontSize: '0.875rem',
-              fontWeight: '600'
+              fontWeight: '600',
+              border: tasteMatchScore >= 70 ? 'none' : `1px solid ${colors.brandPink}`
             }}>
               {tasteMatchScore >= 90 ? '🔥' : tasteMatchScore >= 70 ? '⭐' : '👍'} {tasteMatchScore}% Match
             </div>
@@ -597,8 +598,8 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
           {followsMe && (
             <div style={{
               padding: '0.5rem 1rem',
-              background: '#f0f0f0',
-              color: colors.textSecondary,
+              background: colors.brandGradient,
+              color: 'white',
               borderRadius: '8px',
               fontSize: '0.875rem',
               fontWeight: '600'
@@ -961,13 +962,12 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
               {activities.map((activity) => (
                 <div
                   key={activity.id}
+                  className="activity-card"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '1rem',
-                    padding: '0.75rem',
-                    background: '#f8f9fa',
-                    borderRadius: '8px'
+                    padding: '0.75rem'
                   }}
                 >
                   {activity.media?.poster_path && (
