@@ -76,8 +76,9 @@ export default function MediaDetailModal({
           // IMPORTANT: For shows from the database (clicked from myshows page),
           // media.id will be the full ID like "tv-12345-s1"
           // For new shows (from search), we need to construct it
-          const mediaId = media.id && (media.id.startsWith('tv-') || media.id.startsWith('movie-'))
-            ? media.id  // Already have the correct format from database
+          const mediaIdStr = typeof media.id === 'string' ? media.id : String(media.id || '')
+          const mediaId = mediaIdStr && (mediaIdStr.startsWith('tv-') || mediaIdStr.startsWith('movie-'))
+            ? mediaIdStr  // Already have the correct format from database
             : (media.media_type === 'movie' ? `movie-${tmdbId}` : `tv-${tmdbId}`) // Construct for new shows
 
           console.log('MediaDetailModal: Looking up rating/status for mediaId:', mediaId)
