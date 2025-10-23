@@ -5,6 +5,7 @@ import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useTheme } from '@/contexts/ThemeContext'
 import ThemeToggle from '@/components/theme/ThemeToggle'
+import Footer from '@/components/navigation/Footer'
 
 export default function AuthPage() {
   const [email, setEmail] = useState('')
@@ -189,6 +190,7 @@ export default function AuthPage() {
         minHeight: '100vh',
         background: bgGradient,
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         padding: '2rem',
@@ -711,20 +713,25 @@ export default function AuthPage() {
           <p style={{ color: textSecondary, fontSize: '0.8125rem', lineHeight: 1.6 }}>
             By continuing, you agree to our{' '}
             <a
-              href="#"
+              href="/terms"
               style={{ color: 'rgba(233, 77, 136, 1)', textDecoration: 'none' }}
             >
               Terms of Service
             </a>{' '}
             and{' '}
             <a
-              href="#"
+              href="/privacy"
               style={{ color: 'rgba(233, 77, 136, 1)', textDecoration: 'none' }}
             >
               Privacy Policy
             </a>
           </p>
         </div>
+      </div>
+
+      {/* Full Footer */}
+      <div style={{ marginTop: '3rem', width: '100%' }}>
+        <Footer variant="full" />
       </div>
 
       {/* Keyframes for spinner animation */}

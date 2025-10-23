@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Been Watching - Profile Dark Mode Preview</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    /* Light Mode Colors */
+    body.light {
+      background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+      color: #1a1a1a;
+    }
+
+    /* Dark Mode Colors */
+    body.dark {
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 100%);
+      color: #ffffff;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 1rem 1.5rem;
+      backdrop-filter: blur(20px) saturate(180%);
+      border-bottom: 1px solid;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+
+    body.light .top-bar {
+      background: rgba(255, 255, 255, 0.8);
+      border-bottom-color: rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark .top-bar {
+      background: rgba(10, 10, 10, 0.8);
+      border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .back-button {
+      padding: 0.5rem 1rem;
+      border: 1px solid;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      backdrop-filter: blur(10px);
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+    }
+
+    body.light .back-button {
+      background: rgba(0, 0, 0, 0.1);
+      border-color: rgba(0, 0, 0, 0.2);
+      color: #1a1a1a;
+    }
+
+    body.dark .back-button {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+    }
+
+    .back-button:hover {
+      transform: translateY(-1px);
+    }
+
+    /* Theme Toggle Container */
+    .theme-toggle-container {
+      display: flex;
+      gap: 4px;
+      border: 1px solid;
+      border-radius: 12px;
+      padding: 4px;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+
+    body.light .theme-toggle-container {
+      background: rgba(0, 0, 0, 0.05);
+      border-color: rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark .theme-toggle-container {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Theme Toggle Buttons */
+    .theme-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    body.light .theme-btn {
+      color: rgba(0, 0, 0, 0.5);
+    }
+
+    body.dark .theme-btn {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .theme-btn:hover:not(.active) {
+      opacity: 0.8;
+    }
+
+    body.light .theme-btn:hover:not(.active) {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    body.dark .theme-btn:hover:not(.active) {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .theme-btn.active {
+      background: linear-gradient(135deg, #e94d88 0%, #f27121 100%);
+      color: #ffffff !important;
+      box-shadow: 0 2px 8px rgba(233, 77, 136, 0.3);
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 6rem 1.5rem 2rem;
+    }
+
+    /* Profile Header */
+    .profile-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      margin: 0 auto 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #e94d88 0%, #f27121 100%);
+      color: #ffffff;
+      border: 2px solid;
+      box-shadow: 0 4px 12px;
+      transition: all 0.3s ease;
+    }
+
+    body.light .avatar {
+      border-color: rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark .avatar {
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .username {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .display-name {
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    body.light .display-name {
+      color: rgba(0, 0, 0, 0.6);
+    }
+
+    body.dark .display-name {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .bio {
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+    }
+
+    body.light .bio {
+      color: rgba(0, 0, 0, 0.6);
+    }
+
+    body.dark .bio {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .edit-profile-btn {
+      padding: 0.5rem 1.5rem;
+      border: 1px solid;
+      border-radius: 12px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 1.5rem;
+    }
+
+    body.light .edit-profile-btn {
+      background: rgba(0, 0, 0, 0.05);
+      border-color: rgba(0, 0, 0, 0.1);
+      color: #1a1a1a;
+    }
+
+    body.dark .edit-profile-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+    }
+
+    .edit-profile-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    /* Stats Row */
+    .stats-row {
+      display: flex;
+      justify-content: space-around;
+      padding: 1rem 1.5rem;
+      border: 1px solid;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+
+    body.light .stats-row {
+      background: rgba(0, 0, 0, 0.02);
+      border-color: rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark .stats-row {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 1.5rem;
+      font-weight: 700;
+      display: block;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+    }
+
+    body.light .stat-label {
+      color: rgba(0, 0, 0, 0.6);
+    }
+
+    body.dark .stat-label {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* Section Title */
+    .section-title {
+      font-size: 1.125rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid;
+      border-radius: 12px;
+      padding: 4px;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+
+    body.light .tabs {
+      background: rgba(0, 0, 0, 0.03);
+      border-color: rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark .tabs {
+      background: rgba(255, 255, 255, 0.03);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .tab {
+      flex: 1;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: transparent;
+      text-align: center;
+    }
+
+    body.light .tab {
+      color: rgba(0, 0, 0, 0.5);
+    }
+
+    body.dark .tab {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .tab.active {
+      border-bottom: 3px solid;
+      border-image: linear-gradient(135deg, #e94d88 0%, #f27121 100%) 1;
+    }
+
+    body.light .tab.active {
+      background: rgba(0, 0, 0, 0.08);
+      color: #1a1a1a;
+    }
+
+    body.dark .tab.active {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+    }
+
+    /* User Card */
+    .user-card {
+      padding: 1.25rem;
+      border: 1px solid;
+      border-radius: 16px;
+      margin-bottom: 1rem;
+      backdrop-filter: blur(10px);
+      transition: all 0.2s ease;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    body.light .user-card {
+      background: rgba(0, 0, 0, 0.02);
+      border-color: rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark .user-card {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .user-card:hover {
+      transform: translateY(-2px);
+    }
+
+    body.light .user-card:hover {
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      border-color: rgba(0, 0, 0, 0.2);
+    }
+
+    body.dark .user-card:hover {
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .user-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #e94d88 0%, #f27121 100%);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .user-info {
+      flex: 1;
+    }
+
+    .user-username {
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .user-display-name {
+      font-size: 0.875rem;
+      margin-bottom: 0.25rem;
+    }
+
+    body.light .user-display-name {
+      color: rgba(0, 0, 0, 0.6);
+    }
+
+    body.dark .user-display-name {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .user-meta {
+      font-size: 0.75rem;
+    }
+
+    body.light .user-meta {
+      color: rgba(0, 0, 0, 0.5);
+    }
+
+    body.dark .user-meta {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .follow-btn {
+      padding: 0.5rem 1.25rem;
+      border: 1px solid;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, #e94d88 0%, #f27121 100%);
+      color: #ffffff;
+      border-color: transparent;
+      transition: all 0.2s ease;
+    }
+
+    .follow-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(233, 77, 136, 0.3);
+    }
+
+    /* Settings Card */
+    .settings-card {
+      padding: 1.5rem;
+      border: 1px solid;
+      border-radius: 16px;
+      margin-bottom: 1rem;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+
+    body.light .settings-card {
+      background: rgba(0, 0, 0, 0.02);
+      border-color: rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark .settings-card {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .setting-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .setting-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    .setting-description {
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+    }
+
+    body.light .setting-description {
+      color: rgba(0, 0, 0, 0.6);
+    }
+
+    body.dark .setting-description {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* Toggle Switch */
+    .toggle-switch {
+      width: 48px;
+      height: 28px;
+      border-radius: 14px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    body.light .toggle-switch {
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    body.dark .toggle-switch {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .toggle-switch.active {
+      background: linear-gradient(135deg, #e94d88 0%, #f27121 100%);
+    }
+
+    .toggle-thumb {
+      width: 24px;
+      height: 24px;
+      border-radius: 12px;
+      background: #ffffff;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      transition: all 0.3s ease;
+    }
+
+    .toggle-switch.active .toggle-thumb {
+      left: 22px;
+    }
+
+    /* Logout Button */
+    .logout-btn {
+      width: 100%;
+      padding: 1rem;
+      border: 1px solid;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-top: 1.5rem;
+    }
+
+    body.light .logout-btn {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+    }
+
+    body.dark .logout-btn {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+    }
+
+    .logout-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    body.light .logout-btn:hover {
+      background: rgba(239, 68, 68, 0.15);
+    }
+
+    body.dark .logout-btn:hover {
+      background: rgba(239, 68, 68, 0.25);
+    }
+
+    /* Instructions Panel */
+    .instructions {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      padding: 1rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      max-width: 200px;
+      border: 1px solid;
+      backdrop-filter: blur(20px);
+      transition: all 0.3s ease;
+    }
+
+    body.light .instructions {
+      background: rgba(255, 255, 255, 0.9);
+      border-color: rgba(0, 0, 0, 0.1);
+      color: #1a1a1a;
+    }
+
+    body.dark .instructions {
+      background: rgba(0, 0, 0, 0.8);
+      border-color: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+    }
+
+    .instructions strong {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #e94d88;
+    }
+  </style>
+</head>
+<body class="dark">
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <a href="#" class="back-button">← Back</a>
+
+    <div class="theme-toggle-container">
+      <button class="theme-btn" data-theme="auto">
+        💻 Auto
+      </button>
+      <button class="theme-btn" data-theme="light">
+        ☀️ Light
+      </button>
+      <button class="theme-btn active" data-theme="dark">
+        🌙 Dark
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="container">
+    <!-- Profile Header -->
+    <div class="profile-header">
+      <div class="avatar">NM</div>
+      <div class="username">@murtopia</div>
+      <div class="display-name">Nick Murto</div>
+      <div class="bio">What have you been watching?</div>
+      <button class="edit-profile-btn">✏️ Edit Profile</button>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+      <div class="stat">
+        <span class="stat-number">29</span>
+        <span class="stat-label">Want</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number">13</span>
+        <span class="stat-label">Watching</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number">97</span>
+        <span class="stat-label">Watched</span>
+      </div>
+    </div>
+
+    <!-- Friends Section -->
+    <div class="section-title">👥 Friends</div>
+
+    <div class="tabs">
+      <button class="tab active">Following<br><small>2</small></button>
+      <button class="tab">Followers<br><small>0</small></button>
+      <button class="tab">Discover<br><small>🔍</small></button>
+    </div>
+
+    <!-- User Cards -->
+    <div class="user-card">
+      <div class="user-avatar">PM</div>
+      <div class="user-info">
+        <div class="user-username">@mossy</div>
+        <div class="user-display-name">Pat Moss</div>
+        <div class="user-meta">🔥 92% taste match</div>
+      </div>
+      <button class="follow-btn">Follow</button>
+    </div>
+
+    <div class="user-card">
+      <div class="user-avatar">TM</div>
+      <div class="user-info">
+        <div class="user-username">@taylormurto</div>
+        <div class="user-display-name">Taylor Murto</div>
+        <div class="user-meta">⭐ 85% taste match</div>
+      </div>
+      <button class="follow-btn">Follow</button>
+    </div>
+
+    <!-- Settings Section -->
+    <div class="section-title">⚙️ Settings</div>
+
+    <div class="settings-card">
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Private Account</div>
+          <div class="setting-description">Only followers see activity</div>
+        </div>
+        <div class="toggle-switch" onclick="this.classList.toggle('active')">
+          <div class="toggle-thumb"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">🎟️ Invites</div>
+          <div class="setting-description">Your code: BWALPHA_NM123</div>
+          <div class="setting-description">Invites remaining: 10</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="logout-btn">🚪 Logout</button>
+  </div>
+
+  <!-- Instructions Panel -->
+  <div class="instructions">
+    <strong>Interactive Preview</strong>
+    Click the theme buttons at the top right to switch between Auto, Light, and Dark modes!
+  </div>
+
+  <script>
+    // Theme Toggle Functionality
+    const themeButtons = document.querySelectorAll('.theme-btn');
+    const body = document.body;
+
+    themeButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const theme = button.dataset.theme;
+
+        // Remove active class from all buttons
+        themeButtons.forEach(btn => btn.classList.remove('active'));
+
+        // Add active class to clicked button
+        button.classList.add('active');
+
+        // Update body class
+        body.className = theme === 'auto'
+          ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : theme;
+
+        // Save preference
+        localStorage.setItem('theme', theme);
+      });
+    });
+
+    // Auto mode listener
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      const activeTheme = document.querySelector('.theme-btn.active').dataset.theme;
+      if (activeTheme === 'auto') {
+        body.className = e.matches ? 'dark' : 'light';
+      }
+    });
+
+    // Load saved theme on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      const button = document.querySelector(`[data-theme="${savedTheme}"]`);
+      if (button) {
+        button.click();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -5,44 +5,78 @@
 }
 
 :root {
+    /* Background Colors */
     --bg-primary: #FFFFFF;
     --surface: rgba(255, 255, 255, 0.7);
     --glass: rgba(255, 255, 255, 0.6);
     --border: rgba(0, 0, 0, 0.08);
-    --accent-primary: #007AFF;
+
+    /* Brand Colors - Centralized (Instagram blue as standard) */
+    --brand-pink: #e94d88;
+    --brand-orange: #f27121;
+    --brand-gradient: linear-gradient(135deg, #e94d88 0%, #f27121 100%);
+    --brand-blue: #0095f6;  /* Instagram blue - our standard */
+
+    /* Legacy accent colors (kept for compatibility) */
+    --accent-primary: #0095f6;  /* Updated to Instagram blue */
     --accent-pink: #FF2D55;
     --accent-purple: #AF52DE;
+
+    /* Text Colors */
     --text-primary: #000000;
     --text-secondary: #6B6B75;
     --text-tertiary: #8E8E93;
+
+    /* Semantic Colors (Ratings) */
     --love: #FF2D55;
     --like: #007AFF;
     --meh: #8E8E93;
 
+    /* Interactive States */
+    --hover-overlay: rgba(0, 0, 0, 0.05);
+    --active-overlay: rgba(0, 0, 0, 0.1);
+
+    /* Shadows */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.08);
+
     /* Bottom Nav Colors - Light Mode */
     --nav-container: rgba(255, 255, 255, 0.6);
-    --nav-button: rgba(0, 0, 0, 0.06);              /* Light grey tint for buttons */
-    --nav-button-active: rgba(0, 0, 0, 0.12);       /* Darker grey for active state */
+    --nav-button: rgba(0, 0, 0, 0.06);
+    --nav-button-active: rgba(0, 0, 0, 0.12);
     --nav-text: #000000;
-    --nav-text-active: #0095f6;
+    --nav-text-active: #0095f6;  /* Instagram blue */
 }
 
 /* Dark mode - controlled by ThemeContext */
 [data-theme="dark"] {
+    /* Background Colors */
     --bg-primary: #0a0a0a;
     --surface: rgba(255, 255, 255, 0.05);
     --glass: rgba(255, 255, 255, 0.05);
     --border: rgba(255, 255, 255, 0.1);
+
+    /* Text Colors */
     --text-primary: #ffffff;
     --text-secondary: rgba(255, 255, 255, 0.9);
     --text-tertiary: rgba(255, 255, 255, 0.6);
 
+    /* Interactive States */
+    --hover-overlay: rgba(255, 255, 255, 0.05);
+    --active-overlay: rgba(255, 255, 255, 0.1);
+
+    /* Shadows */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
+
     /* Bottom Nav Colors - Dark Mode (3-level hierarchy) */
-    --nav-container: rgba(255, 255, 255, 0.05);      /* Outer container - same as header for blur visibility */
-    --nav-button: rgba(255, 255, 255, 0.10);         /* Inactive buttons - medium (pop from container) */
-    --nav-button-active: rgba(255, 255, 255, 0.18);  /* Active button - lightest (most prominent) */
-    --nav-text: rgba(255, 255, 255, 0.9);            /* Text - white/light grey */
-    --nav-text-active: #ffffff;                       /* Active text - pure white */
+    --nav-container: rgba(255, 255, 255, 0.05);
+    --nav-button: rgba(255, 255, 255, 0.10);
+    --nav-button-active: rgba(255, 255, 255, 0.18);
+    --nav-text: rgba(255, 255, 255, 0.9);
+    --nav-text-active: #ffffff;
 }
 
 /* Auto mode - fallback to OS preference */
@@ -621,8 +655,3 @@ body {
     color: var(--nav-text-active) !important;
     font-weight: 600;
 }
-
-/* Tailwind imports */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;

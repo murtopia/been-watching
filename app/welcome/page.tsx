@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { useTheme } from '@/contexts/ThemeContext'
 import ThemeToggle from '@/components/theme/ThemeToggle'
+import Footer from '@/components/navigation/Footer'
 
 export default function WelcomePage() {
   const router = useRouter()
@@ -288,18 +289,10 @@ export default function WelcomePage() {
           </div>
         </div>
 
-        {/* Footer */}
-        <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-          <p
-            style={{
-              fontSize: '0.8125rem',
-              color: textSecondary,
-            }}
-          >
-            v0.1.0 Alpha • Built with Next.js, Supabase, and TMDB
-          </p>
-        </div>
       </div>
+
+      {/* Full Footer */}
+      <Footer variant="full" />
     </div>
   )
 }

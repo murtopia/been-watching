@@ -10,6 +10,7 @@ import MediaDetailModal from '@/components/media/MediaDetailModal'
 import EditProfileModal from '@/components/profile/EditProfileModal'
 import AvatarUploadModal from '@/components/profile/AvatarUploadModal'
 import UserCard from '@/components/friends/UserCard'
+import Footer from '@/components/navigation/Footer'
 import { useTheme } from '@/contexts/ThemeContext'
 import { getTasteMatchBetweenUsers, findSimilarUsers } from '@/utils/tasteMatch'
 
@@ -896,6 +897,9 @@ export default function ProfilePage() {
           setProfile({ ...profile, avatar_url: newUrl })
         }}
       />
+
+      {/* Minimal Footer */}
+      <Footer variant="minimal" />
 
       <BottomNav onSearchOpen={() => setSearchOpen(true)} />
 

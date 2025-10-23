@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Been Watching - Profile (Correct Layout)</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      transition: background 0.3s ease, color 0.3s ease;
+      min-height: 100vh;
+    }
+
+    /* Light Mode */
+    body.light {
+      background: #ffffff;
+      color: #1a1a1a;
+    }
+
+    /* Dark Mode */
+    body.dark {
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 100%);
+      color: #ffffff;
+    }
+
+    /* Top Header Bar */
+    .top-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .site-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #e94d88 0%, #f27121 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    /* Single Cycling Theme Button */
+    .theme-toggle-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      backdrop-filter: blur(10px);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+    }
+
+    body.light .theme-toggle-btn {
+      background: rgba(0, 0, 0, 0.05);
+      border-color: rgba(0, 0, 0, 0.1);
+      color: #1a1a1a;
+    }
+
+    body.dark .theme-toggle-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+    }
+
+    .theme-toggle-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    body.light .theme-toggle-btn:hover {
+      background: rgba(0, 0, 0, 0.08);
+    }
+
+    body.dark .theme-toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .logout-header-btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    body.light .logout-header-btn {
+      background: #ef4444;
+      color: #ffffff;
+    }
+
+    body.dark .logout-header-btn {
+      background: #ef4444;
+      color: #ffffff;
+    }
+
+    .logout-header-btn:hover {
+      transform: translateY(-1px);
+      opacity: 0.9;
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 0 1.5rem 6rem;
+    }
+
+    /* Profile Section */
+    .profile-section {
+      text-align: center;
+      padding: 2rem 0;
+      margin-bottom: 2rem;
+    }
+
+    .avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin: 0 auto 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #e94d88 0%, #f27121 100%);
+      color: #ffffff;
+      position: relative;
+    }
+
+    .verified-badge {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 24px;
+      height: 24px;
+      background: #3b82f6;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid;
+    }
+
+    body.light .verified-badge {
+      border-color: #ffffff;
+    }
+
+    body.dark .verified-badge {
+      border-color: #0a0a0a;
+    }
+
+    .profile-name {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .profile-bio {
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+    }
+
+    body.light .profile-bio {
+      color: rgba(0, 0, 0, 0.6);
+    }
+
+    body.dark .profile-bio {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .edit-profile-btn {
+      padding: 0.5rem 1.5rem;
+      border: 1px solid;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    body.light .edit-profile-btn {
+      background: #ffffff;
+      border-color: rgba(0, 0, 0, 0.2);
+      color: #1a1a1a;
+    }
+
+    body.dark .edit-profile-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+    }
+
+    .edit-profile-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    /* Stats Row */
+    .stats-row {
+      display: flex;
+      justify-content: space-around;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+
+    body.light .stats-row {
+      background: #f8f9fa;
+    }
+
+    body.dark .stats-row {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 1.5rem;
+      font-weight: 700;
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+    }
+
+    body.light .stat-label {
+      color: rgba(0, 0, 0, 0.6);
+    }
+
+    body.dark .stat-label {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* Section */
+    .section {
+      margin-bottom: 2rem;
+    }
+
+    .section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    /* Setting Card */
+    .setting-card {
+      padding: 1.25rem;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    body.light .setting-card {
+      background: #f8f9fa;
+    }
+
+    body.dark .setting-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .setting-label {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .setting-description {
+      font-size: 0.8125rem;
+    }
+
+    body.light .setting-description {
+      color: rgba(0, 0, 0, 0.6);
+    }
+
+    body.dark .setting-description {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* Toggle Switch */
+    .toggle-switch {
+      width: 48px;
+      height: 28px;
+      border-radius: 14px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    body.light .toggle-switch {
+      background: #d1d5db;
+    }
+
+    body.dark .toggle-switch {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .toggle-switch.active {
+      background: linear-gradient(135deg, #e94d88 0%, #f27121 100%);
+    }
+
+    .toggle-thumb {
+      width: 24px;
+      height: 24px;
+      border-radius: 12px;
+      background: #ffffff;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      transition: all 0.3s ease;
+    }
+
+    .toggle-switch.active .toggle-thumb {
+      left: 22px;
+    }
+
+    /* Admin Button */
+    .admin-btn {
+      width: 100%;
+      padding: 1rem;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+      color: #ffffff;
+      transition: all 0.2s ease;
+    }
+
+    .admin-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+    }
+
+    /* Invite Card */
+    .invite-highlight {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 0.75rem;
+    }
+
+    body.light .invite-highlight {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+    }
+
+    body.dark .invite-highlight {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .invite-count {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #ef4444;
+    }
+
+    .invite-code {
+      padding: 0.75rem;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9375rem;
+      text-align: center;
+      margin-top: 0.5rem;
+    }
+
+    body.light .invite-code {
+      background: #f3f4f6;
+      color: #1a1a1a;
+    }
+
+    body.dark .invite-code {
+      background: rgba(255, 255, 255, 0.05);
+      color: #ffffff;
+    }
+
+    /* Friends Tabs */
+    .friends-tabs {
+      display: flex;
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+
+    .friends-tabs::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+    }
+
+    body.light .friends-tabs::after {
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark .friends-tabs::after {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .friends-tab {
+      flex: 1;
+      padding: 0.75rem;
+      border: none;
+      background: transparent;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      text-align: center;
+    }
+
+    body.light .friends-tab {
+      color: rgba(0, 0, 0, 0.5);
+    }
+
+    body.dark .friends-tab {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .friends-tab.active {
+      border-bottom: 2px solid #e94d88;
+    }
+
+    body.light .friends-tab.active {
+      color: #1a1a1a;
+    }
+
+    body.dark .friends-tab.active {
+      color: #ffffff;
+    }
+
+    /* User Card */
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      border-radius: 12px;
+      margin-bottom: 0.75rem;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    body.light .user-card {
+      background: #f8f9fa;
+    }
+
+    body.dark .user-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .user-card:hover {
+      transform: translateY(-1px);
+    }
+
+    body.light .user-card:hover {
+      background: #f3f4f6;
+    }
+
+    body.dark .user-card:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .user-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #e94d88 0%, #f27121 100%);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .user-info {
+      flex: 1;
+    }
+
+    .user-username {
+      font-weight: 700;
+      font-size: 0.9375rem;
+      margin-bottom: 0.125rem;
+    }
+
+    .user-display-name {
+      font-size: 0.8125rem;
+      margin-bottom: 0.25rem;
+    }
+
+    body.light .user-display-name {
+      color: rgba(0, 0, 0, 0.6);
+    }
+
+    body.dark .user-display-name {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .user-meta {
+      font-size: 0.75rem;
+    }
+
+    body.light .user-meta {
+      color: rgba(0, 0, 0, 0.5);
+    }
+
+    body.dark .user-meta {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .user-badge {
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    body.light .user-badge {
+      background: rgba(0, 0, 0, 0.1);
+      color: rgba(0, 0, 0, 0.7);
+    }
+
+    body.dark .user-badge {
+      background: rgba(255, 255, 255, 0.15);
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .user-badge.mutual {
+      background: #ef4444;
+      color: #ffffff;
+    }
+
+    .unfollow-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid;
+      border-radius: 8px;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    body.light .unfollow-btn {
+      background: #ffffff;
+      border-color: rgba(0, 0, 0, 0.2);
+      color: #1a1a1a;
+    }
+
+    body.dark .unfollow-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+    }
+
+    .unfollow-btn:hover {
+      transform: scale(1.05);
+    }
+
+    /* Bottom Nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 0.75rem;
+      backdrop-filter: blur(20px);
+      border-top: 1px solid;
+      display: flex;
+      justify-content: space-around;
+      transition: all 0.3s ease;
+    }
+
+    body.light .bottom-nav {
+      background: rgba(255, 255, 255, 0.9);
+      border-top-color: rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark .bottom-nav {
+      background: rgba(0, 0, 0, 0.8);
+      border-top-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+    }
+
+    body.light .nav-item {
+      color: rgba(0, 0, 0, 0.5);
+    }
+
+    body.dark .nav-item {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, #e94d88 0%, #f27121 100%);
+      color: #ffffff !important;
+    }
+
+    .nav-icon {
+      font-size: 1.5rem;
+    }
+  </style>
+</head>
+<body class="dark">
+  <!-- Top Header -->
+  <div class="top-header">
+    <div class="site-title">Been Watching</div>
+    <div class="header-actions">
+      <button class="theme-toggle-btn" id="themeToggle">
+        <span id="themeIcon">🌙</span>
+        <span id="themeLabel">Dark</span>
+      </button>
+      <button class="logout-header-btn">Log Out</button>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="container">
+    <!-- Profile Section -->
+    <div class="profile-section">
+      <div class="avatar">
+        🤡
+        <div class="verified-badge">✓</div>
+      </div>
+      <div class="profile-name">Nick Murto</div>
+      <div class="profile-bio">Probably watching spy shows</div>
+      <button class="edit-profile-btn">Edit Profile</button>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+      <div class="stat">
+        <span class="stat-number">30</span>
+        <span class="stat-label">Want to Watch</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number">13</span>
+        <span class="stat-label">Watching</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number">97</span>
+        <span class="stat-label">Watched</span>
+      </div>
+    </div>
+
+    <!-- Privacy Section -->
+    <div class="section">
+      <div class="section-title">Privacy</div>
+      <div class="setting-card">
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Private Account</div>
+            <div class="setting-description">Only approved followers can see your activity</div>
+          </div>
+          <div class="toggle-switch" onclick="this.classList.toggle('active')">
+            <div class="toggle-thumb"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Section -->
+    <div class="section">
+      <div class="section-title">Admin</div>
+      <button class="admin-btn">🔧 Go to Admin Dashboard</button>
+    </div>
+
+    <!-- Invites Section -->
+    <div class="section">
+      <div class="section-title">Invites</div>
+      <div class="setting-card">
+        <div class="invite-highlight">
+          <div class="setting-label">Invites Remaining</div>
+          <div class="setting-description">Share Been Watching with friends</div>
+          <div class="invite-count">0</div>
+        </div>
+        <div class="setting-label" style="margin-bottom: 0.5rem;">Your Personal Invite Code</div>
+        <div class="invite-code">41e82180-d8ff-4c17-8c17-f4ac2a5cf18e</div>
+      </div>
+    </div>
+
+    <!-- Friends Section -->
+    <div class="section">
+      <div class="section-title">Friends</div>
+
+      <!-- Tabs -->
+      <div class="friends-tabs">
+        <button class="friends-tab active">Following 2</button>
+        <button class="friends-tab">Followers 1</button>
+        <button class="friends-tab">Discover 🔍</button>
+      </div>
+
+      <!-- User Cards -->
+      <div class="user-card">
+        <div class="user-avatar">M</div>
+        <div class="user-info">
+          <div class="user-username">@mossy</div>
+          <div class="user-display-name">Mossy</div>
+          <div class="user-meta">✅ 49% Fair Match</div>
+        </div>
+        <button class="unfollow-btn">Unfollow</button>
+      </div>
+
+      <div class="user-card">
+        <div class="user-avatar">TM</div>
+        <div class="user-info">
+          <div class="user-username">@taylormurto</div>
+          <div class="user-display-name">Taylor Murto</div>
+          <div class="user-meta">🔥 74% Great Match</div>
+        </div>
+        <span class="user-badge mutual">Mutual</span>
+        <button class="unfollow-btn">Unfollow</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav">
+    <div class="nav-item">
+      <div class="nav-icon">🏠</div>
+      <div>Feed</div>
+    </div>
+    <div class="nav-item">
+      <div class="nav-icon">📺</div>
+      <div>My Shows</div>
+    </div>
+    <div class="nav-item active">
+      <div class="nav-icon">👤</div>
+      <div>Profile</div>
+    </div>
+  </div>
+
+  <script>
+    // Theme cycling functionality
+    const themes = [
+      { value: 'auto', icon: '💻', label: 'Auto' },
+      { value: 'light', icon: '☀️', label: 'Light' },
+      { value: 'dark', icon: '🌙', label: 'Dark' }
+    ];
+
+    let currentThemeIndex = 2; // Start with Dark
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const themeLabel = document.getElementById('themeLabel');
+    const body = document.body;
+
+    function updateTheme(index) {
+      const theme = themes[index];
+      themeIcon.textContent = theme.icon;
+      themeLabel.textContent = theme.label;
+
+      if (theme.value === 'auto') {
+        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        body.className = isDark ? 'dark' : 'light';
+      } else {
+        body.className = theme.value;
+      }
+
+      localStorage.setItem('theme', theme.value);
+      localStorage.setItem('themeIndex', index);
+    }
+
+    themeToggle.addEventListener('click', () => {
+      currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+      updateTheme(currentThemeIndex);
+    });
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (themes[currentThemeIndex].value === 'auto') {
+        body.className = e.matches ? 'dark' : 'light';
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedIndex = localStorage.getItem('themeIndex');
+      if (savedIndex !== null) {
+        currentThemeIndex = parseInt(savedIndex);
+        updateTheme(currentThemeIndex);
+      }
+    });
+
+    // Tab switching
+    const tabs = document.querySelectorAll('.friends-tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>

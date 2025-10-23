@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Been Watching - Profile Dark Mode v2</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      transition: background 0.3s ease, color 0.3s ease;
+      min-height: 100vh;
+    }
+
+    /* Light Mode Colors */
+    body.light {
+      background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+      color: #1a1a1a;
+    }
+
+    /* Dark Mode Colors */
+    body.dark {
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 100%);
+      color: #ffffff;
+    }
+
+    /* Top Bar - Minimal, just the theme toggle */
+    .top-bar {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+    }
+
+    /* Single Cycling Theme Button */
+    .theme-toggle-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      backdrop-filter: blur(10px);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+    }
+
+    body.light .theme-toggle-btn {
+      background: rgba(0, 0, 0, 0.1);
+      border-color: rgba(0, 0, 0, 0.2);
+      color: #1a1a1a;
+    }
+
+    body.dark .theme-toggle-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+    }
+
+    .theme-toggle-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    body.light .theme-toggle-btn:hover {
+      background: rgba(0, 0, 0, 0.15);
+    }
+
+    body.dark .theme-toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* Main Container - KEEPING ORIGINAL APPROVED LAYOUT */
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 6rem;
+    }
+
+    /* Profile Header */
+    .profile-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      margin: 0 auto 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #e94d88 0%, #f27121 100%);
+      color: #ffffff;
+      border: 2px solid;
+      box-shadow: 0 4px 12px;
+      transition: all 0.3s ease;
+    }
+
+    body.light .avatar {
+      border-color: rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark .avatar {
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .username {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .display-name {
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    body.light .display-name {
+      color: rgba(0, 0, 0, 0.6);
+    }
+
+    body.dark .display-name {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .bio {
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+    }
+
+    body.light .bio {
+      color: rgba(0, 0, 0, 0.6);
+    }
+
+    body.dark .bio {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .edit-profile-btn {
+      padding: 0.5rem 1.5rem;
+      border: 1px solid;
+      border-radius: 12px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 1.5rem;
+    }
+
+    body.light .edit-profile-btn {
+      background: rgba(0, 0, 0, 0.05);
+      border-color: rgba(0, 0, 0, 0.1);
+      color: #1a1a1a;
+    }
+
+    body.dark .edit-profile-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+    }
+
+    .edit-profile-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    body.light .edit-profile-btn:hover {
+      background: rgba(0, 0, 0, 0.08);
+    }
+
+    body.dark .edit-profile-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* Stats Row */
+    .stats-row {
+      display: flex;
+      justify-content: space-around;
+      padding: 1rem 1.5rem;
+      border: 1px solid;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+
+    body.light .stats-row {
+      background: rgba(255, 255, 255, 0.8);
+      border-color: rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark .stats-row {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 1.5rem;
+      font-weight: 700;
+      display: block;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+    }
+
+    body.light .stat-label {
+      color: rgba(0, 0, 0, 0.6);
+    }
+
+    body.dark .stat-label {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* Section Title */
+    .section-title {
+      font-size: 1.125rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    /* Tabs Container */
+    .tabs-container {
+      margin-bottom: 2rem;
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid;
+      margin-bottom: 1.5rem;
+      transition: all 0.3s ease;
+    }
+
+    body.light .tabs {
+      border-bottom-color: rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark .tabs {
+      border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .tab {
+      flex: 1;
+      padding: 0.75rem;
+      border: none;
+      background: transparent;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+      position: relative;
+    }
+
+    body.light .tab {
+      color: rgba(0, 0, 0, 0.5);
+    }
+
+    body.dark .tab {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .tab:hover {
+      opacity: 0.8;
+    }
+
+    .tab.active {
+      border-bottom: 3px solid #e94d88;
+      margin-bottom: -2px;
+    }
+
+    body.light .tab.active {
+      color: #1a1a1a;
+    }
+
+    body.dark .tab.active {
+      color: #ffffff;
+    }
+
+    .tab-count {
+      display: block;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    /* User Card */
+    .user-card {
+      padding: 1.25rem;
+      border: 1px solid;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      backdrop-filter: blur(10px);
+      transition: all 0.2s ease;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    body.light .user-card {
+      background: rgba(255, 255, 255, 0.8);
+      border-color: rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark .user-card {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .user-card:hover {
+      transform: translateY(-2px);
+    }
+
+    body.light .user-card:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border-color: rgba(0, 0, 0, 0.15);
+    }
+
+    body.dark .user-card:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .user-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #e94d88 0%, #f27121 100%);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .user-info {
+      flex: 1;
+    }
+
+    .user-username {
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .user-display-name {
+      font-size: 0.875rem;
+      margin-bottom: 0.25rem;
+    }
+
+    body.light .user-display-name {
+      color: rgba(0, 0, 0, 0.6);
+    }
+
+    body.dark .user-display-name {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .user-meta {
+      font-size: 0.75rem;
+    }
+
+    body.light .user-meta {
+      color: rgba(0, 0, 0, 0.5);
+    }
+
+    body.dark .user-meta {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .follow-btn {
+      padding: 0.5rem 1.25rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, #e94d88 0%, #f27121 100%);
+      color: #ffffff;
+      transition: all 0.2s ease;
+    }
+
+    .follow-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(233, 77, 136, 0.3);
+    }
+
+    /* Settings Section */
+    .settings-section {
+      margin-top: 3rem;
+    }
+
+    .settings-card {
+      padding: 1.5rem;
+      border: 1px solid;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+
+    body.light .settings-card {
+      background: rgba(255, 255, 255, 0.8);
+      border-color: rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark .settings-card {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .setting-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .setting-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    .setting-description {
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+    }
+
+    body.light .setting-description {
+      color: rgba(0, 0, 0, 0.6);
+    }
+
+    body.dark .setting-description {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* Toggle Switch */
+    .toggle-switch {
+      width: 48px;
+      height: 28px;
+      border-radius: 14px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    body.light .toggle-switch {
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    body.dark .toggle-switch {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .toggle-switch.active {
+      background: linear-gradient(135deg, #e94d88 0%, #f27121 100%);
+    }
+
+    .toggle-thumb {
+      width: 24px;
+      height: 24px;
+      border-radius: 12px;
+      background: #ffffff;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      transition: all 0.3s ease;
+    }
+
+    .toggle-switch.active .toggle-thumb {
+      left: 22px;
+    }
+
+    /* Logout Button */
+    .logout-btn {
+      width: 100%;
+      padding: 1rem;
+      border: 1px solid;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-top: 1.5rem;
+    }
+
+    body.light .logout-btn {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+    }
+
+    body.dark .logout-btn {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+    }
+
+    .logout-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    body.light .logout-btn:hover {
+      background: rgba(239, 68, 68, 0.15);
+    }
+
+    body.dark .logout-btn:hover {
+      background: rgba(239, 68, 68, 0.25);
+    }
+
+    /* Instructions Panel */
+    .instructions {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      padding: 1rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      max-width: 250px;
+      border: 1px solid;
+      backdrop-filter: blur(20px);
+      transition: all 0.3s ease;
+    }
+
+    body.light .instructions {
+      background: rgba(255, 255, 255, 0.9);
+      border-color: rgba(0, 0, 0, 0.1);
+      color: #1a1a1a;
+    }
+
+    body.dark .instructions {
+      background: rgba(0, 0, 0, 0.8);
+      border-color: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+    }
+
+    .instructions strong {
+      display: block;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #e94d88 0%, #f27121 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Bottom Nav (keeping original approved design) */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 0.75rem;
+      backdrop-filter: blur(20px);
+      border-top: 1px solid;
+      display: flex;
+      justify-content: space-around;
+      transition: all 0.3s ease;
+    }
+
+    body.light .bottom-nav {
+      background: rgba(255, 255, 255, 0.9);
+      border-top-color: rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark .bottom-nav {
+      background: rgba(0, 0, 0, 0.8);
+      border-top-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+    }
+
+    body.light .nav-item {
+      color: rgba(0, 0, 0, 0.5);
+    }
+
+    body.dark .nav-item {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, #e94d88 0%, #f27121 100%);
+      color: #ffffff !important;
+    }
+
+    .nav-icon {
+      font-size: 1.5rem;
+    }
+  </style>
+</head>
+<body class="dark">
+  <!-- Top Bar - Single Cycling Theme Button -->
+  <div class="top-bar">
+    <button class="theme-toggle-btn" id="themeToggle">
+      <span id="themeIcon">🌙</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+
+  <!-- Main Container - ORIGINAL APPROVED LAYOUT -->
+  <div class="container">
+    <!-- Profile Header -->
+    <div class="profile-header">
+      <div class="avatar">NM</div>
+      <div class="username">@murtopia</div>
+      <div class="display-name">Nick Murto</div>
+      <div class="bio">What have you been watching?</div>
+      <button class="edit-profile-btn">✏️ Edit Profile</button>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+      <div class="stat">
+        <span class="stat-number">29</span>
+        <span class="stat-label">Want</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number">13</span>
+        <span class="stat-label">Watching</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number">97</span>
+        <span class="stat-label">Watched</span>
+      </div>
+    </div>
+
+    <!-- Friends Section with Tabs -->
+    <div class="section-title">👥 Friends</div>
+
+    <div class="tabs-container">
+      <div class="tabs">
+        <button class="tab active">
+          <span class="tab-count">2</span>
+          <span>Following</span>
+        </button>
+        <button class="tab">
+          <span class="tab-count">0</span>
+          <span>Followers</span>
+        </button>
+        <button class="tab">
+          <span class="tab-count">🔍</span>
+          <span>Discover</span>
+        </button>
+      </div>
+
+      <!-- User Cards -->
+      <div class="user-card">
+        <div class="user-avatar">PM</div>
+        <div class="user-info">
+          <div class="user-username">@mossy</div>
+          <div class="user-display-name">Pat Moss</div>
+          <div class="user-meta">Mutual: @taylormurto</div>
+          <div class="user-meta">🔥 92% taste match</div>
+        </div>
+        <button class="follow-btn">Following</button>
+      </div>
+
+      <div class="user-card">
+        <div class="user-avatar">TM</div>
+        <div class="user-info">
+          <div class="user-username">@taylormurto</div>
+          <div class="user-display-name">Taylor Murto</div>
+          <div class="user-meta">Watching: High Potential S1</div>
+          <div class="user-meta">⭐ 85% taste match</div>
+        </div>
+        <button class="follow-btn">Following</button>
+      </div>
+    </div>
+
+    <!-- Settings Section -->
+    <div class="settings-section">
+      <div class="section-title">⚙️ Settings</div>
+
+      <div class="settings-card">
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Private Account</div>
+            <div class="setting-description">Only followers see activity</div>
+          </div>
+          <div class="toggle-switch" onclick="this.classList.toggle('active')">
+            <div class="toggle-thumb"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <div class="setting-row">
+          <div style="flex: 1">
+            <div class="setting-label">🎟️ Invites</div>
+            <div class="setting-description">Your code: BWALPHA_NM123</div>
+            <div class="setting-description">Invites remaining: 10</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="logout-btn">🚪 Logout</button>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav">
+    <div class="nav-item">
+      <div class="nav-icon">🏠</div>
+      <div>Feed</div>
+    </div>
+    <div class="nav-item">
+      <div class="nav-icon">📺</div>
+      <div>My Shows</div>
+    </div>
+    <div class="nav-item active">
+      <div class="nav-icon">👤</div>
+      <div>Profile</div>
+    </div>
+  </div>
+
+  <!-- Instructions Panel -->
+  <div class="instructions">
+    <strong>Single Cycling Button!</strong>
+    Click the theme button in the top right to cycle through:
+    <br><br>
+    💻 Auto → ☀️ Light → 🌙 Dark → 💻 Auto
+    <br><br>
+    Shows only the current state!
+  </div>
+
+  <script>
+    // Theme cycling functionality
+    const themes = [
+      { value: 'auto', icon: '💻', label: 'Auto' },
+      { value: 'light', icon: '☀️', label: 'Light' },
+      { value: 'dark', icon: '🌙', label: 'Dark' }
+    ];
+
+    let currentThemeIndex = 2; // Start with Dark
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const themeLabel = document.getElementById('themeLabel');
+    const body = document.body;
+
+    function updateTheme(index) {
+      const theme = themes[index];
+
+      // Update button UI
+      themeIcon.textContent = theme.icon;
+      themeLabel.textContent = theme.label;
+
+      // Update body class
+      if (theme.value === 'auto') {
+        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        body.className = isDark ? 'dark' : 'light';
+      } else {
+        body.className = theme.value;
+      }
+
+      // Save preference
+      localStorage.setItem('theme', theme.value);
+      localStorage.setItem('themeIndex', index);
+    }
+
+    // Click handler - cycle to next theme
+    themeToggle.addEventListener('click', () => {
+      currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+      updateTheme(currentThemeIndex);
+    });
+
+    // Auto mode listener
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (themes[currentThemeIndex].value === 'auto') {
+        body.className = e.matches ? 'dark' : 'light';
+      }
+    });
+
+    // Load saved theme on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedIndex = localStorage.getItem('themeIndex');
+      if (savedIndex !== null) {
+        currentThemeIndex = parseInt(savedIndex);
+        updateTheme(currentThemeIndex);
+      }
+    });
+
+    // Tab switching
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>

@@ -10,6 +10,7 @@ import SearchModal from '@/components/search/SearchModal'
 import MediaDetailModal from '@/components/media/MediaDetailModal'
 import MediaBadges from '@/components/media/MediaBadges'
 import TopShowModal from '@/components/profile/TopShowModal'
+import Footer from '@/components/navigation/Footer'
 import { Grid3x3, List } from 'lucide-react'
 
 export default function MyShowsPage() {
@@ -847,6 +848,9 @@ export default function MyShowsPage() {
           </div>
         </div>
       )}
+
+      {/* Minimal Footer */}
+      <Footer variant="minimal" />
 
       <BottomNav onSearchOpen={() => setSearchOpen(true)} />
     </div>

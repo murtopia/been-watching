@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { X, Search } from 'lucide-react'
 import { useDebounce } from '@/hooks/useDebounce'
 import { createClient } from '@/utils/supabase/client'
-import { useTheme } from '@/contexts/ThemeContext'
+import { useThemeColors } from '@/hooks/useThemeColors'
 import TVSeasonCard from './TVSeasonCard'
 import MediaCard from '@/components/media/MediaCard'
 import MediaBadges from '@/components/media/MediaBadges'
@@ -21,21 +21,13 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
   const [results, setResults] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [mediaType, setMediaType] = useState<'all' | 'movie' | 'tv'>('all')
-  const { resolvedTheme } = useTheme()
+  const colors = useThemeColors()
 
   const debouncedQuery = useDebounce(query, 300)
 
-  // Theme-based colors
-  const isDark = resolvedTheme === 'dark'
-  const modalBg = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.55)'
-  const modalBorder = isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(255, 255, 255, 0.18)'
-  const textPrimary = isDark ? '#ffffff' : '#1a1a1a'
-  const textSecondary = isDark ? 'rgba(255, 255, 255, 0.6)' : '#666'
-  const inputBg = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)'
-  const inputBorder = isDark ? 'rgba(255, 255, 255, 0.1)' : '#e0e0e0'
-  const buttonBg = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'
-  const buttonBgActive = isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 122, 255, 0.1)'
-  const buttonBorder = isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #ddd'
+  // Modal-specific colors
+  const modalBg = colors.isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.55)'
+  const modalBorder = colors.isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(255, 255, 255, 0.18)'
 
   // Prevent body scroll when modal is open and clear search on close
   useEffect(() => {
@@ -115,7 +107,7 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
         {/* Search Input - At Top */}
         <div style={{ padding: '1.25rem 1.5rem', borderBottom: modalBorder, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div style={{ position: 'relative', flex: 1 }}>
-            <Search style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', width: '20px', height: '20px', color: textSecondary }} />
+            <Search style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', width: '20px', height: '20px', color: colors.textSecondary }} />
             <input
               type="text"
               value={query}
@@ -124,12 +116,12 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
               style={{
                 width: '100%',
                 padding: '0.875rem 3rem 0.875rem 3rem',
-                border: inputBorder,
+                border: colors.inputBorder,
                 borderRadius: '12px',
                 fontSize: '1rem',
                 outline: 'none',
-                background: inputBg,
-                color: textPrimary
+                background: colors.inputBg,
+                color: colors.textPrimary
               }}
               autoFocus
             />
@@ -148,14 +140,14 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
                   border: 'none',
                   cursor: 'pointer',
                   padding: '0.25rem',
-                  color: textSecondary,
+                  color: colors.textSecondary,
                   transition: 'color 0.2s ease'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.color = '#e94d88'
+                  e.currentTarget.style.color = colors.brandPink
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.color = textSecondary
+                  e.currentTarget.style.color = colors.textSecondary
                 }}
               >
                 <X style={{ width: '20px', height: '20px' }} />
@@ -170,7 +162,7 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
               width: '44px',
               height: '44px',
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+              background: colors.brandGradient,
               border: 'none',
               cursor: 'pointer',
               display: 'flex',
@@ -206,8 +198,8 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
                 fontWeight: '600',
                 border: 'none',
                 cursor: 'pointer',
-                background: mediaType === type ? '#0095f6' : buttonBg,
-                color: mediaType === type ? 'white' : textSecondary
+                background: mediaType === type ? colors.brandBlue : colors.buttonBg,
+                color: mediaType === type ? 'white' : colors.textSecondary
               }}
             >
               {type === 'all' ? 'All' : type === 'tv' ? 'TV Shows' : 'Movies'}
@@ -237,7 +229,7 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
           }}>
             {loading ? (
               <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}>
-                <div style={{ width: '32px', height: '32px', border: '4px solid #e94d88', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                <div style={{ width: '32px', height: '32px', border: `4px solid ${colors.brandPink}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
               </div>
             ) : results.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -261,11 +253,11 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
                 })}
               </div>
             ) : query.trim() ? (
-              <div style={{ textAlign: 'center', padding: '3rem 0', color: '#999', fontSize: '0.95rem' }}>
+              <div style={{ textAlign: 'center', padding: '3rem 0', color: colors.textTertiary, fontSize: '0.95rem' }}>
                 No results found for "{query}"
               </div>
             ) : (
-              <div style={{ textAlign: 'center', padding: '3rem 0', color: '#999', fontSize: '0.95rem' }}>
+              <div style={{ textAlign: 'center', padding: '3rem 0', color: colors.textTertiary, fontSize: '0.95rem' }}>
                 Start typing to search for shows and movies
               </div>
             )}
@@ -358,6 +350,7 @@ function TVShowWithSeasons({ show, onSelect, user }: { show: any; onSelect: (med
   const [seasons, setSeasons] = useState<any[]>([])
   const [showData, setShowData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const colors = useThemeColors()
 
   // Fetch seasons on mount and display them automatically
   useEffect(() => {
@@ -384,7 +377,7 @@ function TVShowWithSeasons({ show, onSelect, user }: { show: any; onSelect: (med
     <div>
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}>
-          <div style={{ width: '24px', height: '24px', border: '3px solid #e94d88', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+          <div style={{ width: '24px', height: '24px', border: `3px solid ${colors.brandPink}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
         </div>
       ) : (
         seasons.map((season) => (
