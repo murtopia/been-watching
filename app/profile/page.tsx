@@ -612,7 +612,7 @@ export default function ProfilePage() {
           <div style={{
             marginTop: '1rem',
             padding: '1rem',
-            background: colors.sectionBg,
+            background: colors.cardBg,
             borderRadius: '8px',
             border: colors.isDark ? `1px solid ${colors.borderColor}` : 'none'
           }}>
