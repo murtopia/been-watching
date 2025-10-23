@@ -338,19 +338,24 @@ export default function MyShowsPage() {
           }}>
             {[1, 2, 3].map((slot) => {
               const show = topShows[slot - 1]
+              const hasShow = show?.poster_path
               return (
                 <div
                   key={slot}
                   style={{
                     position: 'relative',
                     aspectRatio: '2/3',
-                    border: colors.isDark ? '2px dashed rgba(255, 255, 255, 0.2)' : '2px dashed #ddd',
+                    border: hasShow ? 'none' : (colors.isDark ? '2px dashed rgba(255, 255, 255, 0.2)' : '2px dashed #ddd'),
                     borderRadius: '12px',
                     overflow: 'hidden',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    background: colors.cardBg
+                    background: colors.cardBg,
+                    boxShadow: hasShow
+                      ? `0 0 20px 2px ${slot === 1 ? 'rgba(233, 77, 136, 0.4)' : slot === 2 ? 'rgba(242, 113, 33, 0.4)' : 'rgba(0, 149, 246, 0.4)'}, 0 4px 12px rgba(0, 0, 0, 0.1)`
+                      : 'none',
+                    transition: 'all 0.3s ease'
                   }}
                 >
                   {show?.poster_path ? (
