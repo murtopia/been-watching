@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import MediaCard from './MediaCard'
 import { createClient } from '@/utils/supabase/client'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface MediaDetailModalProps {
   isOpen: boolean
@@ -23,10 +24,15 @@ export default function MediaDetailModal({
   onStatusChange,
   user
 }: MediaDetailModalProps) {
+  const colors = useThemeColors()
   const [selectedRating, setSelectedRating] = useState<string | null>(null)
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [fullMediaData, setFullMediaData] = useState<any>(null)
+
+  // Modal-specific colors (matching SearchModal)
+  const modalBg = colors.isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.55)'
+  const modalBorder = colors.isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(255, 255, 255, 0.18)'
 
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -162,11 +168,11 @@ export default function MediaDetailModal({
         style={{
           width: '100%',
           maxWidth: '600px',
-          background: 'rgba(255, 255, 255, 0.55)',
+          background: modalBg,
           backdropFilter: 'blur(30px) saturate(180%)',
           WebkitBackdropFilter: 'blur(30px) saturate(180%)',
           borderRadius: '20px',
-          border: '1px solid rgba(255, 255, 255, 0.18)',
+          border: modalBorder,
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
@@ -187,7 +193,7 @@ export default function MediaDetailModal({
             borderRadius: '50%',
             border: 'none',
             background: 'rgba(0, 0, 0, 0.1)',
-            color: '#666',
+            color: colors.textSecondary,
             fontSize: '1.25rem',
             cursor: 'pointer',
             display: 'flex',
@@ -210,7 +216,7 @@ export default function MediaDetailModal({
         <div style={{ padding: '1.5rem' }}>
           {loading ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem 0' }}>
-              <div style={{ width: '32px', height: '32px', border: '4px solid #e94d88', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+              <div style={{ width: '32px', height: '32px', border: `4px solid ${colors.brandPink}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
             </div>
           ) : (
             <div className="activity-card">
