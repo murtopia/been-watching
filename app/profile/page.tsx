@@ -781,7 +781,7 @@ export default function ProfilePage() {
                 }}
                 onFocus={(e) => {
                   e.target.style.borderColor = colors.brandPink
-                  e.target.style.background = colors.inputBgFocus
+                  e.target.style.background = colors.inputBg
                 }}
                 onBlur={(e) => {
                   e.target.style.borderColor = colors.inputBorder
