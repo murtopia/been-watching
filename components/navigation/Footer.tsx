@@ -1,21 +1,13 @@
 'use client'
 
-import { useTheme } from '@/contexts/ThemeContext'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface FooterProps {
   variant?: 'full' | 'minimal'
 }
 
 export default function Footer({ variant = 'full' }: FooterProps) {
-  const { resolvedTheme } = useTheme()
-  const isDark = resolvedTheme === 'dark'
-
-  const textPrimary = isDark ? '#ffffff' : '#1a1a1a'
-  const textSecondary = isDark ? 'rgba(255, 255, 255, 0.6)' : '#666'
-  const linkColor = '#e94d88'
-  const dividerColor = isDark ? 'rgba(255, 255, 255, 0.1)' : '#f0f0f0'
-  const cardBg = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.95)'
-  const cardBorder = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+  const colors = useThemeColors()
 
   const currentYear = new Date().getFullYear()
 
@@ -29,28 +21,26 @@ export default function Footer({ variant = 'full' }: FooterProps) {
         paddingBottom: '6rem' // Extra space for BottomNav
       }}>
         <div style={{
-          background: cardBg,
+          background: colors.cardBg,
           backdropFilter: 'blur(20px)',
-          border: `1px solid ${cardBorder}`,
+          border: colors.cardBorder,
           borderRadius: '20px',
           padding: '2rem',
-          boxShadow: isDark
-            ? '0 20px 60px rgba(0, 0, 0, 0.5)'
-            : '0 20px 60px rgba(0, 0, 0, 0.08)',
+          boxShadow: colors.shadowLg,
           textAlign: 'center'
         }}>
           <div style={{ marginBottom: '1rem', fontSize: '0.8125rem' }}>
-            <a href="/privacy" style={{ color: linkColor, textDecoration: 'none', margin: '0 0.75rem', fontWeight: '600' }}>
+            <a href="/privacy" style={{ color: colors.brandPink, textDecoration: 'none', margin: '0 0.75rem', fontWeight: '600' }}>
               Privacy
             </a>
-            <a href="/terms" style={{ color: linkColor, textDecoration: 'none', margin: '0 0.75rem', fontWeight: '600' }}>
+            <a href="/terms" style={{ color: colors.brandPink, textDecoration: 'none', margin: '0 0.75rem', fontWeight: '600' }}>
               Terms
             </a>
-            <a href="/ccpa" style={{ color: linkColor, textDecoration: 'none', margin: '0 0.75rem', fontWeight: '600' }}>
+            <a href="/ccpa" style={{ color: colors.brandPink, textDecoration: 'none', margin: '0 0.75rem', fontWeight: '600' }}>
               Do Not Sell My Info
             </a>
           </div>
-          <div style={{ color: textSecondary, fontSize: '0.8125rem' }}>
+          <div style={{ color: colors.textSecondary, fontSize: '0.8125rem' }}>
             © {currentYear} Been Watching. All rights reserved.
           </div>
         </div>
@@ -66,24 +56,22 @@ export default function Footer({ variant = 'full' }: FooterProps) {
       padding: '0 1.5rem'
     }}>
       <div style={{
-        background: cardBg,
+        background: colors.cardBg,
         backdropFilter: 'blur(20px)',
-        border: `1px solid ${cardBorder}`,
+        border: colors.cardBorder,
         borderRadius: '20px',
         padding: '2.5rem',
-        boxShadow: isDark
-          ? '0 20px 60px rgba(0, 0, 0, 0.5)'
-          : '0 20px 60px rgba(0, 0, 0, 0.08)'
+        boxShadow: colors.shadowLg
       }}>
         {/* Brand Section */}
         <div style={{
           textAlign: 'center',
           paddingBottom: '1.5rem',
-          borderBottom: `1px solid ${dividerColor}`,
+          borderBottom: `1px solid ${colors.borderColor}`,
           marginBottom: '1.5rem'
         }}>
           <h2 style={{
-            background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+            background: colors.brandGradient,
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             fontSize: '1.5rem',
@@ -94,7 +82,7 @@ export default function Footer({ variant = 'full' }: FooterProps) {
           </h2>
           <p style={{
             fontSize: '0.875rem',
-            color: textSecondary,
+            color: colors.textSecondary,
             lineHeight: '1.6'
           }}>
             Track what you've been watching. Share your favorites. Discover what's next.
@@ -113,7 +101,7 @@ export default function Footer({ variant = 'full' }: FooterProps) {
             <h3 style={{
               fontSize: '0.75rem',
               fontWeight: '700',
-              color: textPrimary,
+              color: colors.textPrimary,
               marginBottom: '0.75rem',
               textTransform: 'uppercase',
               letterSpacing: '0.05em'
@@ -126,12 +114,12 @@ export default function Footer({ variant = 'full' }: FooterProps) {
               margin: 0
             }}>
               <li style={{ marginBottom: '0.5rem' }}>
-                <a href="/about" style={{ color: textSecondary, textDecoration: 'none', fontSize: '0.875rem' }}>
+                <a href="/about" style={{ color: colors.textSecondary, textDecoration: 'none', fontSize: '0.875rem' }}>
                   About
                 </a>
               </li>
               <li style={{ marginBottom: '0.5rem' }}>
-                <a href="/contact" style={{ color: textSecondary, textDecoration: 'none', fontSize: '0.875rem' }}>
+                <a href="/contact" style={{ color: colors.textSecondary, textDecoration: 'none', fontSize: '0.875rem' }}>
                   Contact
                 </a>
               </li>
@@ -143,7 +131,7 @@ export default function Footer({ variant = 'full' }: FooterProps) {
             <h3 style={{
               fontSize: '0.75rem',
               fontWeight: '700',
-              color: textPrimary,
+              color: colors.textPrimary,
               marginBottom: '0.75rem',
               textTransform: 'uppercase',
               letterSpacing: '0.05em'
@@ -156,12 +144,12 @@ export default function Footer({ variant = 'full' }: FooterProps) {
               margin: 0
             }}>
               <li style={{ marginBottom: '0.5rem' }}>
-                <a href="/help" style={{ color: textSecondary, textDecoration: 'none', fontSize: '0.875rem' }}>
+                <a href="/help" style={{ color: colors.textSecondary, textDecoration: 'none', fontSize: '0.875rem' }}>
                   Help
                 </a>
               </li>
               <li style={{ marginBottom: '0.5rem' }}>
-                <a href="/community-guidelines" style={{ color: textSecondary, textDecoration: 'none', fontSize: '0.875rem' }}>
+                <a href="/community-guidelines" style={{ color: colors.textSecondary, textDecoration: 'none', fontSize: '0.875rem' }}>
                   Guidelines
                 </a>
               </li>
@@ -173,7 +161,7 @@ export default function Footer({ variant = 'full' }: FooterProps) {
             <h3 style={{
               fontSize: '0.75rem',
               fontWeight: '700',
-              color: textPrimary,
+              color: colors.textPrimary,
               marginBottom: '0.75rem',
               textTransform: 'uppercase',
               letterSpacing: '0.05em'
@@ -186,22 +174,22 @@ export default function Footer({ variant = 'full' }: FooterProps) {
               margin: 0
             }}>
               <li style={{ marginBottom: '0.5rem' }}>
-                <a href="/privacy" style={{ color: textSecondary, textDecoration: 'none', fontSize: '0.875rem' }}>
+                <a href="/privacy" style={{ color: colors.textSecondary, textDecoration: 'none', fontSize: '0.875rem' }}>
                   Privacy
                 </a>
               </li>
               <li style={{ marginBottom: '0.5rem' }}>
-                <a href="/terms" style={{ color: textSecondary, textDecoration: 'none', fontSize: '0.875rem' }}>
+                <a href="/terms" style={{ color: colors.textSecondary, textDecoration: 'none', fontSize: '0.875rem' }}>
                   Terms
                 </a>
               </li>
               <li style={{ marginBottom: '0.5rem' }}>
-                <a href="/cookies" style={{ color: textSecondary, textDecoration: 'none', fontSize: '0.875rem' }}>
+                <a href="/cookies" style={{ color: colors.textSecondary, textDecoration: 'none', fontSize: '0.875rem' }}>
                   Cookies
                 </a>
               </li>
               <li style={{ marginBottom: '0.5rem' }}>
-                <a href="/ccpa" style={{ color: linkColor, textDecoration: 'none', fontSize: '0.875rem', fontWeight: '600' }}>
+                <a href="/ccpa" style={{ color: colors.brandPink, textDecoration: 'none', fontSize: '0.875rem', fontWeight: '600' }}>
                   CCPA Opt-Out
                 </a>
               </li>
@@ -211,20 +199,20 @@ export default function Footer({ variant = 'full' }: FooterProps) {
 
         {/* Bottom Bar */}
         <div style={{
-          borderTop: `1px solid ${dividerColor}`,
+          borderTop: `1px solid ${colors.borderColor}`,
           paddingTop: '1.5rem',
           textAlign: 'center'
         }}>
           <div style={{
             fontSize: '0.8125rem',
-            color: textSecondary,
+            color: colors.textSecondary,
             marginBottom: '0.5rem'
           }}>
             © {currentYear} Been Watching. All rights reserved.
           </div>
           <div style={{
             fontSize: '0.8125rem',
-            color: textSecondary
+            color: colors.textSecondary
           }}>
             Made with ❤️ for TV lovers
           </div>

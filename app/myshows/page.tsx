@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
-import { useTheme } from '@/contexts/ThemeContext'
+import { useThemeColors } from '@/hooks/useThemeColors'
 import BottomNav from '@/components/navigation/BottomNav'
 import AppHeader from '@/components/navigation/AppHeader'
 import SearchModal from '@/components/search/SearchModal'
@@ -31,18 +31,7 @@ export default function MyShowsPage() {
   const [pendingRemoval, setPendingRemoval] = useState<{media: any, currentStatus: string} | null>(null)
   const router = useRouter()
   const supabase = createClient()
-  const { resolvedTheme } = useTheme()
-
-  // Theme-based colors
-  const isDark = resolvedTheme === 'dark'
-  const bgGradient = isDark ? 'linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 100%)' : '#ffffff'
-  const cardBg = isDark ? 'rgba(255, 255, 255, 0.05)' : '#ffffff'
-  const cardBorder = isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #f0f0f0'
-  const textPrimary = isDark ? '#ffffff' : '#1a1a1a'
-  const textSecondary = isDark ? 'rgba(255, 255, 255, 0.6)' : '#666'
-  const buttonBg = isDark ? 'rgba(255, 255, 255, 0.1)' : 'white'
-  const buttonBorder = isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #ddd'
-  const backdropBlur = isDark ? 'blur(20px)' : 'none'
+  const colors = useThemeColors()
 
   useEffect(() => {
     checkUser()
@@ -326,22 +315,22 @@ export default function MyShowsPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: bgGradient, paddingBottom: '100px' }}>
+    <div style={{ minHeight: '100vh', background: colors.bgGradient, paddingBottom: '100px' }}>
       {/* Header */}
       <AppHeader profile={profile} />
 
       {/* My Shows Section */}
-      <div style={{ maxWidth: '600px', margin: '0 auto', background: cardBg, padding: '2rem 1.5rem', borderRadius: '12px', border: cardBorder, backdropFilter: backdropBlur }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: '700', color: textPrimary }}>My Shows</h2>
+      <div style={{ maxWidth: '600px', margin: '0 auto', background: colors.cardBg, padding: '2rem 1.5rem', borderRadius: '12px', border: colors.cardBorder, backdropFilter: 'blur(20px)' }}>
+        <h2 style={{ textAlign: 'center', marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: '700', color: colors.textPrimary }}>My Shows</h2>
 
         {/* Top 3 Shows */}
         <div style={{
           padding: '1.5rem',
-          background: isDark ? 'rgba(255, 255, 255, 0.03)' : '#fafafa',
+          background: colors.sectionBg,
           borderRadius: '12px',
           marginBottom: '2rem'
         }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0', color: textPrimary }}>My Top 3 Shows</h3>
+          <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0', color: colors.textPrimary }}>My Top 3 Shows</h3>
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(3, 1fr)',
@@ -355,13 +344,13 @@ export default function MyShowsPage() {
                   style={{
                     position: 'relative',
                     aspectRatio: '2/3',
-                    border: isDark ? '2px dashed rgba(255, 255, 255, 0.2)' : '2px dashed #ddd',
+                    border: colors.isDark ? '2px dashed rgba(255, 255, 255, 0.2)' : '2px dashed #ddd',
                     borderRadius: '12px',
                     overflow: 'hidden',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    background: isDark ? 'rgba(255, 255, 255, 0.05)' : 'white'
+                    background: colors.cardBg
                   }}
                 >
                   {show?.poster_path ? (
@@ -394,7 +383,7 @@ export default function MyShowsPage() {
                         width: '24px',
                         height: '24px',
                         borderRadius: '50%',
-                        background: '#0095f6',
+                        background: colors.brandBlue,
                         color: 'white',
                         display: 'flex',
                         alignItems: 'center',
@@ -453,7 +442,7 @@ export default function MyShowsPage() {
                         width: '24px',
                         height: '24px',
                         borderRadius: '50%',
-                        background: '#0095f6',
+                        background: colors.brandBlue,
                         color: 'white',
                         display: 'flex',
                         alignItems: 'center',
@@ -475,7 +464,7 @@ export default function MyShowsPage() {
         {/* Tabs */}
         <div style={{
           display: 'flex',
-          borderBottom: cardBorder,
+          borderBottom: colors.cardBorder,
           marginBottom: '1.5rem'
         }}>
           <button
@@ -485,7 +474,7 @@ export default function MyShowsPage() {
               padding: '0.75rem',
               background: 'none',
               border: 'none',
-              borderBottom: activeTab === 'want' ? '2px solid #0095f6' : '2px solid transparent',
+              borderBottom: activeTab === 'want' ? `2px solid ${colors.brandBlue}` : '2px solid transparent',
               cursor: 'pointer',
               display: 'flex',
               flexDirection: 'column',
@@ -496,13 +485,13 @@ export default function MyShowsPage() {
             <div style={{
               fontSize: '2rem',
               fontWeight: '700',
-              color: textPrimary
+              color: colors.textPrimary
             }}>
               {counts.wantCount}
             </div>
             <div style={{
               fontSize: '0.9rem',
-              color: activeTab === 'want' ? '#0095f6' : textSecondary,
+              color: activeTab === 'want' ? colors.brandBlue : colors.textSecondary,
               fontWeight: activeTab === 'want' ? '600' : '400'
             }}>
               Want to Watch
@@ -515,7 +504,7 @@ export default function MyShowsPage() {
               padding: '0.75rem',
               background: 'none',
               border: 'none',
-              borderBottom: activeTab === 'watching' ? '2px solid #0095f6' : '2px solid transparent',
+              borderBottom: activeTab === 'watching' ? `2px solid ${colors.brandBlue}` : '2px solid transparent',
               cursor: 'pointer',
               display: 'flex',
               flexDirection: 'column',
@@ -526,13 +515,13 @@ export default function MyShowsPage() {
             <div style={{
               fontSize: '2rem',
               fontWeight: '700',
-              color: textPrimary
+              color: colors.textPrimary
             }}>
               {counts.watchingCount}
             </div>
             <div style={{
               fontSize: '0.9rem',
-              color: activeTab === 'watching' ? '#0095f6' : textSecondary,
+              color: activeTab === 'watching' ? colors.brandBlue : colors.textSecondary,
               fontWeight: activeTab === 'watching' ? '600' : '400'
             }}>
               Watching
@@ -545,7 +534,7 @@ export default function MyShowsPage() {
               padding: '0.75rem',
               background: 'none',
               border: 'none',
-              borderBottom: activeTab === 'watched' ? '2px solid #0095f6' : '2px solid transparent',
+              borderBottom: activeTab === 'watched' ? `2px solid ${colors.brandBlue}` : '2px solid transparent',
               cursor: 'pointer',
               display: 'flex',
               flexDirection: 'column',
@@ -556,13 +545,13 @@ export default function MyShowsPage() {
             <div style={{
               fontSize: '2rem',
               fontWeight: '700',
-              color: textPrimary
+              color: colors.textPrimary
             }}>
               {counts.watchedCount}
             </div>
             <div style={{
               fontSize: '0.9rem',
-              color: activeTab === 'watched' ? '#0095f6' : textSecondary,
+              color: activeTab === 'watched' ? colors.brandBlue : colors.textSecondary,
               fontWeight: activeTab === 'watched' ? '600' : '400'
             }}>
               Watched
@@ -585,9 +574,9 @@ export default function MyShowsPage() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: viewMode === 'grid' ? '#0095f6' : 'white',
-              color: viewMode === 'grid' ? 'white' : '#666',
-              border: '1px solid #ddd',
+              background: viewMode === 'grid' ? colors.brandBlue : 'white',
+              color: viewMode === 'grid' ? 'white' : colors.textSecondary,
+              border: colors.cardBorder,
               borderRadius: '8px',
               cursor: 'pointer'
             }}
@@ -603,9 +592,9 @@ export default function MyShowsPage() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: viewMode === 'list' ? '#0095f6' : 'white',
-              color: viewMode === 'list' ? 'white' : '#666',
-              border: '1px solid #ddd',
+              background: viewMode === 'list' ? colors.brandBlue : 'white',
+              color: viewMode === 'list' ? 'white' : colors.textSecondary,
+              border: colors.cardBorder,
               borderRadius: '8px',
               cursor: 'pointer'
             }}
@@ -619,7 +608,7 @@ export default function MyShowsPage() {
         <div>
           {loading ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem 0' }}>
-              <div style={{ width: '32px', height: '32px', border: '4px solid #e94d88', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+              <div style={{ width: '32px', height: '32px', border: `4px solid ${colors.brandPink}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
             </div>
           ) : mediaItems.length > 0 ? (
             viewMode === 'grid' ? (
@@ -681,12 +670,12 @@ export default function MyShowsPage() {
                         display: 'flex',
                         gap: '1rem',
                         padding: '0.75rem',
-                        background: cardBg,
-                        border: cardBorder,
+                        background: colors.cardBg,
+                        border: colors.cardBorder,
                         borderRadius: '12px',
                         alignItems: 'center',
                         cursor: 'pointer',
-                        backdropFilter: backdropBlur
+                        backdropFilter: 'blur(20px)'
                       }}
                     >
                       <img
@@ -706,7 +695,7 @@ export default function MyShowsPage() {
                           gap: '0.5rem',
                           marginBottom: '0.25rem'
                         }}>
-                          <div style={{ fontWeight: '600', fontSize: '1rem', color: textPrimary }}>
+                          <div style={{ fontWeight: '600', fontSize: '1rem', color: colors.textPrimary }}>
                             {item.media.title}
                           </div>
                           {item.user_rating && (
@@ -728,7 +717,7 @@ export default function MyShowsPage() {
               </div>
             )
           ) : (
-            <div style={{ textAlign: 'center', padding: '4rem 2rem', color: textSecondary }}>
+            <div style={{ textAlign: 'center', padding: '4rem 2rem', color: colors.textSecondary }}>
               <p style={{ fontSize: '1rem' }}>
                 No shows yet. Start adding some!
               </p>
