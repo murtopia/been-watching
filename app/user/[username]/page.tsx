@@ -533,7 +533,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         gap: '1rem',
         marginBottom: '0.5rem',
         padding: '1.5rem',
-        background: 'white'
+        background: colors.cardBg
       }}>
         {/* Avatar */}
         <div
@@ -579,7 +579,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
           display: 'flex',
           gap: '0.5rem',
           padding: '0.5rem 1.5rem',
-          background: 'white',
+          background: colors.cardBg,
           marginBottom: '0.5rem'
         }}>
           {tasteMatchScore !== null && tasteMatchScore > 0 && (
@@ -613,9 +613,9 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
       <div style={{ display: 'none' }}>
         <div style={{
           padding: '1.5rem',
-          background: 'white',
+          background: colors.cardBg,
           borderRadius: '12px',
-          border: '1px solid #f0f0f0',
+          border: colors.cardBorder,
           textAlign: 'center'
         }}>
           <div style={{ fontSize: '2rem', fontWeight: '700', color: colors.brandPink, marginBottom: '0.25rem' }}>
@@ -627,9 +627,9 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         </div>
         <div style={{
           padding: '1.5rem',
-          background: 'white',
+          background: colors.cardBg,
           borderRadius: '12px',
-          border: '1px solid #f0f0f0',
+          border: colors.cardBorder,
           textAlign: 'center'
         }}>
           <div style={{ fontSize: '2rem', fontWeight: '700', color: colors.brandOrange, marginBottom: '0.25rem' }}>
@@ -641,9 +641,9 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         </div>
         <div style={{
           padding: '1.5rem',
-          background: 'white',
+          background: colors.cardBg,
           borderRadius: '12px',
-          border: '1px solid #f0f0f0',
+          border: colors.cardBorder,
           textAlign: 'center'
         }}>
           <div style={{ fontSize: '2rem', fontWeight: '700', color: colors.textSecondary, marginBottom: '0.25rem' }}>
@@ -658,7 +658,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
       {/* Top 3 Shows */}
       {canViewActivities && (
         <div style={{
-          background: 'white',
+          background: colors.cardBg,
           padding: '1.5rem',
           marginBottom: '0.5rem'
         }}>
@@ -749,7 +749,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
       {/* Watch Lists */}
       {canViewActivities && (
         <div style={{
-          background: 'white',
+          background: colors.cardBg,
           padding: '1.5rem',
           marginBottom: '0.5rem'
         }}>
@@ -949,7 +949,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
       {/* Recent Activity */}
       {canViewActivities ? (
         <div style={{
-          background: 'white',
+          background: colors.cardBg,
           padding: '1.5rem',
           marginBottom: '5rem'
         }}>
@@ -997,7 +997,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         </div>
       ) : (
         <div style={{
-          background: 'white',
+          background: colors.cardBg,
           padding: '3rem 1.5rem',
           textAlign: 'center',
           marginBottom: '5rem'
@@ -1018,9 +1018,9 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
           onClick={() => router.back()}
           style={{
             padding: '0.75rem 2rem',
-            background: 'white',
+            background: colors.cardBg,
             color: colors.textSecondary,
-            border: '1px solid #ddd',
+            border: colors.cardBorder,
             borderRadius: '8px',
             fontSize: '0.9375rem',
             fontWeight: '600',
