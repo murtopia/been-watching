@@ -100,7 +100,7 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: isDark ? '0 8px 32px rgba(0, 0, 0, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.12)'
+          boxShadow: colors.isDark ? '0 8px 32px rgba(0, 0, 0, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.12)'
         }}
         onClick={(e) => e.stopPropagation()}
       >
