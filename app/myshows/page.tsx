@@ -326,7 +326,7 @@ export default function MyShowsPage() {
         {/* Top 3 Shows */}
         <div style={{
           padding: '1.5rem',
-          background: colors.sectionBg,
+          background: colors.cardBg,
           borderRadius: '12px',
           marginBottom: '2rem'
         }}>
