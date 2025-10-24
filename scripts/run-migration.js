@@ -17,40 +17,26 @@ const supabase = createClient(supabaseUrl, supabaseKey)
 
 async function runMigration() {
   try {
-    console.log('Running migration: add-profile-features.sql')
+    console.log('Running migration: create-show-notes-table.sql')
 
     // Read the SQL file
-    const sqlPath = path.join(__dirname, '..', 'supabase', 'add-profile-features.sql')
+    const sqlPath = path.join(__dirname, '..', 'supabase', 'migrations', 'create-show-notes-table.sql')
     const sql = fs.readFileSync(sqlPath, 'utf-8')
 
-    // Split into individual statements (rough split on semicolons)
-    const statements = sql
-      .split(';')
-      .map(s => s.trim())
-      .filter(s => s.length > 0 && !s.startsWith('--') && !s.startsWith('COMMENT'))
+    console.log('\n📄 Migration SQL:')
+    console.log('─'.repeat(60))
+    console.log(sql)
+    console.log('─'.repeat(60))
 
-    console.log(`Found ${statements.length} SQL statements to execute`)
-
-    for (let i = 0; i < statements.length; i++) {
-      const statement = statements[i] + ';'
-      console.log(`\nExecuting statement ${i + 1}/${statements.length}...`)
-      console.log(statement.substring(0, 100) + '...')
-
-      const { data, error } = await supabase.rpc('exec_sql', { sql: statement })
-
-      if (error) {
-        console.error(`Error executing statement ${i + 1}:`, error.message)
-        // Continue with other statements
-      } else {
-        console.log(`✓ Statement ${i + 1} executed successfully`)
-      }
-    }
-
-    console.log('\n✓ Migration completed!')
-    console.log('\nPlease run the SQL manually in Supabase SQL Editor:')
+    console.log('\nPlease run this SQL manually in Supabase SQL Editor:')
     console.log('1. Go to https://udfhqiipppybkuxpycay.supabase.co/project/udfhqiipppybkuxpycay/sql/new')
-    console.log('2. Copy the contents of supabase/add-profile-features.sql')
+    console.log('2. Copy the SQL from above (or from supabase/migrations/create-show-notes-table.sql)')
     console.log('3. Paste and run the SQL')
+    console.log('\nAfter running the migration, the show_notes table will be created with:')
+    console.log('  - 280 character limit on notes')
+    console.log('  - Public/Private visibility')
+    console.log('  - Row Level Security enabled')
+    console.log('  - Proper indexes for performance')
 
   } catch (error) {
     console.error('Migration failed:', error)

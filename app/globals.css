@@ -660,3 +660,14 @@ body {
     color: var(--nav-text-active) !important;
     font-weight: 600;
 }
+
+/* Note Input - Placeholder styling for better readability */
+.note-input-textarea::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+    opacity: 1;
+}
+
+[data-theme="light"] .note-input-textarea::placeholder {
+    color: rgba(0, 0, 0, 0.4);
+    opacity: 1;
+}

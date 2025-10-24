@@ -14,14 +14,8 @@ export default function WelcomePage() {
   const isDarkMode = resolvedTheme === 'dark'
 
   useEffect(() => {
-    // Check if user is already logged in
-    const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        router.push('/')
-      }
-    }
-    checkAuth()
+    // Redirect to root - /welcome is deprecated in favor of /
+    router.push('/')
   }, [])
 
   const bgGradient = isDarkMode

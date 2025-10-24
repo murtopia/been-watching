@@ -5,7 +5,9 @@ import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { getTasteMatchBetweenUsers } from '@/utils/tasteMatch'
 import MediaDetailModal from '@/components/media/MediaDetailModal'
+import MediaBadges from '@/components/media/MediaBadges'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { Grid3x3, List } from 'lucide-react'
 
 interface Profile {
   id: string
@@ -59,6 +61,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
   const [canViewActivities, setCanViewActivities] = useState(false)
   const [topShows, setTopShows] = useState<any[]>([null, null, null])
   const [activeWatchTab, setActiveWatchTab] = useState<'want' | 'watching' | 'watched'>('want')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [watchListItems, setWatchListItems] = useState<any[]>([])
   const [loadingWatchList, setLoadingWatchList] = useState(false)
   const [selectedMedia, setSelectedMedia] = useState<any>(null)
@@ -281,6 +284,12 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
   const handleFollow = async () => {
     if (!currentUser || !profile) return
 
+    // OPTIMISTIC UPDATE - Update UI immediately
+    setIsFollowing(true)
+    if (profile.is_private) {
+      setCanViewActivities(true)
+    }
+
     try {
       await supabase
         .from('follows')
@@ -301,24 +310,35 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
           target_id: profile.id
         })
 
-      setIsFollowing(true)
-
       // Calculate taste match after following
       const match = await getTasteMatchBetweenUsers(currentUser.id, profile.id)
       setTasteMatchScore(match?.score || null)
 
       // Reload activities if profile is private
       if (profile.is_private) {
-        setCanViewActivities(true)
         await loadActivities(profile.id)
       }
     } catch (error) {
       console.error('Error following user:', error)
+      // ROLLBACK on error
+      setIsFollowing(false)
+      if (profile.is_private) {
+        setCanViewActivities(false)
+      }
     }
   }
 
   const handleUnfollow = async () => {
     if (!currentUser || !profile) return
+
+    // OPTIMISTIC UPDATE - Update UI immediately
+    const previousTasteMatch = tasteMatchScore
+    setIsFollowing(false)
+    setTasteMatchScore(null)
+    if (profile.is_private) {
+      setCanViewActivities(false)
+      setActivities([])
+    }
 
     try {
       await supabase
@@ -326,17 +346,15 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         .delete()
         .eq('follower_id', currentUser.id)
         .eq('following_id', profile.id)
-
-      setIsFollowing(false)
-      setTasteMatchScore(null)
-
-      // Hide activities if profile is private
-      if (profile.is_private) {
-        setCanViewActivities(false)
-        setActivities([])
-      }
     } catch (error) {
       console.error('Error unfollowing user:', error)
+      // ROLLBACK on error
+      setIsFollowing(true)
+      setTasteMatchScore(previousTasteMatch)
+      if (profile.is_private) {
+        setCanViewActivities(true)
+        await loadActivities(profile.id)
+      }
     }
   }
 
@@ -754,9 +772,59 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
           padding: '1.5rem',
           marginBottom: '0.5rem'
         }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: '700', marginBottom: '1rem', color: colors.textPrimary }}>
-            📚 Watch Lists
-          </h3>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '1rem'
+          }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: '700', color: colors.textPrimary, margin: 0 }}>
+              📚 Watch Lists
+            </h3>
+
+            {/* View Mode Toggle */}
+            <div style={{
+              display: 'flex',
+              gap: '0.5rem'
+            }}>
+              <button
+                onClick={() => setViewMode('grid')}
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: viewMode === 'grid' ? colors.brandBlue : colors.cardBg,
+                  color: viewMode === 'grid' ? 'white' : colors.textPrimary,
+                  border: colors.cardBorder,
+                  borderRadius: '8px',
+                  cursor: 'pointer'
+                }}
+                aria-label="Grid view"
+              >
+                <Grid3x3 size={20} />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: viewMode === 'list' ? colors.brandBlue : colors.cardBg,
+                  color: viewMode === 'list' ? 'white' : colors.textPrimary,
+                  border: colors.cardBorder,
+                  borderRadius: '8px',
+                  cursor: 'pointer'
+                }}
+                aria-label="List view"
+              >
+                <List size={20} />
+              </button>
+            </div>
+          </div>
 
           {/* Tabs */}
           <div style={{
@@ -869,70 +937,145 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
               }}></div>
             </div>
           ) : watchListItems.length > 0 ? (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
-              gap: '1rem'
-            }}>
-              {watchListItems.map((item) => (
-                <div
-                  key={item.id}
-                  onClick={() => handleShowClick(item)}
-                  style={{
-                    position: 'relative',
-                    aspectRatio: '2/3',
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                    cursor: 'pointer'
-                  }}
-                >
-                  {item.media?.poster_path ? (
-                    <img
-                      src={`https://image.tmdb.org/t/p/w500${item.media.poster_path}`}
-                      alt={item.media.title}
+            viewMode === 'grid' ? (
+              <div className="shows-grid">
+                {watchListItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="show-card"
+                    onClick={() => handleShowClick(item)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <div className="poster-container" style={{ position: 'relative' }}>
+                      {item.media?.poster_path ? (
+                        <img
+                          src={`https://image.tmdb.org/t/p/w342${item.media.poster_path}`}
+                          alt={item.media.title}
+                          className="show-poster"
+                        />
+                      ) : (
+                        <div style={{
+                          width: '100%',
+                          aspectRatio: '2/3',
+                          background: colors.cardBg,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '0.75rem',
+                          color: colors.textTertiary,
+                          padding: '1rem',
+                          textAlign: 'center'
+                        }}>
+                          {item.media?.title || 'No Image'}
+                        </div>
+                      )}
+                      {/* Rating Badge */}
+                      {item.user_rating && (
+                        <div style={{
+                          position: 'absolute',
+                          bottom: '8px',
+                          right: '8px',
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '50%',
+                          background: 'rgba(0, 0, 0, 0.75)',
+                          backdropFilter: 'blur(10px)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '1.125rem',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                        }}>
+                          {item.user_rating === 'love' ? '❤️' : item.user_rating === 'like' ? '👍' : '😐'}
+                        </div>
+                      )}
+                    </div>
+                    <div className="show-title">{item.media.title}</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {watchListItems.map((item) => {
+                  const mediaType = item.media.media_type || (item.media.tmdb_data?.first_air_date ? 'tv' : 'movie')
+                  const tmdbId = item.media.tmdb_id
+
+                  // Extract season number from ID if it's a season-specific record
+                  const seasonNumber = item.media.id?.includes('-s')
+                    ? parseInt(item.media.id.split('-s')[1])
+                    : (item.media.tmdb_data?.season_number || null)
+
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => handleShowClick(item)}
                       style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover'
+                        display: 'flex',
+                        gap: '1rem',
+                        padding: '0.75rem',
+                        background: colors.cardBg,
+                        border: colors.cardBorder,
+                        borderRadius: '12px',
+                        alignItems: 'center',
+                        cursor: 'pointer',
+                        backdropFilter: 'blur(20px)'
                       }}
-                    />
-                  ) : (
-                    <div style={{
-                      width: '100%',
-                      height: '100%',
-                      background: '#f0f0f0',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '0.75rem',
-                      color: colors.textTertiary,
-                      padding: '1rem',
-                      textAlign: 'center'
-                    }}>
-                      {item.media?.title || 'No Image'}
+                    >
+                      {item.media?.poster_path ? (
+                        <img
+                          src={`https://image.tmdb.org/t/p/w185${item.media.poster_path}`}
+                          alt={item.media.title}
+                          style={{
+                            width: '60px',
+                            height: '90px',
+                            borderRadius: '8px',
+                            objectFit: 'cover'
+                          }}
+                        />
+                      ) : (
+                        <div style={{
+                          width: '60px',
+                          height: '90px',
+                          background: colors.cardBg,
+                          border: colors.cardBorder,
+                          borderRadius: '8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '0.75rem',
+                          color: colors.textTertiary
+                        }}>
+                          No Image
+                        </div>
+                      )}
+                      <div style={{ flex: 1 }}>
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          marginBottom: '0.25rem'
+                        }}>
+                          <div style={{ fontWeight: '600', fontSize: '1rem', color: colors.textPrimary }}>
+                            {item.media.title}
+                          </div>
+                          {item.user_rating && (
+                            <span style={{ fontSize: '1.25rem' }}>
+                              {item.user_rating === 'love' ? '❤️' : item.user_rating === 'like' ? '👍' : '😐'}
+                            </span>
+                          )}
+                        </div>
+                        <MediaBadges
+                          mediaType={mediaType as 'tv' | 'movie'}
+                          seasonNumber={seasonNumber || undefined}
+                          season={!seasonNumber && mediaType === 'tv' ? (item.media.tmdb_data?.number_of_seasons || 1) : undefined}
+                          networks={item.media.tmdb_data?.networks || []}
+                        />
+                      </div>
                     </div>
-                  )}
-                  {/* Rating Badge */}
-                  {item.user_rating && (
-                    <div style={{
-                      position: 'absolute',
-                      bottom: '6px',
-                      right: '6px',
-                      width: '24px',
-                      height: '24px',
-                      borderRadius: '50%',
-                      background: 'rgba(0, 0, 0, 0.7)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '0.75rem'
-                    }}>
-                      {item.user_rating === 'love' ? '❤️' : item.user_rating === 'like' ? '👍' : '😐'}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+                  )
+                })}
+              </div>
+            )
           ) : (
             <div style={{ textAlign: 'center', padding: '3rem 1rem', color: colors.textTertiary }}>
               <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📭</div>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import MediaCard from './MediaCard'
 import { createClient } from '@/utils/supabase/client'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import ShowCommentInput from '@/components/notes/ShowCommentInput'
 
 interface MediaDetailModalProps {
   isOpen: boolean
@@ -29,6 +30,7 @@ export default function MediaDetailModal({
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [fullMediaData, setFullMediaData] = useState<any>(null)
+  const [userComment, setUserComment] = useState<{ id: string; comment_text: string } | null>(null)
 
   // Modal-specific colors (matching SearchModal)
   const modalBg = colors.isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.55)'
@@ -110,6 +112,20 @@ export default function MediaDetailModal({
           } else {
             setSelectedStatus(null)
           }
+
+          // Fetch user's comment for this show
+          const { data: commentData } = await supabase
+            .from('show_comments')
+            .select('id, comment_text')
+            .eq('user_id', user.id)
+            .eq('media_id', mediaId)
+            .maybeSingle()
+
+          if (commentData) {
+            setUserComment(commentData)
+          } else {
+            setUserComment(null)
+          }
         }
       } catch (error) {
         console.error('Error fetching data:', error)
@@ -137,6 +153,77 @@ export default function MediaDetailModal({
     }
     if (onStatusChange) {
       await onStatusChange()
+    }
+  }
+
+  const handleCommentSave = async (commentText: string) => {
+    if (!user) return
+
+    const supabase = createClient()
+    const mediaType = media.media_type || (media.first_air_date ? 'tv' : 'movie')
+    const tmdbId = media.tmdb_id || media.id
+    const mediaId = media.id && (typeof media.id === 'string' && (media.id.startsWith('tv-') || media.id.startsWith('movie-')))
+      ? media.id
+      : (mediaType === 'movie' ? `movie-${tmdbId}` : `tv-${tmdbId}`)
+
+    try {
+      if (userComment) {
+        // Update existing comment
+        const { data, error } = await supabase
+          .from('show_comments')
+          .update({
+            comment_text: commentText
+          })
+          .eq('id', userComment.id)
+          .select()
+          .single()
+
+        if (error) {
+          console.error('Error updating comment:', error)
+        } else {
+          setUserComment(data)
+        }
+      } else {
+        // Create new comment
+        const { data, error } = await supabase
+          .from('show_comments')
+          .insert({
+            user_id: user.id,
+            media_id: mediaId,
+            comment_text: commentText
+          })
+          .select()
+          .single()
+
+        if (error) {
+          console.error('Error creating comment:', error)
+        } else {
+          setUserComment(data)
+        }
+      }
+    } catch (error) {
+      console.error('Error saving comment:', error)
+    }
+  }
+
+  const handleCommentDelete = async () => {
+    if (!userComment || !user) return
+
+    const supabase = createClient()
+
+    try {
+      const { error } = await supabase
+        .from('show_comments')
+        .delete()
+        .eq('id', userComment.id)
+
+      if (error) {
+        console.error('Error deleting comment:', error)
+      } else {
+        setUserComment(null)
+      }
+    } catch (error) {
+      console.error('Error deleting comment:', error)
     }
   }
 
@@ -220,15 +307,30 @@ export default function MediaDetailModal({
               <div style={{ width: '32px', height: '32px', border: `4px solid ${colors.brandPink}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
             </div>
           ) : (
-            <div className="activity-card">
-              <MediaCard
-                media={enrichedMedia}
-                onRate={handleRating}
-                onStatus={handleStatus}
-                currentRating={selectedRating}
-                currentStatus={selectedStatus}
-              />
-            </div>
+            <>
+              <div className="activity-card">
+                <MediaCard
+                  media={enrichedMedia}
+                  onRate={handleRating}
+                  onStatus={handleStatus}
+                  currentRating={selectedRating}
+                  currentStatus={selectedStatus}
+                />
+              </div>
+
+              {/* Show Comment Input */}
+              {user && (
+                <div style={{ marginTop: '1rem' }}>
+                  <ShowCommentInput
+                    mediaId={enrichedMedia.id || `${enrichedMedia.media_type}-${enrichedMedia.tmdb_id}`}
+                    userId={user.id}
+                    existingComment={userComment}
+                    onSave={handleCommentSave}
+                    onDelete={userComment ? handleCommentDelete : undefined}
+                  />
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

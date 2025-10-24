@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Been Watching - Track Shows with Friends</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --is-dark: 1;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 100%);
+            color: #ffffff;
+        }
+
+        /* Light mode */
+        @media (prefers-color-scheme: light) {
+            :root {
+                --is-dark: 0;
+            }
+
+            body {
+                background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+                color: #1a1a1a;
+            }
+
+            .card {
+                background: rgba(255, 255, 255, 0.95) !important;
+                border: 1px solid rgba(0, 0, 0, 0.1) !important;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08) !important;
+            }
+
+            .feature-card {
+                background: rgba(0, 0, 0, 0.02) !important;
+                border: 1px solid rgba(0, 0, 0, 0.1) !important;
+            }
+
+            .text-secondary {
+                color: rgba(0, 0, 0, 0.6) !important;
+            }
+
+            .footer-link {
+                color: rgba(0, 0, 0, 0.6) !important;
+            }
+
+            .footer-link:hover {
+                color: rgba(0, 0, 0, 0.9) !important;
+            }
+
+            .app-header {
+                background: rgba(255, 255, 255, 0.6) !important;
+                border: 1px solid rgba(0, 0, 0, 0.08) !important;
+            }
+
+            /* Show light mode logo, hide dark mode logo */
+            .logo-dark { display: none !important; }
+            .logo-light { display: block !important; }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            /* Show dark mode logo, hide light mode logo */
+            .logo-dark { display: block !important; }
+            .logo-light { display: none !important; }
+        }
+
+        /* App Header (matching your current style) */
+        .app-header {
+            padding: 1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-text {
+            background: linear-gradient(135deg, #e94d88 0%, #f27121 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: transform 0.2s;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .btn-sign-in {
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #e94d88 0%, #f27121 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-sign-in:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(233, 77, 136, 0.3);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Hero Section with Logo */
+        .hero {
+            text-align: center;
+            padding: 2rem 2rem 4rem;
+        }
+
+        .hero-logo-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .hero-logo {
+            width: 120px;
+            height: 120px;
+            transition: transform 0.3s;
+        }
+
+        .hero-logo:hover {
+            transform: scale(1.05) rotate(2deg);
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #e94d88 0%, #f27121 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            .hero-logo {
+                width: 90px;
+                height: 90px;
+            }
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            margin-bottom: 3rem;
+            line-height: 1.6;
+        }
+
+        .text-secondary {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Beta Badge */
+        .beta-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #e94d88 0%, #f27121 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-left: 0.5rem;
+            vertical-align: middle;
+        }
+
+        /* Features Grid */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 4rem;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: left;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 40px rgba(233, 77, 136, 0.2);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-card p {
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 4rem 0;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .card p {
+            font-size: 0.9375rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #e94d88 0%, #f27121 100%);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(233, 77, 136, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #e94d88;
+            border: 2px solid #e94d88;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(233, 77, 136, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Footer */
+        .footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            text-align: center;
+            margin-top: 4rem;
+        }
+
+        @media (prefers-color-scheme: light) {
+            .footer {
+                border-top: 1px solid rgba(0, 0, 0, 0.1);
+            }
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-link {
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.2s;
+        }
+
+        .footer-link:hover {
+            color: #e94d88;
+        }
+
+        .footer-copyright {
+            font-size: 0.75rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- App Header (matching your current style) -->
+    <header class="app-header">
+        <div class="header-content">
+            <h1 class="logo-text">
+                Been Watching
+                <span class="beta-badge">Alpha</span>
+            </h1>
+
+            <div class="header-actions">
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+                    <span id="theme-icon">🌙</span>
+                </button>
+                <button class="btn-sign-in" onclick="alert('Would navigate to /auth')">
+                    Sign In
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section with Logo -->
+    <section class="hero">
+        <div class="container">
+            <!-- Logo (switches between light/dark) -->
+            <div class="hero-logo-container">
+                <img
+                    src="/logo-dark.png"
+                    alt="Been Watching Logo"
+                    class="hero-logo logo-dark"
+                    onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22><rect width=%22120%22 height=%22120%22 fill=%22%23e94d88%22 rx=%2220%22/><text x=%2260%22 y=%2270%22 font-size=%2260%22 text-anchor=%22middle%22>📺</text></svg>'"
+                >
+                <img
+                    src="/logo-light.png"
+                    alt="Been Watching Logo"
+                    class="hero-logo logo-light"
+                    style="display: none;"
+                    onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22><rect width=%22120%22 height=%22120%22 fill=%22%23e94d88%22 rx=%2220%22/><text x=%2260%22 y=%2270%22 font-size=%2260%22 text-anchor=%22middle%22>📺</text></svg>'"
+                >
+            </div>
+
+            <h1>Track Shows with Friends</h1>
+            <p class="text-secondary">
+                Track what you've been watching. Share your favorites. Discover what's next.
+            </p>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="container">
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">📺</div>
+                <h3>Track Everything</h3>
+                <p class="text-secondary">
+                    Movies and TV shows, organized by season. Keep track of what you want to watch,
+                    what you're watching, and what you've watched.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">⭐</div>
+                <h3>Rate & Review</h3>
+                <p class="text-secondary">
+                    Love it, like it, or meh? Share your quick takes and see what your friends think.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3>Social Feed</h3>
+                <p class="text-secondary">
+                    See what your friends are watching, comment on their takes, and discover your next binge.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">💬</div>
+                <h3>Share Your Thoughts</h3>
+                <p class="text-secondary">
+                    Leave comments on shows, @mention friends, and start conversations about what you're watching.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>Taste Matching</h3>
+                <p class="text-secondary">
+                    Find friends with similar taste and discover shows you'll love based on their recommendations.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🏆</div>
+                <h3>Top 3 Shows</h3>
+                <p class="text-secondary">
+                    Showcase your all-time favorites on your profile and see what shows define your friends.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="container">
+        <div class="cta-section">
+            <!-- Join Waitlist Card -->
+            <div class="card">
+                <h2>Join the Waitlist</h2>
+                <p class="text-secondary">
+                    We're currently in private alpha. Join the waitlist to get early access when we open up.
+                </p>
+                <button class="btn btn-primary" onclick="alert('Would navigate to /waitlist')">
+                    Join Waitlist
+                </button>
+            </div>
+
+            <!-- I Have a Code Card -->
+            <div class="card">
+                <h2>Got an Invite Code?</h2>
+                <p class="text-secondary">
+                    Already have an invite code? Sign in with Google to get started.
+                </p>
+                <button class="btn btn-secondary" onclick="alert('Would navigate to /auth')">
+                    Sign In with Google
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="#" class="footer-link" onclick="alert('Would navigate to /privacy'); return false;">Privacy Policy</a>
+            <a href="#" class="footer-link" onclick="alert('Would navigate to /terms'); return false;">Terms of Service</a>
+            <a href="#" class="footer-link" onclick="alert('Would navigate to /contact'); return false;">Contact</a>
+            <a href="#" class="footer-link" onclick="alert('Would navigate to /community-guidelines'); return false;">Community Guidelines</a>
+        </div>
+        <p class="text-secondary footer-copyright">
+            © 2025 Been Watching. All rights reserved.
+        </p>
+    </footer>
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+
+            const icon = document.getElementById('theme-icon');
+            icon.textContent = newTheme === 'light' ? '🌙' : '☀️';
+        }
+
+        // Set initial theme icon based on system preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+            document.getElementById('theme-icon').textContent = '☀️';
+        }
+    </script>
+</body>
+</html>

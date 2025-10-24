@@ -11,12 +11,13 @@
 ### Active Users
 - **Boozehounds (4 alpha users)**
   - Nick (murtopia) - 131+ shows
-  - Taylor (@taylormurto) - Ready for migration
+  - Taylor (@taylormurto) - already migrated
   - Todd (@toddles) - Ready for migration
-  - Pat (@mossy) - Ready for migration
+  - Pat (@mossy) - already migrated
+  - various other alpha testers invited and have created accounts
 
 ### Immediate Goals
-1. Complete data migration for all 4 Boozehounds (~363 shows total)
+1. Complete data migration for Todd after he creates his account
 2. Gather feedback on core features
 3. Fix critical bugs discovered during alpha
 4. Validate taste match algorithm accuracy
@@ -58,6 +59,11 @@
 
 **Estimated Time:** 2-3 days
 
+**Nick Questions:**
+- are we able to pull episode titles in as well? 
+- Also episode release dates?
+- How do we handle a series where there is a new episode released once a week?
+
 ---
 
 #### 2. Show Notes Feature (KILLER FEATURE)
@@ -91,6 +97,9 @@
 
 **Estimated Time:** 3-4 days
 
+**Nick Questions:**
+- can we have someone add show notes no matter what watchlist a show is in? I often want to add a note telling me who told me about a show when I add it to my "want to Watch" - this can still be done in the same single comment box. Maybe we have a clever "add your note" kind of message vs "what did you think" so that it is more generic.
+
 ---
 
 #### 3. Notification System (UI)
@@ -121,6 +130,9 @@
 
 **Estimated Time:** 2-3 days
 
+**Nick Questions:**
+- is this also about on device notifications or just within the app?
+
 ---
 
 ### ⭐ High Priority (Next Month)
@@ -132,10 +144,11 @@
 **Improvements Needed:**
 - Pagination/infinite scroll (currently shows all)
 - Filter by activity type (ratings, status changes, show notes)
-- Filter by friend/following only
-- Sort options (recent, popular, friends)
+- Filter by friend/following only (once we have enough user activity, this won't ever show global activities, just your friends and following so we won't need a filter button)
+- Sort options (recent, popular, friends) - may not be needed
 - Pull-to-refresh on mobile
 - Real-time updates (Supabase Realtime)
+- combine show related activity, so that me addeing a show to a watchlist, rating it and adding a comment is one activity, vs three activities. 
 
 **Estimated Time:** 3-4 days
 
@@ -194,7 +207,7 @@ const mentions = text.match(/@[\w_]+/g)
 
 ### 👍 Medium Priority (Next 2-3 Months)
 
-#### 7. Show Recommendations
+#### 7. Show Recommendations (let's hold off on this but save it for future ideas)
 **Status:** Algorithm ready (taste match), no UI
 **Complexity:** Medium
 
@@ -240,9 +253,12 @@ const mentions = text.match(/@[\w_]+/g)
 
 **Estimated Time:** 3-4 days
 
+**Nick Questions:**
+- can we make the search smarter? for example there is a show called "SuperBob" but if I search for "super bob" it doesn't appear because we are being very literal in our search. 
+
 ---
 
-#### 9. Import from Other Platforms
+#### 9. Import from Other Platforms (NM - not needed, but save the idea for later)
 **Status:** Not Started
 **Complexity:** High
 
@@ -263,7 +279,7 @@ const mentions = text.match(/@[\w_]+/g)
 
 ---
 
-#### 10. Export User Data
+#### 10. Export User Data (NM - not needed, but save the idea for later)
 **Status:** Not Started
 **Complexity:** Low
 
@@ -324,6 +340,12 @@ const mentions = text.match(/@[\w_]+/g)
 
 **Estimated Time:** 3-4 days
 
+**Nick Additonal ideas:**
+- social media sharing, share a show, or your top three, or your profile to IG stories, etc
+- BW social accounts create content that might be a weekly top 10 most popular shows
+
+
+
 ---
 
 ### 🚫 Features We're NOT Building
@@ -356,6 +378,7 @@ const mentions = text.match(/@[\w_]+/g)
 - Transparency: users know what they're seeing
 - No engagement manipulation
 - Simple and predictable
+- NM: We will add this later on as the user base grows and to help present new show ideas to our users.
 
 ---
 
@@ -524,6 +547,10 @@ const mentions = text.match(/@[\w_]+/g)
 - Soft launch on social media (Twitter, Instagram)
 - Target communities: TV/movie podcasters, film Twitter
 
+### Nick's Note:
+- maybe we work to a reward system for earning additonal invites. After you have rated X shows you earn a new invite.
+- maybe we have an invite release plan where existing users each get 5 invites, but the people they invite to not get any invites at first, then we can release more to them
+
 ### Phase 3: Public Beta (March 2025)
 - Remove hard invite requirement
 - Unlimited signups with WAITLIST code
@@ -564,6 +591,10 @@ const mentions = text.match(/@[\w_]+/g)
    - Studios/networks can access aggregated data
    - Trend analysis and audience insights
    - Premium pricing for commercial use
+
+## NM advertising platform ideas:
+- might have ads later, but ads that feel like show content. We learn that Landman is coming out in a few months, option to add it to my Want to Watch list and see the trailer.
+- will have to build out a robust ad platform
 
 **Will NOT Do:**
 - Traditional ads (ruins user experience)

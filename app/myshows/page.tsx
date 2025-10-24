@@ -579,8 +579,8 @@ export default function MyShowsPage() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: viewMode === 'grid' ? colors.brandBlue : 'white',
-              color: viewMode === 'grid' ? 'white' : colors.textSecondary,
+              background: viewMode === 'grid' ? colors.brandBlue : colors.cardBg,
+              color: viewMode === 'grid' ? 'white' : colors.textPrimary,
               border: colors.cardBorder,
               borderRadius: '8px',
               cursor: 'pointer'
@@ -597,8 +597,8 @@ export default function MyShowsPage() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: viewMode === 'list' ? colors.brandBlue : 'white',
-              color: viewMode === 'list' ? 'white' : colors.textSecondary,
+              background: viewMode === 'list' ? colors.brandBlue : colors.cardBg,
+              color: viewMode === 'list' ? 'white' : colors.textPrimary,
               border: colors.cardBorder,
               borderRadius: '8px',
               cursor: 'pointer'

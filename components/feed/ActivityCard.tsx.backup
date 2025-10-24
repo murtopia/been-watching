@@ -267,12 +267,8 @@ export default function ActivityCard({
         </div>
       </div>
 
-      {/* Media Card - Clickable to open modal */}
-      <div
-        className="feed-show-content"
-        onClick={() => onMediaClick?.(activity.media)}
-        style={{ cursor: onMediaClick ? 'pointer' : 'default' }}
-      >
+      {/* Media Card */}
+      <div className="feed-show-content">
         {activity.media.poster_path && (
           <img
             src={`https://image.tmdb.org/t/p/w185${activity.media.poster_path}`}
@@ -340,19 +336,65 @@ export default function ActivityCard({
         </div>
       </div>
 
+      {/* Quick rate buttons */}
+      {onQuickRate && (
+        <div className="quick-rate">
+          <button
+            className={`quick-rate-btn meh ${userRating === 'meh' ? 'active' : ''}`}
+            onClick={() => onQuickRate(activity.media.id, 'meh')}
+          >
+            😐 Meh
+          </button>
+          <button
+            className={`quick-rate-btn like ${userRating === 'like' ? 'active' : ''}`}
+            onClick={() => onQuickRate(activity.media.id, 'like')}
+          >
+            👍 Like
+          </button>
+          <button
+            className={`quick-rate-btn love ${userRating === 'love' ? 'active' : ''}`}
+            onClick={() => onQuickRate(activity.media.id, 'love')}
+          >
+            ❤️ Love
+          </button>
+        </div>
+      )}
 
-      {/* Interaction buttons - Swapped order: Comments first, Likes second */}
+      {/* Quick status buttons */}
+      {onQuickStatus && (
+        <div className="quick-status">
+          <div className="status-btn-group">
+            <button
+              className={`quick-status-btn ${userStatus === 'want' ? 'active' : ''}`}
+              onClick={() => onQuickStatus(activity.media.id, 'want')}
+            >
+              ➕ Want to Watch
+            </button>
+          </div>
+          <div className="status-btn-group">
+            <button
+              className={`quick-status-btn ${userStatus === 'watching' ? 'active' : ''}`}
+              onClick={() => onQuickStatus(activity.media.id, 'watching')}
+            >
+              ▶️ Watching
+            </button>
+          </div>
+          <div className="status-btn-group">
+            <button
+              className={`quick-status-btn ${userStatus === 'watched' ? 'active' : ''}`}
+              onClick={() => onQuickStatus(activity.media.id, 'watched')}
+            >
+              ✓ Watched
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Interaction buttons */}
       <div className="activity-interactions">
-        <button
-          onClick={() => setShowComments(!showComments)}
-          className="interaction-btn"
-        >
-          💬 <span>{activity.comment_count > 0 ? activity.comment_count : ''}</span>
-        </button>
         <button
           onClick={() => onLike(activity.id)}
           className={`interaction-btn ${activity.user_liked ? 'liked' : ''}`}
-          style={{ marginLeft: 'auto' }}
         >
           <span>{activity.user_liked ? '❤️' : '🤍'}</span>
         </button>
@@ -365,6 +407,13 @@ export default function ActivityCard({
             {getLikeText()}
           </button>
         )}
+        <button
+          onClick={() => setShowComments(!showComments)}
+          className="interaction-btn"
+          style={{ marginLeft: 'auto' }}
+        >
+          💬 <span>{activity.comment_count > 0 ? activity.comment_count : ''}</span>
+        </button>
       </div>
 
       {/* Likes list */}
