@@ -90,8 +90,9 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
     )
   }
 
-  // State 1: Profile Incomplete (invites = 0, not earned)
-  if (invitesRemaining === 0 && completionStatus && !completionStatus.alreadyEarned) {
+  // State 1: Profile Incomplete (haven't earned profile completion invite yet)
+  // Show checklist if they haven't earned their invite through profile completion
+  if (completionStatus && !completionStatus.alreadyEarned) {
     const progress = (completionStatus.completedCount / completionStatus.totalCount) * 100
 
     return (
