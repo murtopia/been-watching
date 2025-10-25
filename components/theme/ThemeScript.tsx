@@ -8,11 +8,11 @@ import { useTheme } from '@/contexts/ThemeContext'
  * Must be placed inside ThemeProvider in the layout
  */
 export default function ThemeScript() {
-  const { themeMode } = useTheme()
+  const { resolvedTheme } = useTheme()
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', themeMode)
-  }, [themeMode])
+    document.documentElement.setAttribute('data-theme', resolvedTheme)
+  }, [resolvedTheme])
 
   return null
 }
