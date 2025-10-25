@@ -169,7 +169,7 @@ export default function MediaCard({
           <div className="status-btn-group">
             <button
               className={`quick-status-btn ${currentStatus === 'want' ? 'active' : ''}`}
-              onClick={() => onStatus('want')}
+              onClick={() => onStatus(currentStatus === 'want' ? null as any : 'want')}
             >
               ➕ Want to Watch
             </button>
@@ -177,7 +177,7 @@ export default function MediaCard({
           <div className="status-btn-group">
             <button
               className={`quick-status-btn ${currentStatus === 'watching' ? 'active' : ''}`}
-              onClick={() => onStatus('watching')}
+              onClick={() => onStatus(currentStatus === 'watching' ? null as any : 'watching')}
             >
               ▶️ Watching
             </button>
@@ -185,7 +185,7 @@ export default function MediaCard({
           <div className="status-btn-group">
             <button
               className={`quick-status-btn ${currentStatus === 'watched' ? 'active' : ''}`}
-              onClick={() => onStatus('watched')}
+              onClick={() => onStatus(currentStatus === 'watched' ? null as any : 'watched')}
             >
               ✓ Watched
             </button>

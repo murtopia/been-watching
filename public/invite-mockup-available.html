@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invite System - Invite Available</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 40px;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: white;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .card {
+      padding: 1.5rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      backdrop-filter: blur(20px);
+    }
+    h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 0 0 0.5rem 0;
+    }
+    .subtitle {
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+    }
+    .invite-link-box {
+      padding: 1rem;
+      background: linear-gradient(135deg, rgba(233, 77, 136, 0.1) 0%, rgba(242, 113, 33, 0.1) 100%);
+      border: 1px solid rgba(233, 77, 136, 0.2);
+      border-radius: 12px;
+      margin-bottom: 1rem;
+    }
+    .link-label {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    .link-text {
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: 'Courier New', monospace;
+      color: white;
+      word-break: break-all;
+    }
+    .buttons {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    button {
+      flex: 1;
+      padding: 0.875rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .btn-share {
+      background: linear-gradient(135deg, #e94d88 0%, #f27121 100%);
+      color: white;
+    }
+    .btn-copy {
+      background: rgba(255, 255, 255, 0.05);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .invite-count {
+      padding: 0.75rem;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 8px;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+    .invite-count strong {
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h3>🎉 Share Been Watching</h3>
+      <p class="subtitle">Invite a friend to join Been Watching!</p>
+
+      <div class="invite-link-box">
+        <div class="link-label">Your Invite Link</div>
+        <div class="link-text">beenwatching.app/join/murtopia</div>
+      </div>
+
+      <div class="buttons">
+        <button class="btn-share">
+          📤 Share
+        </button>
+        <button class="btn-copy">
+          📋 Copy Link
+        </button>
+      </div>
+
+      <div class="invite-count">
+        <strong>1</strong> invite remaining
+      </div>
+    </div>
+  </div>
+</body>
+</html>

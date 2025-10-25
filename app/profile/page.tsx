@@ -11,6 +11,8 @@ import EditProfileModal from '@/components/profile/EditProfileModal'
 import AvatarUploadModal from '@/components/profile/AvatarUploadModal'
 import UserCard from '@/components/friends/UserCard'
 import Footer from '@/components/navigation/Footer'
+import InviteSection from '@/components/profile/InviteSection'
+import ReferralDashboard from '@/components/profile/ReferralDashboard'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { getTasteMatchBetweenUsers, findSimilarUsers } from '@/utils/tasteMatch'
 
@@ -575,58 +577,19 @@ export default function ProfilePage() {
       )}
 
       {/* Invites Section */}
-      <div style={{
-        padding: '1.5rem',
-        background: colors.cardBg,
-        border: colors.cardBorder,
-        borderRadius: '12px',
-        margin: '0.5rem auto',
-        maxWidth: '600px',
-        backdropFilter: 'blur(20px)'
-      }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0', color: colors.textPrimary }}>Invites</h3>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '1rem',
-          background: 'linear-gradient(135deg, rgba(233, 77, 136, 0.1) 0%, rgba(242, 113, 33, 0.1) 100%)',
-          borderRadius: '12px',
-          border: '1px solid rgba(233, 77, 136, 0.2)'
-        }}>
-          <div>
-            <div style={{ fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.25rem', color: colors.textPrimary }}>Invites Remaining</div>
-            <div style={{ fontSize: '0.8rem', color: colors.textSecondary }}>Share Been Watching with friends</div>
-          </div>
-          <div style={{
-            fontSize: '2rem',
-            fontWeight: '700',
-            background: colors.brandGradient,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent'
-          }}>
-            {profile?.invites_remaining || 0}
-          </div>
-        </div>
-        {profile?.invite_code && (
-          <div style={{
-            marginTop: '1rem',
-            padding: '1rem',
-            background: colors.cardBg,
-            borderRadius: '8px',
-            border: colors.isDark ? `1px solid ${colors.borderColor}` : 'none'
-          }}>
-            <div style={{ fontSize: '0.75rem', color: colors.textSecondary, marginBottom: '0.5rem' }}>Your Personal Invite Code</div>
-            <div style={{
-              fontSize: '1.25rem',
-              fontWeight: '700',
-              fontFamily: 'monospace',
-              color: colors.textPrimary
-            }}>
-              {profile.invite_code}
-            </div>
-          </div>
-        )}
+      <div style={{ margin: '0.5rem auto', maxWidth: '600px' }}>
+        <InviteSection
+          userId={user?.id}
+          username={profile?.username}
+          invitesRemaining={profile?.invites_remaining || 0}
+          onInviteEarned={() => {
+            // Reload profile data when invite is earned
+            checkUser()
+          }}
+        />
+
+        {/* Referral Dashboard */}
+        <ReferralDashboard userId={user?.id} />
       </div>
 
       {/* Friends Section */}
@@ -716,7 +679,7 @@ export default function ProfilePage() {
                     tasteMatchScore={tasteMatches.get(friend.id)}
                     onFollow={handleFollow}
                     onUnfollow={handleUnfollow}
-                    onClick={(username) => router.push(`/user/${username}`)}
+                    onClick={(username) => router.push(`/${username}`)}
                   />
                 ))}
               </div>
@@ -745,7 +708,7 @@ export default function ProfilePage() {
                     tasteMatchScore={tasteMatches.get(follower.id)}
                     onFollow={handleFollow}
                     onUnfollow={handleUnfollow}
-                    onClick={(username) => router.push(`/user/${username}`)}
+                    onClick={(username) => router.push(`/${username}`)}
                   />
                 ))}
               </div>
@@ -808,7 +771,7 @@ export default function ProfilePage() {
                       tasteMatchScore={tasteMatches.get(result.id)}
                       onFollow={handleFollow}
                       onUnfollow={handleUnfollow}
-                      onClick={(username) => router.push(`/user/${username}`)}
+                      onClick={(username) => router.push(`/${username}`)}
                     />
                   ))}
                 </div>
@@ -839,7 +802,7 @@ export default function ProfilePage() {
                       tasteMatchScore={tasteMatches.get(friend.id)}
                       onFollow={handleFollow}
                       onUnfollow={handleUnfollow}
-                      onClick={(username) => router.push(`/user/${username}`)}
+                      onClick={(username) => router.push(`/${username}`)}
                     />
                   ))}
                 </div>

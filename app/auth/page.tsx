@@ -34,6 +34,15 @@ export default function AuthPage() {
     }
   }
 
+  // Check for referrer in sessionStorage when component mounts
+  useEffect(() => {
+    const referrer = sessionStorage.getItem('referrer_username')
+    if (referrer) {
+      // If there's a referrer, show signup mode
+      setIsSignup(true)
+    }
+  }, [])
+
   const validateInviteCode = async (code: string): Promise<boolean> => {
     try {
       const { data, error } = await supabase.rpc('is_master_code_valid', { master_code: code })
@@ -113,6 +122,30 @@ export default function AuthPage() {
               is_approved: true
             })
             .eq('id', data.user.id)
+
+          // Check for referrer and process invite
+          const referrerUsername = sessionStorage.getItem('referrer_username')
+          if (referrerUsername) {
+            try {
+              const { data: redeemResult, error: redeemError } = await supabase
+                .rpc('redeem_invite', {
+                  referrer_username: referrerUsername,
+                  referee_user_id: data.user.id
+                })
+
+              if (redeemError) {
+                console.error('Error redeeming invite:', redeemError)
+              } else if (redeemResult?.success) {
+                console.log('Successfully redeemed invite from', referrerUsername)
+                // Clear the referrer from session storage
+                sessionStorage.removeItem('referrer_username')
+              } else {
+                console.warn('Failed to redeem invite:', redeemResult?.error)
+              }
+            } catch (err) {
+              console.error('Error processing referral:', err)
+            }
+          }
 
           setMessage('Account created! Check your email to verify your account.')
         }

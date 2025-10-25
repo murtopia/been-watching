@@ -286,7 +286,7 @@ export default function ActivityCard({
           <div className="feed-show-title">{activity.media.title}</div>
           <div className="feed-show-meta">
             {activity.media.release_date && (
-              <span>{new Date(activity.media.release_date).getFullYear()}</span>
+              <span>{activity.media.release_date.substring(0, 4)}</span>
             )}
             {activity.media.vote_average && (
               <span> • ⭐ {activity.media.vote_average.toFixed(1)}</span>

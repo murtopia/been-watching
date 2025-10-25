@@ -95,7 +95,7 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
     // Navigate based on notification type
     switch (notification.type) {
       case 'follow':
-        router.push(`/user/${notification.actor.username}`)
+        router.push(`/${notification.actor.username}`)
         break
       case 'like_activity':
       case 'comment':

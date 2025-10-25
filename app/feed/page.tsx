@@ -821,7 +821,7 @@ export default function HomePage() {
                   onDeleteComment={handleDeleteComment}
                   onQuickRate={handleQuickRate}
                   onQuickStatus={handleQuickStatus}
-                  onUserClick={(username) => router.push(`/user/${username}`)}
+                  onUserClick={(username) => router.push(`/${username}`)}
                   onMediaClick={(media) => {
                     setSelectedMedia(media)
                     setDetailModalOpen(true)

@@ -362,7 +362,7 @@ function SeasonSelectCard({ show, season, onSelect, slotNumber }: { show: any; s
             {show.name} - Season {season.season_number}
           </div>
           <div style={{ fontSize: '0.875rem', color: '#666', marginBottom: '0.5rem' }}>
-            {season.air_date && `${new Date(season.air_date).getFullYear()}`}
+            {season.air_date && `${season.air_date.substring(0, 4)}`}
             {season.episode_count && ` • ${season.episode_count} episodes`}
           </div>
           {season.overview && (
@@ -440,7 +440,7 @@ function MovieResultCard({ media, onSelect, slotNumber }: { media: any; onSelect
           </div>
           <div style={{ fontSize: '0.875rem', color: '#666', marginBottom: '0.5rem' }}>
             {(media.release_date || media.first_air_date) &&
-              `${new Date(media.release_date || media.first_air_date).getFullYear()}`}
+              `${(media.release_date || media.first_air_date).substring(0, 4)}`}
             {media.vote_average && ` • ⭐ ${media.vote_average.toFixed(1)}`}
           </div>
           {media.overview && (
