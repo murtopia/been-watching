@@ -44,7 +44,7 @@ export default function ReferralDashboard({ userId }: ReferralDashboardProps) {
         status,
         created_at,
         joined_at,
-        referee:referee_id (
+        referee:profiles!referrals_referee_id_fkey (
           username,
           display_name,
           avatar_url
@@ -56,7 +56,8 @@ export default function ReferralDashboard({ userId }: ReferralDashboardProps) {
     if (error) {
       console.error('Error loading referrals:', error)
     } else {
-      setReferrals(data || [])
+      // Type assertion: Supabase returns referee as a single object when using the foreign key relation
+      setReferrals((data as any) || [])
     }
 
     setLoading(false)
