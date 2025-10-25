@@ -697,10 +697,15 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
                   aspectRatio: '2/3',
                   borderRadius: '8px',
                   overflow: 'hidden',
-                  background: show ? 'transparent' : '#f0f0f0',
+                  background: show ? 'transparent' : colors.cardBg,
+                  border: show ? 'none' : (colors.isDark ? '2px dashed rgba(255, 255, 255, 0.2)' : '2px dashed #ddd'),
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  boxShadow: show
+                    ? '0 0 20px 2px rgba(242, 113, 33, 0.4), 0 4px 12px rgba(0, 0, 0, 0.1)'
+                    : 'none',
+                  transition: 'all 0.3s ease'
                 }}
               >
                 {show ? (
