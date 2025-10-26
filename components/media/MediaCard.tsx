@@ -89,7 +89,7 @@ export default function MediaCard({
             {year && (
               <span>{year}</span>
             )}
-            {media.vote_average > 0 && (
+            {media.vote_average !== undefined && media.vote_average > 0 && (
               <span> • ⭐ {media.vote_average.toFixed(1)}</span>
             )}
           </div>
