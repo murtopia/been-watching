@@ -18,6 +18,8 @@ interface InviteSectionProps {
 }
 
 export default function InviteSection({ userId, username, invitesRemaining, onInviteEarned, onOpenAvatarUpload, onOpenEditProfile, onOpenSearch, onNavigateToMyShows }: InviteSectionProps) {
+  console.log('🚀 InviteSection MOUNTED - Props:', { userId, username, invitesRemaining })
+
   const colors = useThemeColors()
   const [completionStatus, setCompletionStatus] = useState<ProfileCompletionStatus | null>(null)
   const [loading, setLoading] = useState(true)
@@ -26,7 +28,12 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
   const [showCelebration, setShowCelebration] = useState(false)
 
   useEffect(() => {
-    loadCompletionStatus()
+    console.log('🔄 useEffect triggered - userId:', userId)
+    if (userId) {
+      loadCompletionStatus()
+    } else {
+      console.warn('⚠️ userId is missing!')
+    }
   }, [userId])
 
   const loadCompletionStatus = async () => {

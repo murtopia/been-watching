@@ -17,14 +17,18 @@ export interface ProfileCompletionStatus {
  * Check if user has completed all profile requirements
  */
 export async function checkProfileCompletion(userId: string): Promise<ProfileCompletionStatus> {
+  console.log('📞 checkProfileCompletion called with userId:', userId)
   const supabase = createClient()
 
   // Call the database function
   const { data, error } = await supabase
     .rpc('check_profile_completion', { user_id: userId })
 
+  console.log('📞 checkProfileCompletion response:', { data, error })
+
   if (error) {
-    console.error('Error checking profile completion:', error)
+    console.error('❌ Error checking profile completion:', error)
+    console.error('❌ Error details:', JSON.stringify(error, null, 2))
     // Return default uncompleted state
     return {
       hasAvatar: false,
@@ -40,7 +44,20 @@ export async function checkProfileCompletion(userId: string): Promise<ProfileCom
     }
   }
 
-  const status = data as ProfileCompletionStatus
+  // Database returns snake_case, convert to camelCase
+  const dbData = data as any
+  const status: ProfileCompletionStatus = {
+    hasAvatar: dbData.has_avatar || false,
+    hasBio: dbData.has_bio || false,
+    hasTopShows: dbData.has_top_shows || false,
+    hasWant: dbData.has_want || false,
+    hasWatching: dbData.has_watching || false,
+    hasWatched: dbData.has_watched || false,
+    alreadyEarned: dbData.already_earned || false,
+    isComplete: dbData.is_complete || false,
+    completedCount: 0,
+    totalCount: 6
+  }
 
   // Calculate completed count
   const completedCount = [
@@ -82,12 +99,12 @@ export async function awardProfileCompletionInvite(userId: string): Promise<bool
  */
 export function getCompletionStepLabel(step: keyof ProfileCompletionStatus): string {
   const labels: Record<string, string> = {
-    hasAvatar: 'Upload avatar',
-    hasBio: 'Write bio',
-    hasTopShows: 'Add Top 3 Shows',
-    hasWant: 'Add to Want to Watch',
-    hasWatching: 'Add to Currently Watching',
-    hasWatched: 'Add to Finished Watching'
+    hasAvatar: 'Upload an avatar photo',
+    hasBio: 'Add a short bio',
+    hasTopShows: 'Add your Top 3 favorite Shows',
+    hasWant: 'Add a show to your Want to Watch list',
+    hasWatching: 'Add a show to your Watching list',
+    hasWatched: 'Add a show to your Watched list'
   }
   return labels[step] || step
 }
