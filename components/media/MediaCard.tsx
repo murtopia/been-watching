@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import MediaBadges from './MediaBadges'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { safeExtractYear } from '@/utils/dateFormatting'
 
 interface MediaCardProps {
   media: {
@@ -43,6 +44,7 @@ export default function MediaCard({
 
   const title = media.title || media.name || 'Untitled'
   const releaseDate = media.release_date || media.first_air_date
+  const year = safeExtractYear(releaseDate)
   const mediaType = media.media_type || (media.id?.startsWith('tv-') ? 'tv' : 'movie')
   const tmdbId = media.tmdb_id
 
@@ -84,10 +86,10 @@ export default function MediaCard({
         <div className="feed-show-info">
           <div className="feed-show-title">{title}</div>
           <div className="feed-show-meta">
-            {releaseDate && (
-              <span>{releaseDate.substring(0, 4)}</span>
+            {year && (
+              <span>{year}</span>
             )}
-            {media.vote_average && (
+            {media.vote_average > 0 && (
               <span> • ⭐ {media.vote_average.toFixed(1)}</span>
             )}
           </div>

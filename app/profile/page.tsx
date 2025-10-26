@@ -15,6 +15,7 @@ import InviteSection from '@/components/profile/InviteSection'
 import ReferralDashboard from '@/components/profile/ReferralDashboard'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { getTasteMatchBetweenUsers, findSimilarUsers } from '@/utils/tasteMatch'
+import { safeFormatDate } from '@/utils/dateFormatting'
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null)
@@ -35,6 +36,7 @@ export default function ProfilePage() {
   const [tasteMatches, setTasteMatches] = useState<Map<string, number>>(new Map())
   const [mutualFriends, setMutualFriends] = useState<Map<string, any[]>>(new Map())
   const [counts, setCounts] = useState({ wantCount: 0, watchingCount: 0, watchedCount: 0 })
+  const [inviteSectionKey, setInviteSectionKey] = useState(0)
   const router = useRouter()
   const supabase = createClient()
   const colors = useThemeColors()
@@ -304,23 +306,45 @@ export default function ProfilePage() {
     try {
       // Create media ID format
       const mediaType = media.media_type || (media.first_air_date ? 'tv' : 'movie')
-      const mediaId = `${mediaType}-${media.id}`
+
+      // Extract numeric ID from media.id (handles both "64356", "64356-s2", and "tv-64356-s2" formats)
+      const idString = String(media.id)
+      const numericMatch = idString.match(/(\d+)/)
+      const numericId = numericMatch ? parseInt(numericMatch[1]) : null
+
+      if (!numericId) {
+        console.error('Could not extract numeric ID from media.id:', media.id)
+        return
+      }
+
+      const mediaId = `${mediaType}-${numericId}`
+
+      // Debug logging
+      console.log('DEBUG media.id:', media.id)
+      console.log('DEBUG extracted numericId:', numericId)
+      console.log('DEBUG final mediaId:', mediaId)
 
       // First, ensure media exists in database
-      await supabase
+      const { error: mediaError } = await supabase
         .from('media')
         .upsert({
           id: mediaId,
-          tmdb_id: media.id,
+          tmdb_id: numericId, // Use extracted numeric ID
           media_type: mediaType,
           title: media.title || media.name,
           poster_path: media.poster_path,
           backdrop_path: media.backdrop_path,
           overview: media.overview,
-          release_date: media.release_date || media.first_air_date,
+          release_date: safeFormatDate(media.release_date || media.first_air_date),
           vote_average: media.vote_average,
           tmdb_data: media
         }, { onConflict: 'id' })
+
+      if (mediaError) {
+        console.error('Error saving media:', mediaError)
+        console.error('Media details:', JSON.stringify(mediaError, null, 2))
+        return // Don't continue if media save failed
+      }
 
       // Save rating if provided
       if (rating) {
@@ -335,13 +359,20 @@ export default function ProfilePage() {
 
       // Save status if provided
       if (status) {
-        await supabase
+        const { error: statusError } = await supabase
           .from('watch_status')
           .upsert({
             user_id: user.id,
             media_id: mediaId,
             status: status
           }, { onConflict: 'user_id,media_id' })
+
+        if (statusError) {
+          console.error('Error saving watch status:', statusError)
+        } else {
+          // Refresh InviteSection to update completion status
+          setInviteSectionKey(prev => prev + 1)
+        }
       }
 
       // Keep modal open after selection
@@ -438,9 +469,10 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Name and Bio */}
+          {/* Name, Username and Bio */}
           <div style={{ flex: 1 }}>
             <h2 style={{ fontSize: '1.125rem', fontWeight: '700', margin: '0 0 0.25rem 0', color: colors.textPrimary }}>{profile.display_name}</h2>
+            <p style={{ fontSize: '0.875rem', color: colors.textSecondary, margin: '0 0 0.25rem 0' }}>@{profile.username}</p>
             <p style={{ fontSize: '0.875rem', color: colors.textSecondary, margin: 0 }}>{profile.bio || 'What have you been watching?'}</p>
           </div>
 
@@ -579,6 +611,7 @@ export default function ProfilePage() {
       {/* Invites Section */}
       <div style={{ margin: '0.5rem auto', maxWidth: '600px' }}>
         <InviteSection
+          key={inviteSectionKey}
           userId={user?.id}
           username={profile?.username}
           invitesRemaining={profile?.invites_remaining || 0}
@@ -586,6 +619,10 @@ export default function ProfilePage() {
             // Reload profile data when invite is earned
             checkUser()
           }}
+          onOpenAvatarUpload={() => setShowAvatarModal(true)}
+          onOpenEditProfile={() => setShowEditModal(true)}
+          onOpenSearch={() => setSearchOpen(true)}
+          onNavigateToMyShows={() => router.push('/myshows')}
         />
 
         {/* Referral Dashboard */}
@@ -844,6 +881,7 @@ export default function ProfilePage() {
         currentAvatarUrl={profile?.avatar_url || null}
         onAvatarUpdated={(newUrl) => {
           setProfile({ ...profile, avatar_url: newUrl })
+          setInviteSectionKey(prev => prev + 1) // Force InviteSection to refresh
         }}
       />
 

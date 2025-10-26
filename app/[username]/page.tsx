@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { getTasteMatchBetweenUsers } from '@/utils/tasteMatch'
 import MediaDetailModal from '@/components/media/MediaDetailModal'
 import MediaBadges from '@/components/media/MediaBadges'
+import AppHeader from '@/components/navigation/AppHeader'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Grid3x3, List } from 'lucide-react'
 
@@ -430,7 +431,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         <div style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '0.5rem' }}>User not found</div>
         <div style={{ fontSize: '1rem', color: colors.textTertiary, marginBottom: '2rem' }}>@{username} doesn't exist</div>
         <button
-          onClick={() => router.push('/profile')}
+          onClick={() => router.push(currentUser ? '/feed' : '/welcome')}
           style={{
             padding: '0.75rem 1.5rem',
             background: colors.brandGradient,
@@ -442,7 +443,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
             cursor: 'pointer'
           }}
         >
-          Go Back
+          Go Home
         </button>
       </div>
     )
@@ -459,76 +460,41 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
       minHeight: '100vh',
       background: 'var(--bg-primary)'
     }}>
-      {/* Sticky Navigation Header */}
+      {/* App Header */}
+      <AppHeader profile={currentUser ? { display_name: currentUser.user_metadata?.display_name, avatar_url: currentUser.user_metadata?.avatar_url } : undefined} showNotifications={false} />
+
+      {/* Home and Follow Button Row */}
       <div style={{
-        position: 'sticky',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 100,
-        background: colors.cardBg,
-        backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid #f0f0f0',
         padding: '1rem 1.5rem',
         display: 'flex',
+        gap: '0.75rem',
         alignItems: 'center',
-        gap: '1rem'
+        background: colors.cardBg,
+        borderBottom: colors.cardBorder
       }}>
-        {/* Back Button */}
         <button
-          onClick={() => router.back()}
+          onClick={() => router.push(currentUser ? '/feed' : '/welcome')}
           style={{
-            background: 'none',
-            border: 'none',
-            padding: '0.5rem',
+            background: colors.buttonBg,
+            border: colors.buttonBorder,
+            padding: '0.5rem 1rem',
             cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
             borderRadius: '8px',
-            transition: 'background 0.2s',
-            fontSize: '1.25rem',
+            fontSize: '0.875rem',
+            fontWeight: '600',
             color: colors.textPrimary
           }}
-          onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
-          onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
         >
-          ←
+          Home
         </button>
 
-        {/* Profile Name */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            fontSize: '1.125rem',
-            fontWeight: '700',
-            color: colors.textPrimary,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap'
-          }}>
-            @{profile.username}
-          </div>
-          {profile.display_name && (
-            <div style={{
-              fontSize: '0.875rem',
-              color: colors.textSecondary,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
-            }}>
-              {profile.display_name}
-            </div>
-          )}
-        </div>
-
-        {/* Follow Button (if not own profile) */}
         {!isOwnProfile && (
           <button
             onClick={isFollowing ? handleUnfollow : handleFollow}
             disabled={!currentUser}
             style={{
               padding: '0.5rem 1rem',
-              background: isFollowing ? 'transparent' : 'linear-gradient(135deg, colors.brandPink 0%, colors.brandOrange 100%)',
+              background: isFollowing ? 'transparent' : colors.brandGradient,
               color: isFollowing ? colors.brandPink : 'white',
               border: isFollowing ? `2px solid ${colors.brandPink}` : 'none',
               borderRadius: '8px',
@@ -581,6 +547,9 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.25rem', color: colors.textPrimary }}>
             {profile.display_name}
+          </div>
+          <div style={{ fontSize: '0.875rem', color: colors.textSecondary, marginBottom: '0.25rem' }}>
+            @{profile.username}
           </div>
           {profile.bio && (
             <div style={{ fontSize: '0.875rem', color: colors.textSecondary, lineHeight: '1.5' }}>
@@ -1160,10 +1129,10 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         </div>
       )}
 
-      {/* Back Button */}
+      {/* Home Button */}
       <div style={{ textAlign: 'center' }}>
         <button
-          onClick={() => router.back()}
+          onClick={() => router.push(currentUser ? '/feed' : '/welcome')}
           style={{
             padding: '0.75rem 2rem',
             background: colors.cardBg,
@@ -1175,7 +1144,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
             cursor: 'pointer'
           }}
         >
-          ← Back
+          Home
         </button>
       </div>
 

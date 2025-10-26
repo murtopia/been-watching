@@ -4,6 +4,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { useState, useEffect } from 'react'
 import { useTheme } from '@/contexts/ThemeContext'
 import MediaBadges from '../media/MediaBadges'
+import { safeExtractYear } from '@/utils/dateFormatting'
 
 interface ActivityCardProps {
   activity: {
@@ -285,8 +286,8 @@ export default function ActivityCard({
         <div className="feed-show-info">
           <div className="feed-show-title">{activity.media.title}</div>
           <div className="feed-show-meta">
-            {activity.media.release_date && (
-              <span>{activity.media.release_date.substring(0, 4)}</span>
+            {activity.media.release_date && safeExtractYear(activity.media.release_date) && (
+              <span>{safeExtractYear(activity.media.release_date)}</span>
             )}
             {activity.media.vote_average && (
               <span> • ⭐ {activity.media.vote_average.toFixed(1)}</span>

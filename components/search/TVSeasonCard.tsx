@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import MediaCard from '@/components/media/MediaCard'
+import { safeFormatDate } from '@/utils/dateFormatting'
 
 interface TVSeasonCardProps {
   show: any
@@ -98,13 +99,15 @@ export default function TVSeasonCard({ show, season, onSelect, user }: TVSeasonC
   }
 
   // Create media object for this season
+  const formattedDate = safeFormatDate(season.air_date) || undefined
+
   const seasonMedia = {
     id: seasonMediaId,
     title: `${show.name} - Season ${season.season_number}`,
     name: `${show.name} - Season ${season.season_number}`,
     poster_path: season.poster_path || show.poster_path,
     vote_average: season.vote_average,
-    release_date: season.air_date,
+    release_date: formattedDate,
     overview: season.overview || show.overview,
     media_type: 'tv',
     tmdb_id: show.id,

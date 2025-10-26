@@ -84,16 +84,30 @@ export default function AppHeader({
         gap: '0.75rem'
       }}>
         {/* Logo */}
-        <h1 style={{
-          background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          fontSize: '1.25rem',
-          fontWeight: '700',
-          margin: 0
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem'
         }}>
-          Been Watching
-        </h1>
+          <img
+            src="/bw-logo.png"
+            alt="Been Watching"
+            style={{
+              height: '40px',
+              width: 'auto'
+            }}
+          />
+          <h1 style={{
+            background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            fontSize: '1.25rem',
+            fontWeight: '700',
+            margin: 0
+          }}>
+            Been Watching
+          </h1>
+        </div>
 
         {/* Right side actions */}
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', position: 'relative' }}>

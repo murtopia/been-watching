@@ -12,6 +12,7 @@ import MediaBadges from '@/components/media/MediaBadges'
 import TopShowModal from '@/components/profile/TopShowModal'
 import Footer from '@/components/navigation/Footer'
 import { Grid3x3, List } from 'lucide-react'
+import { safeFormatDate } from '@/utils/dateFormatting'
 
 export default function MyShowsPage() {
   const [user, setUser] = useState<any>(null)
@@ -169,7 +170,7 @@ export default function MyShowsPage() {
           poster_path: media.poster_path,
           backdrop_path: media.backdrop_path,
           overview: media.overview,
-          release_date: media.release_date || media.first_air_date,
+          release_date: safeFormatDate(media.release_date || media.first_air_date),
           vote_average: media.vote_average,
           tmdb_data: media
         }, { onConflict: 'id' })
@@ -282,18 +283,28 @@ export default function MyShowsPage() {
 
     if (!show) return
 
-    // Fetch full media details from TMDB
-    const mediaType = show.media_type || (show.first_air_date ? 'tv' : 'movie')
-    try {
-      const response = await fetch(
-        `https://api.themoviedb.org/3/${mediaType}/${show.tmdb_id || show.id}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY || '99b89037cac7fea56692934b534ea26a'}`
-      )
-      const fullMediaData = await response.json()
+    // Check if this is a season-specific entry
+    const isSeasonEntry = show.id?.toString().includes('-s') || show.tmdb_data?.season_number
 
-      setSelectedMedia(fullMediaData)
+    if (isSeasonEntry) {
+      // For season-specific entries, reconstruct the full media object
+      // The show object already has everything we need
+      setSelectedMedia(show)
       setDetailModalOpen(true)
-    } catch (error) {
-      console.error('Error fetching media details:', error)
+    } else {
+      // For regular movies/shows, fetch full media details from TMDB
+      const mediaType = show.media_type || (show.first_air_date ? 'tv' : 'movie')
+      try {
+        const response = await fetch(
+          `https://api.themoviedb.org/3/${mediaType}/${show.tmdb_id || show.id}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY || '99b89037cac7fea56692934b534ea26a'}`
+        )
+        const fullMediaData = await response.json()
+
+        setSelectedMedia(fullMediaData)
+        setDetailModalOpen(true)
+      } catch (error) {
+        console.error('Error fetching media details:', error)
+      }
     }
   }
 
