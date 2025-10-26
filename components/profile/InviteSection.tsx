@@ -32,6 +32,8 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
   const loadCompletionStatus = async () => {
     setLoading(true)
     const status = await checkProfileCompletion(userId)
+    console.log('🔍 InviteSection - Completion Status:', status)
+    console.log('🔍 InviteSection - Invites Remaining:', invitesRemaining)
     setCompletionStatus(status)
     setLoading(false)
 
@@ -245,6 +247,7 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
   // State 1: Profile Incomplete (haven't earned profile completion invite yet)
   // Show checklist if they haven't earned their invite through profile completion
   if (completionStatus && !completionStatus.alreadyEarned) {
+    console.log('📋 InviteSection - Rendering STATE 1: Checklist (not earned)')
     const progress = (completionStatus.completedCount / completionStatus.totalCount) * 100
 
     return (
@@ -388,6 +391,7 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
 
   // State 2: Invite Earned and Available (invites > 0)
   if (invitesRemaining > 0) {
+    console.log('🎉 InviteSection - Rendering STATE 2: Share Invite (invites > 0)')
     const shareUrl = `beenwatching.com/join/${username}`
 
     return (
@@ -509,6 +513,7 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
   }
 
   // State 3: Invite Used (invites = 0, already earned)
+  console.log('⏳ InviteSection - Rendering STATE 3: Invite Used (invites = 0)')
   return (
     <div style={{
       padding: '1.5rem',
