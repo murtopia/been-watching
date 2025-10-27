@@ -7,8 +7,8 @@ import { formatDistanceToNow } from 'date-fns'
 
 interface Notification {
   id: string
-  type: 'follow' | 'like_activity' | 'comment' | 'mentioned' | 'note_liked' | 'note_commented'
-  actor: {
+  type: 'follow' | 'like_activity' | 'comment' | 'mentioned' | 'note_liked' | 'note_commented' | 'announcement' | 'feature_release' | 'maintenance' | 'welcome'
+  actor?: {
     username: string
     display_name: string
     avatar_url?: string
@@ -19,6 +19,17 @@ interface Notification {
   activity?: any
   read: boolean
   created_at: string
+  metadata?: {
+    title?: string
+    message?: string
+    icon?: string
+    action?: {
+      type: 'internal' | 'external'
+      url: string
+      text: string
+    }
+    announcementId?: string
+  }
 }
 
 interface NotificationDropdownProps {
@@ -48,6 +59,34 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
       loadNotifications()
     }
   }, [isOpen])
+
+  // Auto-mark notifications as read after viewing for 3 seconds
+  useEffect(() => {
+    if (!isOpen || notifications.length === 0) return
+
+    const unreadNotifications = notifications.filter(n => !n.read)
+    if (unreadNotifications.length === 0) return
+
+    const timer = setTimeout(() => {
+      // Mark all currently visible unread notifications as read
+      const unreadIds = unreadNotifications.map(n => n.id)
+
+      fetch('/api/notifications/mark-read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notificationIds: unreadIds })
+      }).then(() => {
+        // Update local state
+        setNotifications(prev => prev.map(n =>
+          unreadIds.includes(n.id) ? { ...n, read: true } : n
+        ))
+      }).catch(error => {
+        console.error('Error auto-marking notifications as read:', error)
+      })
+    }, 3000) // 3 seconds
+
+    return () => clearTimeout(timer)
+  }, [isOpen, notifications])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -92,8 +131,23 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
       })
     }
 
-    // Check if this is a system notification
-    if (isSystemNotification(notification)) {
+    // Handle announcements - check for action button
+    if (isAnnouncement(notification)) {
+      if (notification.metadata?.action) {
+        const { type, url } = notification.metadata.action
+        if (type === 'internal') {
+          router.push(url)
+          onClose()
+        } else if (type === 'external') {
+          window.open(url, '_blank')
+        }
+      }
+      // If no action, just keep dropdown open or close it
+      return
+    }
+
+    // Check if this is the invite earned notification
+    if (isSystemNotification(notification) && notification.type === 'mentioned') {
       // Navigate to profile page to see their invite code
       router.push('/profile')
       onClose()
@@ -103,7 +157,7 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
     // Navigate based on notification type
     switch (notification.type) {
       case 'follow':
-        router.push(`/${notification.actor.username}`)
+        router.push(`/${notification.actor?.username}`)
         break
       case 'like_activity':
       case 'comment':
@@ -133,7 +187,11 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
   }
 
   const isSystemNotification = (notification: Notification) => {
-    return !notification.actor && notification.type === 'mentioned'
+    return !notification.actor && (notification.type === 'mentioned' || notification.type === 'announcement' || notification.type === 'feature_release' || notification.type === 'maintenance' || notification.type === 'welcome')
+  }
+
+  const isAnnouncement = (notification: Notification) => {
+    return notification.type === 'announcement' || notification.type === 'feature_release' || notification.type === 'maintenance' || notification.type === 'welcome'
   }
 
   const getNotificationText = (notification: Notification) => {
@@ -320,7 +378,7 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
                   overflow: 'hidden'
                 }}>
                   {isSystem ? (
-                    '🎉'
+                    isAnnouncement(notification) ? notification.metadata?.icon || '📢' : '🎉'
                   ) : notification.actor?.avatar_url ? (
                     <img
                       src={notification.actor.avatar_url}
@@ -343,7 +401,10 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
                         lineHeight: '1.4',
                         fontWeight: '700'
                       }}>
-                        You earned an invite! 🎉
+                        {isAnnouncement(notification)
+                          ? notification.metadata?.title || 'Announcement'
+                          : 'You earned an invite! 🎉'
+                        }
                       </div>
                       <div style={{
                         fontSize: '0.8125rem',
@@ -351,7 +412,10 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
                         marginBottom: '0.5rem',
                         lineHeight: '1.4'
                       }}>
-                        You completed your profile and earned an invite code to share with a friend!
+                        {isAnnouncement(notification)
+                          ? notification.metadata?.message || ''
+                          : 'You completed your profile and earned an invite code to share with a friend!'
+                        }
                       </div>
                     </>
                   ) : (
