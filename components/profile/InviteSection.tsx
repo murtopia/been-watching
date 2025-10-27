@@ -186,11 +186,36 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
   }
 
   const handleCopy = async () => {
+    // If no token exists, generate it first
     if (!inviteToken) {
-      await generateInviteToken()
+      try {
+        const supabase = createClient()
+        const { data, error } = await supabase
+          .rpc('create_user_invite_token', { user_id: userId })
+
+        if (error || !data?.success) {
+          alert('Failed to generate invite link. Please try again.')
+          return
+        }
+
+        // Use the newly generated token immediately
+        const newToken = data.token
+        setInviteToken(newToken)
+
+        const shareUrl = `https://beenwatching.com/join?code=${newToken}`
+        const shareMessage = `I just got an invite code to Been Watching, a new social show and movie discovery platform that I think you'd like! Come join me see what I've been watching here: ${shareUrl}`
+
+        await navigator.clipboard.writeText(shareMessage)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      } catch (err) {
+        console.error('Error:', err)
+        alert('Failed to generate and copy invite link.')
+      }
       return
     }
 
+    // Token already exists, just copy it
     const shareUrl = `https://beenwatching.com/join?code=${inviteToken}`
     const shareMessage = `I just got an invite code to Been Watching, a new social show and movie discovery platform that I think you'd like! Come join me see what I've been watching here: ${shareUrl}`
 
