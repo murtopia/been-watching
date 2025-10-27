@@ -14,6 +14,9 @@ export default function LandingPage() {
   const { resolvedTheme } = useTheme()
   const colors = useThemeColors()
   const [loading, setLoading] = useState(true)
+  const [vipCode, setVipCode] = useState('')
+  const [validatingCode, setValidatingCode] = useState(false)
+  const [codeError, setCodeError] = useState('')
 
   useEffect(() => {
     checkAuth()
@@ -26,6 +29,38 @@ export default function LandingPage() {
       router.push('/feed')
     } else {
       setLoading(false)
+    }
+  }
+
+  const handleVipCodeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setCodeError('')
+
+    if (!vipCode.trim()) {
+      setCodeError('Please enter a VIP code')
+      return
+    }
+
+    setValidatingCode(true)
+
+    try {
+      const { data, error } = await supabase
+        .rpc('is_master_code_valid', { master_code: vipCode.trim().toUpperCase() })
+
+      if (error) throw error
+
+      if (data === true) {
+        // Valid code - store in session and redirect to signup
+        sessionStorage.setItem('vip_code', vipCode.trim().toUpperCase())
+        router.push('/auth?signup=true&vip=true')
+      } else {
+        setCodeError('Invalid VIP code. Please check and try again.')
+      }
+    } catch (err) {
+      console.error('Error validating VIP code:', err)
+      setCodeError('Failed to validate code. Please try again.')
+    } finally {
+      setValidatingCode(false)
     }
   }
 
@@ -347,7 +382,7 @@ export default function LandingPage() {
             </button>
           </div>
 
-          {/* I Have a Code Card */}
+          {/* VIP Code Entry Card */}
           <div style={{
             background: colors.cardBg,
             backdropFilter: 'blur(20px)',
@@ -362,7 +397,7 @@ export default function LandingPage() {
               color: colors.textPrimary,
               marginBottom: '1rem'
             }}>
-              Got an Invite Code?
+              Got a VIP Code?
             </h2>
             <p style={{
               fontSize: '0.9375rem',
@@ -370,33 +405,87 @@ export default function LandingPage() {
               marginBottom: '1.5rem',
               lineHeight: 1.6
             }}>
-              Already have an invite code? Sign in to get started.
+              Enter your VIP code to skip the waitlist and get instant access.
             </p>
-            <button
-              onClick={() => router.push('/auth')}
-              style={{
-                width: '100%',
-                padding: '1rem',
-                background: 'transparent',
-                border: `2px solid ${colors.brandPink}`,
-                borderRadius: '12px',
-                color: colors.brandPink,
-                fontSize: '1rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = `${colors.brandPink}1A`
-                e.currentTarget.style.transform = 'translateY(-2px)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent'
-                e.currentTarget.style.transform = 'translateY(0)'
-              }}
-            >
-              Login or Signup
-            </button>
+            <form onSubmit={handleVipCodeSubmit}>
+              <input
+                type="text"
+                value={vipCode}
+                onChange={(e) => {
+                  setVipCode(e.target.value.toUpperCase())
+                  setCodeError('')
+                }}
+                placeholder="Enter VIP Code"
+                disabled={validatingCode}
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  marginBottom: '0.75rem',
+                  background: colors.background,
+                  border: codeError ? '2px solid #ef4444' : colors.cardBorder,
+                  borderRadius: '12px',
+                  color: colors.textPrimary,
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  textAlign: 'center',
+                  letterSpacing: '0.1em',
+                  outline: 'none',
+                  transition: 'all 0.2s',
+                  opacity: validatingCode ? 0.6 : 1
+                }}
+                onFocus={(e) => {
+                  if (!codeError) {
+                    e.currentTarget.style.borderColor = colors.brandPink
+                  }
+                }}
+                onBlur={(e) => {
+                  if (!codeError) {
+                    e.currentTarget.style.borderColor = colors.cardBorder.split(' ')[2]
+                  }
+                }}
+              />
+              {codeError && (
+                <p style={{
+                  color: '#ef4444',
+                  fontSize: '0.875rem',
+                  marginBottom: '0.75rem',
+                  textAlign: 'center'
+                }}>
+                  {codeError}
+                </p>
+              )}
+              <button
+                type="submit"
+                disabled={validatingCode || !vipCode.trim()}
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  background: validatingCode || !vipCode.trim() ? colors.textSecondary : 'transparent',
+                  border: `2px solid ${colors.brandPink}`,
+                  borderRadius: '12px',
+                  color: validatingCode || !vipCode.trim() ? colors.background : colors.brandPink,
+                  fontSize: '1rem',
+                  fontWeight: 700,
+                  cursor: validatingCode || !vipCode.trim() ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s',
+                  opacity: validatingCode || !vipCode.trim() ? 0.6 : 1
+                }}
+                onMouseEnter={(e) => {
+                  if (!validatingCode && vipCode.trim()) {
+                    e.currentTarget.style.background = `${colors.brandPink}1A`
+                    e.currentTarget.style.transform = 'translateY(-2px)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!validatingCode && vipCode.trim()) {
+                    e.currentTarget.style.background = 'transparent'
+                    e.currentTarget.style.transform = 'translateY(0)'
+                  }
+                }}
+              >
+                {validatingCode ? 'Validating...' : 'Continue'}
+              </button>
+            </form>
           </div>
         </div>
       </section>
