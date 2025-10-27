@@ -888,7 +888,7 @@ export default function AdminPage() {
                 Icon
               </label>
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                {['📢', '🎉', '✨', '🚀', '⚡', '🔧'].map(emoji => (
+                {['📢', '🎉', '✨', '🚀', '⚡', '🔧', '🎃', '🎄', '🎊', '💝', '🌟', '🔥'].map(emoji => (
                   <button
                     key={emoji}
                     onClick={() => setAnnouncementIcon(emoji)}
