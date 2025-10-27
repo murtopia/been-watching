@@ -82,6 +82,43 @@ export default function AdminPage() {
   const supabase = createClient()
   const router = useRouter()
 
+  // Get seasonal icons based on current month
+  const getSeasonalIcons = () => {
+    const month = new Date().getMonth() // 0-11
+    const baseIcons = ['📢', '🎉', '✨', '🚀', '⚡', '🔧']
+
+    // October: Halloween
+    if (month === 9) {
+      return [...baseIcons, '🎃', '👻', '🦇', '🕷️', '💀', '🍂']
+    }
+    // November-December: Holidays
+    else if (month === 10 || month === 11) {
+      return [...baseIcons, '🎄', '🎅', '❄️', '⛄', '🎁', '🦃']
+    }
+    // January-February: Winter/Valentine's
+    else if (month === 0 || month === 1) {
+      return [...baseIcons, '❄️', '⛄', '💝', '💘', '🎊', '🎆']
+    }
+    // March-April: Spring
+    else if (month === 2 || month === 3) {
+      return [...baseIcons, '🌸', '🌷', '🌼', '🦋', '🐣', '☘️']
+    }
+    // May-June: Summer
+    else if (month === 4 || month === 5) {
+      return [...baseIcons, '☀️', '🌻', '🌊', '🏖️', '🍉', '🌺']
+    }
+    // July-August: Summer
+    else if (month === 6 || month === 7) {
+      return [...baseIcons, '🏖️', '🌊', '☀️', '🍦', '🎆', '🔥']
+    }
+    // September: Fall
+    else if (month === 8) {
+      return [...baseIcons, '🍂', '🍁', '🌰', '🎒', '📚', '🏈']
+    }
+
+    return baseIcons
+  }
+
   // Check system preference on mount
   useEffect(() => {
     const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)')
@@ -888,7 +925,7 @@ export default function AdminPage() {
                 Icon
               </label>
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                {['📢', '🎉', '✨', '🚀', '⚡', '🔧', '🎃', '🎄', '🎊', '💝', '🌟', '🔥'].map(emoji => (
+                {getSeasonalIcons().map(emoji => (
                   <button
                     key={emoji}
                     onClick={() => setAnnouncementIcon(emoji)}
