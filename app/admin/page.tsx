@@ -75,6 +75,10 @@ export default function AdminPage() {
   const [announcementResult, setAnnouncementResult] = useState<{ success: boolean; message: string; recipients?: number } | null>(null)
   const [announcementStats, setAnnouncementStats] = useState<any[]>([])
 
+  // Confirmation modal state
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [pendingAnnouncementData, setPendingAnnouncementData] = useState<any>(null)
+
   const supabase = createClient()
   const router = useRouter()
 
@@ -379,7 +383,7 @@ export default function AdminPage() {
     }
   }
 
-  const sendAnnouncement = async () => {
+  const sendAnnouncement = () => {
     if (!announcementTitle.trim() || !announcementMessage.trim()) {
       alert('Please enter both title and message')
       return
@@ -390,23 +394,37 @@ export default function AdminPage() {
       return
     }
 
-    if (!confirm(`Send announcement to ${targetAudience === 'all' ? 'ALL users' : targetAudience.replace('_', ' ')}?\n\nTitle: ${announcementTitle}\n\nThis will create notifications for all targeted users.`)) {
-      return
-    }
+    // Show confirmation modal
+    setPendingAnnouncementData({
+      title: announcementTitle.trim(),
+      message: announcementMessage.trim(),
+      type: announcementType,
+      icon: announcementIcon,
+      action_type: hasAction ? actionType : 'none',
+      action_url: hasAction ? actionUrl.trim() : null,
+      action_text: hasAction ? actionText.trim() : null,
+      target_audience: targetAudience
+    })
+    setShowConfirmModal(true)
+  }
 
+  const confirmSendAnnouncement = async () => {
+    if (!pendingAnnouncementData) return
+
+    setShowConfirmModal(false)
     setSendingAnnouncement(true)
     setAnnouncementResult(null)
 
     try {
       const { data, error } = await supabase.rpc('send_global_announcement', {
-        announcement_title: announcementTitle.trim(),
-        announcement_message: announcementMessage.trim(),
-        announcement_type: announcementType,
-        announcement_icon: announcementIcon,
-        action_type: hasAction ? actionType : 'none',
-        action_url: hasAction ? actionUrl.trim() : null,
-        action_text: hasAction ? actionText.trim() : null,
-        target_audience: targetAudience
+        announcement_title: pendingAnnouncementData.title,
+        announcement_message: pendingAnnouncementData.message,
+        announcement_type: pendingAnnouncementData.type,
+        announcement_icon: pendingAnnouncementData.icon,
+        action_type: pendingAnnouncementData.action_type,
+        action_url: pendingAnnouncementData.action_url,
+        action_text: pendingAnnouncementData.action_text,
+        target_audience: pendingAnnouncementData.target_audience
       })
 
       if (error) throw error
@@ -423,6 +441,7 @@ export default function AdminPage() {
       setHasAction(false)
       setActionUrl('')
       setActionText('')
+      setPendingAnnouncementData(null)
 
       // Reload stats
       loadAnnouncementStats()
@@ -1838,6 +1857,126 @@ export default function AdminPage() {
           </a>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && pendingAnnouncementData && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.7)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '2rem',
+          }}
+          onClick={() => {
+            setShowConfirmModal(false)
+            setPendingAnnouncementData(null)
+          }}
+        >
+          <div
+            style={{
+              background: cardBg,
+              backdropFilter: 'blur(20px)',
+              border: `1px solid ${cardBorder}`,
+              borderRadius: '16px',
+              padding: '2rem',
+              maxWidth: '500px',
+              width: '100%',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 style={{
+              fontSize: '1.5rem',
+              fontWeight: 700,
+              color: textPrimary,
+              marginBottom: '1rem',
+            }}>
+              Send announcement to {pendingAnnouncementData.target_audience === 'all' ? 'ALL users' : pendingAnnouncementData.target_audience.replace('_', ' ')}?
+            </h2>
+
+            <div style={{
+              padding: '1rem',
+              background: inputBg,
+              border: `1px solid ${inputBorder}`,
+              borderRadius: '12px',
+              marginBottom: '1rem',
+            }}>
+              <div style={{
+                fontSize: '1rem',
+                fontWeight: 600,
+                color: textPrimary,
+                marginBottom: '0.5rem',
+              }}>
+                {pendingAnnouncementData.icon} {pendingAnnouncementData.title}
+              </div>
+              <div style={{
+                fontSize: '0.875rem',
+                color: textSecondary,
+                lineHeight: 1.5,
+              }}>
+                {pendingAnnouncementData.message}
+              </div>
+            </div>
+
+            <p style={{
+              fontSize: '0.875rem',
+              color: textSecondary,
+              marginBottom: '1.5rem',
+            }}>
+              This will create notifications for all targeted users.
+            </p>
+
+            <div style={{
+              display: 'flex',
+              gap: '1rem',
+            }}>
+              <button
+                onClick={() => {
+                  setShowConfirmModal(false)
+                  setPendingAnnouncementData(null)
+                }}
+                style={{
+                  flex: 1,
+                  padding: '0.875rem',
+                  background: inputBg,
+                  border: `1px solid ${inputBorder}`,
+                  borderRadius: '8px',
+                  color: textPrimary,
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmSendAnnouncement}
+                style={{
+                  flex: 1,
+                  padding: '0.875rem',
+                  background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: '#fff',
+                  fontSize: '1rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Keyframes for spinner animation */}
       <style jsx>{`
