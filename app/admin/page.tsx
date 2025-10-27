@@ -60,6 +60,21 @@ export default function AdminPage() {
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [socialMetrics, setSocialMetrics] = useState<SocialMetrics | null>(null)
   const [loadingMetrics, setLoadingMetrics] = useState(false)
+
+  // Announcement state
+  const [announcementTitle, setAnnouncementTitle] = useState('')
+  const [announcementMessage, setAnnouncementMessage] = useState('')
+  const [announcementType, setAnnouncementType] = useState<'announcement' | 'feature_release' | 'maintenance'>('announcement')
+  const [announcementIcon, setAnnouncementIcon] = useState('📢')
+  const [hasAction, setHasAction] = useState(false)
+  const [actionType, setActionType] = useState<'internal' | 'external'>('internal')
+  const [actionUrl, setActionUrl] = useState('')
+  const [actionText, setActionText] = useState('')
+  const [targetAudience, setTargetAudience] = useState<'all' | 'incomplete_profiles' | 'active_users'>('all')
+  const [sendingAnnouncement, setSendingAnnouncement] = useState(false)
+  const [announcementResult, setAnnouncementResult] = useState<{ success: boolean; message: string; recipients?: number } | null>(null)
+  const [announcementStats, setAnnouncementStats] = useState<any[]>([])
+
   const supabase = createClient()
   const router = useRouter()
 
@@ -162,6 +177,9 @@ export default function AdminPage() {
 
     // Load social metrics
     loadSocialMetrics()
+
+    // Load announcement stats
+    loadAnnouncementStats()
   }
 
   const loadSocialMetrics = async () => {
@@ -358,6 +376,74 @@ export default function AdminPage() {
       alert('Error creating code: ' + error.message)
     } finally {
       setCreatingCode(false)
+    }
+  }
+
+  const sendAnnouncement = async () => {
+    if (!announcementTitle.trim() || !announcementMessage.trim()) {
+      alert('Please enter both title and message')
+      return
+    }
+
+    if (hasAction && (!actionUrl.trim() || !actionText.trim())) {
+      alert('Please fill in both action URL and button text')
+      return
+    }
+
+    if (!confirm(`Send announcement to ${targetAudience === 'all' ? 'ALL users' : targetAudience.replace('_', ' ')}?\n\nTitle: ${announcementTitle}\n\nThis will create notifications for all targeted users.`)) {
+      return
+    }
+
+    setSendingAnnouncement(true)
+    setAnnouncementResult(null)
+
+    try {
+      const { data, error } = await supabase.rpc('send_global_announcement', {
+        announcement_title: announcementTitle.trim(),
+        announcement_message: announcementMessage.trim(),
+        announcement_type: announcementType,
+        announcement_icon: announcementIcon,
+        action_type: hasAction ? actionType : 'none',
+        action_url: hasAction ? actionUrl.trim() : null,
+        action_text: hasAction ? actionText.trim() : null,
+        target_audience: targetAudience
+      })
+
+      if (error) throw error
+
+      setAnnouncementResult({
+        success: true,
+        message: 'Announcement sent successfully!',
+        recipients: data?.recipients || 0
+      })
+
+      // Reset form
+      setAnnouncementTitle('')
+      setAnnouncementMessage('')
+      setHasAction(false)
+      setActionUrl('')
+      setActionText('')
+
+      // Reload stats
+      loadAnnouncementStats()
+    } catch (error: any) {
+      console.error('Error sending announcement:', error)
+      setAnnouncementResult({
+        success: false,
+        message: 'Error: ' + error.message
+      })
+    } finally {
+      setSendingAnnouncement(false)
+    }
+  }
+
+  const loadAnnouncementStats = async () => {
+    try {
+      const { data, error } = await supabase.rpc('get_announcement_stats')
+      if (error) throw error
+      setAnnouncementStats(data || [])
+    } catch (error) {
+      console.error('Error loading announcement stats:', error)
     }
   }
 
@@ -654,6 +740,458 @@ export default function AdminPage() {
             </div>
           )}
         </div>
+
+        {/* Create Announcement Card */}
+        <div
+          style={{
+            background: cardBg,
+            backdropFilter: 'blur(20px)',
+            border: `1px solid ${cardBorder}`,
+            borderRadius: '16px',
+            padding: '2rem',
+            marginBottom: '2rem',
+            boxShadow: isDarkMode
+              ? '0 10px 30px rgba(0, 0, 0, 0.3)'
+              : '0 10px 30px rgba(0, 0, 0, 0.05)',
+          }}
+        >
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: textPrimary, marginBottom: '1rem' }}>
+            📢 Send Announcement
+          </h2>
+
+          {/* Title */}
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{ display: 'block', color: textSecondary, fontSize: '0.875rem', marginBottom: '0.5rem', fontWeight: 600 }}>
+              Title *
+            </label>
+            <input
+              type="text"
+              value={announcementTitle}
+              onChange={(e) => setAnnouncementTitle(e.target.value)}
+              placeholder="Earn Invite Codes!"
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                background: inputBg,
+                border: `1px solid ${inputBorder}`,
+                borderRadius: '8px',
+                color: textPrimary,
+                fontSize: '0.875rem',
+                outline: 'none',
+              }}
+            />
+          </div>
+
+          {/* Message */}
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{ display: 'block', color: textSecondary, fontSize: '0.875rem', marginBottom: '0.5rem', fontWeight: 600 }}>
+              Message *
+            </label>
+            <textarea
+              value={announcementMessage}
+              onChange={(e) => setAnnouncementMessage(e.target.value)}
+              placeholder="Complete your profile to unlock invite codes and invite your friends!"
+              rows={3}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                background: inputBg,
+                border: `1px solid ${inputBorder}`,
+                borderRadius: '8px',
+                color: textPrimary,
+                fontSize: '0.875rem',
+                outline: 'none',
+                resize: 'vertical',
+                fontFamily: 'inherit',
+              }}
+            />
+          </div>
+
+          {/* Type and Icon Row */}
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+            {/* Type Selector */}
+            <div>
+              <label style={{ display: 'block', color: textSecondary, fontSize: '0.875rem', marginBottom: '0.5rem', fontWeight: 600 }}>
+                Type
+              </label>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => setAnnouncementType('announcement')}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: announcementType === 'announcement' ? 'rgba(59, 130, 246, 0.2)' : inputBg,
+                    border: `1px solid ${announcementType === 'announcement' ? '#3b82f6' : inputBorder}`,
+                    borderRadius: '6px',
+                    color: announcementType === 'announcement' ? '#3b82f6' : textPrimary,
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Announcement
+                </button>
+                <button
+                  onClick={() => setAnnouncementType('feature_release')}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: announcementType === 'feature_release' ? 'rgba(168, 85, 247, 0.2)' : inputBg,
+                    border: `1px solid ${announcementType === 'feature_release' ? '#a855f7' : inputBorder}`,
+                    borderRadius: '6px',
+                    color: announcementType === 'feature_release' ? '#a855f7' : textPrimary,
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Feature
+                </button>
+                <button
+                  onClick={() => setAnnouncementType('maintenance')}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: announcementType === 'maintenance' ? 'rgba(239, 68, 68, 0.2)' : inputBg,
+                    border: `1px solid ${announcementType === 'maintenance' ? '#ef4444' : inputBorder}`,
+                    borderRadius: '6px',
+                    color: announcementType === 'maintenance' ? '#ef4444' : textPrimary,
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Maintenance
+                </button>
+              </div>
+            </div>
+
+            {/* Icon Selector */}
+            <div>
+              <label style={{ display: 'block', color: textSecondary, fontSize: '0.875rem', marginBottom: '0.5rem', fontWeight: 600 }}>
+                Icon
+              </label>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                {['📢', '🎉', '✨', '🚀', '⚡', '🔧'].map(emoji => (
+                  <button
+                    key={emoji}
+                    onClick={() => setAnnouncementIcon(emoji)}
+                    style={{
+                      padding: '0.5rem',
+                      background: announcementIcon === emoji ? 'rgba(233, 77, 136, 0.2)' : inputBg,
+                      border: `1px solid ${announcementIcon === emoji ? '#e94d88' : inputBorder}`,
+                      borderRadius: '6px',
+                      fontSize: '1.25rem',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Action Button Section */}
+          <div style={{
+            padding: '1rem',
+            background: inputBg,
+            border: `1px solid ${inputBorder}`,
+            borderRadius: '8px',
+            marginBottom: '1rem',
+          }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={hasAction}
+                onChange={(e) => setHasAction(e.target.checked)}
+                style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+              />
+              <span style={{ color: textPrimary, fontSize: '0.875rem', fontWeight: 600 }}>
+                Add Action Button
+              </span>
+            </label>
+
+            {hasAction && (
+              <>
+                {/* Action Type */}
+                <div style={{ marginBottom: '0.75rem' }}>
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                    <button
+                      onClick={() => setActionType('internal')}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        background: actionType === 'internal' ? 'rgba(34, 197, 94, 0.2)' : 'transparent',
+                        border: `1px solid ${actionType === 'internal' ? '#22c55e' : inputBorder}`,
+                        borderRadius: '6px',
+                        color: actionType === 'internal' ? '#22c55e' : textPrimary,
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Internal Link
+                    </button>
+                    <button
+                      onClick={() => setActionType('external')}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        background: actionType === 'external' ? 'rgba(34, 197, 94, 0.2)' : 'transparent',
+                        border: `1px solid ${actionType === 'external' ? '#22c55e' : inputBorder}`,
+                        borderRadius: '6px',
+                        color: actionType === 'external' ? '#22c55e' : textPrimary,
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      External URL
+                    </button>
+                  </div>
+                </div>
+
+                {/* Action URL */}
+                <div style={{ marginBottom: '0.75rem' }}>
+                  <label style={{ display: 'block', color: textSecondary, fontSize: '0.75rem', marginBottom: '0.25rem' }}>
+                    {actionType === 'internal' ? 'Path' : 'URL'}
+                  </label>
+                  <input
+                    type="text"
+                    value={actionUrl}
+                    onChange={(e) => setActionUrl(e.target.value)}
+                    placeholder={actionType === 'internal' ? '/profile' : 'https://beenwatching.com/blog'}
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      background: isDarkMode ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.5)',
+                      border: `1px solid ${inputBorder}`,
+                      borderRadius: '6px',
+                      color: textPrimary,
+                      fontSize: '0.75rem',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+
+                {/* Action Text */}
+                <div>
+                  <label style={{ display: 'block', color: textSecondary, fontSize: '0.75rem', marginBottom: '0.25rem' }}>
+                    Button Text
+                  </label>
+                  <input
+                    type="text"
+                    value={actionText}
+                    onChange={(e) => setActionText(e.target.value)}
+                    placeholder="Complete Profile"
+                    maxLength={20}
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      background: isDarkMode ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.5)',
+                      border: `1px solid ${inputBorder}`,
+                      borderRadius: '6px',
+                      color: textPrimary,
+                      fontSize: '0.75rem',
+                      outline: 'none',
+                    }}
+                  />
+                  <span style={{ fontSize: '0.625rem', color: textSecondary, marginTop: '0.25rem', display: 'block' }}>
+                    {actionText.length}/20 characters
+                  </span>
+                </div>
+
+                {/* Preview */}
+                {actionText && (
+                  <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: `1px solid ${inputBorder}` }}>
+                    <span style={{ fontSize: '0.75rem', color: textSecondary, marginBottom: '0.5rem', display: 'block' }}>
+                      Button Preview:
+                    </span>
+                    <button
+                      style={{
+                        padding: '0.5rem 1rem',
+                        background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+                        border: 'none',
+                        borderRadius: '8px',
+                        color: '#fff',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                      }}
+                    >
+                      {actionText} {actionType === 'external' ? '↗' : '→'}
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Target Audience */}
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{ display: 'block', color: textSecondary, fontSize: '0.875rem', marginBottom: '0.5rem', fontWeight: 600 }}>
+              Target Audience
+            </label>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => setTargetAudience('all')}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: targetAudience === 'all' ? 'rgba(34, 197, 94, 0.2)' : inputBg,
+                  border: `1px solid ${targetAudience === 'all' ? '#22c55e' : inputBorder}`,
+                  borderRadius: '6px',
+                  color: targetAudience === 'all' ? '#22c55e' : textPrimary,
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                All Users
+              </button>
+              <button
+                onClick={() => setTargetAudience('incomplete_profiles')}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: targetAudience === 'incomplete_profiles' ? 'rgba(251, 191, 36, 0.2)' : inputBg,
+                  border: `1px solid ${targetAudience === 'incomplete_profiles' ? '#fbbf24' : inputBorder}`,
+                  borderRadius: '6px',
+                  color: targetAudience === 'incomplete_profiles' ? '#fbbf24' : textPrimary,
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Incomplete Profiles
+              </button>
+              <button
+                onClick={() => setTargetAudience('active_users')}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: targetAudience === 'active_users' ? 'rgba(59, 130, 246, 0.2)' : inputBg,
+                  border: `1px solid ${targetAudience === 'active_users' ? '#3b82f6' : inputBorder}`,
+                  borderRadius: '6px',
+                  color: targetAudience === 'active_users' ? '#3b82f6' : textPrimary,
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Active Users (30d)
+              </button>
+            </div>
+          </div>
+
+          {/* Send Button */}
+          <button
+            onClick={sendAnnouncement}
+            disabled={sendingAnnouncement || !announcementTitle.trim() || !announcementMessage.trim()}
+            style={{
+              width: '100%',
+              padding: '1rem',
+              background: sendingAnnouncement || !announcementTitle.trim() || !announcementMessage.trim()
+                ? textSecondary
+                : 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+              border: 'none',
+              borderRadius: '8px',
+              color: '#fff',
+              fontSize: '1rem',
+              fontWeight: 700,
+              cursor: sendingAnnouncement || !announcementTitle.trim() || !announcementMessage.trim() ? 'not-allowed' : 'pointer',
+              opacity: sendingAnnouncement || !announcementTitle.trim() || !announcementMessage.trim() ? 0.6 : 1,
+              transition: 'all 0.2s',
+            }}
+          >
+            {sendingAnnouncement ? 'Sending...' : 'Send Announcement'}
+          </button>
+
+          {/* Result Message */}
+          {announcementResult && (
+            <div
+              style={{
+                padding: '1rem',
+                background: announcementResult.success ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                border: `1px solid ${announcementResult.success ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+                borderRadius: '8px',
+                marginTop: '1rem',
+              }}
+            >
+              <p style={{ color: announcementResult.success ? '#22c55e' : '#ef4444', fontSize: '0.875rem', margin: 0 }}>
+                {announcementResult.message}
+                {announcementResult.recipients !== undefined && ` Sent to ${announcementResult.recipients} users.`}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Announcement History Card */}
+        {announcementStats.length > 0 && (
+          <div
+            style={{
+              background: cardBg,
+              backdropFilter: 'blur(20px)',
+              border: `1px solid ${cardBorder}`,
+              borderRadius: '16px',
+              padding: '2rem',
+              marginBottom: '2rem',
+              boxShadow: isDarkMode
+                ? '0 10px 30px rgba(0, 0, 0, 0.3)'
+                : '0 10px 30px rgba(0, 0, 0, 0.05)',
+            }}
+          >
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: textPrimary, marginBottom: '1.5rem' }}>
+              Announcement History ({announcementStats.length})
+            </h2>
+
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: `1px solid ${inputBorder}` }}>
+                    <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                      Title
+                    </th>
+                    <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                      Type
+                    </th>
+                    <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                      Sent
+                    </th>
+                    <th style={{ padding: '0.75rem', textAlign: 'right', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                      Recipients
+                    </th>
+                    <th style={{ padding: '0.75rem', textAlign: 'right', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                      Read Rate
+                    </th>
+                    <th style={{ padding: '0.75rem', textAlign: 'right', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                      Click Rate
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {announcementStats.map((stat) => (
+                    <tr key={stat.id} style={{ borderBottom: `1px solid ${inputBorder}` }}>
+                      <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem' }}>
+                        {stat.title}
+                      </td>
+                      <td style={{ padding: '1rem', color: textSecondary, fontSize: '0.875rem' }}>
+                        {stat.type}
+                      </td>
+                      <td style={{ padding: '1rem', color: textSecondary, fontSize: '0.875rem' }}>
+                        {new Date(stat.sent_at).toLocaleDateString()}
+                      </td>
+                      <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem', textAlign: 'right' }}>
+                        {stat.total_recipients}
+                      </td>
+                      <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem', textAlign: 'right' }}>
+                        {stat.read_rate}%
+                      </td>
+                      <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem', textAlign: 'right' }}>
+                        {stat.click_rate}%
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
         {/* Invite Stats Card */}
         <div
