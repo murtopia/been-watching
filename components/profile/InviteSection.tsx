@@ -161,23 +161,69 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
   }
 
   const handleShare = async () => {
+    // If no token exists, generate it first
     if (!inviteToken) {
-      await generateInviteToken()
+      try {
+        const supabase = createClient()
+        const { data, error } = await supabase
+          .rpc('create_user_invite_token', { user_id: userId })
+
+        if (error || !data?.success) {
+          alert('Failed to generate invite link. Please try again.')
+          return
+        }
+
+        // Use the newly generated token immediately
+        const newToken = data.token
+        setInviteToken(newToken)
+
+        const shareUrl = `https://beenwatching.com/join?code=${newToken}`
+        const shareText = `I just got an invite code to Been Watching, a new social show and movie discovery platform that I think you'd like! Come join me see what I've been watching here:`
+
+        try {
+          // Try native share first
+          if (navigator.share) {
+            await navigator.share({
+              title: 'Join me on Been Watching',
+              text: shareText,
+              url: shareUrl
+            })
+          } else {
+            // Fallback to copy with full message
+            const fullMessage = `${shareText} ${shareUrl}`
+            await navigator.clipboard.writeText(fullMessage)
+            setCopied(true)
+            setTimeout(() => setCopied(false), 2000)
+          }
+        } catch (err) {
+          // User cancelled or error occurred
+          console.log('Share cancelled or failed:', err)
+        }
+      } catch (err) {
+        console.error('Error:', err)
+        alert('Failed to generate invite link.')
+      }
       return
     }
 
+    // Token already exists, share it
     const shareUrl = `https://beenwatching.com/join?code=${inviteToken}`
-    const shareMessage = `I just got an invite code to Been Watching, a new social show and movie discovery platform that I think you'd like! Come join me see what I've been watching here: ${shareUrl}`
+    const shareText = `I just got an invite code to Been Watching, a new social show and movie discovery platform that I think you'd like! Come join me see what I've been watching here:`
 
     try {
       // Try native share first
       if (navigator.share) {
         await navigator.share({
-          text: shareMessage
+          title: 'Join me on Been Watching',
+          text: shareText,
+          url: shareUrl
         })
       } else {
-        // Fallback to copy
-        await handleCopy()
+        // Fallback to copy with full message
+        const fullMessage = `${shareText} ${shareUrl}`
+        await navigator.clipboard.writeText(fullMessage)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
       }
     } catch (err) {
       // User cancelled or error occurred
