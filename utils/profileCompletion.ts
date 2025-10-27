@@ -17,18 +17,14 @@ export interface ProfileCompletionStatus {
  * Check if user has completed all profile requirements
  */
 export async function checkProfileCompletion(userId: string): Promise<ProfileCompletionStatus> {
-  console.log('📞 checkProfileCompletion called with userId:', userId)
   const supabase = createClient()
 
   // Call the database function
-  const { data, error } = await supabase
+  const { data, error} = await supabase
     .rpc('check_profile_completion', { user_id: userId })
 
-  console.log('📞 checkProfileCompletion response:', { data, error })
-
   if (error) {
-    console.error('❌ Error checking profile completion:', error)
-    console.error('❌ Error details:', JSON.stringify(error, null, 2))
+    console.error('Error checking profile completion:', error)
     // Return default uncompleted state
     return {
       hasAvatar: false,

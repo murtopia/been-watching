@@ -17,6 +17,8 @@ export default function AuthPage() {
   const [message, setMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [showForgotPassword, setShowForgotPassword] = useState(false)
+  const [inviteType, setInviteType] = useState<'token' | 'vip' | null>(null)
+  const [inviterUsername, setInviterUsername] = useState<string | null>(null)
   const supabase = createClient()
   const router = useRouter()
   const { resolvedTheme } = useTheme()
@@ -34,14 +36,46 @@ export default function AuthPage() {
     }
   }
 
-  // Check for referrer in sessionStorage when component mounts
+  // Check for invite token or VIP code in sessionStorage
   useEffect(() => {
-    const referrer = sessionStorage.getItem('referrer_username')
-    if (referrer) {
-      // If there's a referrer, show signup mode
+    const inviteToken = sessionStorage.getItem('invite_token')
+    const vipCode = sessionStorage.getItem('vip_code')
+
+    if (inviteToken) {
+      // Friend invite via secure token
+      setInviteType('token')
       setIsSignup(true)
+      validateAndLoadInviteToken(inviteToken)
+    } else if (vipCode) {
+      // VIP code invite
+      setInviteType('vip')
+      setIsSignup(true)
+      setInviteCode(vipCode)
     }
   }, [])
+
+  const validateAndLoadInviteToken = async (token: string) => {
+    try {
+      const { data, error } = await supabase
+        .rpc('validate_invite_token', { invite_token: token })
+
+      if (error || !data?.valid) {
+        console.error('Invalid invite token:', error || data?.error)
+        setErrorMessage('Your invite link is invalid or has expired. Please request a new one.')
+        sessionStorage.removeItem('invite_token')
+        setInviteType(null)
+        return
+      }
+
+      // Store inviter username for display
+      setInviterUsername(data.inviter_username)
+    } catch (err) {
+      console.error('Error validating invite token:', err)
+      setErrorMessage('Error validating invite. Please try again.')
+      sessionStorage.removeItem('invite_token')
+      setInviteType(null)
+    }
+  }
 
   const validateInviteCode = async (code: string): Promise<boolean> => {
     try {
@@ -74,16 +108,32 @@ export default function AuthPage() {
           return
         }
 
-        if (!inviteCode) {
-          setErrorMessage('Invite code is required to sign up')
-          setLoading(false)
-          return
-        }
+        // Validation based on invite type
+        if (inviteType === 'vip') {
+          // VIP code flow - require code validation
+          if (!inviteCode) {
+            setErrorMessage('Invite code is required to sign up')
+            setLoading(false)
+            return
+          }
 
-        // Validate invite code
-        const isValid = await validateInviteCode(inviteCode.trim().toUpperCase())
-        if (!isValid) {
-          setErrorMessage('Invalid or expired invite code')
+          const isValid = await validateInviteCode(inviteCode.trim().toUpperCase())
+          if (!isValid) {
+            setErrorMessage('Invalid or expired invite code')
+            setLoading(false)
+            return
+          }
+        } else if (inviteType === 'token') {
+          // Friend invite token flow - already validated on page load
+          const inviteToken = sessionStorage.getItem('invite_token')
+          if (!inviteToken) {
+            setErrorMessage('Invite token expired. Please request a new invite.')
+            setLoading(false)
+            return
+          }
+        } else {
+          // No invite type - shouldn't happen, but show error
+          setErrorMessage('No valid invite found. Please use an invite link or code.')
           setLoading(false)
           return
         }
@@ -94,7 +144,7 @@ export default function AuthPage() {
           password,
           options: {
             data: {
-              invited_by_code: inviteCode.trim().toUpperCase()
+              invite_type: inviteType
             }
           }
         })
@@ -102,48 +152,70 @@ export default function AuthPage() {
         if (error) {
           setErrorMessage(error.message)
         } else if (data.user) {
-          // Use the master code
-          await supabase.rpc('use_master_code', {
-            master_code: inviteCode.trim().toUpperCase(),
-            user_id: data.user.id
-          })
+          // Handle invite redemption based on type
+          if (inviteType === 'token') {
+            // Redeem friend invite token
+            const inviteToken = sessionStorage.getItem('invite_token')
+            if (inviteToken) {
+              try {
+                const { data: redeemResult, error: redeemError } = await supabase
+                  .rpc('redeem_invite_token', {
+                    invite_token: inviteToken,
+                    referee_user_id: data.user.id
+                  })
 
-          // Update profile with master code and tier
-          const masterCode = inviteCode.trim().toUpperCase()
-          const tier = masterCode === 'BOOZEHOUND' ? 'boozehound' :
-                      masterCode.startsWith('BWALPHA_') ? 'alpha' : 'beta'
+                if (redeemError) {
+                  console.error('Error redeeming invite token:', redeemError)
+                } else if (redeemResult?.success) {
+                  console.log('✅ Successfully redeemed invite from @' + redeemResult.inviter_username)
+                  sessionStorage.removeItem('invite_token')
 
-          await supabase
-            .from('profiles')
-            .update({
-              invited_by_master_code: masterCode,
-              invite_tier: tier,
-              invites_remaining: tier === 'boozehound' ? 10 : tier === 'alpha' ? 3 : 0,
-              is_approved: true
-            })
-            .eq('id', data.user.id)
-
-          // Check for referrer and process invite
-          const referrerUsername = sessionStorage.getItem('referrer_username')
-          if (referrerUsername) {
-            try {
-              const { data: redeemResult, error: redeemError } = await supabase
-                .rpc('redeem_invite', {
-                  referrer_username: referrerUsername,
-                  referee_user_id: data.user.id
-                })
-
-              if (redeemError) {
-                console.error('Error redeeming invite:', redeemError)
-              } else if (redeemResult?.success) {
-                console.log('Successfully redeemed invite from', referrerUsername)
-                // Clear the referrer from session storage
-                sessionStorage.removeItem('referrer_username')
-              } else {
-                console.warn('Failed to redeem invite:', redeemResult?.error)
+                  // Friend invites start with 0 invites (must earn via profile completion)
+                  await supabase
+                    .from('profiles')
+                    .update({
+                      invites_remaining: 0,
+                      is_approved: true
+                    })
+                    .eq('id', data.user.id)
+                } else {
+                  console.warn('Failed to redeem invite:', redeemResult?.error)
+                }
+              } catch (err) {
+                console.error('Error processing invite token:', err)
               }
+            }
+
+          } else if (inviteType === 'vip') {
+            // VIP code flow - use master code and award bulk invites
+            const masterCode = inviteCode.trim().toUpperCase()
+
+            try {
+              // Use the master code
+              await supabase.rpc('use_master_code', {
+                master_code: masterCode,
+                user_id: data.user.id
+              })
+
+              // Determine tier and award invites
+              const tier = masterCode === 'BOOZEHOUND' ? 'boozehound' :
+                          masterCode.startsWith('BWALPHA_') ? 'alpha' : 'beta'
+
+              await supabase
+                .from('profiles')
+                .update({
+                  invited_by_master_code: masterCode,
+                  invite_tier: tier,
+                  invites_remaining: tier === 'boozehound' ? 10 : tier === 'alpha' ? 3 : 0,
+                  is_approved: true
+                })
+                .eq('id', data.user.id)
+
+              console.log(`✅ VIP code ${masterCode} used - awarded ${tier === 'boozehound' ? 10 : tier === 'alpha' ? 3 : 0} invites`)
+              sessionStorage.removeItem('vip_code')
+
             } catch (err) {
-              console.error('Error processing referral:', err)
+              console.error('Error processing VIP code:', err)
             }
           }
 
@@ -595,8 +667,27 @@ export default function AuthPage() {
             </div>
           )}
 
-          {/* Invite Code (Signup only) */}
-          {isSignup && (
+          {/* Invite Info/Code (Signup only) */}
+          {isSignup && inviteType === 'token' && inviterUsername && (
+            <div style={{
+              marginBottom: '1.5rem',
+              padding: '1rem',
+              background: 'linear-gradient(135deg, rgba(233, 77, 136, 0.1) 0%, rgba(242, 113, 33, 0.1) 100%)',
+              border: '1px solid rgba(233, 77, 136, 0.3)',
+              borderRadius: '12px',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🎉</div>
+              <div style={{ color: textPrimary, fontSize: '0.875rem', fontWeight: 600 }}>
+                Invited by <span style={{ color: '#e94d88' }}>@{inviterUsername}</span>
+              </div>
+              <div style={{ color: textSecondary, fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                No invite code needed!
+              </div>
+            </div>
+          )}
+
+          {isSignup && inviteType === 'vip' && (
             <div style={{ marginBottom: '1.5rem' }}>
               <label
                 style={{
@@ -607,14 +698,14 @@ export default function AuthPage() {
                   marginBottom: '0.5rem',
                 }}
               >
-                Invite Code
+                VIP Invite Code
               </label>
               <input
                 type="text"
                 value={inviteCode}
                 onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
                 placeholder="BWALPHA_XXXXXXXX"
-                required={isSignup}
+                required={true}
                 style={{
                   width: '100%',
                   padding: '0.875rem 1rem',

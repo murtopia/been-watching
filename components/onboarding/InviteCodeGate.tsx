@@ -70,7 +70,7 @@ export default function InviteCodeGate({ userId, onValidated }: InviteCodeGatePr
         .update({
           invited_by_master_code: masterCode,
           invite_tier: tier,
-          invites_remaining: tier === 'boozehound' ? 10 : tier === 'alpha' ? 3 : 0,
+          invites_remaining: 0, // All users start with 0 invites, earn 1 from profile completion
           is_approved: true
         })
         .eq('id', userId)

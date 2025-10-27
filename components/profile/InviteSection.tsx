@@ -18,29 +18,25 @@ interface InviteSectionProps {
 }
 
 export default function InviteSection({ userId, username, invitesRemaining, onInviteEarned, onOpenAvatarUpload, onOpenEditProfile, onOpenSearch, onNavigateToMyShows }: InviteSectionProps) {
-  console.log('🚀 InviteSection MOUNTED - Props:', { userId, username, invitesRemaining })
-
   const colors = useThemeColors()
   const [completionStatus, setCompletionStatus] = useState<ProfileCompletionStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
   const [checking, setChecking] = useState(false)
   const [showCelebration, setShowCelebration] = useState(false)
+  const [inviteToken, setInviteToken] = useState<string | null>(null)
+  const [generatingToken, setGeneratingToken] = useState(false)
 
   useEffect(() => {
-    console.log('🔄 useEffect triggered - userId:', userId)
     if (userId) {
       loadCompletionStatus()
-    } else {
-      console.warn('⚠️ userId is missing!')
+      loadInviteToken()
     }
   }, [userId])
 
   const loadCompletionStatus = async () => {
     setLoading(true)
     const status = await checkProfileCompletion(userId)
-    console.log('🔍 InviteSection - Completion Status:', status)
-    console.log('🔍 InviteSection - Invites Remaining:', invitesRemaining)
     setCompletionStatus(status)
     setLoading(false)
 
@@ -108,8 +104,69 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
     }
   }
 
+  const loadInviteToken = async () => {
+    try {
+      const supabase = createClient()
+
+      // Get the user's active invite token
+      const { data, error } = await supabase
+        .from('invite_tokens')
+        .select('token')
+        .eq('inviter_id', userId)
+        .eq('status', 'active')
+        .eq('invite_type', 'username')
+        .single()
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error('Error loading invite token:', error)
+        return
+      }
+
+      if (data) {
+        setInviteToken(data.token)
+      }
+    } catch (err) {
+      console.error('Error loading invite token:', err)
+    }
+  }
+
+  const generateInviteToken = async () => {
+    setGeneratingToken(true)
+
+    try {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .rpc('create_user_invite_token', { user_id: userId })
+
+      if (error) {
+        console.error('Error generating invite token:', error)
+        alert('Failed to generate invite link. Please try again.')
+        setGeneratingToken(false)
+        return
+      }
+
+      if (data.success) {
+        setInviteToken(data.token)
+      } else {
+        alert(data.error === 'no_invites_remaining'
+          ? 'You have no invites remaining. Complete more tasks to earn invites!'
+          : 'Failed to generate invite link.')
+      }
+    } catch (err) {
+      console.error('Error generating invite token:', err)
+      alert('Failed to generate invite link. Please try again.')
+    } finally {
+      setGeneratingToken(false)
+    }
+  }
+
   const handleShare = async () => {
-    const shareUrl = `https://beenwatching.com/join/${username}`
+    if (!inviteToken) {
+      await generateInviteToken()
+      return
+    }
+
+    const shareUrl = `https://beenwatching.com/join?code=${inviteToken}`
     const shareMessage = `I just got an invite code to Been Watching, a new social show and movie discovery platform that I think you'd like! Come join me see what I've been watching here: ${shareUrl}`
 
     try {
@@ -129,7 +186,12 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
   }
 
   const handleCopy = async () => {
-    const shareUrl = `https://beenwatching.com/join/${username}`
+    if (!inviteToken) {
+      await generateInviteToken()
+      return
+    }
+
+    const shareUrl = `https://beenwatching.com/join?code=${inviteToken}`
     const shareMessage = `I just got an invite code to Been Watching, a new social show and movie discovery platform that I think you'd like! Come join me see what I've been watching here: ${shareUrl}`
 
     try {
@@ -254,7 +316,6 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
   // State 1: Profile Incomplete (haven't earned profile completion invite yet)
   // Show checklist if they haven't earned their invite through profile completion
   if (completionStatus && !completionStatus.alreadyEarned) {
-    console.log('📋 InviteSection - Rendering STATE 1: Checklist (not earned)')
     const progress = (completionStatus.completedCount / completionStatus.totalCount) * 100
 
     return (
@@ -398,8 +459,7 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
 
   // State 2: Invite Earned and Available (invites > 0)
   if (invitesRemaining > 0) {
-    console.log('🎉 InviteSection - Rendering STATE 2: Share Invite (invites > 0)')
-    const shareUrl = `beenwatching.com/join/${username}`
+    const shareUrl = inviteToken ? `beenwatching.com/join?code=${inviteToken}` : null
 
     return (
       <div style={{
@@ -425,33 +485,55 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
         </p>
 
         {/* Invite Link Display */}
-        <div style={{
-          padding: '1rem',
-          background: 'linear-gradient(135deg, rgba(233, 77, 136, 0.1) 0%, rgba(242, 113, 33, 0.1) 100%)',
-          border: '1px solid rgba(233, 77, 136, 0.2)',
-          borderRadius: '12px',
-          marginBottom: '1rem'
-        }}>
+        {inviteToken ? (
           <div style={{
-            fontSize: '0.75rem',
+            padding: '1rem',
+            background: 'linear-gradient(135deg, rgba(233, 77, 136, 0.1) 0%, rgba(242, 113, 33, 0.1) 100%)',
+            border: '1px solid rgba(233, 77, 136, 0.2)',
+            borderRadius: '12px',
+            marginBottom: '1rem'
+          }}>
+            <div style={{
+              fontSize: '0.75rem',
+              color: colors.textSecondary,
+              marginBottom: '0.5rem',
+              textTransform: 'uppercase',
+              fontWeight: '600',
+              letterSpacing: '0.5px'
+            }}>
+              Your Secure Invite Link
+            </div>
+            <div style={{
+              fontSize: '0.95rem',
+              fontWeight: '600',
+              fontFamily: 'monospace',
+              color: colors.textPrimary,
+              wordBreak: 'break-all'
+            }}>
+              {shareUrl}
+            </div>
+            <div style={{
+              fontSize: '0.75rem',
+              color: colors.textTertiary,
+              marginTop: '0.5rem'
+            }}>
+              Expires in 7 days • One-time use
+            </div>
+          </div>
+        ) : (
+          <div style={{
+            padding: '1rem',
+            background: 'rgba(59, 130, 246, 0.1)',
+            border: '1px solid rgba(59, 130, 246, 0.3)',
+            borderRadius: '12px',
+            marginBottom: '1rem',
+            textAlign: 'center',
             color: colors.textSecondary,
-            marginBottom: '0.5rem',
-            textTransform: 'uppercase',
-            fontWeight: '600',
-            letterSpacing: '0.5px'
+            fontSize: '0.875rem'
           }}>
-            Your Invite Link
+            Click "Share" or "Copy Link" to generate your secure invite link
           </div>
-          <div style={{
-            fontSize: '1rem',
-            fontWeight: '600',
-            fontFamily: 'monospace',
-            color: colors.textPrimary,
-            wordBreak: 'break-all'
-          }}>
-            {shareUrl}
-          </div>
-        </div>
+        )}
 
         {/* Share Buttons */}
         <div style={{
@@ -461,27 +543,30 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
         }}>
           <button
             onClick={handleShare}
+            disabled={generatingToken}
             style={{
               flex: 1,
               padding: '0.875rem',
-              background: colors.brandGradient,
+              background: generatingToken ? colors.textSecondary : colors.brandGradient,
               color: 'white',
               border: 'none',
               borderRadius: '8px',
               fontSize: '1rem',
               fontWeight: '600',
-              cursor: 'pointer',
+              cursor: generatingToken ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '0.5rem'
+              gap: '0.5rem',
+              opacity: generatingToken ? 0.6 : 1
             }}
           >
             <Share2 size={18} />
-            Share
+            {generatingToken ? 'Generating...' : 'Share'}
           </button>
           <button
             onClick={handleCopy}
+            disabled={generatingToken}
             style={{
               flex: 1,
               padding: '0.875rem',
@@ -491,15 +576,16 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
               borderRadius: '8px',
               fontSize: '1rem',
               fontWeight: '600',
-              cursor: 'pointer',
+              cursor: generatingToken ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '0.5rem'
+              gap: '0.5rem',
+              opacity: generatingToken ? 0.6 : 1
             }}
           >
             {copied ? <Check size={18} /> : <Copy size={18} />}
-            {copied ? 'Copied!' : 'Copy Link'}
+            {copied ? 'Copied!' : generatingToken ? 'Generating...' : 'Copy Link'}
           </button>
         </div>
 
@@ -520,7 +606,6 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
   }
 
   // State 3: Invite Used (invites = 0, already earned)
-  console.log('⏳ InviteSection - Rendering STATE 3: Invite Used (invites = 0)')
   return (
     <div style={{
       padding: '1.5rem',

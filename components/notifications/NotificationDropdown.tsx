@@ -92,6 +92,14 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
       })
     }
 
+    // Check if this is a system notification
+    if (isSystemNotification(notification)) {
+      // Navigate to profile page to see their invite code
+      router.push('/profile')
+      onClose()
+      return
+    }
+
     // Navigate based on notification type
     switch (notification.type) {
       case 'follow':
@@ -122,6 +130,10 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
     } catch (error) {
       console.error('Error marking all as read:', error)
     }
+  }
+
+  const isSystemNotification = (notification: Notification) => {
+    return !notification.actor && notification.type === 'mentioned'
   }
 
   const getNotificationText = (notification: Notification) => {
@@ -264,90 +276,120 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
             </div>
           </div>
         ) : (
-          notifications.map((notification) => (
-            <div
-              key={notification.id}
-              onClick={() => handleNotificationClick(notification)}
-              style={{
-                padding: '0.875rem 1.25rem',
-                background: !notification.read ? unreadBg : 'transparent',
-                borderBottom: `1px solid ${borderColor}`,
-                cursor: 'pointer',
-                transition: 'background 0.2s',
-                display: 'flex',
-                gap: '0.75rem',
-                alignItems: 'flex-start'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = hoverBg
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = !notification.read ? unreadBg : 'transparent'
-              }}
-            >
-              {/* Avatar */}
-              <div style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                background: notification.actor.avatar_url
-                  ? 'transparent'
-                  : 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                fontSize: '0.875rem',
-                fontWeight: '700',
-                flexShrink: 0,
-                overflow: 'hidden'
-              }}>
-                {notification.actor.avatar_url ? (
-                  <img
-                    src={notification.actor.avatar_url}
-                    alt={notification.actor.display_name}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                ) : (
-                  getInitials(notification.actor.display_name)
+          notifications.map((notification) => {
+            const isSystem = isSystemNotification(notification)
+
+            return (
+              <div
+                key={notification.id}
+                onClick={() => handleNotificationClick(notification)}
+                style={{
+                  padding: '0.875rem 1.25rem',
+                  background: !notification.read ? unreadBg : 'transparent',
+                  borderBottom: `1px solid ${borderColor}`,
+                  cursor: 'pointer',
+                  transition: 'background 0.2s',
+                  display: 'flex',
+                  gap: '0.75rem',
+                  alignItems: 'flex-start'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = hoverBg
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = !notification.read ? unreadBg : 'transparent'
+                }}
+              >
+                {/* Avatar or System Icon */}
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  background: isSystem
+                    ? 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)'
+                    : notification.actor?.avatar_url
+                    ? 'transparent'
+                    : 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontSize: isSystem ? '1.25rem' : '0.875rem',
+                  fontWeight: '700',
+                  flexShrink: 0,
+                  overflow: 'hidden'
+                }}>
+                  {isSystem ? (
+                    '🎉'
+                  ) : notification.actor?.avatar_url ? (
+                    <img
+                      src={notification.actor.avatar_url}
+                      alt={notification.actor.display_name}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    getInitials(notification.actor?.display_name || 'U')
+                  )}
+                </div>
+
+                {/* Content */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  {isSystem ? (
+                    <>
+                      <div style={{
+                        fontSize: '0.875rem',
+                        color: textPrimary,
+                        marginBottom: '0.25rem',
+                        lineHeight: '1.4',
+                        fontWeight: '700'
+                      }}>
+                        You earned an invite! 🎉
+                      </div>
+                      <div style={{
+                        fontSize: '0.8125rem',
+                        color: textSecondary,
+                        marginBottom: '0.5rem',
+                        lineHeight: '1.4'
+                      }}>
+                        You completed your profile and earned an invite code to share with a friend!
+                      </div>
+                    </>
+                  ) : (
+                    <div style={{
+                      fontSize: '0.875rem',
+                      color: textPrimary,
+                      marginBottom: '0.25rem',
+                      lineHeight: '1.4'
+                    }}>
+                      <strong>@{notification.actor?.username}</strong>
+                      {' '}
+                      <span style={{ color: textSecondary }}>
+                        {getNotificationText(notification)}
+                      </span>
+                    </div>
+                  )}
+                  <div style={{
+                    fontSize: '0.75rem',
+                    color: textSecondary
+                  }}>
+                    {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                  </div>
+                </div>
+
+                {/* Unread indicator */}
+                {!notification.read && (
+                  <div style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+                    flexShrink: 0,
+                    marginTop: '0.5rem'
+                  }} />
                 )}
               </div>
-
-              {/* Content */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  fontSize: '0.875rem',
-                  color: textPrimary,
-                  marginBottom: '0.25rem',
-                  lineHeight: '1.4'
-                }}>
-                  <strong>@{notification.actor.username}</strong>
-                  {' '}
-                  <span style={{ color: textSecondary }}>
-                    {getNotificationText(notification)}
-                  </span>
-                </div>
-                <div style={{
-                  fontSize: '0.75rem',
-                  color: textSecondary
-                }}>
-                  {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
-                </div>
-              </div>
-
-              {/* Unread indicator */}
-              {!notification.read && (
-                <div style={{
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-                  flexShrink: 0,
-                  marginTop: '0.5rem'
-                }} />
-              )}
-            </div>
-          ))
+            )
+          })
         )}
       </div>
     </div>

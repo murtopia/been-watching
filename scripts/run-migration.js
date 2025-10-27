@@ -17,10 +17,10 @@ const supabase = createClient(supabaseUrl, supabaseKey)
 
 async function runMigration() {
   try {
-    console.log('Running migration: create-show-notes-table.sql')
+    console.log('Running migration: add-invite-system-v2.sql')
 
     // Read the SQL file
-    const sqlPath = path.join(__dirname, '..', 'supabase', 'migrations', 'create-show-notes-table.sql')
+    const sqlPath = path.join(__dirname, '..', 'supabase', 'migrations', 'add-invite-system-v2.sql')
     const sql = fs.readFileSync(sqlPath, 'utf-8')
 
     console.log('\n📄 Migration SQL:')
@@ -30,13 +30,15 @@ async function runMigration() {
 
     console.log('\nPlease run this SQL manually in Supabase SQL Editor:')
     console.log('1. Go to https://udfhqiipppybkuxpycay.supabase.co/project/udfhqiipppybkuxpycay/sql/new')
-    console.log('2. Copy the SQL from above (or from supabase/migrations/create-show-notes-table.sql)')
+    console.log('2. Copy the SQL from above (or from supabase/migrations/add-invite-system-v2.sql)')
     console.log('3. Paste and run the SQL')
-    console.log('\nAfter running the migration, the show_notes table will be created with:')
-    console.log('  - 280 character limit on notes')
-    console.log('  - Public/Private visibility')
-    console.log('  - Row Level Security enabled')
-    console.log('  - Proper indexes for performance')
+    console.log('\nAfter running the migration, the invite system v2 will be set up with:')
+    console.log('  - profile_invite_earned column')
+    console.log('  - invited_by column')
+    console.log('  - referrals table')
+    console.log('  - check_profile_completion() function')
+    console.log('  - award_profile_completion_invite() function')
+    console.log('  - redeem_invite() function')
 
   } catch (error) {
     console.error('Migration failed:', error)
