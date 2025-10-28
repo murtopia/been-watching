@@ -67,6 +67,8 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
   const [loadingWatchList, setLoadingWatchList] = useState(false)
   const [selectedMedia, setSelectedMedia] = useState<any>(null)
   const [mediaModalOpen, setMediaModalOpen] = useState(false)
+  const [hasMoreItems, setHasMoreItems] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
 
   useEffect(() => {
     loadUserProfile()
@@ -240,11 +242,21 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
     }
   }
 
-  const loadWatchList = async (status: 'want' | 'watching' | 'watched') => {
+  const loadWatchList = async (status: 'want' | 'watching' | 'watched', append: boolean = false) => {
     if (!profile) return
 
-    setLoadingWatchList(true)
+    if (append) {
+      setLoadingMore(true)
+    } else {
+      setLoadingWatchList(true)
+      setWatchListItems([])
+      setHasMoreItems(true)
+    }
+
     try {
+      const offset = append ? watchListItems.length : 0
+      const pageSize = 40
+
       const { data, error } = await supabase
         .from('watch_status')
         .select(`
@@ -254,7 +266,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         .eq('user_id', profile.id)
         .eq('status', status)
         .order('created_at', { ascending: false })
-        .limit(20)
+        .range(offset, offset + pageSize - 1)
 
       if (data) {
         // Fetch ratings for each media item
@@ -273,12 +285,21 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
             }
           })
         )
-        setWatchListItems(mediaWithRatings)
+
+        if (append) {
+          setWatchListItems(prev => [...prev, ...mediaWithRatings])
+        } else {
+          setWatchListItems(mediaWithRatings)
+        }
+
+        // Check if there are more items
+        setHasMoreItems(data.length === pageSize)
       }
     } catch (error) {
       console.error('Error loading watch list:', error)
     } finally {
       setLoadingWatchList(false)
+      setLoadingMore(false)
     }
   }
 
@@ -1059,6 +1080,47 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
                  activeWatchTab === 'watching' ? 'Not currently watching any shows' :
                  'No shows watched yet'}
               </div>
+            </div>
+          )}
+
+          {/* Load More Button */}
+          {!loadingWatchList && watchListItems.length > 0 && hasMoreItems && (
+            <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+              <button
+                onClick={() => loadWatchList(activeWatchTab, true)}
+                disabled={loadingMore}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  background: loadingMore ? colors.cardBg : colors.brandGradient,
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '0.875rem',
+                  fontWeight: '600',
+                  cursor: loadingMore ? 'not-allowed' : 'pointer',
+                  opacity: loadingMore ? 0.6 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  margin: '0 auto'
+                }}
+              >
+                {loadingMore ? (
+                  <>
+                    <div style={{
+                      width: '16px',
+                      height: '16px',
+                      border: '2px solid white',
+                      borderTopColor: 'transparent',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite'
+                    }}></div>
+                    Loading...
+                  </>
+                ) : (
+                  'Load More'
+                )}
+              </button>
             </div>
           )}
         </div>
