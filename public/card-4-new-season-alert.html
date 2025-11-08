@@ -540,6 +540,9 @@
             -webkit-overflow-scrolling: touch;
             overscroll-behavior: contain;
             touch-action: pan-y;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            touch-action: pan-y;
             position: relative;
             z-index: 1;
         }
@@ -1047,6 +1050,12 @@
             padding-bottom: 0;
             max-height: 350px;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            touch-action: pan-y;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            touch-action: pan-y;
             -webkit-overflow-scrolling: touch;
             overscroll-behavior: contain;
         }
@@ -2076,6 +2085,49 @@
             // Log the rating (in production, this would save to database)
             console.log('User rated show as:', rating);
         }
+
+
+        // Prevent body scroll when touching scrollable areas
+        function preventBodyScroll() {
+            const scrollableElements = document.querySelectorAll('.card-back-content, .comments-full');
+
+            scrollableElements.forEach(element => {
+                let startY = 0;
+
+                element.addEventListener('touchstart', (e) => {
+                    startY = e.touches[0].pageY;
+                }, { passive: true });
+
+                element.addEventListener('touchmove', (e) => {
+                    const scrollTop = element.scrollTop;
+                    const scrollHeight = element.scrollHeight;
+                    const height = element.clientHeight;
+                    const deltaY = e.touches[0].pageY - startY;
+                    const isAtTop = scrollTop === 0;
+                    const isAtBottom = scrollTop + height >= scrollHeight;
+
+                    // Prevent page scroll when:
+                    // - Scrolling down at top (deltaY < 0 and isAtTop)
+                    // - Scrolling up at bottom (deltaY > 0 and isAtBottom)
+                    // - Scrolling in the middle (not at top or bottom)
+                    if ((!isAtTop && !isAtBottom) ||
+                        (isAtTop && deltaY < 0) ||
+                        (isAtBottom && deltaY > 0)) {
+                        e.stopPropagation();
+                    }
+                }, { passive: false });
+            });
+        }
+
+        // Initialize on load and when card is flipped
+        preventBodyScroll();
+
+        // Re-initialize when comments section expands
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.comments-header')) {
+                setTimeout(preventBodyScroll, 100);
+            }
+        });
     </script>
 </body>
 </html>
