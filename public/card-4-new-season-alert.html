@@ -1970,7 +1970,8 @@
         // Like button interaction (front card only)
         document.querySelectorAll('.card-front .action-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                e.stopPropagation();
+                e.preventDefault();
+                        e.stopPropagation();
                 // Add visual feedback
                 btn.style.transform = 'scale(0.9)';
                 setTimeout(() => {
@@ -2113,11 +2114,31 @@
                     if ((!isAtTop && !isAtBottom) ||
                         (isAtTop && deltaY < 0) ||
                         (isAtBottom && deltaY > 0)) {
+                        e.preventDefault();
                         e.stopPropagation();
                     }
                 }, { passive: false });
             });
         }
+
+
+        // Also prevent body scroll entirely when card is flipped
+        let isCardFlipped = false;
+        const card = document.getElementById('activityCard');
+        const flipBtn = document.querySelector('.action-btn');
+
+        if (flipBtn) {
+            flipBtn.addEventListener('click', () => {
+                isCardFlipped = card.classList.contains('flipped');
+            });
+        }
+
+        // Prevent body scroll when card is flipped
+        document.body.addEventListener('touchmove', (e) => {
+            if (isCardFlipped && !e.target.closest('.card-back-content') && !e.target.closest('.comments-full')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
 
         // Initialize on load and when card is flipped
         preventBodyScroll();
