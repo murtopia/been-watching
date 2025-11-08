@@ -650,6 +650,38 @@
         document.querySelector('.card').addEventListener('mouseleave', () => {
             startAutoRotate();
         });
+
+        // Touch swipe support for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+        const carousel = document.querySelector('.carousel-container');
+
+        carousel.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+            clearInterval(autoRotateInterval);
+        }, { passive: true });
+
+        carousel.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+            startAutoRotate();
+        }, { passive: true });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    // Swiped left - go to next
+                    nextSlide();
+                } else {
+                    // Swiped right - go to previous
+                    const prev = (currentSlide - 1 + totalSlides) % totalSlides;
+                    showSlide(prev);
+                }
+            }
+        }
     </script>
 </body>
 </html>
