@@ -2088,67 +2088,29 @@
         }
 
 
-        // Prevent body scroll when touching scrollable areas
-        function preventBodyScroll() {
-            const scrollableElements = document.querySelectorAll('.card-back-content, .comments-full');
-
-            scrollableElements.forEach(element => {
-                let startY = 0;
-
-                element.addEventListener('touchstart', (e) => {
-                    startY = e.touches[0].pageY;
-                }, { passive: true });
-
-                element.addEventListener('touchmove', (e) => {
-                    const scrollTop = element.scrollTop;
-                    const scrollHeight = element.scrollHeight;
-                    const height = element.clientHeight;
-                    const deltaY = e.touches[0].pageY - startY;
-                    const isAtTop = scrollTop === 0;
-                    const isAtBottom = scrollTop + height >= scrollHeight;
-
-                    // Prevent page scroll when:
-                    // - Scrolling down at top (deltaY < 0 and isAtTop)
-                    // - Scrolling up at bottom (deltaY > 0 and isAtBottom)
-                    // - Scrolling in the middle (not at top or bottom)
-                    if ((!isAtTop && !isAtBottom) ||
-                        (isAtTop && deltaY < 0) ||
-                        (isAtBottom && deltaY > 0)) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                    }
-                }, { passive: false });
-            });
-        }
-
-
-        // Also prevent body scroll entirely when card is flipped
+        // Simple approach: just prevent body scroll when card is flipped
         let isCardFlipped = false;
         const card = document.getElementById('activityCard');
         const flipBtn = document.querySelector('.action-btn');
 
         if (flipBtn) {
             flipBtn.addEventListener('click', () => {
-                isCardFlipped = card.classList.contains('flipped');
+                setTimeout(() => {
+                    isCardFlipped = card.classList.contains('flipped');
+                }, 100);
             });
         }
 
-        // Prevent body scroll when card is flipped
+        // Prevent body scroll when card is flipped, but ONLY on body, not on scrollable areas
         document.body.addEventListener('touchmove', (e) => {
-            if (isCardFlipped && !e.target.closest('.card-back-content') && !e.target.closest('.comments-full')) {
+            // If card is flipped and we're NOT touching a scrollable area, prevent scroll
+            const touchingScrollable = e.target.closest('.card-back-content') ||
+                                      e.target.closest('.comments-full');
+
+            if (isCardFlipped && !touchingScrollable) {
                 e.preventDefault();
             }
         }, { passive: false });
-
-        // Initialize on load and when card is flipped
-        preventBodyScroll();
-
-        // Re-initialize when comments section expands
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.comments-header')) {
-                setTimeout(preventBodyScroll, 100);
-            }
-        });
     </script>
 </body>
 </html>
