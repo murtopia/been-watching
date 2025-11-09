@@ -2139,29 +2139,32 @@
             console.log('User rated show as:', rating);
         }
 
-        // Simple approach: just prevent body scroll when card is flipped
-        let isCardFlipped = false;
+        // iOS scroll fix: Lock body when card is flipped
         const card = document.getElementById('activityCard');
         const flipBtn = document.querySelector('.action-btn');
+        let scrollPosition = 0;
 
         if (flipBtn) {
             flipBtn.addEventListener('click', () => {
                 setTimeout(() => {
-                    isCardFlipped = card.classList.contains('flipped');
+                    if (card.classList.contains('flipped')) {
+                        // Card is now flipped - lock body scroll
+                        scrollPosition = window.pageYOffset;
+                        document.body.style.overflow = 'hidden';
+                        document.body.style.position = 'fixed';
+                        document.body.style.top = `-${scrollPosition}px`;
+                        document.body.style.width = '100%';
+                    } else {
+                        // Card is now unflipped - restore body scroll
+                        document.body.style.removeProperty('overflow');
+                        document.body.style.removeProperty('position');
+                        document.body.style.removeProperty('top');
+                        document.body.style.removeProperty('width');
+                        window.scrollTo(0, scrollPosition);
+                    }
                 }, 100);
             });
         }
-
-        // Prevent body scroll when card is flipped, but ONLY on body, not on scrollable areas
-        document.body.addEventListener('touchmove', (e) => {
-            // If card is flipped and we're NOT touching a scrollable area, prevent scroll
-            const touchingScrollable = e.target.closest('.card-back-content') ||
-                                      e.target.closest('.comments-full');
-
-            if (isCardFlipped && !touchingScrollable) {
-                e.preventDefault();
-            }
-        }, { passive: false });
     </script>
 </body>
 </html>
