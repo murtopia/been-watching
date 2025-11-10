@@ -923,6 +923,7 @@
             display: flex;
             gap: 12px;
             margin-top: 6px;
+            justify-content: flex-end;
         }
 
         .comment-like-btn {
@@ -1174,6 +1175,10 @@
             line-height: 1.4;
             opacity: 0.9;
             margin-left: 38px;
+        }
+
+        .activity-comment-item .comment-actions {
+            justify-content: flex-end;
         }
 
         .activity-comment-input-wrapper {
@@ -1763,7 +1768,7 @@
                                     </div>
                                     <div class="activity-comment-text">This finale was absolutely incredible! Best TV I've seen all year.</div>
                                     <div class="comment-actions">
-                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this)">
+                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this, event)">
                                             <svg viewBox="0 0 24 24">
                                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                             </svg>
@@ -1779,7 +1784,7 @@
                                     </div>
                                     <div class="activity-comment-text">Can't believe it's over. What a ride! 🎬</div>
                                     <div class="comment-actions">
-                                        <button class="comment-like-btn" onclick="toggleCommentLike(this)">
+                                        <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
                                             <svg viewBox="0 0 24 24">
                                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                             </svg>
@@ -1795,7 +1800,7 @@
                                     </div>
                                     <div class="activity-comment-text">The character development throughout this season was masterful. Every episode kept me on the edge of my seat!</div>
                                     <div class="comment-actions">
-                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this)">
+                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this, event)">
                                             <svg viewBox="0 0 24 24">
                                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                             </svg>
@@ -1811,7 +1816,7 @@
                                     </div>
                                     <div class="activity-comment-text">Just finished binging the whole season. Mind = blown 🤯</div>
                                     <div class="comment-actions">
-                                        <button class="comment-like-btn" onclick="toggleCommentLike(this)">
+                                        <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
                                             <svg viewBox="0 0 24 24">
                                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                             </svg>
@@ -1827,7 +1832,7 @@
                                     </div>
                                     <div class="activity-comment-text">This is peak television. Nothing comes close!</div>
                                     <div class="comment-actions">
-                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this)">
+                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this, event)">
                                             <svg viewBox="0 0 24 24">
                                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                             </svg>
@@ -1843,7 +1848,7 @@
                                     </div>
                                     <div class="activity-comment-text">The cinematography in the final episodes was absolutely stunning. Pure art.</div>
                                     <div class="comment-actions">
-                                        <button class="comment-like-btn" onclick="toggleCommentLike(this)">
+                                        <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
                                             <svg viewBox="0 0 24 24">
                                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                             </svg>
@@ -1859,7 +1864,7 @@
                                     </div>
                                     <div class="activity-comment-text">I need to rewatch this immediately. So many details I missed the first time!</div>
                                     <div class="comment-actions">
-                                        <button class="comment-like-btn" onclick="toggleCommentLike(this)">
+                                        <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
                                             <svg viewBox="0 0 24 24">
                                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                             </svg>
@@ -1875,7 +1880,7 @@
                                     </div>
                                     <div class="activity-comment-text">The writing is just incredible. Every line matters.</div>
                                     <div class="comment-actions">
-                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this)">
+                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this, event)">
                                             <svg viewBox="0 0 24 24">
                                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                             </svg>
@@ -1891,7 +1896,7 @@
                                     </div>
                                     <div class="activity-comment-text">Best season finale I've ever seen. Period.</div>
                                     <div class="comment-actions">
-                                        <button class="comment-like-btn" onclick="toggleCommentLike(this)">
+                                        <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
                                             <svg viewBox="0 0 24 24">
                                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                             </svg>
@@ -1907,7 +1912,7 @@
                                     </div>
                                     <div class="activity-comment-text">The emotional payoff was everything. I'm still processing it.</div>
                                     <div class="comment-actions">
-                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this)">
+                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this, event)">
                                             <svg viewBox="0 0 24 24">
                                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                             </svg>
@@ -1923,7 +1928,7 @@
                                     </div>
                                     <div class="activity-comment-text">This show set the bar so high, nothing else compares now.</div>
                                     <div class="comment-actions">
-                                        <button class="comment-like-btn" onclick="toggleCommentLike(this)">
+                                        <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
                                             <svg viewBox="0 0 24 24">
                                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                             </svg>
@@ -1939,7 +1944,7 @@
                                     </div>
                                     <div class="activity-comment-text">The tension in every scene was masterfully crafted. Absolutely brilliant.</div>
                                     <div class="comment-actions">
-                                        <button class="comment-like-btn" onclick="toggleCommentLike(this)">
+                                        <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
                                             <svg viewBox="0 0 24 24">
                                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                             </svg>
@@ -1955,7 +1960,7 @@
                                     </div>
                                     <div class="activity-comment-text">I've been recommending this to everyone. It's that good!</div>
                                     <div class="comment-actions">
-                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this)">
+                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this, event)">
                                             <svg viewBox="0 0 24 24">
                                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                             </svg>
@@ -2154,7 +2159,7 @@
                                             </div>
                                             <div class="comment-text">This season is absolutely phenomenal. The tension keeps building and you can't look away. Best TV I've ever watched.</div>
                                             <div class="comment-actions">
-                                                <button class="comment-like-btn liked" onclick="toggleCommentLike(this)">
+                                                <button class="comment-like-btn liked" onclick="toggleCommentLike(this, event)">
                                                     <svg viewBox="0 0 24 24">
                                                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                                     </svg>
@@ -2173,7 +2178,7 @@
                                             </div>
                                             <div class="comment-text">Started this last month and I'm already hooked. Can't believe I waited so long to watch it!</div>
                                             <div class="comment-actions">
-                                                <button class="comment-like-btn" onclick="toggleCommentLike(this)">
+                                                <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
                                                     <svg viewBox="0 0 24 24">
                                                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                                     </svg>
@@ -2192,7 +2197,7 @@
                                             </div>
                                             <div class="comment-text">The character development in this season is incredible. Every episode leaves me wanting more.</div>
                                             <div class="comment-actions">
-                                                <button class="comment-like-btn" onclick="toggleCommentLike(this)">
+                                                <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
                                                     <svg viewBox="0 0 24 24">
                                                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                                     </svg>
@@ -2315,7 +2320,7 @@
                 </div>
 
     <div class="instructions">
-        Version 3.5 • Last updated: Nov 09, 2025 at 10:32 PM (Matched bubble edges & added close button)
+        Version 3.6 • Last updated: Nov 10, 2025 at 05:57 AM (Moved comment like buttons to right, fixed bubble closing on like click)
     </div>
 
     <script>
@@ -2618,7 +2623,13 @@
         });
 
         // Comment like button interaction
-        function toggleCommentLike(button) {
+        function toggleCommentLike(button, event) {
+            // Prevent event from bubbling up and closing the comments bubble
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+            
             button.classList.toggle('liked');
             const countSpan = button.querySelector('span');
             let count = parseInt(countSpan.textContent);
