@@ -316,20 +316,18 @@
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
             border-radius: 16px;
-            overflow: hidden;
         }
 
         .card-front {
             z-index: 2;
+            overflow: hidden;
         }
 
         .card-back {
             transform: rotateY(180deg);
             background: linear-gradient(to bottom, #1a1a1a 0%, #0a0a0a 100%);
-            touch-action: pan-y;
-            /* Prevent iOS bounce scrolling on card back */
-            overscroll-behavior: contain;
-            -webkit-overflow-scrolling: touch;
+            /* Allow overflow so card-back-content can scroll */
+            overflow: hidden;
         }
 
         /* Front card styles (existing design) */
@@ -540,21 +538,26 @@
         .card-back-content {
             padding: 20px 16px;
             padding-top: 50px;
-            height: 100%;
-            max-height: 100%;
-            overflow-y: auto;
+            padding-bottom: 20px;
+            /* Fill the card-back container */
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            /* Enable scrolling - content will overflow */
+            overflow-y: scroll;
             overflow-x: hidden;
+            /* Critical for iOS momentum scrolling */
             -webkit-overflow-scrolling: touch;
             overscroll-behavior: contain;
             overscroll-behavior-y: contain;
             touch-action: pan-y;
-            will-change: scroll-position;
             -webkit-tap-highlight-color: transparent;
-            position: relative;
             z-index: 1;
-            /* Ensure proper scrolling on iOS with hardware acceleration */
-            -webkit-transform: translateZ(0);
-            transform: translateZ(0);
+            /* Force hardware acceleration for smooth iOS scrolling */
+            -webkit-transform: translate3d(0, 0, 0);
+            transform: translate3d(0, 0, 0);
             /* Ensure the element can receive touch events */
             pointer-events: auto;
         }
@@ -2057,7 +2060,7 @@
                 </div>
 
     <div class="instructions">
-        Version 2.1 • Last updated: Nov 09, 2025 at 06:24 PM
+        Version 2.2 • Last updated: Nov 09, 2025 at 06:28 PM
     </div>
 
     <script>
@@ -2288,33 +2291,21 @@
             console.log('User rated show as:', rating);
         }
 
-        // iOS touch handling - prevent body scroll while allowing card content to scroll
-        const cardBackContent = document.querySelector('.card-back-content');
+        // iOS scroll management - lock body when card is flipped
         const card = document.getElementById('activityCard');
         
-        // Prevent body/document scroll when card is flipped, but allow card content scrolling
-        function preventBodyScroll(e) {
-            // Only prevent if the touch is NOT on the scrollable card content
-            if (cardBackContent && !cardBackContent.contains(e.target)) {
-                e.preventDefault();
-                return false;
-            }
-        }
-        
         if (card) {
-            // Watch for card flip and manage scroll prevention
+            // Watch for card flip and manage scroll locking
             const observer = new MutationObserver((mutations) => {
                 mutations.forEach((mutation) => {
                     if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
                         const isFlipped = card.classList.contains('flipped');
                         if (isFlipped) {
-                            // Card flipped - lock body scroll and add touch prevention
+                            // Card flipped - lock body scroll (CSS overscroll-behavior handles the rest)
                             lockBodyScroll();
-                            document.addEventListener('touchmove', preventBodyScroll, { passive: false });
                         } else {
-                            // Card unflipped - unlock body scroll and remove touch prevention
+                            // Card unflipped - unlock body scroll
                             unlockBodyScroll();
-                            document.removeEventListener('touchmove', preventBodyScroll);
                         }
                     }
                 });
@@ -2325,7 +2316,6 @@
             // Initial state check
             if (card.classList.contains('flipped')) {
                 lockBodyScroll();
-                document.addEventListener('touchmove', preventBodyScroll, { passive: false });
             }
         }
     </script>
