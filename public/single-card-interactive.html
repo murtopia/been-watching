@@ -326,8 +326,11 @@
         .card-back {
             transform: rotateY(180deg);
             background: linear-gradient(to bottom, #1a1a1a 0%, #0a0a0a 100%);
-            /* Clip to card bounds but allow child scrolling */
+            /* Use overflow: auto to allow scrolling, but clip to bounds */
             overflow: hidden;
+            /* Create new stacking context for iOS scrolling */
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
             /* Ensure proper stacking */
             z-index: 1;
         }
@@ -541,12 +544,13 @@
             padding: 20px 16px;
             padding-top: 50px;
             padding-bottom: 20px;
-            /* Use relative positioning instead of absolute for iOS scrolling */
-            position: relative;
+            /* Use absolute positioning but with proper iOS workaround */
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             width: 100%;
-            /* Explicit height matching card height */
-            height: 645px;
-            max-height: 645px;
             /* Enable scrolling - content will overflow */
             overflow-y: scroll;
             overflow-x: hidden;
@@ -557,8 +561,13 @@
             touch-action: pan-y;
             -webkit-tap-highlight-color: transparent;
             z-index: 1;
+            /* Create new stacking context and force hardware acceleration */
+            -webkit-transform: translate3d(0, 0, 0);
+            transform: translate3d(0, 0, 0);
             /* Ensure the element can receive touch events */
             pointer-events: auto;
+            /* Force repaint for iOS */
+            will-change: scroll-position;
         }
 
         /* Title Section */
@@ -2059,7 +2068,7 @@
                 </div>
 
     <div class="instructions">
-        Version 2.4 • Last updated: Nov 09, 2025 at 09:07 PM (Changed to relative positioning)
+        Version 2.5 • Last updated: Nov 09, 2025 at 09:12 PM (Manual scroll handler workaround)
     </div>
 
     <script>
@@ -2346,14 +2355,43 @@
             }, 500);
         }
         
-        // Test scroll programmatically
+        // iOS scroll workaround - manually handle scrolling
         if (cardBackContent) {
+            let touchStartY = 0;
+            let touchStartScrollTop = 0;
+            let isScrolling = false;
+            
             cardBackContent.addEventListener('touchstart', (e) => {
-                console.log('Touch start on card-back-content');
+                if (!card.classList.contains('flipped')) return;
+                touchStartY = e.touches[0].clientY;
+                touchStartScrollTop = cardBackContent.scrollTop;
+                isScrolling = false;
+                console.log('Touch start - scrollTop:', touchStartScrollTop);
             }, { passive: true });
             
             cardBackContent.addEventListener('touchmove', (e) => {
-                console.log('Touch move on card-back-content', e.touches[0].clientY);
+                if (!card.classList.contains('flipped')) return;
+                
+                const touchY = e.touches[0].clientY;
+                const deltaY = touchStartY - touchY;
+                const newScrollTop = touchStartScrollTop + deltaY;
+                const maxScroll = cardBackContent.scrollHeight - cardBackContent.clientHeight;
+                
+                // Manually set scroll position
+                if (newScrollTop >= 0 && newScrollTop <= maxScroll) {
+                    cardBackContent.scrollTop = newScrollTop;
+                    isScrolling = true;
+                    console.log('Manual scroll to:', newScrollTop);
+                } else if (newScrollTop < 0) {
+                    cardBackContent.scrollTop = 0;
+                } else if (newScrollTop > maxScroll) {
+                    cardBackContent.scrollTop = maxScroll;
+                }
+            }, { passive: false });
+            
+            cardBackContent.addEventListener('touchend', () => {
+                isScrolling = false;
+                console.log('Touch end - final scrollTop:', cardBackContent.scrollTop);
             }, { passive: true });
         }
     </script>
