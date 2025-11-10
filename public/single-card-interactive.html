@@ -1066,10 +1066,16 @@
             padding: 20px;
             padding-bottom: 0;
             max-height: 350px;
-            overflow-y: auto;
+            overflow-y: scroll;
+            overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
             overscroll-behavior: contain;
+            overscroll-behavior-y: contain;
             touch-action: pan-y;
+            /* Enable iOS scrolling */
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            will-change: scroll-position;
         }
 
         .comments-tab.expanded .comments-preview {
@@ -1710,6 +1716,182 @@
                                         </button>
                                     </div>
                                 </div>
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=7" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Alex Chen</div>
+                                        <div class="activity-comment-time">2h ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">The character development throughout this season was masterful. Every episode kept me on the edge of my seat!</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this)">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span>15</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=8" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Jordan Martinez</div>
+                                        <div class="activity-comment-time">3h ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">Just finished binging the whole season. Mind = blown 🤯</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn" onclick="toggleCommentLike(this)">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span>7</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=9" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Sam Taylor</div>
+                                        <div class="activity-comment-time">4h ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">This is peak television. Nothing comes close!</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this)">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span>22</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=10" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Riley Kim</div>
+                                        <div class="activity-comment-time">5h ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">The cinematography in the final episodes was absolutely stunning. Pure art.</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn" onclick="toggleCommentLike(this)">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span>11</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=11" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Casey Brown</div>
+                                        <div class="activity-comment-time">6h ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">I need to rewatch this immediately. So many details I missed the first time!</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn" onclick="toggleCommentLike(this)">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span>5</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=12" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Morgan Lee</div>
+                                        <div class="activity-comment-time">7h ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">The writing is just incredible. Every line matters.</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this)">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span>18</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=13" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Taylor White</div>
+                                        <div class="activity-comment-time">8h ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">Best season finale I've ever seen. Period.</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn" onclick="toggleCommentLike(this)">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span>9</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=14" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Jamie Park</div>
+                                        <div class="activity-comment-time">9h ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">The emotional payoff was everything. I'm still processing it.</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this)">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span>14</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=15" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Drew Anderson</div>
+                                        <div class="activity-comment-time">10h ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">This show set the bar so high, nothing else compares now.</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn" onclick="toggleCommentLike(this)">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span>6</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=16" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Quinn Rodriguez</div>
+                                        <div class="activity-comment-time">11h ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">The tension in every scene was masterfully crafted. Absolutely brilliant.</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn" onclick="toggleCommentLike(this)">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span>12</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=17" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Blake Thompson</div>
+                                        <div class="activity-comment-time">12h ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">I've been recommending this to everyone. It's that good!</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this)">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span>20</span>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                             <div class="activity-comment-input-wrapper">
                                 <input type="text" class="activity-comment-input" placeholder="Add a comment...">
@@ -2062,7 +2244,7 @@
                 </div>
 
     <div class="instructions">
-        Version 3.0 • Last updated: Nov 09, 2025 at 09:35 PM (Apple-like friction 0.92)
+        Version 3.1 • Last updated: Nov 09, 2025 at 09:52 PM (Added iOS scrolling to comments section)
     </div>
 
     <script>
@@ -2471,6 +2653,139 @@
                 } else if (Math.abs(velocity) > 0.5) {
                     // Apply momentum scrolling - continue in the direction of the swipe
                     applyMomentum();
+                } else {
+                    velocity = 0;
+                }
+            }, { passive: true });
+        }
+        
+        // iOS scroll handler for comments section (same technique as card back)
+        const commentsFull = document.querySelector('.comments-full');
+        if (commentsFull) {
+            let touchStartY = 0;
+            let touchStartScrollTop = 0;
+            let lastTouchY = 0;
+            let lastTouchTime = 0;
+            let velocity = 0;
+            let momentumAnimation = null;
+            
+            // Smooth scroll with easing
+            function smoothScrollToComments(targetScrollTop) {
+                const startScrollTop = commentsFull.scrollTop;
+                const distance = targetScrollTop - startScrollTop;
+                const duration = Math.min(Math.abs(distance) * 0.5, 300);
+                const startTime = performance.now();
+                
+                function animate(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+                    const currentScrollTop = startScrollTop + (distance * easeOutCubic);
+                    commentsFull.scrollTop = currentScrollTop;
+                    
+                    if (progress < 1) {
+                        momentumAnimation = requestAnimationFrame(animate);
+                    } else {
+                        momentumAnimation = null;
+                    }
+                }
+                
+                if (momentumAnimation) {
+                    cancelAnimationFrame(momentumAnimation);
+                }
+                momentumAnimation = requestAnimationFrame(animate);
+            }
+            
+            // Momentum scrolling after touch ends
+            function applyMomentumComments() {
+                if (Math.abs(velocity) < 0.1) {
+                    velocity = 0;
+                    return;
+                }
+                
+                const maxScroll = commentsFull.scrollHeight - commentsFull.clientHeight;
+                const currentScrollTop = commentsFull.scrollTop;
+                const friction = 0.92; // Apple-like deceleration
+                
+                velocity *= friction;
+                let newScrollTop = currentScrollTop + velocity;
+                
+                if (newScrollTop < 0) {
+                    newScrollTop = 0;
+                    velocity = 0;
+                } else if (newScrollTop > maxScroll) {
+                    newScrollTop = maxScroll;
+                    velocity = 0;
+                }
+                
+                commentsFull.scrollTop = newScrollTop;
+                
+                if (Math.abs(velocity) > 0.1) {
+                    requestAnimationFrame(applyMomentumComments);
+                } else {
+                    velocity = 0;
+                }
+            }
+            
+            commentsFull.addEventListener('touchstart', (e) => {
+                if (!document.querySelector('.comments-tab.expanded')) return;
+                
+                if (momentumAnimation) {
+                    cancelAnimationFrame(momentumAnimation);
+                    momentumAnimation = null;
+                }
+                velocity = 0;
+                
+                touchStartY = e.touches[0].clientY;
+                touchStartScrollTop = commentsFull.scrollTop;
+                lastTouchY = touchStartY;
+                lastTouchTime = performance.now();
+            }, { passive: true });
+            
+            commentsFull.addEventListener('touchmove', (e) => {
+                if (!document.querySelector('.comments-tab.expanded')) return;
+                
+                const touchY = e.touches[0].clientY;
+                const currentTime = performance.now();
+                const deltaTime = currentTime - lastTouchTime;
+                
+                if (deltaTime > 0 && lastTouchY !== 0) {
+                    const deltaY = lastTouchY - touchY;
+                    velocity = (deltaY / deltaTime) * 16;
+                }
+                
+                const deltaY = touchStartY - touchY;
+                const newScrollTop = touchStartScrollTop + deltaY;
+                const maxScroll = commentsFull.scrollHeight - commentsFull.clientHeight;
+                
+                if (newScrollTop >= 0 && newScrollTop <= maxScroll) {
+                    commentsFull.scrollTop = newScrollTop;
+                } else if (newScrollTop < 0) {
+                    const overscroll = Math.abs(newScrollTop);
+                    commentsFull.scrollTop = -overscroll * 0.3;
+                } else if (newScrollTop > maxScroll) {
+                    const overscroll = newScrollTop - maxScroll;
+                    commentsFull.scrollTop = maxScroll + (overscroll * 0.3);
+                }
+                
+                lastTouchY = touchY;
+                lastTouchTime = currentTime;
+            }, { passive: false });
+            
+            commentsFull.addEventListener('touchend', () => {
+                if (!document.querySelector('.comments-tab.expanded')) return;
+                
+                const maxScroll = commentsFull.scrollHeight - commentsFull.clientHeight;
+                const currentScrollTop = commentsFull.scrollTop;
+                
+                if (currentScrollTop < 0) {
+                    smoothScrollToComments(0);
+                    velocity = 0;
+                } else if (currentScrollTop > maxScroll) {
+                    smoothScrollToComments(maxScroll);
+                    velocity = 0;
+                } else if (Math.abs(velocity) > 0.5) {
+                    applyMomentumComments();
                 } else {
                     velocity = 0;
                 }
