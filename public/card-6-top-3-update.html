@@ -301,6 +301,7 @@
             transform-style: preserve-3d;
             transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
             border-radius: 16px;
+            touch-action: none;
         }
 
         .card.flipped {
@@ -325,6 +326,7 @@
         .card-back {
             transform: rotateY(180deg);
             background: linear-gradient(to bottom, #1a1a1a 0%, #0a0a0a 100%);
+            overflow: hidden;
         }
 
         /* Front card styles (existing design) */
@@ -535,15 +537,23 @@
         .card-back-content {
             padding: 20px 16px;
             padding-top: 50px;
-            height: 100%;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
+            padding-bottom: 20px;
+            /* Use absolute positioning to fill card-back */
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            /* Enable scrolling - content will overflow */
+            overflow-y: scroll;
+            overflow-x: hidden;
+            /* Critical for iOS momentum scrolling - MUST be present */
+            -webkit-overflow-scrolling: touch !important;
             overscroll-behavior: contain;
+            overscroll-behavior-y: contain;
             touch-action: pan-y;
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior: contain;
-            touch-action: pan-y;
-            position: relative;
+            -webkit-tap-highlight-color: transparent;
             z-index: 1;
         }
 
@@ -906,6 +916,7 @@
             display: flex;
             gap: 12px;
             margin-top: 6px;
+            justify-content: flex-end;
         }
 
         .comment-like-btn {
@@ -1048,16 +1059,19 @@
             display: none;
             padding: 20px;
             padding-bottom: 0;
-            max-height: 350px;
-            overflow-y: auto;
+            /* Flex grow to fill space, but allow scrolling */
+            flex: 1;
+            min-height: 0;
+            overflow-y: scroll;
+            overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
             overscroll-behavior: contain;
+            overscroll-behavior-y: contain;
             touch-action: pan-y;
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior: contain;
-            touch-action: pan-y;
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior: contain;
+            /* Enable iOS scrolling */
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            will-change: scroll-position;
         }
 
         .comments-tab.expanded .comments-preview {
@@ -1108,6 +1122,10 @@
             line-height: 1.4;
             opacity: 0.9;
             margin-left: 38px;
+        }
+
+        .activity-comment-item .comment-actions {
+            justify-content: flex-end;
         }
 
         .activity-comment-input-wrapper {
@@ -2203,8 +2221,285 @@
         }
 
 
-        // iOS scroll fix: Lock body when card is flipped
+        // iOS scroll workaround - manually handle scrolling for transformed elements
+        // This fixes the iOS Safari bug where scrolling doesn't work inside elements with CSS 3D transforms
         const card = document.getElementById('activityCard');
+        const cardBackContent = document.querySelector('.card-back-content');
+
+        if (cardBackContent) {
+            let touchStartY = 0;
+            let touchStartScrollTop = 0;
+            let lastTouchY = 0;
+            let lastTouchTime = 0;
+            let velocity = 0;
+            let momentumAnimation = null;
+            let isScrolling = false;
+
+            function smoothScrollTo(targetScrollTop) {
+                const startScrollTop = cardBackContent.scrollTop;
+                const distance = targetScrollTop - startScrollTop;
+                const duration = Math.min(Math.abs(distance) * 0.5, 300);
+                const startTime = performance.now();
+
+                function animate(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+                    const currentScrollTop = startScrollTop + (distance * easeOutCubic);
+                    cardBackContent.scrollTop = currentScrollTop;
+
+                    if (progress < 1) {
+                        momentumAnimation = requestAnimationFrame(animate);
+                    } else {
+                        momentumAnimation = null;
+                    }
+                }
+
+                if (momentumAnimation) {
+                    cancelAnimationFrame(momentumAnimation);
+                }
+                momentumAnimation = requestAnimationFrame(animate);
+            }
+
+            function applyMomentum() {
+                if (Math.abs(velocity) < 0.1) {
+                    velocity = 0;
+                    return;
+                }
+
+                const maxScroll = cardBackContent.scrollHeight - cardBackContent.clientHeight;
+                const currentScrollTop = cardBackContent.scrollTop;
+                const friction = 0.92;
+
+                velocity *= friction;
+                let newScrollTop = currentScrollTop + velocity;
+
+                if (newScrollTop < 0) {
+                    newScrollTop = 0;
+                    velocity = 0;
+                } else if (newScrollTop > maxScroll) {
+                    newScrollTop = maxScroll;
+                    velocity = 0;
+                }
+
+                cardBackContent.scrollTop = newScrollTop;
+
+                if (Math.abs(velocity) > 0.1) {
+                    requestAnimationFrame(applyMomentum);
+                } else {
+                    velocity = 0;
+                }
+            }
+
+            cardBackContent.addEventListener('touchstart', (e) => {
+                if (!card.classList.contains('flipped')) return;
+                e.stopPropagation();
+
+                if (momentumAnimation) {
+                    cancelAnimationFrame(momentumAnimation);
+                    momentumAnimation = null;
+                }
+                velocity = 0;
+                isScrolling = true;
+
+                touchStartY = e.touches[0].clientY;
+                touchStartScrollTop = cardBackContent.scrollTop;
+                lastTouchY = touchStartY;
+                lastTouchTime = performance.now();
+            }, { passive: true });
+
+            cardBackContent.addEventListener('touchmove', (e) => {
+                if (!card.classList.contains('flipped')) return;
+                e.stopPropagation();
+
+                const touchY = e.touches[0].clientY;
+                const currentTime = performance.now();
+                const deltaTime = currentTime - lastTouchTime;
+
+                if (deltaTime > 0 && lastTouchY !== 0) {
+                    const deltaY = lastTouchY - touchY;
+                    velocity = (deltaY / deltaTime) * 16;
+                }
+
+                const deltaY = touchStartY - touchY;
+                const newScrollTop = touchStartScrollTop + deltaY;
+                const maxScroll = cardBackContent.scrollHeight - cardBackContent.clientHeight;
+
+                if (newScrollTop >= 0 && newScrollTop <= maxScroll) {
+                    cardBackContent.scrollTop = newScrollTop;
+                    e.preventDefault();
+                } else if (newScrollTop < 0) {
+                    const overscroll = Math.abs(newScrollTop);
+                    cardBackContent.scrollTop = -overscroll * 0.3;
+                    e.preventDefault();
+                } else if (newScrollTop > maxScroll) {
+                    const overscroll = newScrollTop - maxScroll;
+                    cardBackContent.scrollTop = maxScroll + (overscroll * 0.3);
+                    e.preventDefault();
+                }
+
+                lastTouchY = touchY;
+                lastTouchTime = currentTime;
+            }, { passive: false });
+
+            cardBackContent.addEventListener('touchend', (e) => {
+                if (!card.classList.contains('flipped')) return;
+                e.stopPropagation();
+
+                isScrolling = false;
+                const maxScroll = cardBackContent.scrollHeight - cardBackContent.clientHeight;
+                const currentScrollTop = cardBackContent.scrollTop;
+
+                if (currentScrollTop < 0) {
+                    smoothScrollTo(0);
+                    velocity = 0;
+                } else if (currentScrollTop > maxScroll) {
+                    smoothScrollTo(maxScroll);
+                    velocity = 0;
+                } else if (Math.abs(velocity) > 0.5) {
+                    applyMomentum();
+                } else {
+                    velocity = 0;
+                }
+            }, { passive: true });
+        }
+
+        // iOS scroll workaround for comments section
+        const commentsFull = document.querySelector('.comments-full');
+
+        if (commentsFull) {
+            let commentsTouchStartY = 0;
+            let commentsTouchStartScrollTop = 0;
+            let commentsLastTouchY = 0;
+            let commentsLastTouchTime = 0;
+            let commentsVelocity = 0;
+            let commentsMomentumAnimation = null;
+
+            function commentsSmoothScrollTo(targetScrollTop) {
+                const startScrollTop = commentsFull.scrollTop;
+                const distance = targetScrollTop - startScrollTop;
+                const duration = Math.min(Math.abs(distance) * 0.5, 300);
+                const startTime = performance.now();
+
+                function animate(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+                    const currentScrollTop = startScrollTop + (distance * easeOutCubic);
+                    commentsFull.scrollTop = currentScrollTop;
+
+                    if (progress < 1) {
+                        commentsMomentumAnimation = requestAnimationFrame(animate);
+                    } else {
+                        commentsMomentumAnimation = null;
+                    }
+                }
+
+                if (commentsMomentumAnimation) {
+                    cancelAnimationFrame(commentsMomentumAnimation);
+                }
+                commentsMomentumAnimation = requestAnimationFrame(animate);
+            }
+
+            function commentsApplyMomentum() {
+                if (Math.abs(commentsVelocity) < 0.1) {
+                    commentsVelocity = 0;
+                    return;
+                }
+
+                const maxScroll = commentsFull.scrollHeight - commentsFull.clientHeight;
+                const currentScrollTop = commentsFull.scrollTop;
+                const friction = 0.92;
+
+                commentsVelocity *= friction;
+                let newScrollTop = currentScrollTop + commentsVelocity;
+
+                if (newScrollTop < 0) {
+                    newScrollTop = 0;
+                    commentsVelocity = 0;
+                } else if (newScrollTop > maxScroll) {
+                    newScrollTop = maxScroll;
+                    commentsVelocity = 0;
+                }
+
+                commentsFull.scrollTop = newScrollTop;
+
+                if (Math.abs(commentsVelocity) > 0.1) {
+                    requestAnimationFrame(commentsApplyMomentum);
+                } else {
+                    commentsVelocity = 0;
+                }
+            }
+
+            commentsFull.addEventListener('touchstart', (e) => {
+                e.stopPropagation();
+
+                if (commentsMomentumAnimation) {
+                    cancelAnimationFrame(commentsMomentumAnimation);
+                    commentsMomentumAnimation = null;
+                }
+                commentsVelocity = 0;
+
+                commentsTouchStartY = e.touches[0].clientY;
+                commentsTouchStartScrollTop = commentsFull.scrollTop;
+                commentsLastTouchY = commentsTouchStartY;
+                commentsLastTouchTime = performance.now();
+            }, { passive: true });
+
+            commentsFull.addEventListener('touchmove', (e) => {
+                e.stopPropagation();
+
+                const touchY = e.touches[0].clientY;
+                const currentTime = performance.now();
+                const deltaTime = currentTime - commentsLastTouchTime;
+
+                if (deltaTime > 0 && commentsLastTouchY !== 0) {
+                    const deltaY = commentsLastTouchY - touchY;
+                    commentsVelocity = (deltaY / deltaTime) * 16;
+                }
+
+                const deltaY = commentsTouchStartY - touchY;
+                const newScrollTop = commentsTouchStartScrollTop + deltaY;
+                const maxScroll = commentsFull.scrollHeight - commentsFull.clientHeight;
+
+                if (newScrollTop >= 0 && newScrollTop <= maxScroll) {
+                    commentsFull.scrollTop = newScrollTop;
+                    e.preventDefault();
+                } else if (newScrollTop < 0) {
+                    const overscroll = Math.abs(newScrollTop);
+                    commentsFull.scrollTop = -overscroll * 0.3;
+                    e.preventDefault();
+                } else if (newScrollTop > maxScroll) {
+                    const overscroll = newScrollTop - maxScroll;
+                    commentsFull.scrollTop = maxScroll + (overscroll * 0.3);
+                    e.preventDefault();
+                }
+
+                commentsLastTouchY = touchY;
+                commentsLastTouchTime = currentTime;
+            }, { passive: false });
+
+            commentsFull.addEventListener('touchend', (e) => {
+                e.stopPropagation();
+
+                const maxScroll = commentsFull.scrollHeight - commentsFull.clientHeight;
+                const currentScrollTop = commentsFull.scrollTop;
+
+                if (currentScrollTop < 0) {
+                    commentsSmoothScrollTo(0);
+                    commentsVelocity = 0;
+                } else if (currentScrollTop > maxScroll) {
+                    commentsSmoothScrollTo(maxScroll);
+                    commentsVelocity = 0;
+                } else if (Math.abs(commentsVelocity) > 0.5) {
+                    commentsApplyMomentum();
+                } else {
+                    commentsVelocity = 0;
+                }
+            }, { passive: true });
+        }
+
+        // iOS scroll fix: Lock body when card is flipped
         const flipBtn = document.querySelector('.action-btn');
         let scrollPosition = 0;
 
@@ -2230,5 +2525,9 @@
             });
         }
     </script>
+
+    <div class="instructions">
+        Version 1.0 • Last updated: Nov 10, 2025 at 07:15 AM (Fixed mobile scrolling: Added touch-action, overscroll-behavior, custom touch scrolling for card back and comments, moved comment hearts right)
+    </div>
 </body>
 </html>
