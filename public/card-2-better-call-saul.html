@@ -301,6 +301,7 @@
             transform-style: preserve-3d;
             transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
             border-radius: 16px;
+            touch-action: none;
         }
 
         .card.flipped {
@@ -1430,12 +1431,16 @@
             height: 100%;
             position: relative;
             -webkit-overflow-scrolling: touch;
+            overscroll-behavior: none;
+            overscroll-behavior-y: none;
         }
 
         /* Prevent iOS rubber band scrolling when card is flipped */
         html.scroll-locked {
             overflow: hidden;
             height: 100%;
+            overscroll-behavior: none;
+            overscroll-behavior-y: none;
         }
 
         /* Action Overlay Modal */
@@ -2278,7 +2283,7 @@
                 </div>
 
     <div class="instructions">
-        Version 1.0 • Last updated: Nov 10, 2025 at 06:27 AM (Added scrolling comments, fixed like buttons, iOS scroll fixes)
+        Version 1.1 • Last updated: Nov 10, 2025 at 06:30 AM (Fixed page bounce: Added touch-action, overscroll-behavior, event propagation fixes)
     </div>
 
     <script>
@@ -2691,6 +2696,9 @@
             cardBackContent.addEventListener('touchstart', (e) => {
                 if (!card.classList.contains('flipped')) return;
                 
+                // Prevent event from bubbling to body
+                e.stopPropagation();
+                
                 // Cancel any ongoing momentum
                 if (momentumAnimation) {
                     cancelAnimationFrame(momentumAnimation);
@@ -2707,6 +2715,9 @@
             
             cardBackContent.addEventListener('touchmove', (e) => {
                 if (!card.classList.contains('flipped')) return;
+                
+                // Prevent event from bubbling to body to prevent page bounce
+                e.stopPropagation();
                 
                 const touchY = e.touches[0].clientY;
                 const currentTime = performance.now();
@@ -2726,22 +2737,31 @@
                 // Manually set scroll position with rubber band effect at boundaries
                 if (newScrollTop >= 0 && newScrollTop <= maxScroll) {
                     cardBackContent.scrollTop = newScrollTop;
+                    // Prevent default to stop body scroll when we're handling it
+                    e.preventDefault();
                 } else if (newScrollTop < 0) {
                     // Rubber band effect - reduce scroll amount when past boundary
                     const overscroll = Math.abs(newScrollTop);
                     cardBackContent.scrollTop = -overscroll * 0.3;
+                    // Always prevent default at boundaries to prevent page bounce
+                    e.preventDefault();
                 } else if (newScrollTop > maxScroll) {
                     // Rubber band effect
                     const overscroll = newScrollTop - maxScroll;
                     cardBackContent.scrollTop = maxScroll + (overscroll * 0.3);
+                    // Always prevent default at boundaries to prevent page bounce
+                    e.preventDefault();
                 }
                 
                 lastTouchY = touchY;
                 lastTouchTime = currentTime;
             }, { passive: false });
             
-            cardBackContent.addEventListener('touchend', () => {
+            cardBackContent.addEventListener('touchend', (e) => {
                 if (!card.classList.contains('flipped')) return;
+                
+                // Prevent event from bubbling to body
+                e.stopPropagation();
                 
                 isScrolling = false;
                 const maxScroll = cardBackContent.scrollHeight - cardBackContent.clientHeight;
