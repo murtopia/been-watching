@@ -1028,8 +1028,8 @@
         .comments-tab {
             position: absolute;
             bottom: 0;
-            left: 10px; /* Reduced from 20px - take up half the space */
-            right: 35px; /* Reduced from 70px - go halfway closer to nav circles */
+            left: 10px; /* Match left margin */
+            right: 10px; /* Match left margin - fully covers nav circles */
             background: rgba(20, 20, 20, 0.95);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
@@ -1067,7 +1067,44 @@
             font-weight: 500;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 8px;
+        }
+        
+        .comments-preview-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+        
+        .comments-close-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+        
+        .comments-close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .comments-close-btn:active {
+            transform: scale(0.9);
+        }
+        
+        .comments-close-btn svg {
+            width: 14px;
+            height: 14px;
+            stroke: white;
+            stroke-width: 2;
         }
 
         .comments-full {
@@ -2336,6 +2373,15 @@
                         }
                     }
                 }, 100);
+            }
+        }
+        
+        function closeCommentsTab(event) {
+            event.stopPropagation();
+            const commentsTab = document.querySelector('.card-front .comments-tab');
+            if (commentsTab) {
+                commentsTab.classList.remove('visible');
+                commentsTab.classList.remove('expanded');
             }
         }
         
