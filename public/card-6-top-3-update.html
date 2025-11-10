@@ -1876,7 +1876,7 @@
                                         <div class="friends-avatars-stack">
                                             <img src="https://i.pravatar.cc/150?img=8" alt="Friend">
                                             <img src="https://i.pravatar.cc/150?img=9" alt="Friend">
-                                            <img src="https://i.pravatar.cc/150?img=90" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=20" alt="Friend">
                                         </div>
                                         <div class="friends-category-text">
                                             <span class="count">12</span> friends want to watch
@@ -1884,9 +1884,9 @@
                                     </div>
                                     <div class="friends-category" onclick="expandFriendsCategory('watched')">
                                         <div class="friends-avatars-stack">
-                                            <img src="https://i.pravatar.cc/150?img=91" alt="Friend">
-                                            <img src="https://i.pravatar.cc/150?img=92" alt="Friend">
-                                            <img src="https://i.pravatar.cc/150?img=93" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=21" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=22" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=23" alt="Friend">
                                         </div>
                                         <div class="friends-category-text">
                                             <span class="count">42</span> friends watched
@@ -1950,7 +1950,7 @@
                                 <!-- Comments List -->
                                 <div class="comments-list">
                                     <div class="comment-item">
-                                        <img src="https://i.pravatar.cc/150?img=94" alt="Jessica" class="comment-avatar">
+                                        <img src="https://i.pravatar.cc/150?img=14" alt="Jessica" class="comment-avatar">
                                         <div class="comment-content">
                                             <div class="comment-header">
                                                 <span class="comment-username">Jessica Chen</span>
@@ -1969,7 +1969,7 @@
                                     </div>
 
                                     <div class="comment-item">
-                                        <img src="https://i.pravatar.cc/150?img=95" alt="Marcus" class="comment-avatar">
+                                        <img src="https://i.pravatar.cc/150?img=15" alt="Marcus" class="comment-avatar">
                                         <div class="comment-content">
                                             <div class="comment-header">
                                                 <span class="comment-username">Marcus Williams</span>
@@ -1988,7 +1988,7 @@
                                     </div>
 
                                     <div class="comment-item">
-                                        <img src="https://i.pravatar.cc/150?img=96" alt="Emma" class="comment-avatar">
+                                        <img src="https://i.pravatar.cc/150?img=16" alt="Emma" class="comment-avatar">
                                         <div class="comment-content">
                                             <div class="comment-header">
                                                 <span class="comment-username">Emma Davis</span>
@@ -2125,7 +2125,20 @@
     <script>
         function flipCard() {
             const card = document.getElementById('activityCard');
+            const isFlipped = card.classList.contains('flipped');
+
             card.classList.toggle('flipped');
+
+            // Lock/unlock body scroll based on flip state
+            if (!isFlipped) {
+                // Card is being flipped to back - lock body scroll
+                setTimeout(() => {
+                    lockBodyScroll();
+                }, 50); // Small delay to ensure transition starts
+            } else {
+                // Card is being flipped to front - unlock body scroll
+                unlockBodyScroll();
+            }
         }
 
         function toggleSynopsis() {
@@ -2754,7 +2767,7 @@
     </script>
 
     <div class="instructions">
-        Version 1.4 • Last updated: Nov 10, 2025 at 11:15 AM (Fixed page bounce: Added iOS scroll lock management with lockBodyScroll()/unlockBodyScroll() functions. Fixed zoom on back card textarea: Updated .comment-input font-size from 13px to 16px with webkit-appearance reset)
+        Version 1.5 • Last updated: Nov 10, 2025 at 03:53 PM (Fixed page bounce and comments scrolling: Added lockBodyScroll()/unlockBodyScroll() calls to flipCard() function to prevent page bounce when card is flipped. Fixed broken avatar images: Updated invalid pravatar img params (90-96) to valid range (14-16, 20-23). Back card textarea already has 16px font-size to prevent zoom)
     </div>
 </body>
 </html>
