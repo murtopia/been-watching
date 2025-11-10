@@ -545,21 +545,22 @@
             left: 0;
             right: 0;
             bottom: 0;
+            width: 100%;
             /* Enable scrolling - content will overflow */
             overflow-y: scroll;
             overflow-x: hidden;
-            /* Critical for iOS momentum scrolling */
-            -webkit-overflow-scrolling: touch;
+            /* Critical for iOS momentum scrolling - MUST be present */
+            -webkit-overflow-scrolling: touch !important;
             overscroll-behavior: contain;
             overscroll-behavior-y: contain;
             touch-action: pan-y;
             -webkit-tap-highlight-color: transparent;
             z-index: 1;
-            /* Force hardware acceleration for smooth iOS scrolling */
-            -webkit-transform: translate3d(0, 0, 0);
-            transform: translate3d(0, 0, 0);
+            /* Remove transform - it might interfere with iOS scrolling */
             /* Ensure the element can receive touch events */
             pointer-events: auto;
+            /* Force scrolling to work */
+            -webkit-overflow-scrolling: touch;
         }
 
         /* Title Section */
@@ -2060,7 +2061,7 @@
                 </div>
 
     <div class="instructions">
-        Version 2.2 • Last updated: Nov 09, 2025 at 06:28 PM
+        Version 2.3 • Last updated: Nov 09, 2025 at 06:46 PM (DEBUG MODE - check console)
     </div>
 
     <script>
@@ -2147,18 +2148,20 @@
             // Save current scroll position
             savedScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
             
+            // TEMPORARILY DISABLED FOR TESTING - iOS scrolling issue
+            // Try without body lock to see if that's the problem
             // Use overflow: hidden instead of position: fixed to allow nested scrolling
             // This approach works better on iOS for nested scrollable elements
             document.documentElement.classList.add('scroll-locked');
             document.body.classList.add('scroll-locked');
             
             // Set overflow hidden (not position fixed) to allow card content to scroll
-            document.documentElement.style.overflow = 'hidden';
-            document.documentElement.style.height = '100%';
-            
-            document.body.style.overflow = 'hidden';
-            document.body.style.height = '100%';
-            document.body.style.position = 'relative';
+            // COMMENTED OUT FOR TESTING - uncomment if needed
+            // document.documentElement.style.overflow = 'hidden';
+            // document.documentElement.style.height = '100%';
+            // document.body.style.overflow = 'hidden';
+            // document.body.style.height = '100%';
+            // document.body.style.position = 'relative';
             
             scrollLocked = true;
         }
@@ -2184,8 +2187,9 @@
             scrollLocked = false;
         }
 
+        // TEMPORARILY DISABLED FOR TESTING - iOS scrolling issue
         // Prevent body scroll by default (for card container)
-        document.body.style.overflow = 'hidden';
+        // document.body.style.overflow = 'hidden';
 
         // Action overlay functions
         function toggleActionOverlay(event) {
@@ -2291,8 +2295,24 @@
             console.log('User rated show as:', rating);
         }
 
-        // iOS scroll management - lock body when card is flipped
+        // iOS scroll management and debugging
         const card = document.getElementById('activityCard');
+        const cardBackContent = document.querySelector('.card-back-content');
+        
+        // Debug function to check scrollability
+        function debugScrolling() {
+            if (cardBackContent) {
+                console.log('=== SCROLL DEBUG ===');
+                console.log('ScrollHeight:', cardBackContent.scrollHeight);
+                console.log('ClientHeight:', cardBackContent.clientHeight);
+                console.log('Can scroll:', cardBackContent.scrollHeight > cardBackContent.clientHeight);
+                console.log('ScrollTop:', cardBackContent.scrollTop);
+                console.log('Computed overflow-y:', window.getComputedStyle(cardBackContent).overflowY);
+                console.log('Computed -webkit-overflow-scrolling:', window.getComputedStyle(cardBackContent).webkitOverflowScrolling);
+                console.log('Position:', window.getComputedStyle(cardBackContent).position);
+                console.log('===================');
+            }
+        }
         
         if (card) {
             // Watch for card flip and manage scroll locking
@@ -2303,6 +2323,10 @@
                         if (isFlipped) {
                             // Card flipped - lock body scroll (CSS overscroll-behavior handles the rest)
                             lockBodyScroll();
+                            // Debug after flip
+                            setTimeout(() => {
+                                debugScrolling();
+                            }, 100);
                         } else {
                             // Card unflipped - unlock body scroll
                             unlockBodyScroll();
@@ -2317,6 +2341,22 @@
             if (card.classList.contains('flipped')) {
                 lockBodyScroll();
             }
+            
+            // Debug on load
+            setTimeout(() => {
+                debugScrolling();
+            }, 500);
+        }
+        
+        // Test scroll programmatically
+        if (cardBackContent) {
+            cardBackContent.addEventListener('touchstart', (e) => {
+                console.log('Touch start on card-back-content');
+            }, { passive: true });
+            
+            cardBackContent.addEventListener('touchmove', (e) => {
+                console.log('Touch move on card-back-content', e.touches[0].clientY);
+            }, { passive: true });
         }
     </script>
 </body>
