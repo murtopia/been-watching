@@ -326,11 +326,8 @@
         .card-back {
             transform: rotateY(180deg);
             background: linear-gradient(to bottom, #1a1a1a 0%, #0a0a0a 100%);
-            /* Use overflow: auto to allow scrolling, but clip to bounds */
+            /* Clip to card bounds but allow child scrolling */
             overflow: hidden;
-            /* Create new stacking context for iOS scrolling */
-            -webkit-transform: translateZ(0);
-            transform: translateZ(0);
             /* Ensure proper stacking */
             z-index: 1;
         }
@@ -544,7 +541,7 @@
             padding: 20px 16px;
             padding-top: 50px;
             padding-bottom: 20px;
-            /* Use absolute positioning but with proper iOS workaround */
+            /* Use absolute positioning to fill card-back */
             position: absolute;
             top: 0;
             left: 0;
@@ -561,9 +558,6 @@
             touch-action: pan-y;
             -webkit-tap-highlight-color: transparent;
             z-index: 1;
-            /* Create new stacking context and force hardware acceleration */
-            -webkit-transform: translate3d(0, 0, 0);
-            transform: translate3d(0, 0, 0);
             /* Ensure the element can receive touch events */
             pointer-events: auto;
             /* Force repaint for iOS */
@@ -2068,7 +2062,7 @@
                 </div>
 
     <div class="instructions">
-        Version 2.5 • Last updated: Nov 09, 2025 at 09:12 PM (Manual scroll handler workaround)
+        Version 2.6 • Last updated: Nov 09, 2025 at 09:17 PM (Fixed card back visibility)
     </div>
 
     <script>
