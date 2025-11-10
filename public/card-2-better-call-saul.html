@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Card 2 - "Because You Liked" Recommendation</title>
     <style>
         * {
@@ -535,16 +535,28 @@
         .card-back-content {
             padding: 20px 16px;
             padding-top: 50px;
-            height: 100%;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
+            padding-bottom: 20px;
+            /* Use absolute positioning to fill card-back */
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            /* Enable scrolling - content will overflow */
+            overflow-y: scroll;
+            overflow-x: hidden;
+            /* Critical for iOS momentum scrolling - MUST be present */
+            -webkit-overflow-scrolling: touch !important;
             overscroll-behavior: contain;
+            overscroll-behavior-y: contain;
             touch-action: pan-y;
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior: contain;
-            touch-action: pan-y;
-            position: relative;
+            -webkit-tap-highlight-color: transparent;
             z-index: 1;
+            /* Ensure the element can receive touch events */
+            pointer-events: auto;
+            /* Force repaint for iOS */
+            will-change: scroll-position;
         }
 
         /* Title Section */
@@ -1401,6 +1413,29 @@
             color: #666;
             text-align: center;
             padding: 0 20px;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        
+        /* Hide instructions when keyboard is visible to reduce gap */
+        .instructions.keyboard-hidden {
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: none;
+        }
+
+        /* iOS body scroll lock when card is flipped */
+        /* Using overflow: hidden instead of position: fixed to allow nested scrolling */
+        body.scroll-locked {
+            overflow: hidden;
+            height: 100%;
+            position: relative;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Prevent iOS rubber band scrolling when card is flipped */
+        html.scroll-locked {
+            overflow: hidden;
+            height: 100%;
         }
 
         /* Action Overlay Modal */
@@ -2243,7 +2278,7 @@
                 </div>
 
     <div class="instructions">
-        Click the three-dot menu to flip the card • Click comment button to view activity comments
+        Version 1.0 • Last updated: Nov 10, 2025 at 06:27 AM (Added scrolling comments, fixed like buttons, iOS scroll fixes)
     </div>
 
     <script>
@@ -2533,31 +2568,199 @@
             console.log('User rated show as:', rating);
         }
 
-        // iOS scroll fix: Lock body when card is flipped
-        const card = document.getElementById('activityCard');
-        const flipBtn = document.querySelector('.action-btn');
-        let scrollPosition = 0;
+        // iOS scroll lock/unlock functions
+        function lockBodyScroll() {
+            document.body.classList.add('scroll-locked');
+            document.documentElement.classList.add('scroll-locked');
+        }
+        
+        function unlockBodyScroll() {
+            document.body.classList.remove('scroll-locked');
+            document.documentElement.classList.remove('scroll-locked');
+        }
 
-        if (flipBtn) {
-            flipBtn.addEventListener('click', () => {
-                setTimeout(() => {
-                    if (card.classList.contains('flipped')) {
-                        // Card is now flipped - lock body scroll
-                        scrollPosition = window.pageYOffset;
-                        document.body.style.overflow = 'hidden';
-                        document.body.style.position = 'fixed';
-                        document.body.style.top = `-${scrollPosition}px`;
-                        document.body.style.width = '100%';
-                    } else {
-                        // Card is now unflipped - restore body scroll
-                        document.body.style.removeProperty('overflow');
-                        document.body.style.removeProperty('position');
-                        document.body.style.removeProperty('top');
-                        document.body.style.removeProperty('width');
-                        window.scrollTo(0, scrollPosition);
+        // iOS scroll management
+        const card = document.getElementById('activityCard');
+        const cardBackContent = document.querySelector('.card-back-content');
+        
+        if (card) {
+            // Watch for card flip and manage scroll locking
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        const isFlipped = card.classList.contains('flipped');
+                        if (isFlipped) {
+                            // Card flipped - lock body scroll
+                            lockBodyScroll();
+                        } else {
+                            // Card unflipped - unlock body scroll
+                            unlockBodyScroll();
+                        }
                     }
-                }, 100);
+                });
             });
+            
+            observer.observe(card, { attributes: true, attributeFilter: ['class'] });
+            
+            // Initial state check
+            if (card.classList.contains('flipped')) {
+                lockBodyScroll();
+            }
+        }
+        
+        // iOS scroll workaround - manually handle scrolling for transformed elements
+        // This is necessary because iOS Safari has a bug where scrolling doesn't work
+        // inside elements with CSS transforms (like our card flip)
+        if (cardBackContent) {
+            let touchStartY = 0;
+            let touchStartScrollTop = 0;
+            let lastTouchY = 0;
+            let lastTouchTime = 0;
+            let velocity = 0;
+            let momentumAnimation = null;
+            let isScrolling = false;
+            
+            // Smooth scroll with easing
+            function smoothScrollTo(targetScrollTop) {
+                const startScrollTop = cardBackContent.scrollTop;
+                const distance = targetScrollTop - startScrollTop;
+                const duration = Math.min(Math.abs(distance) * 0.5, 300); // Max 300ms
+                const startTime = performance.now();
+                
+                function animate(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    // Easing function (ease-out cubic)
+                    const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+                    
+                    const currentScrollTop = startScrollTop + (distance * easeOutCubic);
+                    cardBackContent.scrollTop = currentScrollTop;
+                    
+                    if (progress < 1) {
+                        momentumAnimation = requestAnimationFrame(animate);
+                    } else {
+                        momentumAnimation = null;
+                    }
+                }
+                
+                if (momentumAnimation) {
+                    cancelAnimationFrame(momentumAnimation);
+                }
+                momentumAnimation = requestAnimationFrame(animate);
+            }
+            
+            // Momentum scrolling after touch ends
+            function applyMomentum() {
+                if (Math.abs(velocity) < 0.1) {
+                    velocity = 0;
+                    return;
+                }
+                
+                const maxScroll = cardBackContent.scrollHeight - cardBackContent.clientHeight;
+                const currentScrollTop = cardBackContent.scrollTop;
+                const friction = 0.92; // Deceleration factor - Apple-like smooth deceleration
+                
+                // Apply friction to velocity
+                velocity *= friction;
+                
+                // Calculate new scroll position
+                // Positive velocity = swiping down = scroll down (increase scrollTop)
+                // Negative velocity = swiping up = scroll up (decrease scrollTop)
+                let newScrollTop = currentScrollTop + velocity;
+                
+                // Stop at boundaries
+                if (newScrollTop < 0) {
+                    newScrollTop = 0;
+                    velocity = 0;
+                } else if (newScrollTop > maxScroll) {
+                    newScrollTop = maxScroll;
+                    velocity = 0;
+                }
+                
+                cardBackContent.scrollTop = newScrollTop;
+                
+                // Continue momentum if velocity is still significant
+                if (Math.abs(velocity) > 0.1) {
+                    requestAnimationFrame(applyMomentum);
+                } else {
+                    velocity = 0;
+                }
+            }
+            
+            cardBackContent.addEventListener('touchstart', (e) => {
+                if (!card.classList.contains('flipped')) return;
+                
+                // Cancel any ongoing momentum
+                if (momentumAnimation) {
+                    cancelAnimationFrame(momentumAnimation);
+                    momentumAnimation = null;
+                }
+                velocity = 0;
+                isScrolling = true;
+                
+                touchStartY = e.touches[0].clientY;
+                touchStartScrollTop = cardBackContent.scrollTop;
+                lastTouchY = touchStartY;
+                lastTouchTime = performance.now();
+            }, { passive: true });
+            
+            cardBackContent.addEventListener('touchmove', (e) => {
+                if (!card.classList.contains('flipped')) return;
+                
+                const touchY = e.touches[0].clientY;
+                const currentTime = performance.now();
+                const deltaTime = currentTime - lastTouchTime;
+                
+                // Calculate velocity for momentum based on recent movement
+                // Positive velocity = scrolling down (content moving up)
+                if (deltaTime > 0 && lastTouchY !== 0) {
+                    const deltaY = lastTouchY - touchY; // Positive when swiping down
+                    velocity = (deltaY / deltaTime) * 16; // Normalize to 60fps, scale up for momentum
+                }
+                
+                const deltaY = touchStartY - touchY;
+                const newScrollTop = touchStartScrollTop + deltaY;
+                const maxScroll = cardBackContent.scrollHeight - cardBackContent.clientHeight;
+                
+                // Manually set scroll position with rubber band effect at boundaries
+                if (newScrollTop >= 0 && newScrollTop <= maxScroll) {
+                    cardBackContent.scrollTop = newScrollTop;
+                } else if (newScrollTop < 0) {
+                    // Rubber band effect - reduce scroll amount when past boundary
+                    const overscroll = Math.abs(newScrollTop);
+                    cardBackContent.scrollTop = -overscroll * 0.3;
+                } else if (newScrollTop > maxScroll) {
+                    // Rubber band effect
+                    const overscroll = newScrollTop - maxScroll;
+                    cardBackContent.scrollTop = maxScroll + (overscroll * 0.3);
+                }
+                
+                lastTouchY = touchY;
+                lastTouchTime = currentTime;
+            }, { passive: false });
+            
+            cardBackContent.addEventListener('touchend', () => {
+                if (!card.classList.contains('flipped')) return;
+                
+                isScrolling = false;
+                const maxScroll = cardBackContent.scrollHeight - cardBackContent.clientHeight;
+                const currentScrollTop = cardBackContent.scrollTop;
+                
+                // Snap back if overscrolled
+                if (currentScrollTop < 0) {
+                    smoothScrollTo(0);
+                    velocity = 0;
+                } else if (currentScrollTop > maxScroll) {
+                    smoothScrollTo(maxScroll);
+                    velocity = 0;
+                } else if (Math.abs(velocity) > 0.5) {
+                    // Apply momentum scrolling - continue in the direction of the swipe
+                    applyMomentum();
+                } else {
+                    velocity = 0;
+                }
+            }, { passive: true });
         }
     </script>
 </body>
