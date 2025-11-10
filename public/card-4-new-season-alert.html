@@ -301,6 +301,7 @@
             transform-style: preserve-3d;
             transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
             border-radius: 16px;
+            touch-action: none;
         }
 
         .card.flipped {
@@ -325,6 +326,7 @@
         .card-back {
             transform: rotateY(180deg);
             background: linear-gradient(to bottom, #1a1a1a 0%, #0a0a0a 100%);
+            overflow: hidden;
         }
 
         /* Front card styles (existing design) */
@@ -535,15 +537,23 @@
         .card-back-content {
             padding: 20px 16px;
             padding-top: 50px;
-            height: 100%;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
+            padding-bottom: 20px;
+            /* Use absolute positioning to fill card-back */
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            /* Enable scrolling - content will overflow */
+            overflow-y: scroll;
+            overflow-x: hidden;
+            /* Critical for iOS momentum scrolling - MUST be present */
+            -webkit-overflow-scrolling: touch !important;
             overscroll-behavior: contain;
+            overscroll-behavior-y: contain;
             touch-action: pan-y;
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior: contain;
-            touch-action: pan-y;
-            position: relative;
+            -webkit-tap-highlight-color: transparent;
             z-index: 1;
         }
 
@@ -1048,16 +1058,19 @@
             display: none;
             padding: 20px;
             padding-bottom: 0;
-            max-height: 350px;
-            overflow-y: auto;
+            /* Flex grow to fill space, but allow scrolling */
+            flex: 1;
+            min-height: 0;
+            overflow-y: scroll;
+            overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
             overscroll-behavior: contain;
+            overscroll-behavior-y: contain;
             touch-action: pan-y;
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior: contain;
-            touch-action: pan-y;
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior: contain;
+            /* Enable iOS scrolling */
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            will-change: scroll-position;
         }
 
         .comments-tab.expanded .comments-preview {
@@ -1108,6 +1121,10 @@
             line-height: 1.4;
             opacity: 0.9;
             margin-left: 38px;
+        }
+
+        .activity-comment-item .comment-actions {
+            justify-content: flex-end;
         }
 
         .activity-comment-input-wrapper {
@@ -1938,7 +1955,7 @@
     </div>
 
     <div class="instructions">
-        Version 1.0 • Last updated: Nov 10, 2025 at 07:15 AM (Added custom touch scrolling for card back and comments, iOS body lock, momentum scrolling)
+        Version 2.0 • Last updated: Nov 10, 2025 at 08:00 AM (Fixed page bounce: Added touch-action properties, absolute positioning for card-back-content, improved scrolling properties, moved comment like buttons to right, enhanced iOS scroll fixes)
     </div>
 
     <script>
