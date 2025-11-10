@@ -1028,8 +1028,8 @@
         .comments-tab {
             position: absolute;
             bottom: 0;
-            left: 20px;
-            right: 70px;
+            left: 10px; /* Reduced from 20px - take up half the space */
+            right: 35px; /* Reduced from 70px - go halfway closer to nav circles */
             background: rgba(20, 20, 20, 0.95);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
@@ -1391,6 +1391,14 @@
             color: #666;
             text-align: center;
             padding: 0 20px;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        
+        /* Hide instructions when keyboard is visible to reduce gap */
+        .instructions.keyboard-hidden {
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: none;
         }
 
         /* Action Overlay Modal */
@@ -2262,7 +2270,7 @@
                 </div>
 
     <div class="instructions">
-        Version 3.3 • Last updated: Nov 09, 2025 at 10:15 PM (Fixed send button shape & reduced keyboard gap)
+        Version 3.4 • Last updated: Nov 09, 2025 at 10:24 PM (Widened comment bubble & hide version info on keyboard)
     </div>
 
     <script>
@@ -2360,9 +2368,21 @@
                                     const shiftAmount = inputBottom - viewportBottom + 8; // Minimal 8px gap
                                     commentsTab.style.transform = `translateY(-${shiftAmount}px)`;
                                     commentsTab.classList.add('keyboard-visible');
+                                    
+                                    // Hide instructions/version info to reduce gap
+                                    const instructions = document.querySelector('.instructions');
+                                    if (instructions) {
+                                        instructions.classList.add('keyboard-hidden');
+                                    }
                                 } else {
                                     commentsTab.style.transform = 'translateY(0)';
                                     commentsTab.classList.remove('keyboard-visible');
+                                    
+                                    // Show instructions again
+                                    const instructions = document.querySelector('.instructions');
+                                    if (instructions) {
+                                        instructions.classList.remove('keyboard-hidden');
+                                    }
                                 }
                             }
                         } else {
@@ -2371,6 +2391,12 @@
                             if (commentsTab) {
                                 commentsTab.style.transform = 'translateY(0)';
                                 commentsTab.classList.remove('keyboard-visible');
+                            }
+                            
+                            // Show instructions again
+                            const instructions = document.querySelector('.instructions');
+                            if (instructions) {
+                                instructions.classList.remove('keyboard-hidden');
                             }
                         }
                     };
@@ -2385,6 +2411,12 @@
                         if (commentsTab) {
                             commentsTab.style.transform = 'translateY(0)';
                             commentsTab.classList.remove('keyboard-visible');
+                        }
+                        
+                        // Show instructions again
+                        const instructions = document.querySelector('.instructions');
+                        if (instructions) {
+                            instructions.classList.remove('keyboard-hidden');
                         }
                     }, { once: true });
                 } else {
