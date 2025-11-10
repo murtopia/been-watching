@@ -2062,7 +2062,7 @@
                 </div>
 
     <div class="instructions">
-        Version 2.8 • Last updated: Nov 09, 2025 at 09:25 PM (Added momentum scrolling & easing)
+        Version 2.9 • Last updated: Nov 09, 2025 at 09:32 PM (Fixed momentum direction, friction 0.5)
     </div>
 
     <script>
@@ -2373,12 +2373,17 @@
                 
                 const maxScroll = cardBackContent.scrollHeight - cardBackContent.clientHeight;
                 const currentScrollTop = cardBackContent.scrollTop;
-                const friction = 0.95; // Deceleration factor
+                const friction = 0.5; // Deceleration factor (lower = slower momentum)
                 
+                // Apply friction to velocity
                 velocity *= friction;
-                let newScrollTop = currentScrollTop - velocity;
                 
-                // Bounce at boundaries
+                // Calculate new scroll position
+                // Positive velocity = swiping down = scroll down (increase scrollTop)
+                // Negative velocity = swiping up = scroll up (decrease scrollTop)
+                let newScrollTop = currentScrollTop + velocity;
+                
+                // Stop at boundaries
                 if (newScrollTop < 0) {
                     newScrollTop = 0;
                     velocity = 0;
@@ -2389,6 +2394,7 @@
                 
                 cardBackContent.scrollTop = newScrollTop;
                 
+                // Continue momentum if velocity is still significant
                 if (Math.abs(velocity) > 0.1) {
                     requestAnimationFrame(applyMomentum);
                 } else {
@@ -2420,10 +2426,11 @@
                 const currentTime = performance.now();
                 const deltaTime = currentTime - lastTouchTime;
                 
-                // Calculate velocity for momentum
-                if (deltaTime > 0) {
-                    const deltaY = lastTouchY - touchY;
-                    velocity = deltaY / deltaTime * 16; // Normalize to 60fps
+                // Calculate velocity for momentum based on recent movement
+                // Positive velocity = scrolling down (content moving up)
+                if (deltaTime > 0 && lastTouchY !== 0) {
+                    const deltaY = lastTouchY - touchY; // Positive when swiping down
+                    velocity = (deltaY / deltaTime) * 16; // Normalize to 60fps, scale up for momentum
                 }
                 
                 const deltaY = touchStartY - touchY;
@@ -2457,11 +2464,15 @@
                 // Snap back if overscrolled
                 if (currentScrollTop < 0) {
                     smoothScrollTo(0);
+                    velocity = 0;
                 } else if (currentScrollTop > maxScroll) {
                     smoothScrollTo(maxScroll);
+                    velocity = 0;
                 } else if (Math.abs(velocity) > 0.5) {
-                    // Apply momentum scrolling
+                    // Apply momentum scrolling - continue in the direction of the swipe
                     applyMomentum();
+                } else {
+                    velocity = 0;
                 }
             }, { passive: true });
         }
