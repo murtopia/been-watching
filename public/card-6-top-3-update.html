@@ -1191,8 +1191,10 @@
             border-radius: 20px;
             padding: 10px 16px;
             color: white;
-            font-size: 13px;
+            font-size: 16px; /* 16px prevents iOS zoom on focus */
             outline: none;
+            -webkit-appearance: none;
+            appearance: none;
         }
 
         .activity-comment-input::placeholder {
@@ -1202,6 +1204,8 @@
         .send-btn {
             width: 32px;
             height: 32px;
+            min-width: 32px;
+            min-height: 32px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.2);
             border: none;
@@ -1209,6 +1213,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            flex-shrink: 0; /* Prevent stretching in flex container */
         }
 
         .send-btn svg {
@@ -1736,7 +1741,7 @@
                                     </div>
                                     <div class="activity-comment-text">This finale was absolutely incredible! Best TV I've seen all year.</div>
                                     <div class="comment-actions">
-                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this)">
+                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this, event)">
                                             <svg viewBox="0 0 24 24">
                                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                             </svg>
@@ -1752,7 +1757,7 @@
                                     </div>
                                     <div class="activity-comment-text">Can't believe it's over. What a ride! 🎬</div>
                                     <div class="comment-actions">
-                                        <button class="comment-like-btn" onclick="toggleCommentLike(this)">
+                                        <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
                                             <svg viewBox="0 0 24 24">
                                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                             </svg>
@@ -1951,7 +1956,7 @@
                                             </div>
                                             <div class="comment-text">This season is absolutely phenomenal. The tension keeps building and you can't look away. Best TV I've ever watched.</div>
                                             <div class="comment-actions">
-                                                <button class="comment-like-btn liked" onclick="toggleCommentLike(this)">
+                                                <button class="comment-like-btn liked" onclick="toggleCommentLike(this, event)">
                                                     <svg viewBox="0 0 24 24">
                                                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                                     </svg>
@@ -1970,7 +1975,7 @@
                                             </div>
                                             <div class="comment-text">Started this last month and I'm already hooked. Can't believe I waited so long to watch it!</div>
                                             <div class="comment-actions">
-                                                <button class="comment-like-btn" onclick="toggleCommentLike(this)">
+                                                <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
                                                     <svg viewBox="0 0 24 24">
                                                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                                     </svg>
@@ -1989,7 +1994,7 @@
                                             </div>
                                             <div class="comment-text">The character development in this season is incredible. Every episode leaves me wanting more.</div>
                                             <div class="comment-actions">
-                                                <button class="comment-like-btn" onclick="toggleCommentLike(this)">
+                                                <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
                                                     <svg viewBox="0 0 24 24">
                                                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                                     </svg>
@@ -2152,11 +2157,24 @@
             event.stopPropagation();
             const commentsTab = event.currentTarget;
             commentsTab.classList.toggle('expanded');
+
+            // Ensure input stays visible when expanding
+            if (commentsTab.classList.contains('expanded')) {
+                setTimeout(() => {
+                    const input = commentsTab.querySelector('.activity-comment-input');
+                    if (input) {
+                        // Scroll comments section if needed to keep input visible
+                        const commentsFull = commentsTab.querySelector('.comments-full');
+                        if (commentsFull) {
+                            commentsFull.scrollTop = 0;
+                        }
+                    }
+                }, 100);
+            }
         }
 
         function closeCommentsTab(event) {
             event.stopPropagation();
-            event.preventDefault();
             const commentsTab = document.querySelector('.card-front .comments-tab');
             if (commentsTab) {
                 commentsTab.classList.remove('visible');
@@ -2254,7 +2272,13 @@
         });
 
         // Comment like button interaction
-        function toggleCommentLike(button) {
+        function toggleCommentLike(button, event) {
+            // Prevent event from bubbling up and closing the comments bubble
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+
             button.classList.toggle('liked');
             const countSpan = button.querySelector('span');
             let count = parseInt(countSpan.textContent);
@@ -2266,12 +2290,6 @@
             }
 
             countSpan.textContent = count;
-
-            // Add visual feedback
-            button.style.transform = 'scale(0.9)';
-            setTimeout(() => {
-                button.style.transform = 'scale(1)';
-            }, 100);
         }
 
         // User rating interaction
@@ -2687,7 +2705,7 @@
     </script>
 
     <div class="instructions">
-        Version 1.2 • Last updated: Nov 10, 2025 at 10:00 AM (Complete comments system: wider bubble (10px), flexbox layout, close button, keyboard handling with visualViewport API, smooth animations, expanded state checks for scrolling)
+        Version 1.3 • Last updated: Nov 10, 2025 at 10:30 AM (Fixed comments to match card 1: 16px input font (iOS zoom prevention), webkit appearance reset, send button min-size/flex-shrink, scroll management on expand, proper event handling in like buttons, removed extra preventDefault)
     </div>
 </body>
 </html>
