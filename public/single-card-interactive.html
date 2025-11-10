@@ -2062,7 +2062,7 @@
                 </div>
 
     <div class="instructions">
-        Version 2.6 • Last updated: Nov 09, 2025 at 09:17 PM (Fixed card back visibility)
+        Version 2.7 • Last updated: Nov 09, 2025 at 09:22 PM (iOS scrolling fixed - production ready)
     </div>
 
     <script>
@@ -2149,20 +2149,18 @@
             // Save current scroll position
             savedScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
             
-            // TEMPORARILY DISABLED FOR TESTING - iOS scrolling issue
-            // Try without body lock to see if that's the problem
             // Use overflow: hidden instead of position: fixed to allow nested scrolling
             // This approach works better on iOS for nested scrollable elements
             document.documentElement.classList.add('scroll-locked');
             document.body.classList.add('scroll-locked');
             
             // Set overflow hidden (not position fixed) to allow card content to scroll
-            // COMMENTED OUT FOR TESTING - uncomment if needed
-            // document.documentElement.style.overflow = 'hidden';
-            // document.documentElement.style.height = '100%';
-            // document.body.style.overflow = 'hidden';
-            // document.body.style.height = '100%';
-            // document.body.style.position = 'relative';
+            document.documentElement.style.overflow = 'hidden';
+            document.documentElement.style.height = '100%';
+            
+            document.body.style.overflow = 'hidden';
+            document.body.style.height = '100%';
+            document.body.style.position = 'relative';
             
             scrollLocked = true;
         }
@@ -2188,9 +2186,8 @@
             scrollLocked = false;
         }
 
-        // TEMPORARILY DISABLED FOR TESTING - iOS scrolling issue
         // Prevent body scroll by default (for card container)
-        // document.body.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
 
         // Action overlay functions
         function toggleActionOverlay(event) {
@@ -2296,24 +2293,9 @@
             console.log('User rated show as:', rating);
         }
 
-        // iOS scroll management and debugging
+        // iOS scroll management
         const card = document.getElementById('activityCard');
         const cardBackContent = document.querySelector('.card-back-content');
-        
-        // Debug function to check scrollability
-        function debugScrolling() {
-            if (cardBackContent) {
-                console.log('=== SCROLL DEBUG ===');
-                console.log('ScrollHeight:', cardBackContent.scrollHeight);
-                console.log('ClientHeight:', cardBackContent.clientHeight);
-                console.log('Can scroll:', cardBackContent.scrollHeight > cardBackContent.clientHeight);
-                console.log('ScrollTop:', cardBackContent.scrollTop);
-                console.log('Computed overflow-y:', window.getComputedStyle(cardBackContent).overflowY);
-                console.log('Computed -webkit-overflow-scrolling:', window.getComputedStyle(cardBackContent).webkitOverflowScrolling);
-                console.log('Position:', window.getComputedStyle(cardBackContent).position);
-                console.log('===================');
-            }
-        }
         
         if (card) {
             // Watch for card flip and manage scroll locking
@@ -2322,12 +2304,8 @@
                     if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
                         const isFlipped = card.classList.contains('flipped');
                         if (isFlipped) {
-                            // Card flipped - lock body scroll (CSS overscroll-behavior handles the rest)
+                            // Card flipped - lock body scroll
                             lockBodyScroll();
-                            // Debug after flip
-                            setTimeout(() => {
-                                debugScrolling();
-                            }, 100);
                         } else {
                             // Card unflipped - unlock body scroll
                             unlockBodyScroll();
@@ -2342,25 +2320,19 @@
             if (card.classList.contains('flipped')) {
                 lockBodyScroll();
             }
-            
-            // Debug on load
-            setTimeout(() => {
-                debugScrolling();
-            }, 500);
         }
         
-        // iOS scroll workaround - manually handle scrolling
+        // iOS scroll workaround - manually handle scrolling for transformed elements
+        // This is necessary because iOS Safari has a bug where scrolling doesn't work
+        // inside elements with CSS transforms (like our card flip)
         if (cardBackContent) {
             let touchStartY = 0;
             let touchStartScrollTop = 0;
-            let isScrolling = false;
             
             cardBackContent.addEventListener('touchstart', (e) => {
                 if (!card.classList.contains('flipped')) return;
                 touchStartY = e.touches[0].clientY;
                 touchStartScrollTop = cardBackContent.scrollTop;
-                isScrolling = false;
-                console.log('Touch start - scrollTop:', touchStartScrollTop);
             }, { passive: true });
             
             cardBackContent.addEventListener('touchmove', (e) => {
@@ -2374,19 +2346,12 @@
                 // Manually set scroll position
                 if (newScrollTop >= 0 && newScrollTop <= maxScroll) {
                     cardBackContent.scrollTop = newScrollTop;
-                    isScrolling = true;
-                    console.log('Manual scroll to:', newScrollTop);
                 } else if (newScrollTop < 0) {
                     cardBackContent.scrollTop = 0;
                 } else if (newScrollTop > maxScroll) {
                     cardBackContent.scrollTop = maxScroll;
                 }
             }, { passive: false });
-            
-            cardBackContent.addEventListener('touchend', () => {
-                isScrolling = false;
-                console.log('Touch end - final scrollTop:', cardBackContent.scrollTop);
-            }, { passive: true });
         }
     </script>
 </body>
