@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Card 1 - User Activity Card</title>
     <style>
         * {
@@ -1043,12 +1043,21 @@
             transform: translateY(100%);
             opacity: 0;
             pointer-events: none;
+            /* Use flexbox to keep input fixed at bottom */
+            display: flex;
+            flex-direction: column;
         }
 
         .comments-tab.visible {
             transform: translateY(0);
             opacity: 1;
             pointer-events: auto;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        
+        /* When keyboard is visible, smoothly shift up */
+        .comments-tab.visible.keyboard-visible {
+            transition: transform 0.25s ease-out, opacity 0.3s ease;
         }
 
         .comments-preview {
@@ -1065,7 +1074,9 @@
             display: none;
             padding: 20px;
             padding-bottom: 0;
-            max-height: 350px;
+            /* Flex grow to fill space, but allow scrolling */
+            flex: 1;
+            min-height: 0;
             overflow-y: scroll;
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
@@ -1134,6 +1145,8 @@
             display: flex;
             gap: 12px;
             align-items: center;
+            /* Keep input fixed at bottom - don't shrink */
+            flex-shrink: 0;
         }
 
         .activity-comment-input {
@@ -1143,8 +1156,10 @@
             border-radius: 20px;
             padding: 10px 16px;
             color: white;
-            font-size: 13px;
+            font-size: 16px; /* 16px prevents iOS zoom on focus */
             outline: none;
+            -webkit-appearance: none;
+            appearance: none;
         }
 
         .activity-comment-input::placeholder {
@@ -2244,7 +2259,7 @@
                 </div>
 
     <div class="instructions">
-        Version 3.1 • Last updated: Nov 09, 2025 at 09:52 PM (Added iOS scrolling to comments section)
+        Version 3.2 • Last updated: Nov 09, 2025 at 10:10 PM (Fixed input position & keyboard handling)
     </div>
 
     <script>
@@ -2297,6 +2312,84 @@
             event.stopPropagation();
             const commentsTab = event.currentTarget;
             commentsTab.classList.toggle('expanded');
+            
+            // Ensure input stays visible when expanding
+            if (commentsTab.classList.contains('expanded')) {
+                setTimeout(() => {
+                    const input = commentsTab.querySelector('.activity-comment-input');
+                    if (input) {
+                        // Scroll comments section if needed to keep input visible
+                        const commentsFull = commentsTab.querySelector('.comments-full');
+                        if (commentsFull) {
+                            commentsFull.scrollTop = 0;
+                        }
+                    }
+                }, 100);
+            }
+        }
+        
+        // Handle iOS keyboard appearance smoothly (Instagram-like behavior)
+        const commentInput = document.querySelector('.activity-comment-input');
+        if (commentInput) {
+            let initialViewportHeight = window.innerHeight;
+            
+            // Prevent zoom and handle keyboard smoothly
+            commentInput.addEventListener('focus', () => {
+                // Use visualViewport API for smooth keyboard handling (iOS 13+)
+                if (window.visualViewport) {
+                    const handleViewportChange = () => {
+                        const viewportHeight = window.visualViewport.height;
+                        const keyboardHeight = initialViewportHeight - viewportHeight;
+                        
+                        if (keyboardHeight > 0) {
+                            // Keyboard is visible - adjust comments tab position
+                            const commentsTab = document.querySelector('.comments-tab.expanded');
+                            if (commentsTab) {
+                                // Calculate how much to shift up
+                                const inputRect = commentInput.getBoundingClientRect();
+                                const tabRect = commentsTab.getBoundingClientRect();
+                                const inputBottom = inputRect.bottom;
+                                const viewportBottom = window.visualViewport.height;
+                                
+                                // If input would be hidden by keyboard, shift tab up
+                                if (inputBottom > viewportBottom) {
+                                    const shiftAmount = inputBottom - viewportBottom + 20; // 20px padding
+                                    commentsTab.style.transform = `translateY(-${shiftAmount}px)`;
+                                    commentsTab.classList.add('keyboard-visible');
+                                } else {
+                                    commentsTab.style.transform = 'translateY(0)';
+                                    commentsTab.classList.remove('keyboard-visible');
+                                }
+                            }
+                        } else {
+                            // Keyboard hidden - reset position smoothly
+                            const commentsTab = document.querySelector('.comments-tab.expanded');
+                            if (commentsTab) {
+                                commentsTab.style.transform = 'translateY(0)';
+                                commentsTab.classList.remove('keyboard-visible');
+                            }
+                        }
+                    };
+                    
+                    window.visualViewport.addEventListener('resize', handleViewportChange);
+                    handleViewportChange();
+                    
+                    // Clean up on blur
+                    commentInput.addEventListener('blur', () => {
+                        window.visualViewport.removeEventListener('resize', handleViewportChange);
+                        const commentsTab = document.querySelector('.comments-tab.expanded');
+                        if (commentsTab) {
+                            commentsTab.style.transform = 'translateY(0)';
+                            commentsTab.classList.remove('keyboard-visible');
+                        }
+                    }, { once: true });
+                } else {
+                    // Fallback for older iOS - scroll input into view
+                    setTimeout(() => {
+                        commentInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 300);
+                }
+            });
         }
 
         // Close comments when clicking outside
