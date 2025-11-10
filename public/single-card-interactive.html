@@ -2062,7 +2062,7 @@
                 </div>
 
     <div class="instructions">
-        Version 2.7 • Last updated: Nov 09, 2025 at 09:22 PM (iOS scrolling fixed - production ready)
+        Version 2.8 • Last updated: Nov 09, 2025 at 09:25 PM (Added momentum scrolling & easing)
     </div>
 
     <script>
@@ -2328,30 +2328,142 @@
         if (cardBackContent) {
             let touchStartY = 0;
             let touchStartScrollTop = 0;
+            let lastTouchY = 0;
+            let lastTouchTime = 0;
+            let velocity = 0;
+            let momentumAnimation = null;
+            let isScrolling = false;
+            
+            // Smooth scroll with easing
+            function smoothScrollTo(targetScrollTop) {
+                const startScrollTop = cardBackContent.scrollTop;
+                const distance = targetScrollTop - startScrollTop;
+                const duration = Math.min(Math.abs(distance) * 0.5, 300); // Max 300ms
+                const startTime = performance.now();
+                
+                function animate(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    // Easing function (ease-out cubic)
+                    const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+                    
+                    const currentScrollTop = startScrollTop + (distance * easeOutCubic);
+                    cardBackContent.scrollTop = currentScrollTop;
+                    
+                    if (progress < 1) {
+                        momentumAnimation = requestAnimationFrame(animate);
+                    } else {
+                        momentumAnimation = null;
+                    }
+                }
+                
+                if (momentumAnimation) {
+                    cancelAnimationFrame(momentumAnimation);
+                }
+                momentumAnimation = requestAnimationFrame(animate);
+            }
+            
+            // Momentum scrolling after touch ends
+            function applyMomentum() {
+                if (Math.abs(velocity) < 0.1) {
+                    velocity = 0;
+                    return;
+                }
+                
+                const maxScroll = cardBackContent.scrollHeight - cardBackContent.clientHeight;
+                const currentScrollTop = cardBackContent.scrollTop;
+                const friction = 0.95; // Deceleration factor
+                
+                velocity *= friction;
+                let newScrollTop = currentScrollTop - velocity;
+                
+                // Bounce at boundaries
+                if (newScrollTop < 0) {
+                    newScrollTop = 0;
+                    velocity = 0;
+                } else if (newScrollTop > maxScroll) {
+                    newScrollTop = maxScroll;
+                    velocity = 0;
+                }
+                
+                cardBackContent.scrollTop = newScrollTop;
+                
+                if (Math.abs(velocity) > 0.1) {
+                    requestAnimationFrame(applyMomentum);
+                } else {
+                    velocity = 0;
+                }
+            }
             
             cardBackContent.addEventListener('touchstart', (e) => {
                 if (!card.classList.contains('flipped')) return;
+                
+                // Cancel any ongoing momentum
+                if (momentumAnimation) {
+                    cancelAnimationFrame(momentumAnimation);
+                    momentumAnimation = null;
+                }
+                velocity = 0;
+                isScrolling = true;
+                
                 touchStartY = e.touches[0].clientY;
                 touchStartScrollTop = cardBackContent.scrollTop;
+                lastTouchY = touchStartY;
+                lastTouchTime = performance.now();
             }, { passive: true });
             
             cardBackContent.addEventListener('touchmove', (e) => {
                 if (!card.classList.contains('flipped')) return;
                 
                 const touchY = e.touches[0].clientY;
+                const currentTime = performance.now();
+                const deltaTime = currentTime - lastTouchTime;
+                
+                // Calculate velocity for momentum
+                if (deltaTime > 0) {
+                    const deltaY = lastTouchY - touchY;
+                    velocity = deltaY / deltaTime * 16; // Normalize to 60fps
+                }
+                
                 const deltaY = touchStartY - touchY;
                 const newScrollTop = touchStartScrollTop + deltaY;
                 const maxScroll = cardBackContent.scrollHeight - cardBackContent.clientHeight;
                 
-                // Manually set scroll position
+                // Manually set scroll position with rubber band effect at boundaries
                 if (newScrollTop >= 0 && newScrollTop <= maxScroll) {
                     cardBackContent.scrollTop = newScrollTop;
                 } else if (newScrollTop < 0) {
-                    cardBackContent.scrollTop = 0;
+                    // Rubber band effect - reduce scroll amount when past boundary
+                    const overscroll = Math.abs(newScrollTop);
+                    cardBackContent.scrollTop = -overscroll * 0.3;
                 } else if (newScrollTop > maxScroll) {
-                    cardBackContent.scrollTop = maxScroll;
+                    // Rubber band effect
+                    const overscroll = newScrollTop - maxScroll;
+                    cardBackContent.scrollTop = maxScroll + (overscroll * 0.3);
                 }
+                
+                lastTouchY = touchY;
+                lastTouchTime = currentTime;
             }, { passive: false });
+            
+            cardBackContent.addEventListener('touchend', () => {
+                if (!card.classList.contains('flipped')) return;
+                
+                isScrolling = false;
+                const maxScroll = cardBackContent.scrollHeight - cardBackContent.clientHeight;
+                const currentScrollTop = cardBackContent.scrollTop;
+                
+                // Snap back if overscrolled
+                if (currentScrollTop < 0) {
+                    smoothScrollTo(0);
+                } else if (currentScrollTop > maxScroll) {
+                    smoothScrollTo(maxScroll);
+                } else if (Math.abs(velocity) > 0.5) {
+                    // Apply momentum scrolling
+                    applyMomentum();
+                }
+            }, { passive: true });
         }
     </script>
 </body>
