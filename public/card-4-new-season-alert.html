@@ -1937,6 +1937,10 @@
         Click the three-dot menu to flip the card • Click comment button to view activity comments
     </div>
 
+    <div class="instructions">
+        Version 1.0 • Last updated: Nov 10, 2025 at 07:15 AM (Added custom touch scrolling for card back and comments, iOS body lock, momentum scrolling)
+    </div>
+
     <script>
         function flipCard() {
             const card = document.getElementById('activityCard');
@@ -2320,6 +2324,150 @@
                     velocity = 0;
                 }
             }, { passive: true });
+        }
+
+        // iOS scroll handler for comments section (same technique as card back)
+        const commentsFull = document.querySelector('.comments-full');
+        if (commentsFull) {
+            let touchStartY = 0;
+            let touchStartScrollTop = 0;
+            let lastTouchY = 0;
+            let lastTouchTime = 0;
+            let velocity = 0;
+            let momentumAnimation = null;
+
+            function smoothScrollToComments(targetScrollTop) {
+                const startScrollTop = commentsFull.scrollTop;
+                const distance = targetScrollTop - startScrollTop;
+                const duration = Math.min(Math.abs(distance) * 0.5, 300);
+                const startTime = performance.now();
+
+                function animate(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+                    const currentScrollTop = startScrollTop + (distance * easeOutCubic);
+                    commentsFull.scrollTop = currentScrollTop;
+
+                    if (progress < 1) {
+                        momentumAnimation = requestAnimationFrame(animate);
+                    }
+                }
+
+                momentumAnimation = requestAnimationFrame(animate);
+            }
+
+            function applyMomentumComments() {
+                if (Math.abs(velocity) < 0.1) return;
+
+                const maxScroll = commentsFull.scrollHeight - commentsFull.clientHeight;
+                const friction = 0.92;
+                velocity *= friction;
+
+                let newScrollTop = commentsFull.scrollTop + velocity;
+
+                if (newScrollTop < 0) newScrollTop = 0;
+                else if (newScrollTop > maxScroll) newScrollTop = maxScroll;
+
+                commentsFull.scrollTop = newScrollTop;
+
+                if (Math.abs(velocity) > 0.1) {
+                    requestAnimationFrame(applyMomentumComments);
+                }
+            }
+
+            commentsFull.addEventListener('touchstart', (e) => {
+                if (!card.classList.contains('flipped')) return;
+
+                e.stopPropagation();
+                touchStartY = e.touches[0].clientY;
+                touchStartScrollTop = commentsFull.scrollTop;
+                lastTouchY = touchStartY;
+                lastTouchTime = performance.now();
+                velocity = 0;
+
+                if (momentumAnimation) {
+                    cancelAnimationFrame(momentumAnimation);
+                }
+            }, { passive: true });
+
+            commentsFull.addEventListener('touchmove', (e) => {
+                if (!card.classList.contains('flipped')) return;
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                const currentY = e.touches[0].clientY;
+                const currentTime = performance.now();
+                const deltaY = currentY - lastTouchY;
+                const deltaTime = currentTime - lastTouchTime;
+
+                if (deltaTime > 0) {
+                    velocity = (deltaY / deltaTime) * 16;
+                }
+
+                const scrollDelta = touchStartY - currentY;
+                const maxScroll = commentsFull.scrollHeight - commentsFull.clientHeight;
+                let newScrollTop = touchStartScrollTop + scrollDelta;
+
+                if (newScrollTop < 0) {
+                    newScrollTop = newScrollTop * 0.3;
+                } else if (newScrollTop > maxScroll) {
+                    const overscroll = newScrollTop - maxScroll;
+                    newScrollTop = maxScroll + (overscroll * 0.3);
+                }
+
+                commentsFull.scrollTop = newScrollTop;
+                lastTouchY = currentY;
+                lastTouchTime = currentTime;
+            }, { passive: false });
+
+            commentsFull.addEventListener('touchend', (e) => {
+                if (!card.classList.contains('flipped')) return;
+
+                e.stopPropagation();
+
+                const maxScroll = commentsFull.scrollHeight - commentsFull.clientHeight;
+                const currentScrollTop = commentsFull.scrollTop;
+
+                if (currentScrollTop < 0) {
+                    smoothScrollToComments(0);
+                    velocity = 0;
+                } else if (currentScrollTop > maxScroll) {
+                    smoothScrollToComments(maxScroll);
+                    velocity = 0;
+                } else if (Math.abs(velocity) > 0.5) {
+                    applyMomentumComments();
+                } else {
+                    velocity = 0;
+                }
+            }, { passive: true });
+        }
+
+        // iOS scroll fix: Lock body when card is flipped
+        const flipBtn = document.querySelector('.action-btn');
+        let scrollPosition = 0;
+
+        if (flipBtn) {
+            flipBtn.addEventListener('click', () => {
+                setTimeout(() => {
+                    if (card.classList.contains('flipped')) {
+                        // Card is now flipped - lock body scroll
+                        scrollPosition = window.pageYOffset;
+                        document.body.style.overflow = 'hidden';
+                        document.body.style.position = 'fixed';
+                        document.body.style.top = `-${scrollPosition}px`;
+                        document.body.style.width = '100%';
+                    } else {
+                        // Card is now unflipped - restore body scroll
+                        document.body.style.removeProperty('overflow');
+                        document.body.style.removeProperty('position');
+                        document.body.style.removeProperty('top');
+                        document.body.style.removeProperty('width');
+                        window.scrollTo(0, scrollPosition);
+                    }
+                }, 100);
+            });
         }
     </script>
 </body>
