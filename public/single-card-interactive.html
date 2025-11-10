@@ -326,8 +326,10 @@
         .card-back {
             transform: rotateY(180deg);
             background: linear-gradient(to bottom, #1a1a1a 0%, #0a0a0a 100%);
-            /* Allow overflow so card-back-content can scroll */
+            /* Clip to card bounds but allow child scrolling */
             overflow: hidden;
+            /* Ensure proper stacking */
+            z-index: 1;
         }
 
         /* Front card styles (existing design) */
@@ -539,13 +541,12 @@
             padding: 20px 16px;
             padding-top: 50px;
             padding-bottom: 20px;
-            /* Fill the card-back container */
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            /* Use relative positioning instead of absolute for iOS scrolling */
+            position: relative;
             width: 100%;
+            /* Explicit height matching card height */
+            height: 645px;
+            max-height: 645px;
             /* Enable scrolling - content will overflow */
             overflow-y: scroll;
             overflow-x: hidden;
@@ -556,11 +557,8 @@
             touch-action: pan-y;
             -webkit-tap-highlight-color: transparent;
             z-index: 1;
-            /* Remove transform - it might interfere with iOS scrolling */
             /* Ensure the element can receive touch events */
             pointer-events: auto;
-            /* Force scrolling to work */
-            -webkit-overflow-scrolling: touch;
         }
 
         /* Title Section */
@@ -2061,7 +2059,7 @@
                 </div>
 
     <div class="instructions">
-        Version 2.3 • Last updated: Nov 09, 2025 at 06:46 PM (DEBUG MODE - check console)
+        Version 2.4 • Last updated: Nov 09, 2025 at 09:07 PM (Changed to relative positioning)
     </div>
 
     <script>
