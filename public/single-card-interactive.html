@@ -2062,7 +2062,7 @@
                 </div>
 
     <div class="instructions">
-        Version 2.9 • Last updated: Nov 09, 2025 at 09:32 PM (Fixed momentum direction, friction 0.5)
+        Version 3.0 • Last updated: Nov 09, 2025 at 09:35 PM (Apple-like friction 0.92)
     </div>
 
     <script>
@@ -2373,7 +2373,7 @@
                 
                 const maxScroll = cardBackContent.scrollHeight - cardBackContent.clientHeight;
                 const currentScrollTop = cardBackContent.scrollTop;
-                const friction = 0.5; // Deceleration factor (lower = slower momentum)
+                const friction = 0.92; // Deceleration factor - Apple-like smooth deceleration
                 
                 // Apply friction to velocity
                 velocity *= friction;
