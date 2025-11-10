@@ -541,6 +541,7 @@
             padding: 20px 16px;
             padding-top: 50px;
             height: 100%;
+            max-height: 100%;
             overflow-y: auto;
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
@@ -551,9 +552,11 @@
             -webkit-tap-highlight-color: transparent;
             position: relative;
             z-index: 1;
-            /* Ensure proper scrolling on iOS */
+            /* Ensure proper scrolling on iOS with hardware acceleration */
             -webkit-transform: translateZ(0);
             transform: translateZ(0);
+            /* Ensure the element can receive touch events */
+            pointer-events: auto;
         }
 
         /* Title Section */
@@ -1557,20 +1560,18 @@
         }
 
         /* iOS body scroll lock when card is flipped */
+        /* Using overflow: hidden instead of position: fixed to allow nested scrolling */
         body.scroll-locked {
-            position: fixed;
-            width: 100%;
-            height: 100%;
             overflow: hidden;
+            height: 100%;
+            position: relative;
             -webkit-overflow-scrolling: touch;
         }
 
         /* Prevent iOS rubber band scrolling when card is flipped */
         html.scroll-locked {
-            position: fixed;
-            width: 100%;
-            height: 100%;
             overflow: hidden;
+            height: 100%;
         }
     </style>
 </head>
@@ -2143,22 +2144,18 @@
             // Save current scroll position
             savedScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
             
-            // Apply scroll lock to both html and body for iOS compatibility
+            // Use overflow: hidden instead of position: fixed to allow nested scrolling
+            // This approach works better on iOS for nested scrollable elements
             document.documentElement.classList.add('scroll-locked');
             document.body.classList.add('scroll-locked');
             
-            // Set explicit styles for iOS Safari
-            document.documentElement.style.position = 'fixed';
-            document.documentElement.style.top = `-${savedScrollPosition}px`;
-            document.documentElement.style.width = '100%';
-            document.documentElement.style.height = '100%';
+            // Set overflow hidden (not position fixed) to allow card content to scroll
             document.documentElement.style.overflow = 'hidden';
+            document.documentElement.style.height = '100%';
             
-            document.body.style.position = 'fixed';
-            document.body.style.top = `-${savedScrollPosition}px`;
-            document.body.style.width = '100%';
-            document.body.style.height = '100%';
             document.body.style.overflow = 'hidden';
+            document.body.style.height = '100%';
+            document.body.style.position = 'relative';
             
             scrollLocked = true;
         }
@@ -2171,17 +2168,12 @@
             document.body.classList.remove('scroll-locked');
             
             // Remove explicit styles
-            document.documentElement.style.removeProperty('position');
-            document.documentElement.style.removeProperty('top');
-            document.documentElement.style.removeProperty('width');
-            document.documentElement.style.removeProperty('height');
             document.documentElement.style.removeProperty('overflow');
+            document.documentElement.style.removeProperty('height');
             
-            document.body.style.removeProperty('position');
-            document.body.style.removeProperty('top');
-            document.body.style.removeProperty('width');
-            document.body.style.removeProperty('height');
             document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('height');
+            document.body.style.removeProperty('position');
             
             // Restore scroll position
             window.scrollTo(0, savedScrollPosition);
@@ -2296,70 +2288,45 @@
             console.log('User rated show as:', rating);
         }
 
-        // Enhanced iOS touch handling for card back scrolling
+        // iOS touch handling - prevent body scroll while allowing card content to scroll
         const cardBackContent = document.querySelector('.card-back-content');
         const card = document.getElementById('activityCard');
         
-        if (cardBackContent) {
-            let touchStartY = 0;
-            let touchStartScrollTop = 0;
-            let isScrolling = false;
-            
-            // Prevent body scroll when touching card back
-            cardBackContent.addEventListener('touchstart', (e) => {
-                if (!card.classList.contains('flipped')) return;
-                
-                touchStartY = e.touches[0].clientY;
-                touchStartScrollTop = cardBackContent.scrollTop;
-                isScrolling = false;
-                
-                // Ensure body is locked
-                lockBodyScroll();
-            }, { passive: true });
-            
-            cardBackContent.addEventListener('touchmove', (e) => {
-                if (!card.classList.contains('flipped')) return;
-                
-                const touchY = e.touches[0].clientY;
-                const deltaY = touchStartY - touchY;
-                const scrollTop = cardBackContent.scrollTop;
-                const scrollHeight = cardBackContent.scrollHeight;
-                const clientHeight = cardBackContent.clientHeight;
-                
-                // Check if we're at the top or bottom of the scrollable area
-                const isAtTop = scrollTop === 0;
-                const isAtBottom = scrollTop + clientHeight >= scrollHeight - 1;
-                
-                // If scrolling up at top or down at bottom, prevent default to stop body scroll
-                if ((isAtTop && deltaY < 0) || (isAtBottom && deltaY > 0)) {
-                    e.preventDefault();
-                    return false;
-                }
-                
-                // If we're scrolling within the card content, allow it
-                isScrolling = true;
-            }, { passive: false });
-            
-            cardBackContent.addEventListener('touchend', () => {
-                isScrolling = false;
-            }, { passive: true });
-            
-            // Prevent body scroll on card back container
-            const cardBack = document.querySelector('.card-back');
-            if (cardBack) {
-                cardBack.addEventListener('touchmove', (e) => {
-                    // Only prevent if touch is not on the scrollable content
-                    if (!cardBackContent.contains(e.target)) {
-                        e.preventDefault();
-                        return false;
-                    }
-                }, { passive: false });
+        // Prevent body/document scroll when card is flipped, but allow card content scrolling
+        function preventBodyScroll(e) {
+            // Only prevent if the touch is NOT on the scrollable card content
+            if (cardBackContent && !cardBackContent.contains(e.target)) {
+                e.preventDefault();
+                return false;
             }
         }
         
-        // Lock scroll when card is flipped on page load (if already flipped)
-        if (card && card.classList.contains('flipped')) {
-            lockBodyScroll();
+        if (card) {
+            // Watch for card flip and manage scroll prevention
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        const isFlipped = card.classList.contains('flipped');
+                        if (isFlipped) {
+                            // Card flipped - lock body scroll and add touch prevention
+                            lockBodyScroll();
+                            document.addEventListener('touchmove', preventBodyScroll, { passive: false });
+                        } else {
+                            // Card unflipped - unlock body scroll and remove touch prevention
+                            unlockBodyScroll();
+                            document.removeEventListener('touchmove', preventBodyScroll);
+                        }
+                    }
+                });
+            });
+            
+            observer.observe(card, { attributes: true, attributeFilter: ['class'] });
+            
+            // Initial state check
+            if (card.classList.contains('flipped')) {
+                lockBodyScroll();
+                document.addEventListener('touchmove', preventBodyScroll, { passive: false });
+            }
         }
     </script>
 </body>
