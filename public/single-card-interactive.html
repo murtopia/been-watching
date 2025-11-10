@@ -1745,7 +1745,15 @@
                         </div>
 
                         <div class="comments-tab" onclick="toggleCommentsExpanded(event)">
-                            <div class="comments-preview">💬 View 12 comments...</div>
+                            <div class="comments-preview">
+                                <div class="comments-preview-content">💬 View 12 comments...</div>
+                                <button class="comments-close-btn" onclick="closeCommentsTab(event)">
+                                    <svg viewBox="0 0 24 24" fill="none">
+                                        <line x1="18" y1="6" x2="6" y2="18"/>
+                                        <line x1="6" y1="6" x2="18" y2="18"/>
+                                    </svg>
+                                </button>
+                            </div>
                             <div class="comments-full">
                                 <div class="activity-comment-item">
                                     <div class="activity-comment-header">
@@ -2307,7 +2315,7 @@
                 </div>
 
     <div class="instructions">
-        Version 3.4 • Last updated: Nov 09, 2025 at 10:24 PM (Widened comment bubble & hide version info on keyboard)
+        Version 3.5 • Last updated: Nov 09, 2025 at 10:32 PM (Matched bubble edges & added close button)
     </div>
 
     <script>
