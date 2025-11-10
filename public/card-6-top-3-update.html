@@ -1022,8 +1022,8 @@
         .comments-tab {
             position: absolute;
             bottom: 0;
-            left: 20px;
-            right: 70px;
+            left: 10px; /* Match left margin */
+            right: 10px; /* Match left margin - fully covers nav circles */
             background: rgba(20, 20, 20, 0.95);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
@@ -1037,12 +1037,21 @@
             transform: translateY(100%);
             opacity: 0;
             pointer-events: none;
+            /* Use flexbox to keep input fixed at bottom */
+            display: flex;
+            flex-direction: column;
         }
 
         .comments-tab.visible {
             transform: translateY(0);
             opacity: 1;
             pointer-events: auto;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        /* When keyboard is visible, smoothly shift up */
+        .comments-tab.visible.keyboard-visible {
+            transition: transform 0.25s ease-out, opacity 0.3s ease;
         }
 
         .comments-preview {
@@ -1052,7 +1061,44 @@
             font-weight: 500;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 8px;
+        }
+
+        .comments-preview-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .comments-close-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+
+        .comments-close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .comments-close-btn:active {
+            transform: scale(0.9);
+        }
+
+        .comments-close-btn svg {
+            width: 14px;
+            height: 14px;
+            stroke: white;
+            stroke-width: 2;
         }
 
         .comments-full {
@@ -1134,6 +1180,8 @@
             display: flex;
             gap: 12px;
             align-items: center;
+            /* Keep input fixed at bottom - don't shrink */
+            flex-shrink: 0;
         }
 
         .activity-comment-input {
@@ -1373,6 +1421,14 @@
             color: #666;
             text-align: center;
             padding: 0 20px;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        /* Hide instructions when keyboard is visible to reduce gap */
+        .instructions.keyboard-hidden {
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: none;
         }
 
         /* Action Overlay Modal */
@@ -1662,7 +1718,15 @@
                         </div>
 
                         <div class="comments-tab" onclick="toggleCommentsExpanded(event)">
-                            <div class="comments-preview">💬 View 12 comments...</div>
+                            <div class="comments-preview">
+                                <div class="comments-preview-content">💬 View 12 comments...</div>
+                                <button class="comments-close-btn" onclick="closeCommentsTab(event)">
+                                    <svg viewBox="0 0 24 24" fill="none">
+                                        <line x1="18" y1="6" x2="6" y2="18"/>
+                                        <line x1="6" y1="6" x2="18" y2="18"/>
+                                    </svg>
+                                </button>
+                            </div>
                             <div class="comments-full">
                                 <div class="activity-comment-item">
                                     <div class="activity-comment-header">
@@ -2090,6 +2154,16 @@
             commentsTab.classList.toggle('expanded');
         }
 
+        function closeCommentsTab(event) {
+            event.stopPropagation();
+            event.preventDefault();
+            const commentsTab = document.querySelector('.card-front .comments-tab');
+            if (commentsTab) {
+                commentsTab.classList.remove('visible');
+                commentsTab.classList.remove('expanded');
+            }
+        }
+
         // Close comments when clicking outside
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.comments-tab') && !e.target.closest('.action-btn')) {
@@ -2499,6 +2573,95 @@
             }, { passive: true });
         }
 
+        // Handle iOS keyboard appearance smoothly (Instagram-like behavior)
+        const commentInput = document.querySelector('.activity-comment-input');
+        if (commentInput) {
+            // Prevent zoom and handle keyboard smoothly
+            commentInput.addEventListener('focus', () => {
+                const initialViewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+
+                // Use visualViewport API for smooth keyboard handling (iOS 13+)
+                if (window.visualViewport) {
+                    const handleViewportChange = () => {
+                        const viewportHeight = window.visualViewport.height;
+                        const keyboardHeight = initialViewportHeight - viewportHeight;
+
+                        if (keyboardHeight > 0) {
+                            // Keyboard is visible - adjust comments tab position
+                            const commentsTab = document.querySelector('.comments-tab.expanded');
+                            if (commentsTab) {
+                                // Calculate how much to shift up
+                                const inputRect = commentInput.getBoundingClientRect();
+                                const tabRect = commentsTab.getBoundingClientRect();
+                                const inputBottom = inputRect.bottom;
+                                const viewportBottom = window.visualViewport.height;
+
+                                // If input would be hidden by keyboard, shift tab up
+                                // Position input just above keyboard with minimal gap (like Instagram)
+                                if (inputBottom > viewportBottom) {
+                                    const shiftAmount = inputBottom - viewportBottom + 8; // Minimal 8px gap
+                                    commentsTab.style.transform = `translateY(-${shiftAmount}px)`;
+                                    commentsTab.classList.add('keyboard-visible');
+
+                                    // Hide instructions/version info to reduce gap
+                                    const instructions = document.querySelector('.instructions');
+                                    if (instructions) {
+                                        instructions.classList.add('keyboard-hidden');
+                                    }
+                                } else {
+                                    commentsTab.style.transform = 'translateY(0)';
+                                    commentsTab.classList.remove('keyboard-visible');
+
+                                    // Show instructions again
+                                    const instructions = document.querySelector('.instructions');
+                                    if (instructions) {
+                                        instructions.classList.remove('keyboard-hidden');
+                                    }
+                                }
+                            }
+                        } else {
+                            // Keyboard hidden - reset position smoothly
+                            const commentsTab = document.querySelector('.comments-tab.expanded');
+                            if (commentsTab) {
+                                commentsTab.style.transform = 'translateY(0)';
+                                commentsTab.classList.remove('keyboard-visible');
+                            }
+
+                            // Show instructions again
+                            const instructions = document.querySelector('.instructions');
+                            if (instructions) {
+                                instructions.classList.remove('keyboard-hidden');
+                            }
+                        }
+                    };
+
+                    window.visualViewport.addEventListener('resize', handleViewportChange);
+                    handleViewportChange();
+
+                    // Clean up on blur
+                    commentInput.addEventListener('blur', () => {
+                        window.visualViewport.removeEventListener('resize', handleViewportChange);
+                        const commentsTab = document.querySelector('.comments-tab.expanded');
+                        if (commentsTab) {
+                            commentsTab.style.transform = 'translateY(0)';
+                            commentsTab.classList.remove('keyboard-visible');
+                        }
+
+                        // Show instructions again
+                        const instructions = document.querySelector('.instructions');
+                        if (instructions) {
+                            instructions.classList.remove('keyboard-hidden');
+                        }
+                    }, { once: true });
+                } else {
+                    // Fallback for older iOS - scroll input into view
+                    setTimeout(() => {
+                        commentInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 300);
+                }
+            });
+        }
+
         // iOS scroll fix: Lock body when card is flipped
         const flipBtn = document.querySelector('.action-btn');
         let scrollPosition = 0;
@@ -2527,7 +2690,7 @@
     </script>
 
     <div class="instructions">
-        Version 1.0 • Last updated: Nov 10, 2025 at 07:15 AM (Fixed mobile scrolling: Added touch-action, overscroll-behavior, custom touch scrolling for card back and comments, moved comment hearts right)
+        Version 1.1 • Last updated: Nov 10, 2025 at 09:00 AM (Fixed comments bubble: Made wider (10px margins), added flexbox layout, close button with X icon, Instagram-like keyboard handling with visualViewport API, smooth shift-up animation, instructions auto-hide, flex-shrink fix for input)
     </div>
 </body>
 </html>
