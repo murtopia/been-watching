@@ -2331,10 +2331,10 @@
         // Handle iOS keyboard appearance smoothly (Instagram-like behavior)
         const commentInput = document.querySelector('.activity-comment-input');
         if (commentInput) {
-            let initialViewportHeight = window.innerHeight;
-            
             // Prevent zoom and handle keyboard smoothly
             commentInput.addEventListener('focus', () => {
+                const initialViewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                
                 // Use visualViewport API for smooth keyboard handling (iOS 13+)
                 if (window.visualViewport) {
                     const handleViewportChange = () => {
