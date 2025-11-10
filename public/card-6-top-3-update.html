@@ -2506,7 +2506,7 @@
             }
 
             commentsFull.addEventListener('touchstart', (e) => {
-                e.stopPropagation();
+                if (!document.querySelector('.comments-tab.expanded')) return;
 
                 if (commentsMomentumAnimation) {
                     cancelAnimationFrame(commentsMomentumAnimation);
@@ -2521,7 +2521,7 @@
             }, { passive: true });
 
             commentsFull.addEventListener('touchmove', (e) => {
-                e.stopPropagation();
+                if (!document.querySelector('.comments-tab.expanded')) return;
 
                 const touchY = e.touches[0].clientY;
                 const currentTime = performance.now();
@@ -2538,23 +2538,20 @@
 
                 if (newScrollTop >= 0 && newScrollTop <= maxScroll) {
                     commentsFull.scrollTop = newScrollTop;
-                    e.preventDefault();
                 } else if (newScrollTop < 0) {
                     const overscroll = Math.abs(newScrollTop);
                     commentsFull.scrollTop = -overscroll * 0.3;
-                    e.preventDefault();
                 } else if (newScrollTop > maxScroll) {
                     const overscroll = newScrollTop - maxScroll;
                     commentsFull.scrollTop = maxScroll + (overscroll * 0.3);
-                    e.preventDefault();
                 }
 
                 commentsLastTouchY = touchY;
                 commentsLastTouchTime = currentTime;
             }, { passive: false });
 
-            commentsFull.addEventListener('touchend', (e) => {
-                e.stopPropagation();
+            commentsFull.addEventListener('touchend', () => {
+                if (!document.querySelector('.comments-tab.expanded')) return;
 
                 const maxScroll = commentsFull.scrollHeight - commentsFull.clientHeight;
                 const currentScrollTop = commentsFull.scrollTop;
@@ -2690,7 +2687,7 @@
     </script>
 
     <div class="instructions">
-        Version 1.1 • Last updated: Nov 10, 2025 at 09:00 AM (Fixed comments bubble: Made wider (10px margins), added flexbox layout, close button with X icon, Instagram-like keyboard handling with visualViewport API, smooth shift-up animation, instructions auto-hide, flex-shrink fix for input)
+        Version 1.2 • Last updated: Nov 10, 2025 at 09:30 AM (Fixed comments scrolling: Added expanded state checks to prevent scrolling when comments not expanded, removed preventDefault calls to match card 1 behavior)
     </div>
 </body>
 </html>
