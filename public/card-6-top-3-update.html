@@ -2524,9 +2524,8 @@
             }, { passive: true });
         }
 
-        // iOS scroll workaround for comments section
-        const commentsFull = document.querySelector('.comments-full');
-
+        // iOS scroll handler for comments section (same technique as card back)
+        const commentsFull = document.querySelector('.card-front .comments-full');
         if (commentsFull) {
             let commentsTouchStartY = 0;
             let commentsTouchStartScrollTop = 0;
