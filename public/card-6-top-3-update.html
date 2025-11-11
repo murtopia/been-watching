@@ -2603,6 +2603,10 @@
             commentsFull.addEventListener('touchmove', (e) => {
                 if (!document.querySelector('.comments-tab.expanded')) return;
 
+                // Prevent page scroll when scrolling comments
+                e.preventDefault();
+                e.stopPropagation();
+
                 const touchY = e.touches[0].clientY;
                 const currentTime = performance.now();
                 const deltaTime = currentTime - commentsLastTouchTime;
@@ -2767,7 +2771,7 @@
     </script>
 
     <div class="instructions">
-        Version 1.5 • Last updated: Nov 10, 2025 at 03:53 PM (Fixed page bounce and comments scrolling: Added lockBodyScroll()/unlockBodyScroll() calls to flipCard() function to prevent page bounce when card is flipped. Fixed broken avatar images: Updated invalid pravatar img params (90-96) to valid range (14-16, 20-23). Back card textarea already has 16px font-size to prevent zoom)
+        Version 1.6 • Last updated: Nov 10, 2025 at 06:53 PM (Fixed front card comments scrolling: Added preventDefault() and stopPropagation() to comments touchmove handler to prevent page scroll when scrolling through activity comments in the expanded comments bubble)
     </div>
 </body>
 </html>
