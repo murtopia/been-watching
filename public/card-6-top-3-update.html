@@ -2592,13 +2592,16 @@
 
             commentsFull.addEventListener('touchstart', (e) => {
                 if (!document.querySelector('.comments-tab.expanded')) return;
-
+                
+                // Prevent event from bubbling to body
+                e.stopPropagation();
+                
                 if (commentsMomentumAnimation) {
                     cancelAnimationFrame(commentsMomentumAnimation);
                     commentsMomentumAnimation = null;
                 }
                 commentsVelocity = 0;
-
+                
                 commentsTouchStartY = e.touches[0].clientY;
                 commentsTouchStartScrollTop = commentsFull.scrollTop;
                 commentsLastTouchY = commentsTouchStartY;
@@ -2607,6 +2610,10 @@
 
             commentsFull.addEventListener('touchmove', (e) => {
                 if (!document.querySelector('.comments-tab.expanded')) return;
+                
+                // Prevent body scroll when scrolling comments
+                e.preventDefault();
+                e.stopPropagation();
                 
                 const touchY = e.touches[0].clientY;
                 const currentTime = performance.now();
@@ -2635,9 +2642,12 @@
                 commentsLastTouchTime = currentTime;
             }, { passive: false });
 
-            commentsFull.addEventListener('touchend', () => {
+            commentsFull.addEventListener('touchend', (e) => {
                 if (!document.querySelector('.comments-tab.expanded')) return;
-
+                
+                // Prevent event from bubbling to body
+                e.stopPropagation();
+                
                 const maxScroll = commentsFull.scrollHeight - commentsFull.clientHeight;
                 const currentScrollTop = commentsFull.scrollTop;
 
