@@ -2603,10 +2603,6 @@
             commentsFull.addEventListener('touchmove', (e) => {
                 if (!document.querySelector('.comments-tab.expanded')) return;
 
-                // Prevent page scroll when scrolling comments
-                e.preventDefault();
-                e.stopPropagation();
-
                 const touchY = e.touches[0].clientY;
                 const currentTime = performance.now();
                 const deltaTime = currentTime - commentsLastTouchTime;
@@ -2771,7 +2767,7 @@
     </script>
 
     <div class="instructions">
-        Version 1.6 • Last updated: Nov 10, 2025 at 06:53 PM (Fixed front card comments scrolling: Added preventDefault() and stopPropagation() to comments touchmove handler to prevent page scroll when scrolling through activity comments in the expanded comments bubble)
+        Version 1.7 • Last updated: Nov 10, 2025 at 07:02 PM (Fixed front card comments scrolling: Removed incorrect preventDefault/stopPropagation approach from v1.6 and copied exact working implementation from card 1 - comments now scroll independently without blocking page scroll)
     </div>
 </body>
 </html>
