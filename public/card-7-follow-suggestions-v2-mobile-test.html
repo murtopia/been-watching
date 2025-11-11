@@ -22,6 +22,53 @@
             padding: 20px;
         }
 
+        /* Navigation Bar */
+        .card-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 20px;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            overflow-x: auto;
+        }
+
+        .nav-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            text-decoration: none;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.9);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(135deg, #FF006E, #FF8E53);
+            border-color: #FF006E;
+            color: white;
+        }
+
+        body {
+            padding-top: 60px;
+        }
 
         .card-container {
             width: 398px;
@@ -318,6 +365,17 @@
     </style>
 </head>
 <body>
+    <!-- Navigation -->
+    <nav class="card-nav">
+        <a href="single-card-interactive.html" class="nav-btn">1. User Activity</a>
+        <a href="card-2-better-call-saul.html" class="nav-btn">2. "Because You Liked"</a>
+        <a href="card-3-your-friends-loved.html" class="nav-btn">3. "Friends Loved"</a>
+        <a href="card-4-new-season-alert.html" class="nav-btn">4. Coming Soon</a>
+        <a href="card-5-now-streaming.html" class="nav-btn">5. Now Streaming</a>
+        <a href="card-6-top-3-update.html" class="nav-btn">6. Top 3 Update</a>
+        <a href="card-7-follow-suggestions-v2.html" class="nav-btn active">7. Follow Suggestions</a>
+    </nav>
+
     <div class="card-container">
         <div class="card">
             <div class="card-content">

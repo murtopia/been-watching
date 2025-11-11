@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Feed - Component Mockups</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+        }
+
+        h2 {
+            color: #555;
+            margin: 2rem 0 1rem;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+
+        .component-section {
+            margin-bottom: 3rem;
+        }
+
+        /* Activity Card Styles */
+        .activity-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .activity-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .activity-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 1rem 0.5rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ec4899, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-action {
+            font-size: 0.875rem;
+            line-height: 1.4;
+            color: #333;
+        }
+
+        .user-action strong {
+            font-weight: 600;
+            color: #111;
+        }
+
+        .action-type {
+            color: #666;
+        }
+
+        .post-time {
+            font-size: 0.75rem;
+            color: #999;
+            margin-top: 0.25rem;
+        }
+
+        .activity-content {
+            padding: 0 1rem 1rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .poster-container {
+            flex-shrink: 0;
+        }
+
+        .poster {
+            width: 100px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .media-info {
+            flex: 1;
+        }
+
+        .media-title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            color: #111;
+        }
+
+        .media-meta {
+            font-size: 0.875rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .activity-footer {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border: none;
+            background: transparent;
+            color: #666;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #f3f4f6;
+            color: #111;
+        }
+
+        .action-btn.liked {
+            color: #ec4899;
+        }
+
+        /* Quick Rate Buttons */
+        .quick-rate {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0 1rem 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .quick-rate-btn {
+            flex: 1;
+            padding: 0.5rem;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #333;
+        }
+
+        .quick-rate-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .quick-rate-btn.meh.active {
+            background: #8e8e93;
+            color: white;
+            border-color: #8e8e93;
+        }
+
+        .quick-rate-btn.like.active {
+            background: #007aff;
+            color: white;
+            border-color: #007aff;
+        }
+
+        .quick-rate-btn.love.active {
+            background: #ff2d55;
+            color: white;
+            border-color: #ff2d55;
+        }
+
+        /* Quick Status Buttons */
+        .quick-status {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .status-btn-group {
+            flex: 1;
+        }
+
+        .quick-status-btn {
+            width: 100%;
+            padding: 0.5rem;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            color: #333;
+        }
+
+        .quick-status-btn:hover {
+            background: rgba(0, 149, 246, 0.1);
+        }
+
+        .quick-status-btn.active {
+            background: #0095f6;
+            color: white;
+            border-color: #0095f6;
+        }
+
+        /* Activity Interactions */
+        .activity-interactions {
+            display: flex;
+            gap: 1.5rem;
+            padding: 0.75rem 1rem;
+            align-items: center;
+        }
+
+        .interaction-btn {
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .interaction-btn:hover {
+            color: #111;
+        }
+
+        .interaction-btn.liked {
+            color: #ff2d55;
+        }
+
+        .like-count {
+            margin-left: -0.5rem;
+            color: #666;
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+
+        /* Comments Section */
+        .comment-section {
+            padding: 0.75rem 1rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .comments-list {
+            margin-bottom: 0.75rem;
+        }
+
+        .comment-item {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            align-items: flex-start;
+            position: relative;
+        }
+
+        .user-avatar.small {
+            width: 28px;
+            height: 28px;
+            font-size: 0.75rem;
+        }
+
+        .comment-content {
+            flex: 1;
+            font-size: 0.875rem;
+        }
+
+        .comment-content strong {
+            font-weight: 600;
+            margin-right: 0.25rem;
+        }
+
+        /* Comment Dropdown Menu */
+        .comment-menu {
+            position: relative;
+        }
+
+        .comment-menu-btn {
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            padding: 0.25rem;
+            display: flex;
+            align-items: center;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .comment-menu-btn:hover {
+            background: #f3f4f6;
+            color: #333;
+        }
+
+        .comment-menu-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.25rem;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            min-width: 160px;
+            z-index: 1000;
+            overflow: hidden;
+            display: none;
+        }
+
+        .comment-menu-dropdown.show {
+            display: block;
+        }
+
+        .comment-menu-item {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: none;
+            border: none;
+            border-bottom: 1px solid #e5e7eb;
+            color: #333;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-align: left;
+            transition: background 0.2s;
+        }
+
+        .comment-menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .comment-menu-item:hover {
+            background: #f9fafb;
+        }
+
+        .comment-menu-item.danger {
+            color: #ef4444;
+        }
+
+        .comment-menu-item.danger:hover {
+            background: #fef2f2;
+        }
+
+        /* Report Modal */
+        .report-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 1rem;
+        }
+
+        .report-modal-content {
+            background: white;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .report-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .report-modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .report-modal-body {
+            padding: 1.5rem;
+        }
+
+        .report-reason-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.75rem;
+        }
+
+        .report-reason-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .report-reason-item:hover {
+            background: #f9fafb;
+        }
+
+        .report-reason-item.selected {
+            background: rgba(233, 77, 136, 0.08);
+            border-color: #e94d88;
+        }
+
+        .comment-input-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .comment-input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.875rem;
+        }
+
+        .comment-submit-btn {
+            padding: 0.5rem 1rem;
+            background: #0095f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Likes Section */
+        .likes-section {
+            padding: 0.75rem 1rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .likes-header {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        .likes-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .like-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .like-user-name {
+            font-size: 0.875rem;
+            color: #333;
+        }
+
+        /* Media Badges */
+        .media-badges {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background: #f3f4f6;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .badge.tv {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .badge.movie {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        /* Overview Expand/Collapse */
+        .feed-show-overview {
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .read-more-btn {
+            color: #0095f6;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-top: 0.25rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            text-align: right;
+            display: block;
+            width: 100%;
+        }
+
+        /* Recommendation Card Styles */
+        .recommendation-card {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #f59e0b;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .recommendation-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #f59e0b;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .recommendation-header {
+            padding: 1rem 1rem 0.5rem;
+        }
+
+        .recommendation-title {
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #92400e;
+            margin-bottom: 0.25rem;
+        }
+
+        .recommendation-reason {
+            font-size: 0.875rem;
+            color: #78350f;
+        }
+
+        .recommendation-content {
+            padding: 0 1rem 1rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .recommendation-actions {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border-top: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .primary-btn {
+            padding: 0.625rem 1.25rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .primary-btn.add {
+            background: #10b981;
+            color: white;
+        }
+
+        .primary-btn.add:hover {
+            background: #059669;
+        }
+
+        .primary-btn.rate {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .primary-btn.rate:hover {
+            background: #2563eb;
+        }
+
+        .secondary-btn {
+            padding: 0.625rem 1rem;
+            border: 1px solid #d1d5db;
+            background: white;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .secondary-btn:hover {
+            background: #f3f4f6;
+            color: #111;
+        }
+
+        /* Release Notification Card Styles */
+        .release-notification-card {
+            background: linear-gradient(135deg, #ddd6fe 0%, #c4b5fd 100%);
+            border: 2px solid #8b5cf6;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .release-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #8b5cf6;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .release-header {
+            padding: 1rem 1rem 0.5rem;
+        }
+
+        .release-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: #5b21b6;
+            margin-bottom: 0.5rem;
+        }
+
+        .countdown {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #7c3aed;
+            margin-bottom: 0.25rem;
+        }
+
+        .countdown-label {
+            font-size: 0.75rem;
+            color: #6d28d9;
+        }
+
+        .release-content {
+            padding: 0 1rem 1rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .release-actions {
+            padding: 0.75rem 1rem;
+            border-top: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .release-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .release-btn:hover {
+            background: #7c3aed;
+        }
+
+        .friends-indicator {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+
+        .streaming-badge {
+            display: inline-block;
+            background: #1f2937;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Enhanced Feed - Component Mockups</h1>
+
+        <!-- Full Activity Card with All Features -->
+        <div class="component-section">
+            <h2>1. Activity Card - Complete with All Features</h2>
+            <p style="color: #666; margin-bottom: 1rem;">Shows all features: quick actions, expandable comments/likes, media badges, overview</p>
+            
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="user-avatar">SM</div>
+                    <div class="user-info">
+                        <div class="user-action">
+                            <strong>Sarah Miller</strong>
+                            <span class="action-type">loved</span>
+                            <strong>Breaking Bad</strong>
+                        </div>
+                        <div class="post-time">2 hours ago</div>
+                    </div>
+                </div>
+                
+                <div class="activity-content">
+                    <div class="poster-container">
+                        <img src="https://image.tmdb.org/t/p/w185/ggFHVNu6YYI5L9pCfOacjizRGt.jpg" alt="Breaking Bad" class="poster">
+                    </div>
+                    <div class="media-info">
+                        <div class="media-title">Breaking Bad</div>
+                        <div class="media-meta">2008 • TV Series • ⭐ 9.5</div>
+                        <div class="media-badges">
+                            <span class="badge tv">📺 TV</span>
+                            <span class="badge">AMC</span>
+                            <span class="badge">▶️ Trailer</span>
+                        </div>
+                        <div class="feed-show-overview">
+                            <p>A high school chemistry teacher turned methamphetamine manufacturer partners with a former student to secure his family's future.</p>
+                            <button class="read-more-btn">Read more</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Rate Buttons -->
+                <div class="quick-rate">
+                    <button class="quick-rate-btn meh">😐 Meh</button>
+                    <button class="quick-rate-btn like">👍 Like</button>
+                    <button class="quick-rate-btn love active">❤️ Love</button>
+                </div>
+
+                <!-- Quick Status Buttons -->
+                <div class="quick-status">
+                    <div class="status-btn-group">
+                        <button class="quick-status-btn">➕ Want to Watch</button>
+                    </div>
+                    <div class="status-btn-group">
+                        <button class="quick-status-btn active">▶️ Watching</button>
+                    </div>
+                    <div class="status-btn-group">
+                        <button class="quick-status-btn">✓ Watched</button>
+                    </div>
+                </div>
+
+                <!-- Interaction Buttons -->
+                <div class="activity-interactions">
+                    <button class="interaction-btn">💬 3</button>
+                    <button class="interaction-btn liked" style="margin-left: auto;">❤️</button>
+                    <button class="like-count">You and 11 others</button>
+                </div>
+
+                <!-- Expanded Comments Section -->
+                <div class="comment-section">
+                    <div style="font-size: 0.75rem; color: #666; margin-bottom: 0.5rem; padding: 0 1rem;">
+                        💡 <strong>Moderation Features:</strong> Click the ⋮ menu on comments to see Report (for others' comments) or Delete (for your own comments)
+                    </div>
+                    <div class="comments-list">
+                        <div class="comment-item">
+                            <div class="user-avatar small">JD</div>
+                            <div class="comment-content">
+                                <strong>John Doe</strong> This show is incredible! Best character development I've seen.
+                            </div>
+                            <!-- Dropdown Menu for other user's comment - shows Report option -->
+                            <div class="comment-menu">
+                                <button class="comment-menu-btn" onclick="toggleCommentMenu(this)">⋮</button>
+                                <div class="comment-menu-dropdown">
+                                    <button class="comment-menu-item" onclick="showReportModal()">
+                                        <span>🚩</span>
+                                        <span>Report</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="comment-item">
+                            <div class="user-avatar small">SM</div>
+                            <div class="comment-content">
+                                <strong>Sarah Miller</strong> (You) Totally agree! The character arcs are phenomenal.
+                            </div>
+                            <!-- Dropdown Menu for your own comment - shows Delete option -->
+                            <div class="comment-menu">
+                                <button class="comment-menu-btn" onclick="toggleCommentMenu(this)">⋮</button>
+                                <div class="comment-menu-dropdown">
+                                    <button class="comment-menu-item danger">
+                                        <span>🗑️</span>
+                                        <span>Delete</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="comment-input-container">
+                        <input type="text" class="comment-input" placeholder="Add a comment...">
+                        <button class="comment-submit-btn">Post</button>
+                    </div>
+                </div>
+
+                <!-- Report Modal Example (shown when clicking Report) -->
+                <div class="report-modal" id="reportModal" style="display: none;">
+                    <div class="report-modal-content" onclick="event.stopPropagation()">
+                        <div class="report-modal-header">
+                            <div class="report-modal-title">
+                                <span>⚠️</span>
+                                <span>Report Comment</span>
+                            </div>
+                            <button onclick="closeReportModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999;">×</button>
+                        </div>
+                        <div class="report-modal-body">
+                            <div style="padding: 1rem; background: #f9fafb; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.875rem; color: #666;">
+                                Reporting: <span style="font-weight: 600; color: #333;">@johndoe</span><br>
+                                <span style="font-style: italic; margin-top: 0.5rem; display: block;">"This show is incredible! Best character development I've seen."</span>
+                            </div>
+                            <label class="report-reason-label">Reason for report *</label>
+                            <div class="report-reason-item">
+                                <input type="radio" name="reportReason" style="width: 18px; height: 18px;">
+                                <span>Spam or misleading content</span>
+                            </div>
+                            <div class="report-reason-item">
+                                <input type="radio" name="reportReason" style="width: 18px; height: 18px;">
+                                <span>Harassment or bullying</span>
+                            </div>
+                            <div class="report-reason-item">
+                                <input type="radio" name="reportReason" style="width: 18px; height: 18px;">
+                                <span>Inappropriate or offensive content</span>
+                            </div>
+                            <div class="report-reason-item">
+                                <input type="radio" name="reportReason" style="width: 18px; height: 18px;">
+                                <span>Hate speech or discrimination</span>
+                            </div>
+                            <div class="report-reason-item">
+                                <input type="radio" name="reportReason" style="width: 18px; height: 18px;">
+                                <span>Other (please specify)</span>
+                            </div>
+                            <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem; justify-content: flex-end;">
+                                <button onclick="closeReportModal()" style="padding: 0.75rem 1.5rem; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem; font-weight: 500; cursor: pointer;">Cancel</button>
+                                <button onclick="closeReportModal()" style="padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #e94d88 0%, #f27121 100%); border: none; border-radius: 8px; color: white; font-size: 0.875rem; font-weight: 600; cursor: pointer;">Submit Report</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expanded Likes Section -->
+                <div class="likes-section">
+                    <div class="likes-header">Likes</div>
+                    <div class="likes-list">
+                        <div class="like-item">
+                            <div class="user-avatar small">JD</div>
+                            <span class="like-user-name">John Doe</span>
+                        </div>
+                        <div class="like-item">
+                            <div class="user-avatar small">JM</div>
+                            <span class="like-user-name">Jane Miller</span>
+                        </div>
+                        <div class="like-item">
+                            <div class="user-avatar small">AB</div>
+                            <span class="like-user-name">Alex Brown</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grouped Activity Card -->
+        <div class="component-section">
+            <h2>2. Grouped Activity Card</h2>
+            <p style="color: #666; margin-bottom: 1rem;">Shows when user rates AND changes status within 1 minute</p>
+            
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="user-avatar">SM</div>
+                    <div class="user-info">
+                        <div class="user-action">
+                            <strong>Sarah Miller</strong>
+                            <span class="action-type">loved and added</span>
+                            <strong>Breaking Bad</strong>
+                            <span class="action-type">to Want to Watch</span>
+                        </div>
+                        <div class="post-time">2 hours ago</div>
+                    </div>
+                </div>
+                
+                <div class="activity-content">
+                    <div class="poster-container">
+                        <img src="https://image.tmdb.org/t/p/w185/ggFHVNu6YYI5L9pCfOacjizRGt.jpg" alt="Breaking Bad" class="poster">
+                    </div>
+                    <div class="media-info">
+                        <div class="media-title">Breaking Bad</div>
+                        <div class="media-meta">2008 • TV Series • ⭐ 9.5</div>
+                        <div class="media-badges">
+                            <span class="badge tv">📺 TV</span>
+                            <span class="badge">AMC</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quick-rate">
+                    <button class="quick-rate-btn meh">😐 Meh</button>
+                    <button class="quick-rate-btn like">👍 Like</button>
+                    <button class="quick-rate-btn love active">❤️ Love</button>
+                </div>
+
+                <div class="quick-status">
+                    <div class="status-btn-group">
+                        <button class="quick-status-btn active">➕ Want to Watch</button>
+                    </div>
+                    <div class="status-btn-group">
+                        <button class="quick-status-btn">▶️ Watching</button>
+                    </div>
+                    <div class="status-btn-group">
+                        <button class="quick-status-btn">✓ Watched</button>
+                    </div>
+                </div>
+
+                <div class="activity-interactions">
+                    <button class="interaction-btn">💬</button>
+                    <button class="interaction-btn" style="margin-left: auto;">🤍</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendation Card -->
+        <div class="component-section">
+            <h2>3. Recommendation Card</h2>
+            <p style="color: #666; margin-bottom: 1rem;">Personalized recommendations based on user preferences</p>
+            
+            <div class="recommendation-card">
+                <div class="recommendation-badge">✨ For You</div>
+                <div class="recommendation-header">
+                    <div class="recommendation-title">Recommended for you</div>
+                    <div class="recommendation-reason">Because you loved Breaking Bad</div>
+                </div>
+                
+                <div class="recommendation-content">
+                    <div class="poster-container">
+                        <img src="https://image.tmdb.org/t/p/w185/ggFHVNu6YYI5L9pCfOacjizRGt.jpg" alt="Better Call Saul" class="poster">
+                    </div>
+                    <div class="media-info">
+                        <div class="media-title">Better Call Saul</div>
+                        <div class="media-meta">2015 • TV Series • ⭐ 9.0</div>
+                        <div class="friends-indicator">👥 3 friends have watched this</div>
+                    </div>
+                </div>
+
+                <div class="recommendation-actions">
+                    <button class="primary-btn add">+ Add to Want to Watch</button>
+                    <button class="primary-btn rate">Rate if Seen</button>
+                    <button class="secondary-btn">Dismiss</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Release Notification Card - TV Season -->
+        <div class="component-section">
+            <h2>4. Release Notification Card - TV Season</h2>
+            <p style="color: #666; margin-bottom: 1rem;">Notification for upcoming TV season release</p>
+            
+            <div class="release-notification-card">
+                <div class="release-badge">📺 Season 2</div>
+                <div class="release-header">
+                    <div class="release-title">New Season Coming!</div>
+                    <div class="countdown">14 days</div>
+                    <div class="countdown-label">Until release</div>
+                </div>
+                
+                <div class="release-content">
+                    <div class="poster-container">
+                        <img src="https://image.tmdb.org/t/p/w185/7QMsOTMUswlwxJP0rTTZfmz2tX2.jpg" alt="House of the Dragon" class="poster">
+                    </div>
+                    <div class="media-info">
+                        <div class="media-title">House of the Dragon</div>
+                        <div class="media-meta">Season 2 premieres March 17, 2025</div>
+                        <div style="margin-top: 0.5rem; color: #7c3aed; font-size: 0.875rem;">
+                            You watched Season 1 • Get notified 7 days before
+                        </div>
+                    </div>
+                </div>
+
+                <div class="release-actions">
+                    <button class="release-btn">+ Add Season 2 to Want to Watch</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Release Notification Card - Streaming -->
+        <div class="component-section">
+            <h2>5. Release Notification Card - Streaming Availability</h2>
+            <p style="color: #666; margin-bottom: 1rem;">Notification when a movie becomes available on streaming</p>
+            
+            <div class="release-notification-card">
+                <div class="release-badge">🎬 Now Streaming</div>
+                <div class="release-header">
+                    <div class="release-title">Now Available!</div>
+                    <div class="countdown">Available Now</div>
+                    <div class="countdown-label">on Netflix</div>
+                </div>
+                
+                <div class="release-content">
+                    <div class="poster-container">
+                        <img src="https://image.tmdb.org/t/p/w185/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg" alt="Deadpool & Wolverine" class="poster">
+                    </div>
+                    <div class="media-info">
+                        <div class="media-title">Deadpool & Wolverine</div>
+                        <div class="media-meta">2024 • Movie • ⭐ 7.8</div>
+                        <div style="margin-top: 0.5rem; color: #7c3aed; font-size: 0.875rem;">
+                            You watched this in theaters • Now streaming
+                            <span class="streaming-badge">NETFLIX</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="release-actions">
+                    <button class="release-btn">+ Add to Want to Watch</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Release Notification Card - Movie Release -->
+        <div class="component-section">
+            <h2>6. Release Notification Card - Movie Theatrical Release</h2>
+            <p style="color: #666; margin-bottom: 1rem;">Notification for upcoming movie theatrical release</p>
+            
+            <div class="release-notification-card">
+                <div class="release-badge">🎬 In Theaters</div>
+                <div class="release-header">
+                    <div class="release-title">Opening This Week!</div>
+                    <div class="countdown">3 days</div>
+                    <div class="countdown-label">Until release</div>
+                </div>
+                
+                <div class="release-content">
+                    <div class="poster-container">
+                        <img src="https://image.tmdb.org/t/p/w185/k42Owka8v91trK1qMYwCQCNwJKr.jpg" alt="Venom: The Last Dance" class="poster">
+                    </div>
+                    <div class="media-info">
+                        <div class="media-title">Venom: The Last Dance</div>
+                        <div class="media-meta">2024 • Movie • ⭐ 6.8</div>
+                        <div style="margin-top: 0.5rem; color: #7c3aed; font-size: 0.875rem;">
+                            Opening in theaters October 25, 2024
+                        </div>
+                    </div>
+                </div>
+
+                <div class="release-actions">
+                    <button class="release-btn">+ Add to Want to Watch</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleCommentMenu(button) {
+            event.stopPropagation();
+            const dropdown = button.nextElementSibling;
+            const isOpen = dropdown.classList.contains('show');
+            
+            // Close all other dropdowns
+            document.querySelectorAll('.comment-menu-dropdown').forEach(menu => {
+                menu.classList.remove('show');
+            });
+            
+            // Toggle current dropdown
+            if (!isOpen) {
+                dropdown.classList.add('show');
+            }
+        }
+
+        function closeReportModal() {
+            document.getElementById('reportModal').style.display = 'none';
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.comment-menu')) {
+                document.querySelectorAll('.comment-menu-dropdown').forEach(menu => {
+                    menu.classList.remove('show');
+                });
+            }
+        });
+
+        // Show report modal example (for demonstration)
+        function showReportModal() {
+            // Close any open comment menus first
+            document.querySelectorAll('.comment-menu-dropdown').forEach(menu => {
+                menu.classList.remove('show');
+            });
+            // Show the report modal
+            document.getElementById('reportModal').style.display = 'flex';
+        }
+    </script>
+</body>
+</html>
+

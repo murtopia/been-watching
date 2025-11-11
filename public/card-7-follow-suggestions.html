@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card 7 - Follow Suggestions</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #ffffff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Navigation Bar */
+        .card-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 20px;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            overflow-x: auto;
+        }
+
+        .nav-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            text-decoration: none;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.9);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(135deg, #FF006E, #FF8E53);
+            border-color: #FF006E;
+            color: white;
+        }
+
+        body {
+            padding-top: 60px;
+        }
+
+        .card-container {
+            width: 398px;
+            height: 645px;
+            margin: 20px 16px;
+            position: relative;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+        }
+
+        .card-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .card-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        .user-suggestions {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .user-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            position: relative;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .user-card-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            flex-shrink: 0;
+        }
+
+        .user-card-info {
+            flex: 1;
+        }
+
+        .user-card-name {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .user-card-bio {
+            font-size: 12px;
+            opacity: 0.9;
+            line-height: 1.4;
+            margin-bottom: 6px;
+        }
+
+        .user-card-stats {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        .follow-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .follow-btn:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: scale(1.05);
+        }
+
+        .follow-btn.following {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid white;
+        }
+
+        .match-badge {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="card-nav">
+        <a href="single-card-interactive.html" class="nav-btn">1. User Activity</a>
+        <a href="card-2-better-call-saul.html" class="nav-btn">2. "Because You Liked"</a>
+        <a href="card-3-your-friends-loved.html" class="nav-btn">3. "Friends Loved"</a>
+        <a href="card-4-new-season-alert.html" class="nav-btn">4. New Season</a>
+        <a href="card-5-now-streaming.html" class="nav-btn">5. Now Streaming</a>
+        <a href="card-6-top-3-update.html" class="nav-btn">6. Top 3 Update</a>
+        <a href="card-7-follow-suggestions-v2.html" class="nav-btn active">7. Follow Suggestions</a>
+    </nav>
+
+    <div class="card-container">
+        <div class="card">
+            <div class="card-title">Discover Friends</div>
+            <div class="card-subtitle">Based on your viewing habits</div>
+
+            <div class="user-suggestions">
+                <div class="user-card">
+                    <img src="https://i.pravatar.cc/150?img=10" alt="Jamie" class="user-card-avatar">
+                    <div class="user-card-info">
+                        <div class="user-card-name">Jamie Chen</div>
+                        <div class="user-card-bio">Drama enthusiast • Awards season tracker</div>
+                        <div class="user-card-stats">📺 187 shows watched</div>
+                    </div>
+                    <button class="follow-btn" onclick="toggleFollow(this)">FOLLOW</button>
+                    <div class="match-badge">92% match</div>
+                </div>
+
+                <div class="user-card">
+                    <img src="https://i.pravatar.cc/150?img=11" alt="Marcus" class="user-card-avatar">
+                    <div class="user-card-info">
+                        <div class="user-card-name">Marcus Rodriguez</div>
+                        <div class="user-card-bio">Sci-fi nerd • Binge-watcher extraordinaire</div>
+                        <div class="user-card-stats">📺 243 shows watched</div>
+                    </div>
+                    <button class="follow-btn" onclick="toggleFollow(this)">FOLLOW</button>
+                    <div class="match-badge">88% match</div>
+                </div>
+
+                <div class="user-card">
+                    <img src="https://i.pravatar.cc/150?img=12" alt="Priya" class="user-card-avatar">
+                    <div class="user-card-info">
+                        <div class="user-card-name">Priya Patel</div>
+                        <div class="user-card-bio">Crime drama devotee • True story fanatic</div>
+                        <div class="user-card-stats">📺 156 shows watched</div>
+                    </div>
+                    <button class="follow-btn" onclick="toggleFollow(this)">FOLLOW</button>
+                    <div class="match-badge">85% match</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleFollow(button) {
+            button.classList.toggle('following');
+
+            if (button.classList.contains('following')) {
+                button.textContent = 'FOLLOWING';
+            } else {
+                button.textContent = 'FOLLOW';
+            }
+
+            // Add visual feedback
+            button.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                button.style.transform = 'scale(1)';
+            }, 100);
+        }
+    </script>
+</body>
+</html>

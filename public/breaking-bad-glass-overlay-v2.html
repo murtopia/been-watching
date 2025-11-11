@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Breaking Bad - Glassmorphic Info Overlay</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --gradient-primary: linear-gradient(135deg, #FF006E, #FF8E53);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #000;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .preview-container {
+            width: 100%;
+            max-width: 430px;
+            height: 932px;
+            position: relative;
+            border-radius: 40px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.1);
+        }
+
+        /* Background Poster */
+        .poster-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0F574C, #093028, #000);
+            z-index: 0;
+        }
+
+        .poster-background::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to top, 
+                rgba(0,0,0,0.9) 0%, 
+                rgba(0,0,0,0.7) 30%,
+                rgba(0,0,0,0.4) 60%,
+                rgba(0,0,0,0.2) 100%);
+        }
+
+        /* Main Glassmorphic Container */
+        .info-overlay {
+            position: absolute;
+            top: 60px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow-y: auto;
+            z-index: 2;
+            padding: 20px;
+        }
+
+        /* Back Button */
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.2s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(0, 0, 0, 0.8);
+            transform: scale(1.1);
+        }
+
+        /* Glass Card Container */
+        .glass-card {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 24px;
+            padding: 20px 16px;
+            margin-top: 40px;
+        }
+
+        /* Title Section */
+        .title-section {
+            margin-bottom: 16px;
+        }
+
+        .show-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+
+        .show-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .year {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .rating {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .dot {
+            opacity: 0.5;
+        }
+
+        /* Badge Pills */
+        .badges {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+            min-width: 36px;
+        }
+
+        .badge.season {
+            background: #8B5CF6;
+        }
+
+        .badge.type {
+            background: #3B82F6;
+        }
+
+        .badge.network {
+            background: #EF4444;
+        }
+
+        .badge.trailer {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .badge.trailer:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        /* Synopsis */
+        .synopsis {
+            font-size: 14px;
+            line-height: 1.5;
+            opacity: 0.9;
+            margin-bottom: 12px;
+        }
+
+        .synopsis.collapsed {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .read-more {
+            color: #3B82F6;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 16px;
+            display: inline-block;
+        }
+
+        /* Action Icons */
+        .action-icons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .icon-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .icon-btn.primary {
+            background: var(--gradient-primary);
+            border: none;
+        }
+
+        /* Info Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .info-label {
+            font-size: 11px;
+            opacity: 0.6;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* Streaming Services */
+        .streaming-section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.6;
+            margin-bottom: 10px;
+        }
+
+        .streaming-services {
+            display: flex;
+            gap: 10px;
+        }
+
+        .streaming-badge {
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .streaming-badge:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Cast */
+        .cast-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 20px;
+        }
+
+        .cast-member {
+            padding: 5px 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            font-size: 12px;
+        }
+
+        /* Friends Watching */
+        .friends-grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .friend-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .friend-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .friend-info {
+            flex: 1;
+        }
+
+        .friend-name {
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 1px;
+        }
+
+        .friend-season {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        .friend-badge {
+            padding: 3px 8px;
+            background: rgba(16, 185, 129, 0.2);
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            color: #10B981;
+        }
+
+        /* Similar Shows */
+        .similar-shows {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .similar-show {
+            flex-shrink: 0;
+            width: 100px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: flex-end;
+            padding: 8px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .similar-show::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+        }
+
+        .similar-show-title {
+            font-size: 11px;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Share Icon */
+        .share-icon {
+            width: 18px;
+            height: 20px;
+        }
+
+        /* Comparison Toggle */
+        .comparison-toggle {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 16px;
+            background: #FF006E;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <div class="preview-container">
+        <!-- Poster Background -->
+        <div class="poster-background"></div>
+        
+        <!-- Back Button -->
+        <button class="back-btn">←</button>
+        
+        <!-- Glass Overlay Content -->
+        <div class="info-overlay">
+            <div class="glass-card">
+                <!-- Title Section -->
+                <div class="title-section">
+                    <h1 class="show-title">Breaking Bad - Season 1</h1>
+                    <div class="show-meta">
+                        <span class="year">2008</span>
+                        <span class="dot">•</span>
+                        <span class="rating">⭐ 9.5</span>
+                    </div>
+                    
+                    <!-- Badges -->
+                    <div class="badges">
+                        <div class="badge season">S1</div>
+                        <div class="badge type">TV</div>
+                        <div class="badge network">AMC</div>
+                        <div class="badge trailer">▶ Trailer</div>
+                    </div>
+                </div>
+
+                <!-- Synopsis -->
+                <p class="synopsis collapsed">
+                    A high school chemistry teacher diagnosed with inoperable lung cancer turns to manufacturing and selling methamphetamine in order to secure his family's future. As Walter White descends deeper into the criminal underworld, he transforms from mild-mannered educator to ruthless drug kingpin.
+                </p>
+                <span class="read-more" onclick="toggleSynopsis(this)">Read more</span>
+
+                <!-- Action Icons -->
+                <div class="action-icons">
+                    <button class="icon-btn primary">+</button>
+                    <button class="icon-btn">♥</button>
+                    <button class="icon-btn">
+                        <svg class="share-icon" viewBox="0 0 20 22" fill="none">
+                            <path d="M10 3L10 14M10 3L6 7M10 3L14 7" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M17 11V18C17 19 16 20 15 20H5C4 20 3 19 3 18V11" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <button class="icon-btn">💬</button>
+                </div>
+
+                <!-- Info Grid -->
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Creator</span>
+                        <span class="info-value">Vince Gilligan</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Genre</span>
+                        <span class="info-value">Crime, Drama</span>
+                    </div>
+                </div>
+
+                <!-- Streaming -->
+                <div class="streaming-section">
+                    <h3 class="section-title">Watch On</h3>
+                    <div class="streaming-services">
+                        <div class="streaming-badge">Netflix</div>
+                        <div class="streaming-badge">AMC+</div>
+                        <div class="streaming-badge">Prime</div>
+                    </div>
+                </div>
+
+                <!-- Cast -->
+                <div class="streaming-section">
+                    <h3 class="section-title">Cast</h3>
+                    <div class="cast-list">
+                        <span class="cast-member">Bryan Cranston</span>
+                        <span class="cast-member">Aaron Paul</span>
+                        <span class="cast-member">Anna Gunn</span>
+                        <span class="cast-member">Dean Norris</span>
+                        <span class="cast-member">RJ Mitte</span>
+                    </div>
+                </div>
+
+                <!-- Friends Watching -->
+                <div class="streaming-section">
+                    <h3 class="section-title">Friends Watching</h3>
+                    <div class="friends-grid">
+                        <div class="friend-card">
+                            <div class="friend-avatar">S</div>
+                            <div class="friend-info">
+                                <div class="friend-name">Sam</div>
+                                <div class="friend-season">Season 5</div>
+                            </div>
+                            <div class="friend-badge">Watching</div>
+                        </div>
+                        <div class="friend-card">
+                            <div class="friend-avatar">M</div>
+                            <div class="friend-info">
+                                <div class="friend-name">Maya</div>
+                                <div class="friend-season">Season 3</div>
+                            </div>
+                            <div class="friend-badge">Watching</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Similar Shows -->
+                <div class="streaming-section">
+                    <h3 class="section-title">Similar Shows</h3>
+                    <div class="similar-shows">
+                        <div class="similar-show" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent), linear-gradient(135deg, #4B0082, #FF1493);">
+                            <div class="similar-show-title">Better Call Saul</div>
+                        </div>
+                        <div class="similar-show" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent), linear-gradient(135deg, #1a1a1a, #4a4a4a);">
+                            <div class="similar-show-title">Ozark</div>
+                        </div>
+                        <div class="similar-show" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent), linear-gradient(135deg, #8B0000, #FF6347);">
+                            <div class="similar-show-title">Narcos</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="comparison-toggle" onclick="toggleBackground()">Toggle Background</button>
+
+    <script>
+        function toggleSynopsis(element) {
+            const synopsis = element.previousElementSibling;
+            synopsis.classList.toggle('collapsed');
+            element.textContent = synopsis.classList.contains('collapsed') ? 'Read more' : 'Show less';
+        }
+
+        let darkBg = false;
+        function toggleBackground() {
+            const poster = document.querySelector('.poster-background');
+            if (darkBg) {
+                poster.style.background = 'linear-gradient(135deg, #0F574C, #093028, #000)';
+            } else {
+                poster.style.background = '#000';
+            }
+            darkBg = !darkBg;
+        }
+    </script>
+</body>
+</html>

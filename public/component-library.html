@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Been Watching - Component Library</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: white;
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding-bottom: 40px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #FF006E, #FF8E53);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 18px;
+            opacity: 0.7;
+        }
+
+        /* Navigation */
+        .nav {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Section */
+        .section {
+            margin-bottom: 80px;
+        }
+
+        .section-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .section-description {
+            font-size: 16px;
+            opacity: 0.7;
+            margin-bottom: 30px;
+        }
+
+        /* Component Card */
+        .component-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .component-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .component-name {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .component-tag {
+            padding: 6px 12px;
+            background: rgba(255, 100, 80, 0.2);
+            border: 1px solid rgba(255, 100, 80, 0.4);
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .component-description {
+            font-size: 14px;
+            opacity: 0.7;
+            margin-bottom: 20px;
+        }
+
+        .component-preview {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            min-height: 150px;
+        }
+
+        .component-code {
+            background: #1a1a1a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+
+        .component-code pre {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #e0e0e0;
+            line-height: 1.5;
+        }
+
+        .code-label {
+            font-size: 12px;
+            font-weight: 600;
+            opacity: 0.5;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Icon Styles */
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 20px;
+        }
+
+        .icon-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .icon-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .icon-wrapper {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-wrapper svg {
+            width: 24px;
+            height: 24px;
+            stroke: white;
+            fill: none;
+            stroke-width: 1.5;
+        }
+
+        .icon-name {
+            font-size: 12px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        /* Action Button Styles */
+        .action-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(60, 60, 60, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:active {
+            transform: scale(0.9);
+        }
+
+        .action-btn svg {
+            width: 24px;
+            height: 24px;
+            stroke: white;
+            fill: none;
+            stroke-width: 1.5;
+        }
+
+        .action-btn.liked svg {
+            fill: #FF3B5C;
+            stroke: #FF3B5C;
+        }
+
+        /* Glass Badge */
+        .glass-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* Friend Avatars */
+        .friend-avatars-stack {
+            display: flex;
+            margin-right: 10px;
+        }
+
+        .friend-avatars-stack img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid #1a1a1a;
+            margin-left: -10px;
+        }
+
+        .friend-avatars-stack img:first-child {
+            margin-left: 0;
+        }
+
+        /* Watchlist Badge */
+        .watchlist-badge-demo {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF006E, #FF8E53);
+            border: 2px solid rgba(20, 20, 20, 0.98);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .watchlist-badge-demo svg {
+            width: 10px;
+            height: 10px;
+            stroke: white;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        /* Color Swatches */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+        }
+
+        .color-swatch {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .color-box {
+            height: 80px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .color-info {
+            font-size: 12px;
+        }
+
+        .color-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .color-value {
+            opacity: 0.6;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Usage Examples */
+        .usage-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .usage-item {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+
+        .usage-label {
+            font-size: 11px;
+            font-weight: 600;
+            opacity: 0.5;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .usage-value {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 36px;
+            }
+
+            .section-title {
+                font-size: 24px;
+            }
+
+            .icon-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Component Library</h1>
+            <p>Reusable design system for Been Watching activity cards</p>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav">
+            <button class="nav-btn" onclick="scrollToSection('icons')">Icons</button>
+            <button class="nav-btn" onclick="scrollToSection('buttons')">Buttons</button>
+            <button class="nav-btn" onclick="scrollToSection('badges')">Badges</button>
+            <button class="nav-btn" onclick="scrollToSection('avatars')">Avatars</button>
+            <button class="nav-btn" onclick="scrollToSection('colors')">Colors</button>
+            <button class="nav-btn" onclick="scrollToSection('spacing')">Spacing</button>
+        </div>
+
+        <!-- ICONS SECTION -->
+        <div class="section" id="icons">
+            <h2 class="section-title">Action Icons</h2>
+            <p class="section-description">Line-art icons used throughout the application. All icons use 1.5px stroke width.</p>
+
+            <!-- Rating Icons -->
+            <div class="component-card">
+                <div class="component-header">
+                    <h3 class="component-name">Rating Icons</h3>
+                    <span class="component-tag">Core</span>
+                </div>
+                <p class="component-description">Icons for rating content: Meh, Like, Love</p>
+
+                <div class="component-preview">
+                    <div class="icon-grid">
+                        <!-- Meh Icon -->
+                        <div class="icon-item">
+                            <div class="icon-wrapper">
+                                <svg viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="8" y1="15" x2="16" y2="15"/>
+                                    <line x1="9" y1="9" x2="9" y2="10"/>
+                                    <line x1="15" y1="9" x2="15" y2="10"/>
+                                </svg>
+                            </div>
+                            <span class="icon-name">Meh</span>
+                        </div>
+
+                        <!-- Like Icon -->
+                        <div class="icon-item">
+                            <div class="icon-wrapper">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                                </svg>
+                            </div>
+                            <span class="icon-name">Like</span>
+                        </div>
+
+                        <!-- Love Icon -->
+                        <div class="icon-item">
+                            <div class="icon-wrapper">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                </svg>
+                            </div>
+                            <span class="icon-name">Love</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="code-label">SVG Code Example (Love Icon)</div>
+                <div class="component-code">
+                    <pre>&lt;svg viewBox="0 0 24 24"&gt;
+  &lt;path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+    stroke="white" fill="none" stroke-width="1.5"/&gt;
+&lt;/svg&gt;</pre>
+                </div>
+            </div>
+
+            <!-- Watchlist Icons -->
+            <div class="component-card">
+                <div class="component-header">
+                    <h3 class="component-name">Watchlist Icons</h3>
+                    <span class="component-tag">Core</span>
+                </div>
+                <p class="component-description">Icons for watchlist management: Want To Watch, Watching, Watched</p>
+
+                <div class="component-preview">
+                    <div class="icon-grid">
+                        <!-- Want to Watch -->
+                        <div class="icon-item">
+                            <div class="icon-wrapper">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                                </svg>
+                            </div>
+                            <span class="icon-name">Want To</span>
+                        </div>
+
+                        <!-- Watching -->
+                        <div class="icon-item">
+                            <div class="icon-wrapper">
+                                <svg viewBox="0 0 24 24">
+                                    <polygon points="5 3 19 12 5 21 5 3"/>
+                                </svg>
+                            </div>
+                            <span class="icon-name">Watching</span>
+                        </div>
+
+                        <!-- Watched -->
+                        <div class="icon-item">
+                            <div class="icon-wrapper">
+                                <svg viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="9 12 11 14 15 10"/>
+                                </svg>
+                            </div>
+                            <span class="icon-name">Watched</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Utility Icons -->
+            <div class="component-card">
+                <div class="component-header">
+                    <h3 class="component-name">Utility Icons</h3>
+                    <span class="component-tag">Core</span>
+                </div>
+                <p class="component-description">Icons for common actions: Add, Comment, Share, Menu</p>
+
+                <div class="component-preview">
+                    <div class="icon-grid">
+                        <!-- Plus -->
+                        <div class="icon-item">
+                            <div class="icon-wrapper">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M19 11H13V5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5V11H5C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13H11V19C11 19.5523 11.4477 20 12 20C12.5523 20 13 19.5523 13 19V13H19C19.5523 13 20 12.5523 20 12C20 11.4477 19.5523 11 19 11Z"/>
+                                </svg>
+                            </div>
+                            <span class="icon-name">Add</span>
+                        </div>
+
+                        <!-- Comment -->
+                        <div class="icon-item">
+                            <div class="icon-wrapper">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                </svg>
+                            </div>
+                            <span class="icon-name">Comment</span>
+                        </div>
+
+                        <!-- Close -->
+                        <div class="icon-item">
+                            <div class="icon-wrapper">
+                                <svg viewBox="0 0 24 24">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </div>
+                            <span class="icon-name">Close</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BUTTONS SECTION -->
+        <div class="section" id="buttons">
+            <h2 class="section-title">Action Buttons</h2>
+            <p class="section-description">Circular action buttons with glassmorphic styling</p>
+
+            <div class="component-card">
+                <div class="component-header">
+                    <h3 class="component-name">Side Action Buttons</h3>
+                    <span class="component-tag">Component</span>
+                </div>
+                <p class="component-description">40x40px circular buttons with blur backdrop. Used on the right side of cards.</p>
+
+                <div class="component-preview">
+                    <!-- Love Button -->
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                        <div class="action-btn">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                            </svg>
+                        </div>
+                        <span style="font-size: 11px; opacity: 0.7;">Default</span>
+                    </div>
+
+                    <!-- Liked Button -->
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                        <div class="action-btn liked">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                            </svg>
+                        </div>
+                        <span style="font-size: 11px; opacity: 0.7;">Liked State</span>
+                    </div>
+
+                    <!-- Add Button -->
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                        <div class="action-btn">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M19 11H13V5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5V11H5C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13H11V19C11 19.5523 11.4477 20 12 20C12.5523 20 13 19.5523 13 19V13H19C19.5523 13 20 12.5523 20 12C20 11.4477 19.5523 11 19 11Z"/>
+                            </svg>
+                        </div>
+                        <span style="font-size: 11px; opacity: 0.7;">Add</span>
+                    </div>
+
+                    <!-- Comment Button -->
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                        <div class="action-btn">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                        </div>
+                        <span style="font-size: 11px; opacity: 0.7;">Comment</span>
+                    </div>
+                </div>
+
+                <div class="code-label">CSS</div>
+                <div class="component-code">
+                    <pre>.action-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(60, 60, 60, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1.5px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.action-btn:active {
+    transform: scale(0.9);
+}
+
+.action-btn.liked svg {
+    fill: #FF3B5C;
+    stroke: #FF3B5C;
+}</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- BADGES SECTION -->
+        <div class="section" id="badges">
+            <h2 class="section-title">Glass Badges</h2>
+            <p class="section-description">Glassmorphic badges for card overlays and status indicators</p>
+
+            <div class="component-card">
+                <div class="component-header">
+                    <h3 class="component-name">Content Badges</h3>
+                    <span class="component-tag">Component</span>
+                </div>
+                <p class="component-description">Badges that appear overlaid on card content</p>
+
+                <div class="component-preview">
+                    <div class="glass-badge">✨ Because you liked The Bear</div>
+                    <div class="glass-badge">💕 Your Friends Loved</div>
+                    <div class="glass-badge">🎬 New Season Available</div>
+                    <div class="glass-badge">📺 Now on Netflix</div>
+                    <div class="glass-badge">🏆 Sarah's #1 Show</div>
+                </div>
+
+                <div class="code-label">CSS</div>
+                <div class="component-code">
+                    <pre>.glass-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+}</pre>
+                </div>
+            </div>
+
+            <div class="component-card">
+                <div class="component-header">
+                    <h3 class="component-name">Watchlist Badges</h3>
+                    <span class="component-tag">Component</span>
+                </div>
+                <p class="component-description">Small circular badges with plus icon for "add to list" actions</p>
+
+                <div class="component-preview">
+                    <div style="display: flex; gap: 30px; align-items: center;">
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                            <div style="position: relative;">
+                                <div class="icon-wrapper">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                                    </svg>
+                                </div>
+                                <div class="watchlist-badge-demo" style="position: absolute; top: -2px; right: -2px;">
+                                    <svg viewBox="0 0 12 12">
+                                        <line x1="6" y1="2" x2="6" y2="10"/>
+                                        <line x1="2" y1="6" x2="10" y2="6"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <span style="font-size: 11px; opacity: 0.7;">Want To</span>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                            <div style="position: relative;">
+                                <div class="icon-wrapper">
+                                    <svg viewBox="0 0 24 24">
+                                        <polygon points="5 3 19 12 5 21 5 3"/>
+                                    </svg>
+                                </div>
+                                <div class="watchlist-badge-demo" style="position: absolute; top: -2px; right: -2px;">
+                                    <svg viewBox="0 0 12 12">
+                                        <line x1="6" y1="2" x2="6" y2="10"/>
+                                        <line x1="2" y1="6" x2="10" y2="6"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <span style="font-size: 11px; opacity: 0.7;">Watching</span>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                            <div style="position: relative;">
+                                <div class="icon-wrapper">
+                                    <svg viewBox="0 0 24 24">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <polyline points="9 12 11 14 15 10"/>
+                                    </svg>
+                                </div>
+                                <div class="watchlist-badge-demo" style="position: absolute; top: -2px; right: -2px;">
+                                    <svg viewBox="0 0 12 12">
+                                        <line x1="6" y1="2" x2="6" y2="10"/>
+                                        <line x1="2" y1="6" x2="10" y2="6"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <span style="font-size: 11px; opacity: 0.7;">Watched</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="code-label">CSS</div>
+                <div class="component-code">
+                    <pre>.watchlist-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #FF006E, #FF8E53);
+    border: 2px solid rgba(20, 20, 20, 0.98);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- AVATARS SECTION -->
+        <div class="section" id="avatars">
+            <h2 class="section-title">Friend Avatars</h2>
+            <p class="section-description">Stacked avatar displays for social proof</p>
+
+            <div class="component-card">
+                <div class="component-header">
+                    <h3 class="component-name">Avatar Stack</h3>
+                    <span class="component-tag">Component</span>
+                </div>
+                <p class="component-description">Overlapping avatars with negative margin. Shows up to 3-4 avatars before "+X more"</p>
+
+                <div class="component-preview">
+                    <div style="display: flex; align-items: center;">
+                        <div class="friend-avatars-stack">
+                            <img src="https://i.pravatar.cc/150?img=1" alt="Friend 1">
+                            <img src="https://i.pravatar.cc/150?img=2" alt="Friend 2">
+                            <img src="https://i.pravatar.cc/150?img=3" alt="Friend 3">
+                        </div>
+                        <span style="font-size: 12px; opacity: 0.85;">8 friends also loved this</span>
+                    </div>
+                </div>
+
+                <div class="code-label">CSS</div>
+                <div class="component-code">
+                    <pre>.friend-avatars-stack {
+    display: flex;
+    margin-right: 10px;
+}
+
+.friend-avatars-stack img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid #1a1a1a;
+    margin-left: -10px;
+}
+
+.friend-avatars-stack img:first-child {
+    margin-left: 0;
+}</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLORS SECTION -->
+        <div class="section" id="colors">
+            <h2 class="section-title">Color System</h2>
+            <p class="section-description">Design tokens for consistent colors across the app</p>
+
+            <div class="component-card">
+                <div class="component-header">
+                    <h3 class="component-name">Primary Colors</h3>
+                    <span class="component-tag">Tokens</span>
+                </div>
+
+                <div class="component-preview">
+                    <div class="color-grid">
+                        <div class="color-swatch">
+                            <div class="color-box" style="background: linear-gradient(135deg, #FF006E, #FF8E53);"></div>
+                            <div class="color-info">
+                                <div class="color-name">Accent Gradient</div>
+                                <div class="color-value">#FF006E → #FF8E53</div>
+                            </div>
+                        </div>
+
+                        <div class="color-swatch">
+                            <div class="color-box" style="background: #FF3B5C;"></div>
+                            <div class="color-info">
+                                <div class="color-name">Heart/Love</div>
+                                <div class="color-value">#FF3B5C</div>
+                            </div>
+                        </div>
+
+                        <div class="color-swatch">
+                            <div class="color-box" style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2);"></div>
+                            <div class="color-info">
+                                <div class="color-name">Glass Background</div>
+                                <div class="color-value">rgba(255,255,255,0.15)</div>
+                            </div>
+                        </div>
+
+                        <div class="color-swatch">
+                            <div class="color-box" style="background: rgba(20, 20, 20, 0.98);"></div>
+                            <div class="color-info">
+                                <div class="color-name">Modal Background</div>
+                                <div class="color-value">rgba(20,20,20,0.98)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="component-card">
+                <div class="component-header">
+                    <h3 class="component-name">Text Colors</h3>
+                    <span class="component-tag">Tokens</span>
+                </div>
+
+                <div class="component-preview" style="background: #1a1a1a;">
+                    <div class="usage-grid">
+                        <div class="usage-item">
+                            <div class="usage-label">Primary</div>
+                            <div class="usage-value" style="color: #FFFFFF;">Text Sample</div>
+                            <div class="color-value">#FFFFFF</div>
+                        </div>
+
+                        <div class="usage-item">
+                            <div class="usage-label">Secondary</div>
+                            <div class="usage-value" style="color: rgba(255, 255, 255, 0.9);">Text Sample</div>
+                            <div class="color-value">rgba(255,255,255,0.9)</div>
+                        </div>
+
+                        <div class="usage-item">
+                            <div class="usage-label">Tertiary</div>
+                            <div class="usage-value" style="color: rgba(255, 255, 255, 0.7);">Text Sample</div>
+                            <div class="color-value">rgba(255,255,255,0.7)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SPACING SECTION -->
+        <div class="section" id="spacing">
+            <h2 class="section-title">Spacing & Dimensions</h2>
+            <p class="section-description">Standardized spacing and sizing tokens</p>
+
+            <div class="component-card">
+                <div class="component-header">
+                    <h3 class="component-name">Card Dimensions</h3>
+                    <span class="component-tag">Tokens</span>
+                </div>
+
+                <div class="component-preview">
+                    <div class="usage-grid">
+                        <div class="usage-item">
+                            <div class="usage-label">Card Width</div>
+                            <div class="usage-value">398px</div>
+                        </div>
+
+                        <div class="usage-item">
+                            <div class="usage-label">Card Height</div>
+                            <div class="usage-value">645px</div>
+                        </div>
+
+                        <div class="usage-item">
+                            <div class="usage-label">Border Radius</div>
+                            <div class="usage-value">16px</div>
+                        </div>
+
+                        <div class="usage-item">
+                            <div class="usage-label">Card Padding</div>
+                            <div class="usage-value">20px</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="component-card">
+                <div class="component-header">
+                    <h3 class="component-name">Button & Icon Sizes</h3>
+                    <span class="component-tag">Tokens</span>
+                </div>
+
+                <div class="component-preview">
+                    <div class="usage-grid">
+                        <div class="usage-item">
+                            <div class="usage-label">Action Button</div>
+                            <div class="usage-value">40px × 40px</div>
+                        </div>
+
+                        <div class="usage-item">
+                            <div class="usage-label">Icon Size</div>
+                            <div class="usage-value">24px × 24px</div>
+                        </div>
+
+                        <div class="usage-item">
+                            <div class="usage-label">User Avatar</div>
+                            <div class="usage-value">32px × 32px</div>
+                        </div>
+
+                        <div class="usage-item">
+                            <div class="usage-label">Friend Avatar</div>
+                            <div class="usage-value">24px × 24px</div>
+                        </div>
+
+                        <div class="usage-item">
+                            <div class="usage-label">Watchlist Badge</div>
+                            <div class="usage-value">16px × 16px</div>
+                        </div>
+
+                        <div class="usage-item">
+                            <div class="usage-label">Modal Width</div>
+                            <div class="usage-value">240px</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="text-align: center; padding: 40px 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: 60px;">
+            <p style="opacity: 0.5; font-size: 14px;">
+                Been Watching Component Library • Last Updated: November 2025
+            </p>
+            <p style="opacity: 0.5; font-size: 12px; margin-top: 10px;">
+                For implementation details, see ACTIVITY-CARD-TEMPLATES.md
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function scrollToSection(id) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+    </script>
+</body>
+</html>

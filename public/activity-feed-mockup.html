@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Activity Feed Mockup - All 7 Cards</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Feed Container */
+        .feed-container {
+            max-width: 430px;
+            margin: 0 auto;
+            height: 100vh;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+        }
+
+        /* Hide scrollbar */
+        .feed-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Feed Card Wrapper */
+        .feed-card-wrapper {
+            height: 100vh;
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .feed-card-wrapper:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Card container with 3D perspective */
+        .card-container {
+            width: 398px;
+            height: 645px;
+            perspective: 1000px;
+            position: relative;
+        }
+
+        /* Card with flip transformation */
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 16px;
+            touch-action: none;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        /* Card faces */
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 16px;
+        }
+
+        .card-front {
+            z-index: 2;
+            overflow: hidden;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+            background: linear-gradient(to bottom, #1a1a1a 0%, #0a0a0a 100%);
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        /* Front card styles */
+        .card-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .card-background img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .background-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom,
+                rgba(0, 0, 0, 0) 0%,
+                rgba(0, 0, 0, 0.3) 50%,
+                rgba(0, 0, 0, 0.9) 100%
+            );
+            z-index: 2;
+        }
+
+        .card-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            padding-bottom: 40px;
+            z-index: 3;
+            color: white;
+        }
+
+        /* User header */
+        .user-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1.5px solid white;
+            object-fit: cover;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .username {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 1px;
+        }
+
+        .timestamp {
+            font-size: 11px;
+            font-weight: 400;
+            opacity: 0.7;
+        }
+
+        /* Show info */
+        .show-title {
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 1.3;
+            margin-bottom: 6px;
+        }
+
+        .show-meta {
+            font-size: 12px;
+            font-weight: 400;
+            opacity: 0.85;
+            margin-bottom: 6px;
+        }
+
+        .meta-dot {
+            margin: 0 4px;
+            opacity: 0.5;
+        }
+
+        /* Friend avatars */
+        .friend-avatars {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .friend-avatars-stack {
+            display: flex;
+            margin-right: 6px;
+        }
+
+        .friend-avatars-stack img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 1.5px solid #000;
+            margin-left: -6px;
+        }
+
+        .friend-avatars-stack img:first-child {
+            margin-left: 0;
+        }
+
+        .friend-count {
+            font-size: 12px;
+            font-weight: 400;
+            opacity: 0.85;
+        }
+
+        /* Menu button */
+        .menu-btn {
+            position: absolute;
+            top: 20px;
+            right: 12px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(60, 60, 60, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 6;
+            transition: all 0.2s;
+        }
+
+        .menu-btn:active {
+            transform: scale(0.9);
+        }
+
+        .menu-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Side actions */
+        .side-actions {
+            position: absolute;
+            right: 12px;
+            bottom: 60px;
+            z-index: 4;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .action-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(60, 60, 60, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:active {
+            transform: scale(0.9);
+        }
+
+        .action-btn svg {
+            width: 24px;
+            height: 24px;
+            stroke: white;
+            fill: none;
+            stroke-width: 1.5;
+        }
+
+        .action-btn.liked svg {
+            fill: #FF3B5C;
+            stroke: #FF3B5C;
+        }
+
+        .action-count {
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 2px;
+            color: white;
+        }
+
+        /* Back of card styles */
+        .card-back-content {
+            padding: 20px 16px;
+            padding-top: 50px;
+            padding-bottom: 20px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            overflow-y: scroll;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch !important;
+            overscroll-behavior: contain;
+            touch-action: pan-y;
+            pointer-events: auto;
+            will-change: scroll-position;
+        }
+
+        .back-title-section {
+            margin-bottom: 16px;
+        }
+
+        .back-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+
+        .back-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .back-year {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .back-rating {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .back-badges {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .back-badge {
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            min-width: 36px;
+        }
+
+        .back-synopsis {
+            font-size: 14px;
+            line-height: 1.5;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .back-synopsis.collapsed {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .read-more {
+            color: #FF006E;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 16px;
+            display: block;
+            text-align: right;
+        }
+
+        .back-action-icons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .back-icon-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: white;
+        }
+
+        .back-icon-btn:active {
+            transform: scale(0.9);
+        }
+
+        .back-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .back-info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .back-info-label {
+            font-size: 11px;
+            opacity: 0.6;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .back-info-value {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .back-section {
+            margin-bottom: 20px;
+        }
+
+        .back-section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.6;
+            margin-bottom: 10px;
+        }
+
+        .cast-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .cast-member {
+            padding: 5px 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            font-size: 12px;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(60, 60, 60, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .close-btn svg {
+            width: 20px;
+            height: 20px;
+            stroke: white;
+            stroke-width: 2;
+        }
+
+        /* Comments Tab */
+        .comments-tab {
+            position: absolute;
+            bottom: 0;
+            left: 10px;
+            right: 10px;
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 5;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            max-height: 70%;
+            overflow: hidden;
+            transform: translateY(100%);
+            opacity: 0;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .comments-tab.visible {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .comments-preview {
+            padding: 16px 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .comments-preview-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .comments-close-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .comments-close-btn svg {
+            width: 14px;
+            height: 14px;
+            stroke: white;
+            stroke-width: 2;
+        }
+
+        .comments-full {
+            display: none;
+            padding: 20px;
+            padding-bottom: 0;
+            flex: 1;
+            min-height: 0;
+            overflow-y: scroll;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            touch-action: pan-y;
+            will-change: scroll-position;
+        }
+
+        .comments-tab.expanded .comments-preview {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .comments-tab.expanded .comments-full {
+            display: block;
+        }
+
+        .activity-comment-item {
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .activity-comment-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-comment-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .activity-comment-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .activity-comment-username {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .activity-comment-time {
+            font-size: 11px;
+            opacity: 0.6;
+            margin-left: auto;
+        }
+
+        .activity-comment-text {
+            font-size: 13px;
+            line-height: 1.4;
+            opacity: 0.9;
+            margin-left: 38px;
+        }
+
+        .comment-actions {
+            justify-content: flex-end;
+            display: flex;
+            gap: 12px;
+            margin-top: 6px;
+        }
+
+        .comment-like-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+
+        .comment-like-btn.liked {
+            color: #FF3B5C;
+        }
+
+        .comment-like-btn svg {
+            width: 14px;
+            height: 14px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .comment-like-btn.liked svg {
+            fill: currentColor;
+        }
+
+        .activity-comment-input-wrapper {
+            padding: 16px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .activity-comment-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 10px 16px;
+            color: white;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .activity-comment-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .send-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .send-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: white;
+        }
+
+        /* Glass badge */
+        .glass-badge {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        /* iOS body scroll lock */
+        body.scroll-locked {
+            overflow: hidden;
+            height: 100%;
+            position: relative;
+        }
+
+        html.scroll-locked {
+            overflow: hidden;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="feed-container" id="feedContainer">
+        <!-- Card 1: User Activity Card -->
+        <div class="feed-card-wrapper">
+            <div class="card-container">
+                <div class="card" id="activityCard1">
+                    <!-- FRONT OF CARD -->
+                    <div class="card-face card-front">
+                        <div class="card-background">
+                            <img src="https://image.tmdb.org/t/p/original/ztkUQFLlC19CCMYHW9o1zWhJRNq.jpg" alt="Breaking Bad">
+                        </div>
+                        <div class="background-overlay"></div>
+
+                        <div class="menu-btn" onclick="flipCard('activityCard1')">
+                            <svg viewBox="0 0 24 24">
+                                <circle cx="12" cy="6" r="1.5" fill="white"/>
+                                <circle cx="12" cy="12" r="1.5" fill="white"/>
+                                <circle cx="12" cy="18" r="1.5" fill="white"/>
+                            </svg>
+                        </div>
+
+                        <div class="card-content">
+                            <div class="user-header">
+                                <img src="https://i.pravatar.cc/150?img=1" alt="Sarah" class="user-avatar">
+                                <div class="user-info">
+                                    <div class="username">Sarah Miller</div>
+                                    <div class="timestamp">2 hours ago</div>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                                <span style="background: rgba(255, 59, 92, 0.25); backdrop-filter: blur(10px); padding: 8px 14px; border-radius: 12px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgba(255, 59, 92, 0.5);">
+                                    <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: currentColor;">
+                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                    </svg>
+                                    Loved
+                                </span>
+                            </div>
+
+                            <div class="show-title">Breaking Bad Season 5</div>
+                            <div class="show-meta">
+                                2012 <span class="meta-dot">•</span> Crime Drama <span class="meta-dot">•</span> ⭐ 9.5
+                            </div>
+
+                            <div class="friend-avatars">
+                                <div class="friend-avatars-stack">
+                                    <img src="https://i.pravatar.cc/150?img=2" alt="Friend 1">
+                                    <img src="https://i.pravatar.cc/150?img=3" alt="Friend 2">
+                                    <img src="https://i.pravatar.cc/150?img=4" alt="Friend 3">
+                                </div>
+                                <div class="friend-count">8 friends also loved this</div>
+                            </div>
+                        </div>
+
+                        <div class="side-actions">
+                            <div>
+                                <div class="action-btn liked">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                    </svg>
+                                </div>
+                                <div class="action-count">124</div>
+                            </div>
+                            <div>
+                                <div class="action-btn">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M19 11H13V5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5V11H5C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13H11V19C11 19.5523 11.4477 20 12 20C12.5523 20 13 19.5523 13 19V13H19C19.5523 13 20 12.5523 20 12C20 11.4477 19.5523 11 19 11Z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="action-btn" onclick="toggleActivityComments('activityCard1', event)">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                    </svg>
+                                </div>
+                                <div class="action-count">12</div>
+                            </div>
+                        </div>
+
+                        <div class="comments-tab" id="commentsTab1" onclick="toggleCommentsExpanded('activityCard1', event)">
+                            <div class="comments-preview">
+                                <div class="comments-preview-content">💬 View 12 comments...</div>
+                                <button class="comments-close-btn" onclick="closeCommentsTab('activityCard1', event)">
+                                    <svg viewBox="0 0 24 24" fill="none">
+                                        <line x1="18" y1="6" x2="6" y2="18"/>
+                                        <line x1="6" y1="6" x2="18" y2="18"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="comments-full" id="commentsFull1">
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=5" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Mike Johnson</div>
+                                        <div class="activity-comment-time">1h ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">This finale was absolutely incredible! Best TV I've seen all year.</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this, event)">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span>8</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=6" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Emma Davis</div>
+                                        <div class="activity-comment-time">45m ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">Can't believe it's over. What a ride! 🎬</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span>3</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="activity-comment-input-wrapper">
+                                <input type="text" class="activity-comment-input" placeholder="Add a comment...">
+                                <button class="send-btn">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BACK OF CARD -->
+                    <div class="card-face card-back">
+                        <div class="close-btn" onclick="flipCard('activityCard1')">
+                            <svg viewBox="0 0 24 24">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </div>
+
+                        <div class="card-back-content" id="cardBackContent1">
+                            <div class="back-title-section">
+                                <h1 class="back-title">Breaking Bad - Season 5</h1>
+                                <div class="back-meta">
+                                    <span class="back-year">2012</span>
+                                    <span class="meta-dot">•</span>
+                                    <span>Crime, Drama</span>
+                                    <span class="meta-dot">•</span>
+                                    <span class="back-rating">⭐ 9.5</span>
+                                </div>
+                                <div class="back-badges">
+                                    <div class="back-badge">S5</div>
+                                    <div class="back-badge">TV</div>
+                                    <div class="back-badge">AMC</div>
+                                </div>
+                            </div>
+                            <p class="back-synopsis collapsed" id="synopsis1">
+                                A high school chemistry teacher diagnosed with inoperable lung cancer turns to manufacturing and selling methamphetamine in order to secure his family's future.
+                            </p>
+                            <span class="read-more" onclick="toggleSynopsis('synopsis1')">Read more</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: "Because You Liked" Recommendation -->
+        <div class="feed-card-wrapper">
+            <div class="card-container">
+                <div class="card" id="activityCard2">
+                    <div class="card-face card-front">
+                        <div class="card-background">
+                            <img src="https://image.tmdb.org/t/p/original/fC2HDm5t0kHl7mTm7jxMR31b7by.jpg" alt="Better Call Saul">
+                        </div>
+                        <div class="background-overlay"></div>
+                        <div class="menu-btn" onclick="flipCard('activityCard2')">
+                            <svg viewBox="0 0 24 24">
+                                <circle cx="12" cy="6" r="1.5" fill="white"/>
+                                <circle cx="12" cy="12" r="1.5" fill="white"/>
+                                <circle cx="12" cy="18" r="1.5" fill="white"/>
+                            </svg>
+                        </div>
+                        <div class="card-content">
+                            <div class="glass-badge" style="background: rgba(139, 92, 246, 0.25); backdrop-filter: blur(10px); padding: 8px 14px; border-radius: 12px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 12px; border: 1px solid rgba(139, 92, 246, 0.5);">
+                                <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5;">
+                                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                                </svg>
+                                Because you liked Breaking Bad
+                            </div>
+                            <div class="show-title">Better Call Saul Season 6</div>
+                            <div class="show-meta">2022 <span class="meta-dot">•</span> Crime Drama <span class="meta-dot">•</span> ⭐ 9.0</div>
+                            <div class="friend-avatars">
+                                <div class="friend-avatars-stack">
+                                    <img src="https://i.pravatar.cc/150?img=6" alt="Friend 1">
+                                    <img src="https://i.pravatar.cc/150?img=7" alt="Friend 2">
+                                </div>
+                                <div class="friend-count">2 friends loved this</div>
+                            </div>
+                        </div>
+                        <div class="side-actions">
+                            <div><div class="action-btn"><svg viewBox="0 0 24 24"><path d="M19 11H13V5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5V11H5C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13H11V19C11 19.5523 11.4477 20 12 20C12.5523 20 13 19.5523 13 19V13H19C19.5523 13 20 12.5523 20 12C20 11.4477 19.5523 11 19 11Z"/></svg></div></div>
+                            <div><div class="action-btn"><svg viewBox="0 0 20 22" fill="none"><path d="M10 3L10 14M10 3L6 7M10 3L14 7" stroke="white" stroke-width="2" stroke-linecap="round"/><path d="M17 11V18C17 19 16 20 15 20H5C4 20 3 19 3 18V11" stroke="white" stroke-width="2" stroke-linecap="round"/></svg></div></div>
+                        </div>
+                    </div>
+                    <div class="card-face card-back">
+                        <div class="close-btn" onclick="flipCard('activityCard2')">
+                            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </div>
+                        <div class="card-back-content" id="cardBackContent2">
+                            <div class="back-title-section">
+                                <h1 class="back-title">Better Call Saul - Season 6</h1>
+                                <div class="back-meta"><span class="back-year">2022</span><span class="meta-dot">•</span><span>Crime, Drama</span><span class="meta-dot">•</span><span class="back-rating">⭐ 9.0</span></div>
+                                <div class="back-badges"><div class="back-badge">S6</div><div class="back-badge">TV</div><div class="back-badge">AMC</div></div>
+                            </div>
+                            <p class="back-synopsis collapsed" id="synopsis2">The final season finds Jimmy McGill living as Gene Takavic in Omaha. As he completes his transformation into criminal lawyer Saul Goodman, tensions between Gus Fring and Lalo Salamanca escalate.</p>
+                            <span class="read-more" onclick="toggleSynopsis('synopsis2')">Read more</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 3: "Your Friends Loved" Social Recommendation -->
+        <div class="feed-card-wrapper">
+            <div class="card-container">
+                <div class="card" id="activityCard3">
+                    <div class="card-face card-front">
+                        <div class="card-background">
+                            <img src="https://image.tmdb.org/t/p/original/suopoADq0k8YZr4dQXcU6pToj6s.jpg" alt="The Last of Us">
+                        </div>
+                        <div class="background-overlay"></div>
+                        <div class="menu-btn" onclick="flipCard('activityCard3')">
+                            <svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="1.5" fill="white"/><circle cx="12" cy="12" r="1.5" fill="white"/><circle cx="12" cy="18" r="1.5" fill="white"/></svg>
+                        </div>
+                        <div class="card-content">
+                            <div class="glass-badge" style="background: rgba(236, 72, 153, 0.25); backdrop-filter: blur(10px); padding: 8px 14px; border-radius: 12px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 12px; border: 1px solid rgba(236, 72, 153, 0.5);">
+                                <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: currentColor;"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                                Your Friends Loved
+                            </div>
+                            <div class="show-title">The Last of Us Season 1</div>
+                            <div class="show-meta">2023 <span class="meta-dot">•</span> Drama Sci-Fi <span class="meta-dot">•</span> ⭐ 8.8</div>
+                            <div class="friend-avatars">
+                                <div class="friend-avatars-stack">
+                                    <img src="https://i.pravatar.cc/150?img=5" alt="Friend 1">
+                                    <img src="https://i.pravatar.cc/150?img=6" alt="Friend 2">
+                                    <img src="https://i.pravatar.cc/150?img=7" alt="Friend 3">
+                                    <img src="https://i.pravatar.cc/150?img=8" alt="Friend 4">
+                                </div>
+                                <div class="friend-count">12 friends loved this</div>
+                            </div>
+                        </div>
+                        <div class="side-actions">
+                            <div><div class="action-btn"><svg viewBox="0 0 24 24"><path d="M19 11H13V5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5V11H5C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13H11V19C11 19.5523 11.4477 20 12 20C12.5523 20 13 19.5523 13 19V13H19C19.5523 13 20 12.5523 20 12C20 11.4477 19.5523 11 19 11Z"/></svg></div></div>
+                            <div><div class="action-btn"><svg viewBox="0 0 20 22" fill="none"><path d="M10 3L10 14M10 3L6 7M10 3L14 7" stroke="white" stroke-width="2" stroke-linecap="round"/><path d="M17 11V18C17 19 16 20 15 20H5C4 20 3 19 3 18V11" stroke="white" stroke-width="2" stroke-linecap="round"/></svg></div></div>
+                        </div>
+                    </div>
+                    <div class="card-face card-back">
+                        <div class="close-btn" onclick="flipCard('activityCard3')">
+                            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </div>
+                        <div class="card-back-content" id="cardBackContent3">
+                            <div class="back-title-section">
+                                <h1 class="back-title">The Last of Us - Season 1</h1>
+                                <div class="back-meta"><span class="back-year">2023</span><span class="meta-dot">•</span><span>Drama, Sci-Fi</span><span class="meta-dot">•</span><span class="back-rating">⭐ 8.8</span></div>
+                                <div class="back-badges"><div class="back-badge">S1</div><div class="back-badge">TV</div><div class="back-badge">HBO</div></div>
+                            </div>
+                            <p class="back-synopsis collapsed" id="synopsis3">After a global pandemic destroys civilization, a hardened survivor takes charge of a 14-year-old girl who may be humanity's last hope.</p>
+                            <span class="read-more" onclick="toggleSynopsis('synopsis3')">Read more</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 4: New Season Alert -->
+        <div class="feed-card-wrapper">
+            <div class="card-container">
+                <div class="card" id="activityCard4">
+                    <div class="card-face card-front">
+                        <div class="card-background">
+                            <img src="https://image.tmdb.org/t/p/original/z2yahl2uefxDCl0nogcRBstwruJ.jpg" alt="House of the Dragon">
+                        </div>
+                        <div class="background-overlay"></div>
+                        <div class="menu-btn" onclick="flipCard('activityCard4')">
+                            <svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="1.5" fill="white"/><circle cx="12" cy="12" r="1.5" fill="white"/><circle cx="12" cy="18" r="1.5" fill="white"/></svg>
+                        </div>
+                        <div class="card-content">
+                            <div class="glass-badge" style="background: rgba(168, 85, 247, 0.25); backdrop-filter: blur(10px); padding: 8px 14px; border-radius: 12px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 12px; border: 1px solid rgba(168, 85, 247, 0.5);">
+                                <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5;"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                                Coming Soon on May 5, 2026
+                            </div>
+                            <div class="show-title">House of the Dragon Season 2</div>
+                            <div class="show-meta">2024 <span class="meta-dot">•</span> Fantasy Drama <span class="meta-dot">•</span> 8 episodes</div>
+                            <div class="friend-avatars">
+                                <div class="friend-avatars-stack">
+                                    <img src="https://i.pravatar.cc/150?img=6" alt="Friend 1">
+                                    <img src="https://i.pravatar.cc/150?img=7" alt="Friend 2">
+                                </div>
+                                <div class="friend-count">5 friends want to watch this</div>
+                            </div>
+                        </div>
+                        <div class="side-actions">
+                            <div><div class="action-btn"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/><line x1="12" y1="6" x2="12" y2="12" stroke="white" stroke-width="1.5" stroke-linecap="round"/><line x1="9" y1="9" x2="15" y2="9" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div></div>
+                            <div><div class="action-btn"><svg viewBox="0 0 24 24" fill="none"><path d="M18 8A6 6 0 1 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+                        </div>
+                    </div>
+                    <div class="card-face card-back">
+                        <div class="close-btn" onclick="flipCard('activityCard4')">
+                            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </div>
+                        <div class="card-back-content" id="cardBackContent4">
+                            <div class="back-title-section">
+                                <h1 class="back-title">House of the Dragon - Season 2</h1>
+                                <div class="back-meta"><span class="back-year">2024</span><span class="meta-dot">•</span><span>Fantasy, Drama</span><span class="meta-dot">•</span><span class="back-rating">8 episodes</span></div>
+                                <div class="back-badges"><div class="back-badge">S2</div><div class="back-badge">TV</div><div class="back-badge">HBO</div></div>
+                            </div>
+                            <p class="back-synopsis collapsed" id="synopsis4">The Targaryen dynasty is at the absolute apex of its power, with more than 10 dragons under their yoke.</p>
+                            <span class="read-more" onclick="toggleSynopsis('synopsis4')">Read more</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 5: Now Streaming -->
+        <div class="feed-card-wrapper">
+            <div class="card-container">
+                <div class="card" id="activityCard5">
+                    <div class="card-face card-front">
+                        <div class="card-background">
+                            <img src="https://image.tmdb.org/t/p/original/kXfqcdQKsToO0OUXHcrrNCHDBzO.jpg" alt="Dune">
+                        </div>
+                        <div class="background-overlay"></div>
+                        <div class="menu-btn" onclick="flipCard('activityCard5')">
+                            <svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="1.5" fill="white"/><circle cx="12" cy="12" r="1.5" fill="white"/><circle cx="12" cy="18" r="1.5" fill="white"/></svg>
+                        </div>
+                        <div class="card-content">
+                            <div class="glass-badge" style="background: rgba(34, 197, 94, 0.25); backdrop-filter: blur(10px); padding: 8px 14px; border-radius: 12px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 12px; border: 1px solid rgba(34, 197, 94, 0.5);">
+                                <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5;"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"/><polygon points="10 9 10 15 15 12" fill="currentColor" stroke="none"/></svg>
+                                Now Streaming on Netflix
+                            </div>
+                            <div class="show-title">Dune: Part Two</div>
+                            <div class="show-meta">2024 <span class="meta-dot">•</span> Sci-Fi Adventure <span class="meta-dot">•</span> ⭐ 8.7</div>
+                            <div class="friend-avatars">
+                                <div class="friend-avatars-stack">
+                                    <img src="https://i.pravatar.cc/150?img=6" alt="Friend 1">
+                                    <img src="https://i.pravatar.cc/150?img=7" alt="Friend 2">
+                                </div>
+                                <div class="friend-count">3 friends watched this</div>
+                            </div>
+                        </div>
+                        <div class="side-actions">
+                            <div><div class="action-btn"><svg viewBox="0 0 24 24"><path d="M19 11H13V5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5V11H5C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13H11V19C11 19.5523 11.4477 20 12 20C12.5523 20 13 19.5523 13 19V13H19C19.5523 13 20 12.5523 20 12C20 11.4477 19.5523 11 19 11Z"/></svg></div></div>
+                            <div><div class="action-btn"><svg viewBox="0 0 20 22" fill="none"><path d="M10 3L10 14M10 3L6 7M10 3L14 7" stroke="white" stroke-width="2" stroke-linecap="round"/><path d="M17 11V18C17 19 16 20 15 20H5C4 20 3 19 3 18V11" stroke="white" stroke-width="2" stroke-linecap="round"/></svg></div></div>
+                        </div>
+                    </div>
+                    <div class="card-face card-back">
+                        <div class="close-btn" onclick="flipCard('activityCard5')">
+                            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </div>
+                        <div class="card-back-content" id="cardBackContent5">
+                            <div class="back-title-section">
+                                <h1 class="back-title">Dune: Part Two</h1>
+                                <div class="back-meta"><span class="back-year">2024</span><span class="meta-dot">•</span><span>Sci-Fi, Adventure</span><span class="meta-dot">•</span><span class="back-rating">⭐ 8.7</span></div>
+                                <div class="back-badges"><div class="back-badge">MOVIE</div><div class="back-badge">Netflix</div></div>
+                            </div>
+                            <p class="back-synopsis collapsed" id="synopsis5">Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family.</p>
+                            <span class="read-more" onclick="toggleSynopsis('synopsis5')">Read more</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 6: Top 3 Update -->
+        <div class="feed-card-wrapper">
+            <div class="card-container">
+                <div class="card" id="activityCard6">
+                    <div class="card-face card-front">
+                        <div class="card-background">
+                            <img src="https://image.tmdb.org/t/p/original/muth4OYamXf41G2evdrLEg8d3om.jpg" alt="The Bear">
+                        </div>
+                        <div class="background-overlay"></div>
+                        <div class="menu-btn" onclick="flipCard('activityCard6')">
+                            <svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="1.5" fill="white"/><circle cx="12" cy="12" r="1.5" fill="white"/><circle cx="12" cy="18" r="1.5" fill="white"/></svg>
+                        </div>
+                        <div class="card-content">
+                            <div class="user-header">
+                                <img src="https://i.pravatar.cc/150?img=9" alt="Alex" class="user-avatar">
+                                <div class="user-info">
+                                    <div class="username">Alex Thompson</div>
+                                    <div class="timestamp">5 hours ago</div>
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 12px;">
+                                <span style="background: rgba(255, 215, 0, 0.25); backdrop-filter: blur(10px); padding: 8px 14px; border-radius: 12px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgba(255, 215, 0, 0.5);">
+                                    <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: #FFD700;"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+                                    Added to #1 Top Show!
+                                </span>
+                            </div>
+                            <div class="show-title">The Bear Season 2</div>
+                            <div class="show-meta">2023 <span class="meta-dot">•</span> Comedy Drama <span class="meta-dot">•</span> ⭐ 8.6</div>
+                            <div class="friend-avatars">
+                                <div class="friend-avatars-stack">
+                                    <img src="https://i.pravatar.cc/150?img=2" alt="Friend 1">
+                                    <img src="https://i.pravatar.cc/150?img=3" alt="Friend 2">
+                                    <img src="https://i.pravatar.cc/150?img=4" alt="Friend 3">
+                                </div>
+                                <div class="friend-count">8 friends also loved this</div>
+                            </div>
+                        </div>
+                        <div class="side-actions">
+                            <div><div class="action-btn liked"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div class="action-count">124</div></div>
+                            <div><div class="action-btn" onclick="toggleActivityComments('activityCard6', event)"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="action-count">12</div></div>
+                        </div>
+                        <div class="comments-tab" id="commentsTab6" onclick="toggleCommentsExpanded('activityCard6', event)">
+                            <div class="comments-preview">
+                                <div class="comments-preview-content">💬 View 12 comments...</div>
+                                <button class="comments-close-btn" onclick="closeCommentsTab('activityCard6', event)"><svg viewBox="0 0 24 24" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                            </div>
+                            <div class="comments-full" id="commentsFull6">
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=5" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Mike Johnson</div>
+                                        <div class="activity-comment-time">1h ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">This finale was absolutely incredible! Best TV I've seen all year.</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this, event)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>8</span></button>
+                                    </div>
+                                </div>
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=6" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Emma Davis</div>
+                                        <div class="activity-comment-time">45m ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">Can't believe it's over. What a ride! 🎬</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn" onclick="toggleCommentLike(this, event)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>3</span></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="activity-comment-input-wrapper">
+                                <input type="text" class="activity-comment-input" placeholder="Add a comment...">
+                                <button class="send-btn"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-face card-back">
+                        <div class="close-btn" onclick="flipCard('activityCard6')">
+                            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </div>
+                        <div class="card-back-content" id="cardBackContent6">
+                            <div class="back-title-section">
+                                <h1 class="back-title">The Bear - Season 2</h1>
+                                <div class="back-meta"><span class="back-year">2023</span><span class="meta-dot">•</span><span>Comedy, Drama</span><span class="meta-dot">•</span><span class="back-rating">⭐ 8.6</span></div>
+                                <div class="back-badges"><div class="back-badge">S2</div><div class="back-badge">TV</div><div class="back-badge">FX</div></div>
+                            </div>
+                            <p class="back-synopsis collapsed" id="synopsis6">Carmy pushes himself harder than ever and demands excellence from his crew, who do their best to match his intensity.</p>
+                            <span class="read-more" onclick="toggleSynopsis('synopsis6')">Read more</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 7: Follow Suggestions -->
+        <div class="feed-card-wrapper">
+            <div class="card-container">
+                <div class="card" id="activityCard7">
+                    <div class="card-face card-front">
+                        <div class="card-background" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        </div>
+                        <div class="background-overlay"></div>
+                        <div class="menu-btn" onclick="flipCard('activityCard7')">
+                            <svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="1.5" fill="white"/><circle cx="12" cy="12" r="1.5" fill="white"/><circle cx="12" cy="18" r="1.5" fill="white"/></svg>
+                        </div>
+                        <div class="card-content">
+                            <div class="glass-badge" style="background: rgba(255, 215, 0, 0.25); backdrop-filter: blur(10px); padding: 8px 14px; border-radius: 12px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 12px; border: 1px solid rgba(255, 215, 0, 0.5);">
+                                <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: currentColor;"><path d="M17.657 14.828l-1.414-1.414L17.657 12A4 4 0 1 0 12 6.343l-1.414 1.414-1.414-1.414 1.414-1.414a6 6 0 1 1 8.485 8.485l-1.414 1.414zm-2.829 2.829l-1.414 1.414a6 6 0 1 1-8.485-8.485l1.414-1.414 1.414 1.414L6.343 12A4 4 0 1 0 12 17.657l1.414-1.414 1.414 1.414zm0-9.9l1.415 1.415-7.071 7.07-1.415-1.414 7.071-7.07z"/></svg>
+                                Find New Friends
+                            </div>
+                            <div class="show-title">Discover People to Follow</div>
+                            <div class="show-meta">Connect with friends who share your taste</div>
+                            <div style="margin-top: 20px; padding: 16px; background: rgba(255, 255, 255, 0.1); border-radius: 12px;">
+                                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                                    <img src="https://i.pravatar.cc/150?img=10" alt="Jamie" style="width: 48px; height: 48px; border-radius: 50%; border: 2px solid white;">
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 600; font-size: 14px;">Jamie Chen</div>
+                                        <div style="font-size: 12px; opacity: 0.7;">@jamiechen • 92% Match</div>
+                                    </div>
+                                    <button style="padding: 8px 16px; background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; color: white; font-weight: 600; font-size: 12px; cursor: pointer;">Follow</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="side-actions">
+                            <div><div class="action-btn"><svg viewBox="0 0 24 24"><path d="M19 11H13V5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5V11H5C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13H11V19C11 19.5523 11.4477 20 12 20C12.5523 20 13 19.5523 13 19V13H19C19.5523 13 20 12.5523 20 12C20 11.4477 19.5523 11 19 11Z"/></svg></div></div>
+                        </div>
+                    </div>
+                    <div class="card-face card-back">
+                        <div class="close-btn" onclick="flipCard('activityCard7')">
+                            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </div>
+                        <div class="card-back-content" id="cardBackContent7">
+                            <div class="back-title-section">
+                                <h1 class="back-title">Find New Friends</h1>
+                                <div class="back-meta">Connect with people who share your taste in shows and movies</div>
+                            </div>
+                            <p class="back-synopsis">Discover friends based on your viewing preferences and ratings. Follow people to see their activity in your feed.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global scroll lock state
+        let scrollLocked = false;
+        let savedScrollPosition = 0;
+        const feedContainer = document.getElementById('feedContainer');
+
+        function lockBodyScroll() {
+            if (scrollLocked) return;
+            // Save feed container scroll position
+            savedScrollPosition = feedContainer ? feedContainer.scrollTop : 0;
+            document.documentElement.classList.add('scroll-locked');
+            document.body.classList.add('scroll-locked');
+            document.documentElement.style.overflow = 'hidden';
+            document.documentElement.style.height = '100%';
+            document.body.style.overflow = 'hidden';
+            document.body.style.height = '100%';
+            document.body.style.position = 'relative';
+            // Prevent feed container from scrolling
+            if (feedContainer) {
+                feedContainer.style.overflow = 'hidden';
+            }
+            scrollLocked = true;
+        }
+
+        function unlockBodyScroll() {
+            if (!scrollLocked) return;
+            document.documentElement.classList.remove('scroll-locked');
+            document.body.classList.remove('scroll-locked');
+            document.documentElement.style.removeProperty('overflow');
+            document.documentElement.style.removeProperty('height');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('height');
+            document.body.style.removeProperty('position');
+            // Restore feed container scroll position
+            if (feedContainer) {
+                feedContainer.style.removeProperty('overflow');
+                feedContainer.scrollTop = savedScrollPosition;
+            }
+            scrollLocked = false;
+        }
+
+        function flipCard(cardId) {
+            const card = document.getElementById(cardId);
+            const isFlipped = card.classList.contains('flipped');
+            card.classList.toggle('flipped');
+            
+            if (!isFlipped) {
+                setTimeout(() => lockBodyScroll(), 50);
+            } else {
+                unlockBodyScroll();
+            }
+        }
+
+        function toggleActivityComments(cardId, event) {
+            event.stopPropagation();
+            const card = document.getElementById(cardId);
+            const commentsTab = card.querySelector('.comments-tab');
+            commentsTab.classList.toggle('visible');
+        }
+
+        function toggleCommentsExpanded(cardId, event) {
+            event.stopPropagation();
+            const card = document.getElementById(cardId);
+            const commentsTab = card.querySelector('.comments-tab');
+            commentsTab.classList.toggle('expanded');
+        }
+
+        function closeCommentsTab(cardId, event) {
+            event.stopPropagation();
+            const card = document.getElementById(cardId);
+            const commentsTab = card.querySelector('.comments-tab');
+            commentsTab.classList.remove('visible');
+            commentsTab.classList.remove('expanded');
+        }
+
+        function toggleCommentLike(button, event) {
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+            button.classList.toggle('liked');
+            const countSpan = button.querySelector('span');
+            let count = parseInt(countSpan.textContent);
+            if (button.classList.contains('liked')) {
+                count++;
+            } else {
+                count--;
+            }
+            countSpan.textContent = count;
+        }
+
+        function toggleSynopsis(synopsisId) {
+            const synopsis = document.getElementById(synopsisId);
+            const readMore = event.target;
+            synopsis.classList.toggle('collapsed');
+            readMore.textContent = synopsis.classList.contains('collapsed') ? 'Read more' : 'Show less';
+        }
+
+        // iOS scroll management for card back content - handle all cards
+        document.querySelectorAll('.card-back-content').forEach((cardBackContent, index) => {
+            const cardId = `activityCard${index + 1}`;
+            const card = document.getElementById(cardId);
+            
+            if (card) {
+                // Watch for card flip and manage scroll locking
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                            const isFlipped = card.classList.contains('flipped');
+                            if (isFlipped) {
+                                lockBodyScroll();
+                            } else {
+                                unlockBodyScroll();
+                            }
+                        }
+                    });
+                });
+                observer.observe(card, { attributes: true, attributeFilter: ['class'] });
+                
+                // iOS scroll workaround for card back content
+                let touchStartY = 0;
+                let touchStartScrollTop = 0;
+                let lastTouchY = 0;
+                let lastTouchTime = 0;
+                let velocity = 0;
+                let momentumAnimation = null;
+                
+                function smoothScrollTo(targetScrollTop) {
+                    const startScrollTop = cardBackContent.scrollTop;
+                    const distance = targetScrollTop - startScrollTop;
+                    const duration = Math.min(Math.abs(distance) * 0.5, 300);
+                    const startTime = performance.now();
+                    
+                    function animate(currentTime) {
+                        const elapsed = currentTime - startTime;
+                        const progress = Math.min(elapsed / duration, 1);
+                        const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+                        const currentScrollTop = startScrollTop + (distance * easeOutCubic);
+                        cardBackContent.scrollTop = currentScrollTop;
+                        
+                        if (progress < 1) {
+                            momentumAnimation = requestAnimationFrame(animate);
+                        } else {
+                            momentumAnimation = null;
+                        }
+                    }
+                    
+                    if (momentumAnimation) {
+                        cancelAnimationFrame(momentumAnimation);
+                    }
+                    momentumAnimation = requestAnimationFrame(animate);
+                }
+                
+                function applyMomentum() {
+                    if (Math.abs(velocity) < 0.1) {
+                        velocity = 0;
+                        return;
+                    }
+                    
+                    const maxScroll = cardBackContent.scrollHeight - cardBackContent.clientHeight;
+                    const currentScrollTop = cardBackContent.scrollTop;
+                    const friction = 0.92;
+                    
+                    velocity *= friction;
+                    let newScrollTop = currentScrollTop + velocity;
+                    
+                    if (newScrollTop < 0) {
+                        newScrollTop = 0;
+                        velocity = 0;
+                    } else if (newScrollTop > maxScroll) {
+                        newScrollTop = maxScroll;
+                        velocity = 0;
+                    }
+                    
+                    cardBackContent.scrollTop = newScrollTop;
+                    
+                    if (Math.abs(velocity) > 0.1) {
+                        requestAnimationFrame(applyMomentum);
+                    } else {
+                        velocity = 0;
+                    }
+                }
+                
+                cardBackContent.addEventListener('touchstart', (e) => {
+                    if (!card.classList.contains('flipped')) return;
+                    
+                    if (momentumAnimation) {
+                        cancelAnimationFrame(momentumAnimation);
+                        momentumAnimation = null;
+                    }
+                    velocity = 0;
+                    
+                    touchStartY = e.touches[0].clientY;
+                    touchStartScrollTop = cardBackContent.scrollTop;
+                    lastTouchY = touchStartY;
+                    lastTouchTime = performance.now();
+                }, { passive: true });
+                
+                cardBackContent.addEventListener('touchmove', (e) => {
+                    if (!card.classList.contains('flipped')) return;
+                    
+                    const touchY = e.touches[0].clientY;
+                    const currentTime = performance.now();
+                    const deltaTime = currentTime - lastTouchTime;
+                    
+                    if (deltaTime > 0 && lastTouchY !== 0) {
+                        const deltaY = lastTouchY - touchY;
+                        velocity = (deltaY / deltaTime) * 16;
+                    }
+                    
+                    const deltaY = touchStartY - touchY;
+                    const newScrollTop = touchStartScrollTop + deltaY;
+                    const maxScroll = cardBackContent.scrollHeight - cardBackContent.clientHeight;
+                    
+                    if (newScrollTop >= 0 && newScrollTop <= maxScroll) {
+                        cardBackContent.scrollTop = newScrollTop;
+                    } else if (newScrollTop < 0) {
+                        const overscroll = Math.abs(newScrollTop);
+                        cardBackContent.scrollTop = -overscroll * 0.3;
+                    } else if (newScrollTop > maxScroll) {
+                        const overscroll = newScrollTop - maxScroll;
+                        cardBackContent.scrollTop = maxScroll + (overscroll * 0.3);
+                    }
+                    
+                    lastTouchY = touchY;
+                    lastTouchTime = currentTime;
+                }, { passive: false });
+                
+                cardBackContent.addEventListener('touchend', () => {
+                    if (!card.classList.contains('flipped')) return;
+                    
+                    const maxScroll = cardBackContent.scrollHeight - cardBackContent.clientHeight;
+                    const currentScrollTop = cardBackContent.scrollTop;
+                    
+                    if (currentScrollTop < 0) {
+                        smoothScrollTo(0);
+                        velocity = 0;
+                    } else if (currentScrollTop > maxScroll) {
+                        smoothScrollTo(maxScroll);
+                        velocity = 0;
+                    } else if (Math.abs(velocity) > 0.5) {
+                        applyMomentum();
+                    } else {
+                        velocity = 0;
+                    }
+                }, { passive: true });
+            }
+        });
+
+        // iOS scroll handlers for comments - handle all comment sections
+        document.querySelectorAll('.comments-full').forEach((commentsFull, index) => {
+            const cardId = `activityCard${index + 1}`;
+            const card = document.getElementById(cardId);
+            
+            if (!card) return;
+            
+            let touchStartY = 0;
+            let touchStartScrollTop = 0;
+            let lastTouchY = 0;
+            let lastTouchTime = 0;
+            let velocity = 0;
+            let momentumAnimation = null;
+            
+            function smoothScrollToComments(targetScrollTop) {
+                const startScrollTop = commentsFull.scrollTop;
+                const distance = targetScrollTop - startScrollTop;
+                const duration = Math.min(Math.abs(distance) * 0.5, 300);
+                const startTime = performance.now();
+                
+                function animate(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+                    const currentScrollTop = startScrollTop + (distance * easeOutCubic);
+                    commentsFull.scrollTop = currentScrollTop;
+                    
+                    if (progress < 1) {
+                        momentumAnimation = requestAnimationFrame(animate);
+                    } else {
+                        momentumAnimation = null;
+                    }
+                }
+                
+                if (momentumAnimation) {
+                    cancelAnimationFrame(momentumAnimation);
+                }
+                momentumAnimation = requestAnimationFrame(animate);
+            }
+            
+            function applyMomentumComments() {
+                if (Math.abs(velocity) < 0.1) {
+                    velocity = 0;
+                    return;
+                }
+                
+                const maxScroll = commentsFull.scrollHeight - commentsFull.clientHeight;
+                const currentScrollTop = commentsFull.scrollTop;
+                const friction = 0.92;
+                
+                velocity *= friction;
+                let newScrollTop = currentScrollTop + velocity;
+                
+                if (newScrollTop < 0) {
+                    newScrollTop = 0;
+                    velocity = 0;
+                } else if (newScrollTop > maxScroll) {
+                    newScrollTop = maxScroll;
+                    velocity = 0;
+                }
+                
+                commentsFull.scrollTop = newScrollTop;
+                
+                if (Math.abs(velocity) > 0.1) {
+                    requestAnimationFrame(applyMomentumComments);
+                } else {
+                    velocity = 0;
+                }
+            }
+
+            commentsFull.addEventListener('touchstart', (e) => {
+                const commentsTab = card.querySelector('.comments-tab');
+                if (!commentsTab || !commentsTab.classList.contains('expanded')) return;
+                
+                e.stopPropagation();
+                
+                if (momentumAnimation) {
+                    cancelAnimationFrame(momentumAnimation);
+                    momentumAnimation = null;
+                }
+                velocity = 0;
+                
+                touchStartY = e.touches[0].clientY;
+                touchStartScrollTop = commentsFull.scrollTop;
+                lastTouchY = touchStartY;
+                lastTouchTime = performance.now();
+            }, { passive: true });
+
+            commentsFull.addEventListener('touchmove', (e) => {
+                const commentsTab = card.querySelector('.comments-tab');
+                if (!commentsTab || !commentsTab.classList.contains('expanded')) return;
+                
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const touchY = e.touches[0].clientY;
+                const currentTime = performance.now();
+                const deltaTime = currentTime - lastTouchTime;
+                
+                if (deltaTime > 0 && lastTouchY !== 0) {
+                    const deltaY = lastTouchY - touchY;
+                    velocity = (deltaY / deltaTime) * 16;
+                }
+                
+                const deltaY = touchStartY - touchY;
+                const newScrollTop = touchStartScrollTop + deltaY;
+                const maxScroll = commentsFull.scrollHeight - commentsFull.clientHeight;
+                
+                if (newScrollTop >= 0 && newScrollTop <= maxScroll) {
+                    commentsFull.scrollTop = newScrollTop;
+                } else if (newScrollTop < 0) {
+                    const overscroll = Math.abs(newScrollTop);
+                    commentsFull.scrollTop = -overscroll * 0.3;
+                } else if (newScrollTop > maxScroll) {
+                    const overscroll = newScrollTop - maxScroll;
+                    commentsFull.scrollTop = maxScroll + (overscroll * 0.3);
+                }
+                
+                lastTouchY = touchY;
+                lastTouchTime = currentTime;
+            }, { passive: false });
+
+            commentsFull.addEventListener('touchend', (e) => {
+                e.stopPropagation();
+                
+                const commentsTab = card.querySelector('.comments-tab');
+                if (!commentsTab || !commentsTab.classList.contains('expanded')) return;
+                
+                const maxScroll = commentsFull.scrollHeight - commentsFull.clientHeight;
+                const currentScrollTop = commentsFull.scrollTop;
+                
+                if (currentScrollTop < 0) {
+                    smoothScrollToComments(0);
+                    velocity = 0;
+                } else if (currentScrollTop > maxScroll) {
+                    smoothScrollToComments(maxScroll);
+                    velocity = 0;
+                } else if (Math.abs(velocity) > 0.5) {
+                    applyMomentumComments();
+                } else {
+                    velocity = 0;
+                }
+            }, { passive: true });
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layout Comparison - Full Width vs Inset Cards</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        /* Mobile device frame */
+        .device-frame {
+            width: 430px;
+            height: 932px;
+            background: #000;
+            border-radius: 50px;
+            padding: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8),
+                        0 0 0 2px rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .device-screen {
+            width: 100%;
+            height: 100%;
+            border-radius: 40px;
+            overflow: hidden;
+            position: relative;
+            background: #000;
+        }
+
+        .comparison-container {
+            display: flex;
+            width: 200%;
+            height: 100%;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .layout-option {
+            width: 50%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .layout-header {
+            padding: 20px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .layout-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .layout-header p {
+            font-size: 12px;
+            opacity: 0.6;
+        }
+
+        /* Option A: Full Width */
+        .full-width-container {
+            flex: 1;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .full-width-card {
+            width: 100%;
+            height: 100%;
+            scroll-snap-align: center;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Option B: Inset */
+        .inset-container {
+            flex: 1;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            -webkit-overflow-scrolling: touch;
+            padding: 0 16px;
+            background: #000;
+        }
+
+        .inset-card {
+            width: 100%;
+            height: 645px;
+            scroll-snap-align: center;
+            margin: 20px 0;
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Card styling */
+        .card-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .card-background img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .background-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom,
+                rgba(0, 0, 0, 0) 0%,
+                rgba(0, 0, 0, 0.3) 50%,
+                rgba(0, 0, 0, 0.9) 100%
+            );
+            z-index: 1;
+        }
+
+        .card-content {
+            position: absolute;
+            bottom: 80px;
+            left: 20px;
+            right: 80px;
+            z-index: 2;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .user-details {
+            flex: 1;
+        }
+
+        .username {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .timestamp {
+            font-size: 11px;
+            font-weight: 400;
+            opacity: 0.7;
+        }
+
+        .show-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+
+        .show-meta {
+            font-size: 12px;
+            font-weight: 400;
+            opacity: 0.8;
+            margin-bottom: 12px;
+        }
+
+        .glass-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* Side actions */
+        .side-actions {
+            position: absolute;
+            right: 12px;
+            bottom: 80px;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .action-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(60, 60, 60, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:active {
+            transform: scale(0.9);
+        }
+
+        .action-btn svg {
+            width: 24px;
+            height: 24px;
+            stroke: white;
+            fill: none;
+            stroke-width: 1.5;
+        }
+
+        .action-btn.liked svg {
+            fill: #FF3B5C;
+            stroke: #FF3B5C;
+        }
+
+        /* Menu dots for inset version */
+        .menu-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(60, 60, 60, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .menu-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .dot {
+            fill: white;
+        }
+
+        /* Comments bar */
+        .comments-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 12px;
+            z-index: 4;
+        }
+
+        .comment-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 10px 16px;
+            color: white;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .comment-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Navigation dots */
+        .nav-dots {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-50%);
+            display: flex;
+            gap: 30px;
+            z-index: 200;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 12px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-dot.active {
+            background: white;
+            transform: scale(1.2);
+        }
+
+        /* Instructions */
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            text-align: center;
+        }
+
+        /* Scroll indicators */
+        .scroll-hint {
+            position: absolute;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            opacity: 0.5;
+            z-index: 5;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="device-frame">
+        <div class="device-screen">
+            <div class="nav-dots">
+                <div class="nav-dot active" onclick="scrollToOption(0)"></div>
+                <div class="nav-dot" onclick="scrollToOption(1)"></div>
+            </div>
+
+            <div class="comparison-container" id="container">
+        <!-- OPTION A: FULL WIDTH -->
+        <div class="layout-option">
+            <div class="layout-header">
+                <h2>Option A: Full Width</h2>
+                <p>Edge-to-edge cards (TikTok style)</p>
+            </div>
+
+            <div class="full-width-container">
+                <!-- Card 1 -->
+                <div class="full-width-card">
+                    <div class="card-background">
+                        <img src="https://image.tmdb.org/t/p/original/ggFHVNu6YYI5L9pCfOacjizRGt.jpg" alt="Breaking Bad">
+                    </div>
+                    <div class="background-overlay"></div>
+
+                    <div class="card-content">
+                        <div class="user-info">
+                            <div class="user-avatar"></div>
+                            <div class="user-details">
+                                <div class="username">sarah_watches</div>
+                                <div class="timestamp">2 hours ago</div>
+                            </div>
+                        </div>
+
+                        <div class="show-title">Breaking Bad Season 5</div>
+                        <div class="show-meta">2012 • Drama • ⭐ 9.5</div>
+                        <div class="glass-badge">💕 8 friends loved this</div>
+                    </div>
+
+                    <div class="side-actions">
+                        <div class="action-btn liked">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        </div>
+                        <div class="action-btn">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M19 11H13V5a1 1 0 0 0-2 0v6H5a1 1 0 0 0 0 2h6v6a1 1 0 0 0 2 0v-6h6a1 1 0 0 0 0-2Z"/>
+                            </svg>
+                        </div>
+                        <div class="action-btn">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                        </div>
+                        <div class="menu-btn">
+                            <svg viewBox="0 0 24 24">
+                                <circle cx="12" cy="6" r="1.5" class="dot"/>
+                                <circle cx="12" cy="12" r="1.5" class="dot"/>
+                                <circle cx="12" cy="18" r="1.5" class="dot"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="comments-bar">
+                        <input type="text" class="comment-input" placeholder="Add a comment...">
+                    </div>
+
+                    <div class="scroll-hint">↓ Scroll to see more</div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="full-width-card">
+                    <div class="card-background">
+                        <img src="https://image.tmdb.org/t/p/original/qJdfO3ahgAMf2rcmhoqngjBBZW1.jpg" alt="Succession">
+                    </div>
+                    <div class="background-overlay"></div>
+
+                    <div class="card-content">
+                        <div class="glass-badge" style="margin-bottom: 12px;">✨ Because you liked The Bear</div>
+                        <div class="show-title">Succession Season 4</div>
+                        <div class="show-meta">2023 • Drama • ⭐ 9.1</div>
+                    </div>
+
+                    <div class="side-actions">
+                        <div class="action-btn">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        </div>
+                        <div class="action-btn">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M19 11H13V5a1 1 0 0 0-2 0v6H5a1 1 0 0 0 0 2h6v6a1 1 0 0 0 2 0v-6h6a1 1 0 0 0 0-2Z"/>
+                            </svg>
+                        </div>
+                        <div class="menu-btn">
+                            <svg viewBox="0 0 24 24">
+                                <circle cx="12" cy="6" r="1.5" class="dot"/>
+                                <circle cx="12" cy="12" r="1.5" class="dot"/>
+                                <circle cx="12" cy="18" r="1.5" class="dot"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="comments-bar">
+                        <input type="text" class="comment-input" placeholder="Add a comment...">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- OPTION B: INSET -->
+        <div class="layout-option">
+            <div class="layout-header">
+                <h2>Option B: Inset Cards</h2>
+                <p>16px margins with black background (Instagram style)</p>
+            </div>
+
+            <div class="inset-container">
+                <!-- Spacer for peek effect -->
+                <div style="height: calc((100vh - 645px) / 2 - 20px);"></div>
+
+                <!-- Card 1 -->
+                <div class="inset-card">
+                    <div class="card-background">
+                        <img src="https://image.tmdb.org/t/p/original/ggFHVNu6YYI5L9pCfOacjizRGt.jpg" alt="Breaking Bad">
+                    </div>
+                    <div class="background-overlay"></div>
+
+                    <div class="card-content">
+                        <div class="user-info">
+                            <div class="user-avatar"></div>
+                            <div class="user-details">
+                                <div class="username">sarah_watches</div>
+                                <div class="timestamp">2 hours ago</div>
+                            </div>
+                        </div>
+
+                        <div class="show-title">Breaking Bad Season 5</div>
+                        <div class="show-meta">2012 • Drama • ⭐ 9.5</div>
+                        <div class="glass-badge">💕 8 friends loved this</div>
+                    </div>
+
+                    <div class="side-actions">
+                        <div class="action-btn liked">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        </div>
+                        <div class="action-btn">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M19 11H13V5a1 1 0 0 0-2 0v6H5a1 1 0 0 0 0 2h6v6a1 1 0 0 0 2 0v-6h6a1 1 0 0 0 0-2Z"/>
+                            </svg>
+                        </div>
+                        <div class="action-btn">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                        </div>
+                        <div class="menu-btn">
+                            <svg viewBox="0 0 24 24">
+                                <circle cx="12" cy="6" r="1.5" class="dot"/>
+                                <circle cx="12" cy="12" r="1.5" class="dot"/>
+                                <circle cx="12" cy="18" r="1.5" class="dot"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="comments-bar">
+                        <input type="text" class="comment-input" placeholder="Add a comment...">
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="inset-card">
+                    <div class="card-background">
+                        <img src="https://image.tmdb.org/t/p/original/qJdfO3ahgAMf2rcmhoqngjBBZW1.jpg" alt="Succession">
+                    </div>
+                    <div class="background-overlay"></div>
+
+                    <div class="card-content">
+                        <div class="glass-badge" style="margin-bottom: 12px;">✨ Because you liked The Bear</div>
+                        <div class="show-title">Succession Season 4</div>
+                        <div class="show-meta">2023 • Drama • ⭐ 9.1</div>
+                    </div>
+
+                    <div class="side-actions">
+                        <div class="action-btn">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        </div>
+                        <div class="action-btn">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M19 11H13V5a1 1 0 0 0-2 0v6H5a1 1 0 0 0 0 2h6v6a1 1 0 0 0 2 0v-6h6a1 1 0 0 0 0-2Z"/>
+                            </svg>
+                        </div>
+                        <div class="menu-btn">
+                            <svg viewBox="0 0 24 24">
+                                <circle cx="12" cy="6" r="1.5" class="dot"/>
+                                <circle cx="12" cy="12" r="1.5" class="dot"/>
+                                <circle cx="12" cy="18" r="1.5" class="dot"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="comments-bar">
+                        <input type="text" class="comment-input" placeholder="Add a comment...">
+                    </div>
+                </div>
+
+                <!-- Spacer for peek effect -->
+                <div style="height: calc((100vh - 645px) / 2 - 20px);"></div>
+            </div>
+        </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="instructions">
+        Click dots to switch between layouts • Scroll vertically within each view
+    </div>
+
+    <script>
+        function scrollToOption(index) {
+            const container = document.getElementById('container');
+
+            if (index === 0) {
+                container.style.transform = 'translateX(0)';
+            } else {
+                container.style.transform = 'translateX(-50%)';
+            }
+
+            // Update active dot
+            document.querySelectorAll('.nav-dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === index);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,2162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Been Watching - Feed Mockup (All 7 Cards - Inset Layout)</title>
+    <style>
+        :root {
+            --gradient-primary: linear-gradient(135deg, #e94d88 0%, #f27121 100%);
+            --gradient-gold: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            --glass-badge: rgba(255, 255, 255, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: white;
+            color: #333;
+            padding: 40px 20px;
+        }
+
+        .device-screen {
+            max-width: 1200px;
+            margin: 0 auto;
+            overflow-y: scroll;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Hide scrollbar */
+        .device-screen::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Card */
+        .card {
+            width: 430px;
+            height: 645px;
+            margin: 40px 0;
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            background: #1a1a1a;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            vertical-align: top;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .card-front {
+            transform: rotateY(0deg);
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            overflow-y: auto;
+        }
+
+        /* Card with label container */
+        .card-container {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin: 40px 0;
+            position: relative;
+        }
+
+        .card-label-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            min-width: 200px;
+        }
+
+        /* Card Background */
+        .card-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .card-background img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .background-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom,
+                rgba(0, 0, 0, 0) 0%,
+                rgba(0, 0, 0, 0.3) 50%,
+                rgba(0, 0, 0, 0.9) 100%
+            );
+            z-index: 2;
+        }
+
+        /* Three-dot menu button - upper right */
+        .menu-btn {
+            position: absolute;
+            top: 20px;
+            right: 12px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(60, 60, 60, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 6;
+        }
+
+        .menu-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .dot {
+            fill: white;
+        }
+
+        /* Card Content */
+        .card-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            padding-bottom: 40px;
+            z-index: 3;
+            color: white;
+        }
+
+        /* User Header */
+        .user-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1.5px solid white;
+            object-fit: cover;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .username {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 1px;
+        }
+
+        .timestamp {
+            font-size: 11px;
+            font-weight: 400;
+            opacity: 0.7;
+        }
+
+        /* Glass Badges */
+        .glass-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background: var(--glass-badge);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .glass-badge.for-you {
+            background: var(--gradient-gold);
+            border: none;
+        }
+
+        .glass-badge.friends-loved {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+
+        .glass-badge.new-season {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+            border: none;
+        }
+
+        .glass-badge.streaming {
+            background: linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%);
+            border: none;
+        }
+
+        .glass-badge.top-three {
+            background: var(--gradient-gold);
+            border: none;
+        }
+
+        /* Show Title */
+        .show-title {
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 1.3;
+            margin-bottom: 6px;
+        }
+
+        /* Metadata */
+        .show-meta {
+            font-size: 12px;
+            font-weight: 400;
+            opacity: 0.85;
+            margin-bottom: 6px;
+        }
+
+        .meta-dot {
+            margin: 0 4px;
+            opacity: 0.5;
+        }
+
+        /* Friend Avatars */
+        .friend-avatars {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .friend-avatars-stack {
+            display: flex;
+            margin-right: 6px;
+        }
+
+        .friend-avatars-stack img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 1.5px solid #000;
+            margin-left: -6px;
+        }
+
+        .friend-avatars-stack img:first-child {
+            margin-left: 0;
+        }
+
+        .friend-count {
+            font-size: 12px;
+            font-weight: 400;
+            opacity: 0.85;
+        }
+
+        /* Side Actions */
+        .side-actions {
+            position: absolute;
+            right: 12px;
+            bottom: 60px;
+            z-index: 4;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .action-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(60, 60, 60, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:active {
+            transform: scale(0.9);
+        }
+
+        .action-btn svg {
+            width: 24px;
+            height: 24px;
+            stroke: white;
+            fill: none;
+            stroke-width: 1.5;
+        }
+
+        .action-btn.liked svg {
+            fill: #FF3B5C;
+            stroke: #FF3B5C;
+        }
+
+        .action-count {
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 2px;
+            color: white;
+        }
+
+        /* Comments Tab - Slides up from bottom */
+        .comments-tab {
+            position: absolute;
+            bottom: 0;
+            left: 20px;
+            right: 70px;
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 5;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            max-height: 70%;
+            overflow: hidden;
+            transform: translateY(100%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .comments-tab.visible {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .comments-preview {
+            padding: 16px 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .comments-full {
+            display: none;
+            padding: 20px;
+            padding-bottom: 0;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        .comments-tab.expanded .comments-preview {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .comments-tab.expanded .comments-full {
+            display: block;
+        }
+
+        .comment-item {
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .comment-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .comment-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .comment-content {
+            flex: 1;
+        }
+
+        .comment-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .comment-username {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .comment-timestamp {
+            font-size: 11px;
+            opacity: 0.6;
+        }
+
+        .comment-text {
+            font-size: 13px;
+            line-height: 1.4;
+            opacity: 0.9;
+        }
+
+        .comment-input-wrapper {
+            padding: 16px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .comment-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 10px 16px;
+            color: white;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .comment-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .send-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .send-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: white;
+        }
+
+        /* Follow Suggestions Card (Card 7) */
+        .follow-suggestions-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .card-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .card-subtitle {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .user-suggestions {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .user-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-card-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .user-card-info {
+            flex: 1;
+        }
+
+        .user-card-name {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .user-card-bio {
+            font-size: 12px;
+            opacity: 0.8;
+            line-height: 1.3;
+            margin-bottom: 6px;
+        }
+
+        .user-card-stats {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        .match-badge {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .follow-btn {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .follow-btn:active {
+            transform: scale(0.95);
+        }
+
+        .follow-btn.following {
+            background: transparent;
+            border: 1.5px solid white;
+            color: white;
+        }
+
+        /* Action Overlay Modal */
+        .action-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .action-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .action-modal {
+            position: absolute;
+            background: rgba(20, 20, 20, 0.98);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-radius: 16px;
+            padding: 16px;
+            width: 240px;
+            transform: scale(0.9);
+            opacity: 0;
+            transition: all 0.2s ease;
+        }
+
+        .action-overlay.visible .action-modal {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .action-modal-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .action-modal-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 12px;
+            transition: background 0.2s ease;
+        }
+
+        .action-modal-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .action-modal-item:active {
+            transform: scale(0.95);
+        }
+
+        .action-modal-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(60, 60, 60, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .action-modal-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke: white;
+            fill: none;
+            stroke-width: 1.5;
+        }
+
+        .action-modal-label {
+            font-size: 11px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+            text-align: center;
+        }
+
+        .action-modal-divider {
+            grid-column: 1 / -1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 4px 0;
+        }
+
+        .watchlist-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF006E, #FF8E53);
+            border: 2px solid rgba(20, 20, 20, 0.98);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .watchlist-badge svg {
+            width: 10px;
+            height: 10px;
+            stroke: white;
+            stroke-width: 2;
+        }
+
+        /* Card Type Labels */
+        .card-type-label {
+            position: absolute;
+            top: -30px;
+            left: 0;
+            font-size: 11px;
+            font-weight: 600;
+            color: #333;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 4px 12px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            z-index: 10;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+        }
+
+        /* Instructions */
+        .instructions {
+            text-align: center;
+            margin: 40px 0;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="device-screen">
+        <!-- CARD 1: User Activity Card -->
+        <div class="card-container">
+            <div class="card">
+                <div class="card-type-label">✅ APPROVED - 1. User Activity Card</div>
+                <div class="card-background">
+                    <img src="https://image.tmdb.org/t/p/original/ztkUQFLlC19CCMYHW9o1zWhJRNq.jpg" alt="Breaking Bad">
+                </div>
+                <div class="background-overlay"></div>
+
+                <div class="menu-btn">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="6" r="1.5" class="dot"/>
+                        <circle cx="12" cy="12" r="1.5" class="dot"/>
+                        <circle cx="12" cy="18" r="1.5" class="dot"/>
+                    </svg>
+                </div>
+
+                <div class="card-content">
+                    <div class="user-header">
+                        <img src="https://i.pravatar.cc/150?img=1" alt="Sarah" class="user-avatar">
+                        <div class="user-info">
+                            <div class="username">Sarah Miller</div>
+                            <div class="timestamp">2 hours ago</div>
+                        </div>
+                    </div>
+
+                    <div class="show-title">Breaking Bad Season 5</div>
+                    <div class="show-meta">2013 <span class="meta-dot">•</span> Crime Drama <span class="meta-dot">•</span> ⭐ 9.5</div>
+
+                    <div class="friend-avatars">
+                        <div class="friend-avatars-stack">
+                            <img src="https://i.pravatar.cc/150?img=2" alt="Friend 1">
+                            <img src="https://i.pravatar.cc/150?img=3" alt="Friend 2">
+                            <img src="https://i.pravatar.cc/150?img=4" alt="Friend 3">
+                        </div>
+                        <div class="friend-count">8 friends also loved this</div>
+                    </div>
+                </div>
+
+                <div class="side-actions">
+                    <div>
+                        <div class="action-btn liked">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                            </svg>
+                        </div>
+                        <div class="action-count">124</div>
+                    </div>
+                    <div>
+                        <div class="action-btn" onclick="toggleActionOverlay(event, 'card1')">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M19 11H13V5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5V11H5C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13H11V19C11 19.5523 11.4477 20 12 20C12.5523 20 13 19.5523 13 19V13H19C19.5523 13 20 12.5523 20 12C20 11.4477 19.5523 11 19 11Z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="action-btn">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                        </div>
+                        <div class="action-count">12</div>
+                    </div>
+                </div>
+
+                <!-- Action Overlay Modal for Card 1 -->
+                <div class="action-overlay" id="actionOverlay-card1" onclick="closeActionOverlay(event, 'card1')">
+                    <div class="action-modal" id="actionModal-card1" onclick="event.stopPropagation()">
+                        <div class="action-modal-grid">
+                            <!-- Rating Icons -->
+                            <div class="action-modal-item" onclick="selectAction('meh')">
+                                <div class="action-modal-icon">
+                                    <svg viewBox="0 0 24 24">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <line x1="8" y1="15" x2="16" y2="15"/>
+                                        <line x1="9" y1="9" x2="9" y2="10"/>
+                                        <line x1="15" y1="9" x2="15" y2="10"/>
+                                    </svg>
+                                </div>
+                                <div class="action-modal-label">Meh</div>
+                            </div>
+
+                            <div class="action-modal-item" onclick="selectAction('like')">
+                                <div class="action-modal-icon">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                                    </svg>
+                                </div>
+                                <div class="action-modal-label">Like</div>
+                            </div>
+
+                            <div class="action-modal-item" onclick="selectAction('love')">
+                                <div class="action-modal-icon">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                    </svg>
+                                </div>
+                                <div class="action-modal-label">Love</div>
+                            </div>
+
+                            <!-- Divider -->
+                            <div class="action-modal-divider"></div>
+
+                            <!-- Watchlist Icons with + badges -->
+                            <div class="action-modal-item" onclick="selectAction('want-to-watch')">
+                                <div class="action-modal-icon">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                                    </svg>
+                                    <div class="watchlist-badge">
+                                        <svg viewBox="0 0 12 12">
+                                            <line x1="6" y1="2" x2="6" y2="10"/>
+                                            <line x1="2" y1="6" x2="10" y2="6"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="action-modal-label">Want To</div>
+                            </div>
+
+                            <div class="action-modal-item" onclick="selectAction('watching')">
+                                <div class="action-modal-icon">
+                                    <svg viewBox="0 0 24 24">
+                                        <polygon points="5 3 19 12 5 21 5 3"/>
+                                    </svg>
+                                    <div class="watchlist-badge">
+                                        <svg viewBox="0 0 12 12">
+                                            <line x1="6" y1="2" x2="6" y2="10"/>
+                                            <line x1="2" y1="6" x2="10" y2="6"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="action-modal-label">Watching</div>
+                            </div>
+
+                            <div class="action-modal-item" onclick="selectAction('watched')">
+                                <div class="action-modal-icon">
+                                    <svg viewBox="0 0 24 24">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M9 12l2 2 4-4"/>
+                                    </svg>
+                                    <div class="watchlist-badge">
+                                        <svg viewBox="0 0 12 12">
+                                            <line x1="6" y1="2" x2="6" y2="10"/>
+                                            <line x1="2" y1="6" x2="10" y2="6"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="action-modal-label">Watched</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="comments-tab" onclick="toggleComments(this)">
+                    <div class="comments-preview">💬 View 12 comments...</div>
+                    <div class="comments-full">
+                        <div class="comment-item">
+                            <img src="https://i.pravatar.cc/150?img=5" alt="User" class="comment-avatar">
+                            <div class="comment-content">
+                                <div class="comment-header">
+                                    <div class="comment-username">Mike Johnson</div>
+                                    <div class="comment-timestamp">1h ago</div>
+                                </div>
+                                <div class="comment-text">This finale was absolutely incredible! Best TV I've seen all year.</div>
+                            </div>
+                        </div>
+                        <div class="comment-item">
+                            <img src="https://i.pravatar.cc/150?img=6" alt="User" class="comment-avatar">
+                            <div class="comment-content">
+                                <div class="comment-header">
+                                    <div class="comment-username">Emma Davis</div>
+                                    <div class="comment-timestamp">45m ago</div>
+                                </div>
+                                <div class="comment-text">Can't believe it's over. What a ride! 🎬</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="comment-input-wrapper">
+                        <input type="text" class="comment-input" placeholder="Add a comment...">
+                        <button class="send-btn">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-label-text">
+                <div style="font-size: 18px; font-weight: 600; color: #333; margin-bottom: 4px;">1. User Activity Card</div>
+                <div style="font-size: 12px; color: #666;">✅ APPROVED</div>
+            </div>
+        </div>
+
+        <!-- CARD 2: "Because You Liked" Recommendation -->
+        <div class="card-container">
+            <div class="card" id="card2">
+                <div class="card-type-label">✅ COMPLETE - 2. "Because You Liked" Recommendation</div>
+
+                <!-- FRONT OF CARD -->
+                <div class="card-face card-front">
+                    <div class="card-background">
+                        <img src="https://image.tmdb.org/t/p/original/fC2HDm5t0kHl7mTm7jxMR31b7by.jpg" alt="Better Call Saul">
+                    </div>
+                    <div class="background-overlay"></div>
+
+                    <div class="menu-btn" onclick="flipCard('card2')">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="6" r="1.5" fill="white"/>
+                            <circle cx="12" cy="12" r="1.5" fill="white"/>
+                            <circle cx="12" cy="18" r="1.5" fill="white"/>
+                        </svg>
+                    </div>
+
+                    <div class="card-content">
+                        <!-- Recommendation Badge (NO user header) -->
+                        <div class="glass-badge for-you">✨ Because you liked Breaking Bad</div>
+
+                        <div class="show-title">Better Call Saul Season 6</div>
+                        <div class="show-meta">2022 <span class="meta-dot">•</span> Crime Drama <span class="meta-dot">•</span> ⭐ 9.0</div>
+
+                        <div class="friend-avatars">
+                            <div class="friend-avatars-stack">
+                                <img src="https://i.pravatar.cc/150?img=6" alt="Friend 1">
+                                <img src="https://i.pravatar.cc/150?img=7" alt="Friend 2">
+                            </div>
+                            <div class="friend-count">2 friends loved this</div>
+                        </div>
+                    </div>
+
+                    <!-- Side Actions: + button and share button only (NO heart, NO comment) -->
+                    <div class="side-actions">
+                        <div>
+                            <div class="action-btn" onclick="toggleActionOverlay(event, 'card2')">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M19 11H13V5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5V11H5C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13H11V19C11 19.5523 11.4477 20 12 20C12.5523 20 13 19.5523 13 19V13H19C19.5523 13 20 12.5523 20 12C20 11.4477 19.5523 11 19 11Z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="action-btn">
+                                <svg viewBox="0 0 20 22" fill="none">
+                                    <path d="M10 3L10 14M10 3L6 7M10 3L14 7" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                    <path d="M17 11V18C17 19 16 20 15 20H5C4 20 3 19 3 18V11" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BACK OF CARD -->
+                <div class="card-face card-back">
+                    <div class="close-btn" onclick="flipCard('card2')">
+                        <svg viewBox="0 0 24 24">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </div>
+
+                    <div class="card-back-content">
+                        <!-- Title Section -->
+                        <div class="back-title-section">
+                            <h1 class="back-title">Better Call Saul - Season 6</h1>
+                            <div class="back-meta">
+                                <span class="back-year">2022</span>
+                                <span class="meta-dot">•</span>
+                                <span>Crime, Drama</span>
+                                <span class="meta-dot">•</span>
+                                <span class="back-rating">⭐ 9.0</span>
+                            </div>
+
+                            <!-- Badges -->
+                            <div class="back-badges">
+                                <div class="back-badge season">S6</div>
+                                <div class="back-badge type">TV</div>
+                                <div class="back-badge network">AMC</div>
+                                <div class="back-badge trailer">▶ Trailer</div>
+                            </div>
+                        </div>
+
+                        <!-- Synopsis -->
+                        <p class="back-synopsis collapsed" id="synopsis-card2">
+                            The final season of Better Call Saul sees Jimmy McGill's transformation into criminal lawyer Saul Goodman reach its inevitable conclusion. As tensions between Gus and Lalo reach a boiling point, Jimmy and Kim find themselves pulled deeper into the criminal underworld.
+                        </p>
+                        <span class="read-more" onclick="toggleSynopsis('card2')">Read more</span>
+
+                        <!-- Action Icons -->
+                        <div class="back-action-icons">
+                            <button class="back-icon-btn primary" onclick="toggleActionOverlay(event, 'card2')">
+                                <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;">
+                                    <path d="M19 11H13V5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5V11H5C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13H11V19C11 19.5523 11.4477 20 12 20C12.5523 20 13 19.5523 13 19V13H19C19.5523 13 20 12.5523 20 12C20 11.4477 19.5523 11 19 11Z" stroke="white" fill="none" stroke-width="1.5"/>
+                                </svg>
+                            </button>
+                            <button class="back-icon-btn">
+                                <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="white" fill="none" stroke-width="1.5"/>
+                                </svg>
+                            </button>
+                            <button class="back-icon-btn">
+                                <svg viewBox="0 0 20 22" fill="none" style="width: 20px; height: 22px;">
+                                    <path d="M10 3L10 14M10 3L6 7M10 3L14 7" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                    <path d="M17 11V18C17 19 16 20 15 20H5C4 20 3 19 3 18V11" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Info Grid -->
+                        <div class="back-info-grid">
+                            <div class="back-info-item">
+                                <span class="back-info-label">Creator</span>
+                                <span class="back-info-value">Vince Gilligan, Peter Gould</span>
+                            </div>
+                            <div class="back-info-item">
+                                <span class="back-info-label">Genre</span>
+                                <span class="back-info-value">Crime, Drama</span>
+                            </div>
+                        </div>
+
+                        <!-- Cast -->
+                        <div class="back-section">
+                            <h3 class="back-section-title">Cast</h3>
+                            <div class="cast-list">
+                                <span class="cast-member">Bob Odenkirk</span>
+                                <span class="cast-member">Rhea Seehorn</span>
+                                <span class="cast-member">Jonathan Banks</span>
+                                <span class="cast-member">Patrick Fabian</span>
+                            </div>
+                        </div>
+
+                        <!-- Friends Watching -->
+                        <div class="back-section">
+                            <h3 class="back-section-title">Friends Watching</h3>
+                            <div class="friends-categories">
+                                <div class="friends-category" onclick="expandFriendsCategory('watching', 'card2')">
+                                    <div class="friends-avatars-stack">
+                                        <img src="https://i.pravatar.cc/150?img=5" alt="Friend">
+                                        <img src="https://i.pravatar.cc/150?img=6" alt="Friend">
+                                        <img src="https://i.pravatar.cc/150?img=7" alt="Friend">
+                                    </div>
+                                    <div class="friends-category-text">
+                                        <span class="count">5</span> friends watching
+                                    </div>
+                                </div>
+                                <div class="friends-category" onclick="expandFriendsCategory('want', 'card2')">
+                                    <div class="friends-avatars-stack">
+                                        <img src="https://i.pravatar.cc/150?img=8" alt="Friend">
+                                        <img src="https://i.pravatar.cc/150?img=9" alt="Friend">
+                                        <img src="https://i.pravatar.cc/150?img=10" alt="Friend">
+                                    </div>
+                                    <div class="friends-category-text">
+                                        <span class="count">8</span> friends want to watch
+                                    </div>
+                                </div>
+                                <div class="friends-category" onclick="expandFriendsCategory('watched', 'card2')">
+                                    <div class="friends-avatars-stack">
+                                        <img src="https://i.pravatar.cc/150?img=11" alt="Friend">
+                                        <img src="https://i.pravatar.cc/150?img=12" alt="Friend">
+                                        <img src="https://i.pravatar.cc/150?img=13" alt="Friend">
+                                    </div>
+                                    <div class="friends-category-text">
+                                        <span class="count">32</span> friends watched
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Friends Ratings -->
+                            <div class="friends-ratings-container">
+                                <div class="friends-ratings">
+                                    <h3 class="friends-ratings-title">Friends Ratings</h3>
+                                    <div class="friends-ratings-stats">
+                                        <div class="rating-stat">
+                                            <div class="rating-icon-wrapper">
+                                                <svg viewBox="0 0 24 24">
+                                                    <circle cx="12" cy="12" r="10"/>
+                                                    <line x1="8" y1="15" x2="16" y2="15"/>
+                                                    <line x1="9" y1="9" x2="9" y2="10"/>
+                                                    <line x1="15" y1="9" x2="15" y2="10"/>
+                                                </svg>
+                                                <div class="rating-count">2</div>
+                                            </div>
+                                            <div class="rating-label">Meh</div>
+                                        </div>
+                                        <div class="rating-stat">
+                                            <div class="rating-icon-wrapper">
+                                                <svg viewBox="0 0 24 24">
+                                                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                                                </svg>
+                                                <div class="rating-count">18</div>
+                                            </div>
+                                            <div class="rating-label">Like</div>
+                                        </div>
+                                        <div class="rating-stat">
+                                            <div class="rating-icon-wrapper active-user-rating">
+                                                <svg viewBox="0 0 24 24">
+                                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                </svg>
+                                                <div class="rating-count">35</div>
+                                            </div>
+                                            <div class="rating-label">Love</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Show Comments -->
+                        <div class="back-section show-comments-section">
+                            <h3 class="back-section-title">Show Comments</h3>
+
+                            <!-- Comment Input -->
+                            <div class="comment-input-container">
+                                <img src="https://i.pravatar.cc/150?img=1" alt="You" class="comment-input-avatar">
+                                <div class="comment-input-wrapper">
+                                    <textarea class="comment-input" placeholder="Share your thoughts about this show..."></textarea>
+                                    <button class="comment-submit-btn">Post Comment</button>
+                                </div>
+                            </div>
+
+                            <!-- Comments List -->
+                            <div class="comments-list">
+                                <div class="comment-item">
+                                    <img src="https://i.pravatar.cc/150?img=14" alt="Jessica" class="comment-avatar">
+                                    <div class="comment-content">
+                                        <div class="comment-header">
+                                            <span class="comment-username">Jessica Chen</span>
+                                            <span class="comment-timestamp">3 days ago</span>
+                                        </div>
+                                        <div class="comment-text">This season is absolutely phenomenal. The tension keeps building and you can't look away. Best TV I've ever watched.</div>
+                                        <div class="comment-actions">
+                                            <button class="comment-like-btn liked" onclick="toggleCommentLike(this)">
+                                                <svg viewBox="0 0 24 24">
+                                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                </svg>
+                                                <span>24</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="comment-item">
+                                    <img src="https://i.pravatar.cc/150?img=15" alt="Marcus" class="comment-avatar">
+                                    <div class="comment-content">
+                                        <div class="comment-header">
+                                            <span class="comment-username">Marcus Williams</span>
+                                            <span class="comment-timestamp">1 week ago</span>
+                                        </div>
+                                        <div class="comment-text">Started this last month and I'm already hooked. Can't believe I waited so long to watch it!</div>
+                                        <div class="comment-actions">
+                                            <button class="comment-like-btn" onclick="toggleCommentLike(this)">
+                                                <svg viewBox="0 0 24 24">
+                                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                </svg>
+                                                <span>8</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="comment-item">
+                                    <img src="https://i.pravatar.cc/150?img=16" alt="Emma" class="comment-avatar">
+                                    <div class="comment-content">
+                                        <div class="comment-header">
+                                            <span class="comment-username">Emma Davis</span>
+                                            <span class="comment-timestamp">2 weeks ago</span>
+                                        </div>
+                                        <div class="comment-text">The character development in this season is incredible. Every episode leaves me wanting more.</div>
+                                        <div class="comment-actions">
+                                            <button class="comment-like-btn" onclick="toggleCommentLike(this)">
+                                                <svg viewBox="0 0 24 24">
+                                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                </svg>
+                                                <span>15</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Load More Button -->
+                            <button class="load-more-btn" onclick="loadMoreComments('card2')">Load More Comments</button>
+                        </div>
+
+                        <!-- Similar Shows -->
+                        <div class="back-section">
+                            <h3 class="back-section-title">Similar Shows</h3>
+                            <div class="similar-shows">
+                                <div class="similar-show" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent), linear-gradient(135deg, #1a1a1a, #4a4a4a);">
+                                    <div class="similar-show-title">Breaking Bad</div>
+                                </div>
+                                <div class="similar-show" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent), linear-gradient(135deg, #8B0000, #FF6347);">
+                                    <div class="similar-show-title">Ozark</div>
+                                </div>
+                                <div class="similar-show" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent), linear-gradient(135deg, #8B0000, #FF6347);">
+                                    <div class="similar-show-title">Narcos</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Overlay Modal -->
+                <div class="action-overlay" id="actionOverlay-card2" onclick="closeActionOverlay(event, 'card2')">
+                    <div class="action-modal" id="actionModal-card2" onclick="event.stopPropagation()">
+                        <div class="action-modal-grid">
+                            <!-- Rating Icons -->
+                            <div class="action-modal-item" onclick="selectAction('meh', 'card2')">
+                                <div class="action-modal-icon">
+                                    <svg viewBox="0 0 24 24">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <line x1="8" y1="15" x2="16" y2="15"/>
+                                        <line x1="9" y1="9" x2="9" y2="10"/>
+                                        <line x1="15" y1="9" x2="15" y2="10"/>
+                                    </svg>
+                                </div>
+                                <div class="action-modal-label">Meh</div>
+                            </div>
+
+                            <div class="action-modal-item" onclick="selectAction('like', 'card2')">
+                                <div class="action-modal-icon">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                                    </svg>
+                                </div>
+                                <div class="action-modal-label">Like</div>
+                            </div>
+
+                            <div class="action-modal-item" onclick="selectAction('love', 'card2')">
+                                <div class="action-modal-icon">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                    </svg>
+                                </div>
+                                <div class="action-modal-label">Love</div>
+                            </div>
+
+                            <!-- Divider -->
+                            <div class="action-modal-divider"></div>
+
+                            <!-- Watchlist Icons -->
+                            <div class="action-modal-item" onclick="selectAction('want-to-watch', 'card2')">
+                                <div class="action-modal-icon">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                                    </svg>
+                                    <div class="watchlist-badge">
+                                        <svg viewBox="0 0 12 12">
+                                            <line x1="6" y1="2" x2="6" y2="10"/>
+                                            <line x1="2" y1="6" x2="10" y2="6"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="action-modal-label">Want To</div>
+                            </div>
+
+                            <div class="action-modal-item" onclick="selectAction('watching', 'card2')">
+                                <div class="action-modal-icon">
+                                    <svg viewBox="0 0 24 24">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <polygon points="10 8 16 12 10 16 10 8"/>
+                                    </svg>
+                                    <div class="watchlist-badge">
+                                        <svg viewBox="0 0 12 12">
+                                            <line x1="6" y1="2" x2="6" y2="10"/>
+                                            <line x1="2" y1="6" x2="10" y2="6"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="action-modal-label">Watching</div>
+                            </div>
+
+                            <div class="action-modal-item" onclick="selectAction('watched', 'card2')">
+                                <div class="action-modal-icon">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                        <polyline points="22 4 12 14.01 9 11.01"/>
+                                    </svg>
+                                    <div class="watchlist-badge">
+                                        <svg viewBox="0 0 12 12">
+                                            <line x1="6" y1="2" x2="6" y2="10"/>
+                                            <line x1="2" y1="6" x2="10" y2="6"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="action-modal-label">Watched</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-label-text">
+                <div style="font-size: 18px; font-weight: 600; color: #333; margin-bottom: 4px;">2. "Because You Liked" Recommendation</div>
+                <div style="font-size: 12px; color: #666;">✅ COMPLETE</div>
+            </div>
+        </div>
+
+        <!-- CARD 3: "Your Friends Loved" Social Recommendation -->
+        <div class="card-container">
+            <div class="card" id="card3">
+                <div class="card-type-label">✅ COMPLETE - 3. "Your Friends Loved" Social Recommendation</div>
+
+                <!-- FRONT OF CARD -->
+                <div class="card-face card-front">
+                    <div class="card-background">
+                        <img src="https://image.tmdb.org/t/p/original/suopoADq0k8YZr4dQXcU6pToj6s.jpg" alt="The Last of Us">
+                    </div>
+                    <div class="background-overlay"></div>
+
+                    <div class="menu-btn" onclick="flipCard('card3')">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="6" r="1.5" fill="white"/>
+                            <circle cx="12" cy="12" r="1.5" fill="white"/>
+                            <circle cx="12" cy="18" r="1.5" fill="white"/>
+                        </svg>
+                    </div>
+
+                    <div class="card-content">
+                        <div class="glass-badge friends-loved">💙 Your Friends Loved</div>
+
+                        <div class="show-title">The Last of Us Season 1</div>
+                        <div class="show-meta">2023 <span class="meta-dot">•</span> Drama Sci-Fi <span class="meta-dot">•</span> ⭐ 8.8</div>
+
+                        <div class="friend-avatars">
+                            <div class="friend-avatars-stack">
+                                <img src="https://i.pravatar.cc/150?img=5" alt="Friend 1">
+                                <img src="https://i.pravatar.cc/150?img=6" alt="Friend 2">
+                                <img src="https://i.pravatar.cc/150?img=7" alt="Friend 3">
+                                <img src="https://i.pravatar.cc/150?img=8" alt="Friend 4">
+                            </div>
+                            <div class="friend-count">12 friends loved this</div>
+                        </div>
+                    </div>
+
+                    <div class="side-actions">
+                        <div>
+                            <div class="action-btn" onclick="toggleActionOverlay(event, 'card3')">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M19 11H13V5a1 1 0 0 0-2 0v6H5a1 1 0 0 0 0 2h6v6a1 1 0 0 0 2 0v-6h6a1 1 0 0 0 0-2Z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="action-btn">
+                                <svg viewBox="0 0 20 22" fill="none">
+                                    <path d="M10 3L10 14M10 3L6 7M10 3L14 7" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                    <path d="M17 11V18C17 19 16 20 15 20H5C4 20 3 19 3 18V11" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BACK OF CARD (Same as Card 1) -->
+                <div class="card-face card-back">
+                    <div class="close-btn" onclick="flipCard('card3')">
+                        <svg viewBox="0 0 24 24">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </div>
+
+                    <div class="card-back-content">
+                        <!-- Title Section -->
+                        <div class="back-title-section">
+                            <h1 class="back-title">The Last of Us - Season 1</h1>
+                            <div class="back-meta">
+                                <span class="back-year">2023</span>
+                                <span class="meta-dot">•</span>
+                                <span>Drama, Sci-Fi</span>
+                                <span class="meta-dot">•</span>
+                                <span class="back-rating">⭐ 8.8</span>
+                            </div>
+
+                            <!-- Badges -->
+                            <div class="back-badges">
+                                <div class="back-badge season">S1</div>
+                                <div class="back-badge type">TV</div>
+                                <div class="back-badge network">HBO</div>
+                                <div class="back-badge trailer">▶ Trailer</div>
+                            </div>
+                        </div>
+
+                        <!-- Synopsis -->
+                        <p class="back-synopsis collapsed" id="synopsis-card3">
+                            Twenty years after a fungal outbreak ravages the planet, survivors Joel and Ellie embark on a harrowing journey across a post-apocalyptic America. What starts as a simple job evolves into a brutal, heartbreaking tale of endurance, hope, and the bonds that tie us together.
+                        </p>
+                        <span class="read-more" onclick="toggleSynopsis('card3')">Read more</span>
+
+                        <!-- Action Icons -->
+                        <div class="back-action-icons">
+                            <button class="back-icon-btn primary" onclick="toggleActionOverlay(event, 'card3')">
+                                <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;">
+                                    <path d="M19 11H13V5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5V11H5C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13H11V19C11 19.5523 11.4477 20 12 20C12.5523 20 13 19.5523 13 19V13H19C19.5523 13 20 12.5523 20 12C20 11.4477 19.5523 11 19 11Z" stroke="white" fill="none" stroke-width="1.5"/>
+                                </svg>
+                            </button>
+                            <button class="back-icon-btn">
+                                <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="white" fill="none" stroke-width="1.5"/>
+                                </svg>
+                            </button>
+                            <button class="back-icon-btn">
+                                <svg viewBox="0 0 20 22" fill="none" style="width: 20px; height: 22px;">
+                                    <path d="M10 3L10 14M10 3L6 7M10 3L14 7" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                    <path d="M17 11V18C17 19 16 20 15 20H5C4 20 3 19 3 18V11" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Info Grid -->
+                        <div class="back-info-grid">
+                            <div class="back-info-item">
+                                <span class="back-info-label">Creator</span>
+                                <span class="back-info-value">Craig Mazin, Neil Druckmann</span>
+                            </div>
+                            <div class="back-info-item">
+                                <span class="back-info-label">Genre</span>
+                                <span class="back-info-value">Drama, Sci-Fi</span>
+                            </div>
+                        </div>
+
+                        <!-- Cast -->
+                        <div class="back-section">
+                            <h3 class="back-section-title">Cast</h3>
+                            <div class="cast-list">
+                                <span class="cast-member">Pedro Pascal</span>
+                                <span class="cast-member">Bella Ramsey</span>
+                                <span class="cast-member">Anna Torv</span>
+                                <span class="cast-member">Nick Offerman</span>
+                            </div>
+                        </div>
+
+                        <!-- Friends Watching -->
+                        <div class="back-section">
+                            <h3 class="back-section-title">Friends Watching</h3>
+                            <div class="friends-categories">
+                                <div class="friends-category" onclick="expandFriendsCategory('watching', 'card3')">
+                                    <div class="friends-avatars-stack">
+                                        <img src="https://i.pravatar.cc/150?img=5" alt="Friend">
+                                        <img src="https://i.pravatar.cc/150?img=6" alt="Friend">
+                                        <img src="https://i.pravatar.cc/150?img=7" alt="Friend">
+                                    </div>
+                                    <div class="friends-category-text">
+                                        <span class="count">8</span> friends watching
+                                    </div>
+                                </div>
+                                <div class="friends-category" onclick="expandFriendsCategory('want', 'card3')">
+                                    <div class="friends-avatars-stack">
+                                        <img src="https://i.pravatar.cc/150?img=9" alt="Friend">
+                                        <img src="https://i.pravatar.cc/150?img=10" alt="Friend">
+                                        <img src="https://i.pravatar.cc/150?img=11" alt="Friend">
+                                    </div>
+                                    <div class="friends-category-text">
+                                        <span class="count">15</span> friends want to watch
+                                    </div>
+                                </div>
+                                <div class="friends-category" onclick="expandFriendsCategory('watched', 'card3')">
+                                    <div class="friends-avatars-stack">
+                                        <img src="https://i.pravatar.cc/150?img=12" alt="Friend">
+                                        <img src="https://i.pravatar.cc/150?img=13" alt="Friend">
+                                        <img src="https://i.pravatar.cc/150?img=14" alt="Friend">
+                                    </div>
+                                    <div class="friends-category-text">
+                                        <span class="count">42</span> friends watched
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Friends Ratings -->
+                            <div class="friends-ratings-container">
+                                <div class="friends-ratings">
+                                    <h3 class="friends-ratings-title">Friends Ratings</h3>
+                                    <div class="friends-ratings-stats">
+                                        <div class="rating-stat">
+                                            <div class="rating-icon-wrapper">
+                                                <svg viewBox="0 0 24 24">
+                                                    <circle cx="12" cy="12" r="10"/>
+                                                    <line x1="8" y1="15" x2="16" y2="15"/>
+                                                    <line x1="9" y1="9" x2="9" y2="10"/>
+                                                    <line x1="15" y1="9" x2="15" y2="10"/>
+                                                </svg>
+                                                <div class="rating-count">3</div>
+                                            </div>
+                                            <div class="rating-label">Meh</div>
+                                        </div>
+                                        <div class="rating-stat">
+                                            <div class="rating-icon-wrapper">
+                                                <svg viewBox="0 0 24 24">
+                                                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                                                </svg>
+                                                <div class="rating-count">24</div>
+                                            </div>
+                                            <div class="rating-label">Like</div>
+                                        </div>
+                                        <div class="rating-stat">
+                                            <div class="rating-icon-wrapper active-user-rating">
+                                                <svg viewBox="0 0 24 24">
+                                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                </svg>
+                                                <div class="rating-count">48</div>
+                                            </div>
+                                            <div class="rating-label">Love</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Show Comments -->
+                        <div class="back-section show-comments-section">
+                            <h3 class="back-section-title">Show Comments</h3>
+
+                            <!-- Comment Input -->
+                            <div class="comment-input-container">
+                                <img src="https://i.pravatar.cc/150?img=1" alt="You" class="comment-input-avatar">
+                                <div class="comment-input-wrapper">
+                                    <textarea class="comment-input" placeholder="Share your thoughts about this show..."></textarea>
+                                    <button class="comment-submit-btn">Post Comment</button>
+                                </div>
+                            </div>
+
+                            <!-- Comments List -->
+                            <div class="comments-list">
+                                <div class="comment-item">
+                                    <img src="https://i.pravatar.cc/150?img=15" alt="Jordan" class="comment-avatar">
+                                    <div class="comment-content">
+                                        <div class="comment-header">
+                                            <span class="comment-username">Jordan Lee</span>
+                                            <span class="comment-timestamp">3 days ago</span>
+                                        </div>
+                                        <div class="comment-text">One of the best video game adaptations ever made. Episode 3 had me in tears.</div>
+                                        <div class="comment-actions">
+                                            <button class="comment-like-btn liked" onclick="toggleCommentLike(this)">
+                                                <svg viewBox="0 0 24 24">
+                                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                </svg>
+                                                <span>32</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="comment-item">
+                                    <img src="https://i.pravatar.cc/150?img=16" alt="Casey" class="comment-avatar">
+                                    <div class="comment-content">
+                                        <div class="comment-header">
+                                            <span class="comment-username">Casey Taylor</span>
+                                            <span class="comment-timestamp">1 week ago</span>
+                                        </div>
+                                        <div class="comment-text">Pedro and Bella's chemistry is incredible. Can't wait for season 2!</div>
+                                        <div class="comment-actions">
+                                            <button class="comment-like-btn" onclick="toggleCommentLike(this)">
+                                                <svg viewBox="0 0 24 24">
+                                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                </svg>
+                                                <span>18</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="comment-item">
+                                    <img src="https://i.pravatar.cc/150?img=17" alt="Sam" class="comment-avatar">
+                                    <div class="comment-content">
+                                        <div class="comment-header">
+                                            <span class="comment-username">Sam Rivera</span>
+                                            <span class="comment-timestamp">2 weeks ago</span>
+                                        </div>
+                                        <div class="comment-text">Finally, a video game adaptation that respects the source material!</div>
+                                        <div class="comment-actions">
+                                            <button class="comment-like-btn" onclick="toggleCommentLike(this)">
+                                                <svg viewBox="0 0 24 24">
+                                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                </svg>
+                                                <span>25</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Load More Button -->
+                            <button class="load-more-btn" onclick="loadMoreComments('card3')">Load More Comments</button>
+                        </div>
+
+                        <!-- Similar Shows -->
+                        <div class="back-section">
+                            <h3 class="back-section-title">Similar Shows</h3>
+                            <div class="similar-shows">
+                                <div class="similar-show" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent), linear-gradient(135deg, #2C3E50, #4CA1AF);">
+                                    <div class="similar-show-title">The Walking Dead</div>
+                                </div>
+                                <div class="similar-show" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent), linear-gradient(135deg, #8B0000, #FF4500);">
+                                    <div class="similar-show-title">Station Eleven</div>
+                                </div>
+                                <div class="similar-show" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent), linear-gradient(135deg, #1a472a, #2d8659);">
+                                    <div class="similar-show-title">Sweet Tooth</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Overlay Modal -->
+                <div class="action-overlay" id="actionOverlay-card3" onclick="closeActionOverlay(event, 'card3')">
+                    <div class="action-modal" id="actionModal-card3" onclick="event.stopPropagation()">
+                        <div class="action-modal-grid">
+                            <!-- Rating Icons -->
+                            <div class="action-modal-item" onclick="selectAction('meh', 'card3')">
+                                <div class="action-modal-icon">
+                                    <svg viewBox="0 0 24 24">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <line x1="8" y1="15" x2="16" y2="15"/>
+                                        <line x1="9" y1="9" x2="9" y2="10"/>
+                                        <line x1="15" y1="9" x2="15" y2="10"/>
+                                    </svg>
+                                </div>
+                                <div class="action-modal-label">Meh</div>
+                            </div>
+
+                            <div class="action-modal-item" onclick="selectAction('like', 'card3')">
+                                <div class="action-modal-icon">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                                    </svg>
+                                </div>
+                                <div class="action-modal-label">Like</div>
+                            </div>
+
+                            <div class="action-modal-item" onclick="selectAction('love', 'card3')">
+                                <div class="action-modal-icon">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                    </svg>
+                                </div>
+                                <div class="action-modal-label">Love</div>
+                            </div>
+
+                            <!-- Divider -->
+                            <div class="action-modal-divider"></div>
+
+                            <!-- Watchlist Icons -->
+                            <div class="action-modal-item" onclick="selectAction('want-to-watch', 'card3')">
+                                <div class="action-modal-icon">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                                    </svg>
+                                    <div class="watchlist-badge">
+                                        <svg viewBox="0 0 12 12">
+                                            <line x1="6" y1="2" x2="6" y2="10"/>
+                                            <line x1="2" y1="6" x2="10" y2="6"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="action-modal-label">Want To</div>
+                            </div>
+
+                            <div class="action-modal-item" onclick="selectAction('watching', 'card3')">
+                                <div class="action-modal-icon">
+                                    <svg viewBox="0 0 24 24">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <polygon points="10 8 16 12 10 16 10 8"/>
+                                    </svg>
+                                    <div class="watchlist-badge">
+                                        <svg viewBox="0 0 12 12">
+                                            <line x1="6" y1="2" x2="6" y2="10"/>
+                                            <line x1="2" y1="6" x2="10" y2="6"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="action-modal-label">Watching</div>
+                            </div>
+
+                            <div class="action-modal-item" onclick="selectAction('watched', 'card3')">
+                                <div class="action-modal-icon">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                        <polyline points="22 4 12 14.01 9 11.01"/>
+                                    </svg>
+                                    <div class="watchlist-badge">
+                                        <svg viewBox="0 0 12 12">
+                                            <line x1="6" y1="2" x2="6" y2="10"/>
+                                            <line x1="2" y1="6" x2="10" y2="6"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="action-modal-label">Watched</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-label-text">
+                <div style="font-size: 18px; font-weight: 600; color: #333; margin-bottom: 4px;">3. "Your Friends Loved" Social Recommendation</div>
+                <div style="font-size: 12px; color: #666;">✅ COMPLETE</div>
+            </div>
+        </div>
+
+        <!-- CARD 4: New Season Alert -->
+        <div class="card-container">
+            <div class="card">
+                <div class="card-type-label">⏳ TO BE EDITED - 4. New Season Alert</div>
+                <div class="card-background">
+                    <img src="https://image.tmdb.org/t/p/original/z2yahl2uefxDCl0nogcRBstwruJ.jpg" alt="House of the Dragon">
+                </div>
+                <div class="background-overlay"></div>
+
+                <div class="menu-btn">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="6" r="1.5" class="dot"/>
+                        <circle cx="12" cy="12" r="1.5" class="dot"/>
+                        <circle cx="12" cy="18" r="1.5" class="dot"/>
+                    </svg>
+                </div>
+
+                <div class="card-content">
+                    <div class="glass-badge new-season">🎬 New Season Available</div>
+
+                    <div class="show-title">House of the Dragon Season 2</div>
+                    <div class="show-meta">2024 <span class="meta-dot">•</span> Fantasy Drama <span class="meta-dot">•</span> 8 episodes</div>
+
+                    <div class="friend-avatars">
+                        <div class="friend-avatars-stack">
+                            <img src="https://i.pravatar.cc/150?img=4" alt="Friend 1">
+                            <img src="https://i.pravatar.cc/150?img=5" alt="Friend 2">
+                            <img src="https://i.pravatar.cc/150?img=6" alt="Friend 3">
+                        </div>
+                        <div class="friend-count">5 friends are watching</div>
+                    </div>
+                </div>
+
+                <div class="side-actions">
+                    <div>
+                        <div class="action-btn">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M19 11H13V5a1 1 0 0 0-2 0v6H5a1 1 0 0 0 0 2h6v6a1 1 0 0 0 2 0v-6h6a1 1 0 0 0 0-2Z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="action-btn">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M20 6L9 17L4 12"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-label-text">
+                <div style="font-size: 18px; font-weight: 600; color: #333; margin-bottom: 4px;">4. New Season Alert</div>
+                <div style="font-size: 12px; color: #666;">⏳ TO BE EDITED</div>
+            </div>
+        </div>
+
+        <!-- CARD 5: Now Streaming -->
+        <div class="card-container">
+            <div class="card">
+                <div class="card-type-label">⏳ TO BE EDITED - 5. Now Streaming</div>
+                <div class="card-background">
+                    <img src="https://image.tmdb.org/t/p/original/kXfqcdQKsToO0OUXHcrrNCHDBzO.jpg" alt="Dune Part Two">
+                </div>
+                <div class="background-overlay"></div>
+
+                <div class="menu-btn">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="6" r="1.5" class="dot"/>
+                        <circle cx="12" cy="12" r="1.5" class="dot"/>
+                        <circle cx="12" cy="18" r="1.5" class="dot"/>
+                    </svg>
+                </div>
+
+                <div class="card-content">
+                    <div class="glass-badge streaming">📺 Now Streaming</div>
+
+                    <div class="show-title">Dune: Part Two</div>
+                    <div class="show-meta">2024 <span class="meta-dot">•</span> Sci-Fi Adventure <span class="meta-dot">•</span> ⭐ 8.7</div>
+
+                    <div class="friend-avatars">
+                        <div class="friend-avatars-stack">
+                            <img src="https://i.pravatar.cc/150?img=6" alt="Friend 1">
+                            <img src="https://i.pravatar.cc/150?img=7" alt="Friend 2">
+                        </div>
+                        <div class="friend-count">3 friends watched this</div>
+                    </div>
+                </div>
+
+                <div class="side-actions">
+                    <div>
+                        <div class="action-btn">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M19 11H13V5a1 1 0 0 0-2 0v6H5a1 1 0 0 0 0 2h6v6a1 1 0 0 0 2 0v-6h6a1 1 0 0 0 0-2Z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="action-btn">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M20 6L9 17L4 12"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-label-text">
+                <div style="font-size: 18px; font-weight: 600; color: #333; margin-bottom: 4px;">5. Now Streaming</div>
+                <div style="font-size: 12px; color: #666;">⏳ TO BE EDITED</div>
+            </div>
+        </div>
+
+        <!-- CARD 6: Top 3 Update -->
+        <div class="card-container">
+            <div class="card">
+                <div class="card-type-label">⏳ TO BE EDITED - 6. Top 3 Update</div>
+                <div class="card-background">
+                    <img src="https://image.tmdb.org/t/p/original/muth4OYamXf41G2evdrLEg8d3om.jpg" alt="The Bear">
+                </div>
+                <div class="background-overlay"></div>
+
+                <div class="menu-btn">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="6" r="1.5" class="dot"/>
+                        <circle cx="12" cy="12" r="1.5" class="dot"/>
+                        <circle cx="12" cy="18" r="1.5" class="dot"/>
+                    </svg>
+                </div>
+
+                <div class="card-content">
+                    <div class="user-header">
+                        <img src="https://i.pravatar.cc/150?img=9" alt="Alex" class="user-avatar">
+                        <div class="user-info">
+                            <div class="username">Alex Thompson</div>
+                            <div class="timestamp">5 hours ago</div>
+                        </div>
+                    </div>
+
+                    <div class="glass-badge top-three">🏆 Alex's #1 Show</div>
+
+                    <div class="show-title">The Bear Season 2</div>
+                    <div class="show-meta">2023 <span class="meta-dot">•</span> Drama Comedy <span class="meta-dot">•</span> ⭐ 8.6</div>
+
+                    <div class="friend-avatars">
+                        <div class="friend-avatars-stack">
+                            <img src="https://i.pravatar.cc/150?img=4" alt="Friend 1">
+                            <img src="https://i.pravatar.cc/150?img=5" alt="Friend 2">
+                        </div>
+                        <div class="friend-count">4 friends also love this</div>
+                    </div>
+                </div>
+
+                <div class="side-actions">
+                    <div>
+                        <div class="action-btn">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                            </svg>
+                        </div>
+                        <div class="action-count">89</div>
+                    </div>
+                    <div>
+                        <div class="action-btn">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M19 11H13V5a1 1 0 0 0-2 0v6H5a1 1 0 0 0 0 2h6v6a1 1 0 0 0 2 0v-6h6a1 1 0 0 0 0-2Z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="action-btn">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                        </div>
+                        <div class="action-count">7</div>
+                    </div>
+                </div>
+
+                <div class="comments-tab" onclick="toggleComments(this)">
+                    <div class="comments-preview">💬 View 12 comments...</div>
+                    <div class="comments-full">
+                        <div class="comment-item">
+                            <img src="https://i.pravatar.cc/150?img=5" alt="User" class="comment-avatar">
+                            <div class="comment-content">
+                                <div class="comment-header">
+                                    <div class="comment-username">Mike Johnson</div>
+                                    <div class="comment-timestamp">1h ago</div>
+                                </div>
+                                <div class="comment-text">This finale was absolutely incredible! Best TV I've seen all year.</div>
+                            </div>
+                        </div>
+                        <div class="comment-item">
+                            <img src="https://i.pravatar.cc/150?img=6" alt="User" class="comment-avatar">
+                            <div class="comment-content">
+                                <div class="comment-header">
+                                    <div class="comment-username">Emma Davis</div>
+                                    <div class="comment-timestamp">45m ago</div>
+                                </div>
+                                <div class="comment-text">Can't believe it's over. What a ride! 🎬</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="comment-input-wrapper">
+                        <input type="text" class="comment-input" placeholder="Add a comment...">
+                        <button class="send-btn">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-label-text">
+                <div style="font-size: 18px; font-weight: 600; color: #333; margin-bottom: 4px;">6. Top 3 Update</div>
+                <div style="font-size: 12px; color: #666;">⏳ TO BE EDITED</div>
+            </div>
+        </div>
+
+        <!-- CARD 7: Follow Suggestions -->
+        <div class="card-container">
+            <div class="card follow-suggestions-card">
+                <div class="card-type-label">⏳ TO BE EDITED - 7. Follow Suggestions</div>
+                <div class="menu-btn">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="6" r="1.5" class="dot"/>
+                        <circle cx="12" cy="12" r="1.5" class="dot"/>
+                        <circle cx="12" cy="18" r="1.5" class="dot"/>
+                    </svg>
+                </div>
+
+                <div class="card-title">Discover Friends</div>
+                <div class="card-subtitle">Based on your viewing habits</div>
+
+                <div class="user-suggestions">
+                    <div class="user-card" style="position: relative;">
+                        <img src="https://i.pravatar.cc/150?img=10" alt="Jamie" class="user-card-avatar">
+                        <div class="user-card-info">
+                            <div class="user-card-name">Jamie Chen</div>
+                            <div class="user-card-bio">Drama enthusiast • Awards season tracker</div>
+                            <div class="user-card-stats">📺 187 shows watched</div>
+                        </div>
+                        <button class="follow-btn">FOLLOW</button>
+                        <div class="match-badge">92% match</div>
+                    </div>
+
+                    <div class="user-card" style="position: relative;">
+                        <img src="https://i.pravatar.cc/150?img=11" alt="Marcus" class="user-card-avatar">
+                        <div class="user-card-info">
+                            <div class="user-card-name">Marcus Rodriguez</div>
+                            <div class="user-card-bio">Sci-fi nerd • Binge-watcher extraordinaire</div>
+                            <div class="user-card-stats">📺 243 shows watched</div>
+                        </div>
+                        <button class="follow-btn">FOLLOW</button>
+                        <div class="match-badge">88% match</div>
+                    </div>
+
+                    <div class="user-card" style="position: relative;">
+                        <img src="https://i.pravatar.cc/150?img=12" alt="Priya" class="user-card-avatar">
+                        <div class="user-card-info">
+                            <div class="user-card-name">Priya Patel</div>
+                            <div class="user-card-bio">Crime drama devotee • True story fanatic</div>
+                            <div class="user-card-stats">📺 156 shows watched</div>
+                        </div>
+                        <button class="follow-btn">FOLLOW</button>
+                        <div class="match-badge">85% match</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-label-text">
+                <div style="font-size: 18px; font-weight: 600; color: #333; margin-bottom: 4px;">7. Follow Suggestions</div>
+                <div style="font-size: 12px; color: #666;">⏳ TO BE EDITED</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="instructions">
+        Scroll to view all 7 activity card types
+    </div>
+
+    <script>
+        // Toggle follow buttons
+        document.querySelectorAll('.follow-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.target.classList.toggle('following');
+                e.target.textContent = e.target.classList.contains('following') ? 'FOLLOWING' : 'FOLLOW';
+            });
+        });
+
+        // Show/hide comments on comment button click
+        document.querySelectorAll('.action-btn').forEach((btn, index) => {
+            // Find comment buttons (3rd button in side-actions for cards with comments)
+            const svgPath = btn.querySelector('svg path');
+            if (svgPath && svgPath.getAttribute('d').includes('M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z')) {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const card = btn.closest('.card');
+                    const commentsTab = card.querySelector('.comments-tab');
+                    if (commentsTab) {
+                        commentsTab.classList.toggle('visible');
+                    }
+                });
+            }
+        });
+
+        // Toggle expand/collapse comments preview
+        function toggleComments(element) {
+            element.classList.toggle('expanded');
+        }
+
+        // Close comments when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.comments-tab') && !e.target.closest('.action-btn')) {
+                document.querySelectorAll('.comments-tab.visible').forEach(tab => {
+                    tab.classList.remove('visible');
+                });
+            }
+        });
+
+        // Action Modal Functions
+        function toggleActionOverlay(event, cardId) {
+            event.stopPropagation();
+            const overlay = document.getElementById('actionOverlay-' + cardId);
+            const modal = document.getElementById('actionModal-' + cardId);
+            const button = event.currentTarget;
+            const card = button.closest('.card');
+
+            if (!overlay || !modal || !card) return;
+
+            const buttonRect = button.getBoundingClientRect();
+            const cardRect = card.getBoundingClientRect();
+
+            // Check if card is flipped
+            const isFlipped = card.classList.contains('flipped');
+
+            // Reset positioning styles
+            modal.style.right = 'auto';
+            modal.style.left = 'auto';
+            modal.style.top = 'auto';
+
+            if (isFlipped) {
+                // For back of card: center horizontally and vertically
+                const leftPos = (cardRect.width - 240) / 2; // center modal (240px width)
+                const topPos = (cardRect.height - 280) / 2; // center vertically (modal height ~280px)
+
+                modal.style.left = leftPos + 'px';
+                modal.style.top = topPos + 'px';
+            } else {
+                // For front of card: position to the left of button, vertically aligned
+                const rightPos = cardRect.right - buttonRect.left + 8;
+                const topPos = buttonRect.top - cardRect.top + buttonRect.height / 2 - 120;
+
+                modal.style.right = rightPos + 'px';
+                modal.style.top = Math.max(50, topPos) + 'px';
+            }
+
+            overlay.classList.toggle('visible');
+        }
+
+        function closeActionOverlay(event, cardId) {
+            const overlay = document.getElementById('actionOverlay-' + cardId);
+            if (overlay) {
+                overlay.classList.remove('visible');
+            }
+        }
+
+        function selectAction(action, cardId) {
+            console.log('Selected action:', action, 'for card:', cardId);
+            // Close any open overlays
+            document.querySelectorAll('.action-overlay.visible').forEach(overlay => {
+                overlay.classList.remove('visible');
+            });
+            // Here you would implement the actual action (update backend, etc.)
+        }
+
+        // Close action overlay when clicking outside
+        document.addEventListener('click', (e) => {
+            const overlay = document.querySelector('.action-overlay.visible');
+            if (overlay && !e.target.closest('.action-modal') && !e.target.closest('.action-btn')) {
+                overlay.classList.remove('visible');
+            }
+        });
+
+        // Card flip functionality
+        function flipCard(cardId) {
+            const card = document.getElementById(cardId);
+            if (card) {
+                card.classList.toggle('flipped');
+            }
+        }
+
+        // Toggle synopsis expand/collapse
+        function toggleSynopsis(cardId) {
+            const synopsis = document.getElementById('synopsis-' + cardId);
+            const readMoreBtn = event.target;
+
+            if (synopsis) {
+                synopsis.classList.toggle('collapsed');
+                readMoreBtn.textContent = synopsis.classList.contains('collapsed') ? 'Read more' : 'Read less';
+            }
+        }
+
+        // Comment like button interaction
+        function toggleCommentLike(button) {
+            button.classList.toggle('liked');
+            const countSpan = button.querySelector('span');
+            let count = parseInt(countSpan.textContent);
+
+            if (button.classList.contains('liked')) {
+                count++;
+            } else {
+                count--;
+            }
+
+            countSpan.textContent = count;
+
+            // Add visual feedback
+            button.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                button.style.transform = 'scale(1)';
+            }, 100);
+        }
+
+        // Expand friends category
+        function expandFriendsCategory(category, cardId) {
+            console.log('Expanding', category, 'friends for card:', cardId);
+            // In production, this would show a modal with full list of friends
+        }
+
+        // Load more comments
+        function loadMoreComments(cardId) {
+            console.log('Loading more comments for card:', cardId);
+            // In production, this would fetch more comments from the API
+        }
+    </script>
+</body>
+</html>
