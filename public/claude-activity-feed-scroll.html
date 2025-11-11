@@ -143,6 +143,11 @@
             pointer-events: auto;
         }
 
+        /* Hide navigation elements inside iframes via injected styles */
+        .card-wrapper iframe {
+            /* Iframes will have navigation hidden via postMessage */
+        }
+
         /* Bottom Navigation */
         .tab-bar {
             position: fixed;
@@ -418,6 +423,38 @@
 
             // Ensure first card is at top on load
             window.scrollTo({ top: 0, behavior: 'instant' });
+
+            // Inject CSS into iframes to hide navigation elements
+            const iframes = document.querySelectorAll('.card-frame');
+            iframes.forEach(iframe => {
+                iframe.addEventListener('load', function() {
+                    try {
+                        const iframeDoc = this.contentDocument || this.contentWindow.document;
+                        const style = iframeDoc.createElement('style');
+                        style.textContent = `
+                            /* Hide navigation elements in embedded cards */
+                            .card-nav,
+                            nav.card-nav,
+                            .instructions {
+                                display: none !important;
+                            }
+
+                            /* Remove body padding-top that was for nav */
+                            body {
+                                padding-top: 0 !important;
+                            }
+
+                            /* Adjust card container positioning */
+                            .card-container {
+                                margin-top: 0 !important;
+                            }
+                        `;
+                        iframeDoc.head.appendChild(style);
+                    } catch (e) {
+                        console.log('Could not inject styles into iframe:', e);
+                    }
+                });
+            });
         });
 
         // Bottom nav interactions
