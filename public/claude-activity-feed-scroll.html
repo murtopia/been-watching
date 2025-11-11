@@ -267,37 +267,37 @@
     <div class="feed-container" id="feedContainer">
         <!-- Card 1: User Activity -->
         <div class="card-wrapper" data-card-index="0">
-            <iframe src="single-card-interactive.html" class="card-frame" id="card1" scrolling="no"></iframe>
+            <iframe src="feed-card-1.html" class="card-frame" id="card1" scrolling="no"></iframe>
         </div>
 
         <!-- Card 2: Because You Liked -->
         <div class="card-wrapper" data-card-index="1">
-            <iframe src="card-2-better-call-saul.html" class="card-frame" id="card2" scrolling="no"></iframe>
+            <iframe src="feed-card-2.html" class="card-frame" id="card2" scrolling="no"></iframe>
         </div>
 
         <!-- Card 3: Your Friends Loved -->
         <div class="card-wrapper" data-card-index="2">
-            <iframe src="card-3-your-friends-loved.html" class="card-frame" id="card3" scrolling="no"></iframe>
+            <iframe src="feed-card-3.html" class="card-frame" id="card3" scrolling="no"></iframe>
         </div>
 
         <!-- Card 4: Coming Soon -->
         <div class="card-wrapper" data-card-index="3">
-            <iframe src="card-4-new-season-alert.html" class="card-frame" id="card4" scrolling="no"></iframe>
+            <iframe src="feed-card-4.html" class="card-frame" id="card4" scrolling="no"></iframe>
         </div>
 
         <!-- Card 5: Now Streaming -->
         <div class="card-wrapper" data-card-index="4">
-            <iframe src="card-5-now-streaming.html" class="card-frame" id="card5" scrolling="no"></iframe>
+            <iframe src="feed-card-5.html" class="card-frame" id="card5" scrolling="no"></iframe>
         </div>
 
         <!-- Card 6: Top 3 Update -->
         <div class="card-wrapper" data-card-index="5">
-            <iframe src="card-6-top-3-update.html" class="card-frame" id="card6" scrolling="no"></iframe>
+            <iframe src="feed-card-6.html" class="card-frame" id="card6" scrolling="no"></iframe>
         </div>
 
         <!-- Card 7: Follow Suggestions -->
         <div class="card-wrapper" data-card-index="6">
-            <iframe src="card-7-follow-suggestions-v2.html" class="card-frame" id="card7" scrolling="no"></iframe>
+            <iframe src="feed-card-7.html" class="card-frame" id="card7" scrolling="no"></iframe>
         </div>
     </div>
 
@@ -324,65 +324,12 @@
             lastTouchEnd = now;
         }, { passive: false });
 
-        // Hide navigation in iframes
-        function hideNavInIframe(iframe) {
-            try {
-                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                if (!iframeDoc) {
-                    console.error('Cannot access iframe document');
-                    return;
-                }
-
-                // Create and inject style
-                const style = iframeDoc.createElement('style');
-                style.id = 'feed-overrides';
-                style.textContent = `
-                    .card-nav {
-                        display: none !important;
-                    }
-                    .instructions {
-                        display: none !important;
-                    }
-                    body {
-                        padding-top: 0 !important;
-                    }
-                `;
-
-                // Check if already injected
-                if (!iframeDoc.getElementById('feed-overrides')) {
-                    iframeDoc.head.appendChild(style);
-                    console.log('Navigation hidden in iframe:', iframe.id);
-                }
-            } catch (e) {
-                console.error('Could not inject styles into iframe:', iframe.id, e);
-            }
-        }
-
-        // Load cards and inject CSS to hide navigation
+        // Load cards
         window.addEventListener('load', () => {
             console.log('Activity Feed Loaded - Using native CSS scroll-snap');
 
             // Ensure first card is at top on load
             window.scrollTo({ top: 0, behavior: 'instant' });
-
-            // Hide navigation in all iframes
-            const iframes = document.querySelectorAll('.card-frame');
-            iframes.forEach((iframe) => {
-                // Try immediately if already loaded
-                if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
-                    hideNavInIframe(iframe);
-                }
-
-                // Also listen for load event
-                iframe.addEventListener('load', () => {
-                    hideNavInIframe(iframe);
-                });
-            });
-
-            // Backup: try again after a short delay to catch any timing issues
-            setTimeout(() => {
-                iframes.forEach(hideNavInIframe);
-            }, 500);
         });
 
         // Bottom nav interactions

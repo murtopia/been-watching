@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card 7 - Follow Suggestions Carousel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #ffffff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Navigation Bar */
+        .card-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 20px;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            overflow-x: auto;
+        }
+
+        .nav-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            text-decoration: none;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.9);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(135deg, #FF006E, #FF8E53);
+            border-color: #FF006E;
+            color: white;
+        }
+
+        body {
+            padding-top: 0;
+        }
+
+        .card-container {
+            width: 398px;
+            height: 420px;
+            margin: 20px 16px;
+            position: relative;
+        }
+
+        /* Outer glassmorphic container */
+        .card {
+            width: 100%;
+            height: 100%;
+            border-radius: 16px;
+            overflow: visible;
+            position: relative;
+            background: rgba(255, 215, 0, 0.2);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            padding: 20px;
+        }
+
+        .card-content {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Badge at top */
+        .discover-badge {
+            background: rgba(20, 20, 20, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 8px 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            align-self: flex-start;
+            color: white;
+        }
+
+        /* Carousel container for sliding */
+        .carousel-container {
+            position: relative;
+            flex: 1;
+            overflow: hidden;
+            border-radius: 12px;
+        }
+
+        /* Inner glassmorphic user profile card */
+        .user-profile-card {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(20, 20, 20, 0.98);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 16px;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
+            display: flex;
+            flex-direction: column;
+            color: #ffffff;
+        }
+
+        .user-profile-card.active {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .user-profile-card.next {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        .user-profile-card.prev {
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+
+        /* User profile layout */
+        .user-profile {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .profile-photo {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            flex-shrink: 0;
+        }
+
+        .profile-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .name-match-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .name-username {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 2px;
+        }
+
+        .user-name a {
+            color: inherit;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        .user-name a:hover {
+            opacity: 0.8;
+        }
+
+        .username {
+            font-size: 13px;
+            opacity: 0.7;
+            font-weight: 500;
+        }
+
+        .username a {
+            color: inherit;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        .username a:hover {
+            opacity: 0.9;
+        }
+
+        /* Match percentage - same style as profile page */
+        .match-percentage {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
+        }
+
+        .match-number {
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .match-label {
+            font-size: 10px;
+            opacity: 0.7;
+            font-weight: 500;
+        }
+
+        .follow-btn {
+            background: #FF6B6B;
+            color: white;
+            border: none;
+            padding: 7px 18px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            align-self: flex-start;
+        }
+
+        .follow-btn:hover {
+            background: #FF5252;
+            transform: scale(1.05);
+        }
+
+        .follow-btn.following {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1.5px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .bio {
+            font-size: 13px;
+            line-height: 1.4;
+            opacity: 0.8;
+            margin-bottom: 12px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Watchlist stats - match profile page treatment */
+        .watchlist-stats {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            padding: 12px 0;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.7;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        /* Friends in common */
+        .friends-common {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: auto;
+        }
+
+        .friend-avatars-stack {
+            display: flex;
+            margin-right: 6px;
+        }
+
+        .friend-avatars-stack img {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(255, 255, 255, 0.9);
+            margin-left: -8px;
+            background: #1a1a1a;
+        }
+
+        .friend-avatars-stack img:first-child {
+            margin-left: 0;
+        }
+
+        /* Carousel dots */
+        .carousel-dots {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 16px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(20, 20, 20, 0.5);
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid rgba(20, 20, 20, 0.3);
+        }
+
+        .dot.active {
+            background: rgba(20, 20, 20, 0.9);
+            width: 24px;
+            border-radius: 4px;
+            border: 1px solid rgba(20, 20, 20, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+
+    <div class="card-container">
+        <div class="card">
+            <div class="card-content">
+                <div class="discover-badge">
+                    <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: currentColor;">
+                        <path d="M17.657 14.828l-1.414-1.414L17.657 12A4 4 0 1 0 12 6.343l-1.414 1.414-1.414-1.414 1.414-1.414a6 6 0 1 1 8.485 8.485l-1.414 1.414zm-2.829 2.829l-1.414 1.414a6 6 0 1 1-8.485-8.485l1.414-1.414 1.414 1.414L6.343 12A4 4 0 1 0 12 17.657l1.414-1.414 1.414 1.414zm0-9.9l1.415 1.415-7.071 7.07-1.415-1.414 7.071-7.07z"/>
+                    </svg>
+                    Find New Friends
+                </div>
+
+                <div class="carousel-container">
+                    <!-- User 1 -->
+                    <div class="user-profile-card active" data-user="0">
+                        <div class="user-profile">
+                            <img src="https://i.pravatar.cc/150?img=10" alt="Jamie" class="profile-photo">
+                            <div class="profile-info">
+                                <div class="name-match-row">
+                                    <div class="name-username">
+                                        <div class="user-name"><a href="/jamiechen">Jamie Chen</a></div>
+                                        <div class="username"><a href="/jamiechen">@jamiechen</a></div>
+                                    </div>
+                                    <div class="match-percentage">
+                                        <div class="match-number">92%</div>
+                                        <div class="match-label">Great Match!</div>
+                                    </div>
+                                </div>
+                                <button class="follow-btn" onclick="toggleFollow(this)">FOLLOW</button>
+                            </div>
+                        </div>
+                        <div class="bio">Drama enthusiast who loves binge-watching award-winning shows and tracking every major film festival. Always looking for the next critically acclaimed series to obsess over and discuss with fellow TV addicts who appreciate quality storytelling!</div>
+                        <div class="watchlist-stats">
+                            <div class="stat-item">
+                                <div class="stat-number">5</div>
+                                <div class="stat-label">Want to Watch</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">14</div>
+                                <div class="stat-label">Watching</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">187</div>
+                                <div class="stat-label">Watched</div>
+                            </div>
+                        </div>
+                        <div class="friends-common">
+                            <div class="friend-avatars-stack">
+                                <img src="https://i.pravatar.cc/150?img=2" alt="Friend">
+                                <img src="https://i.pravatar.cc/150?img=3" alt="Friend">
+                                <img src="https://i.pravatar.cc/150?img=4" alt="Friend">
+                            </div>
+                            <span>8 friends in common</span>
+                        </div>
+                    </div>
+
+                    <!-- User 2 -->
+                    <div class="user-profile-card next" data-user="1">
+                        <div class="user-profile">
+                            <img src="https://i.pravatar.cc/150?img=11" alt="Marcus" class="profile-photo">
+                            <div class="profile-info">
+                                <div class="name-match-row">
+                                    <div class="name-username">
+                                        <div class="user-name"><a href="/marcusr">Marcus Rodriguez</a></div>
+                                        <div class="username"><a href="/marcusr">@marcusr</a></div>
+                                    </div>
+                                    <div class="match-percentage">
+                                        <div class="match-number">88%</div>
+                                        <div class="match-label">Great Match!</div>
+                                    </div>
+                                </div>
+                                <button class="follow-btn" onclick="toggleFollow(this)">FOLLOW</button>
+                            </div>
+                        </div>
+                        <div class="bio">Sci-fi nerd • Binge-watcher extraordinaire</div>
+                        <div class="watchlist-stats">
+                            <div class="stat-item">
+                                <div class="stat-number">12</div>
+                                <div class="stat-label">Want to Watch</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">8</div>
+                                <div class="stat-label">Watching</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">243</div>
+                                <div class="stat-label">Watched</div>
+                            </div>
+                        </div>
+                        <div class="friends-common">
+                            <div class="friend-avatars-stack">
+                                <img src="https://i.pravatar.cc/150?img=5" alt="Friend">
+                                <img src="https://i.pravatar.cc/150?img=6" alt="Friend">
+                                <img src="https://i.pravatar.cc/150?img=7" alt="Friend">
+                            </div>
+                            <span>5 friends in common</span>
+                        </div>
+                    </div>
+
+                    <!-- User 3 -->
+                    <div class="user-profile-card next" data-user="2">
+                        <div class="user-profile">
+                            <img src="https://i.pravatar.cc/150?img=12" alt="Priya" class="profile-photo">
+                            <div class="profile-info">
+                                <div class="name-match-row">
+                                    <div class="name-username">
+                                        <div class="user-name"><a href="/priyap">Priya Patel</a></div>
+                                        <div class="username"><a href="/priyap">@priyap</a></div>
+                                    </div>
+                                    <div class="match-percentage">
+                                        <div class="match-number">85%</div>
+                                        <div class="match-label">Great Match!</div>
+                                    </div>
+                                </div>
+                                <button class="follow-btn" onclick="toggleFollow(this)">FOLLOW</button>
+                            </div>
+                        </div>
+                        <div class="bio">Crime drama devotee • True story fanatic</div>
+                        <div class="watchlist-stats">
+                            <div class="stat-item">
+                                <div class="stat-number">8</div>
+                                <div class="stat-label">Want to Watch</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">6</div>
+                                <div class="stat-label">Watching</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">156</div>
+                                <div class="stat-label">Watched</div>
+                            </div>
+                        </div>
+                        <div class="friends-common">
+                            <div class="friend-avatars-stack">
+                                <img src="https://i.pravatar.cc/150?img=8" alt="Friend">
+                                <img src="https://i.pravatar.cc/150?img=9" alt="Friend">
+                                <img src="https://i.pravatar.cc/150?img=14" alt="Friend">
+                            </div>
+                            <span>11 friends in common</span>
+                        </div>
+                    </div>
+
+                    <!-- User 4 -->
+                    <div class="user-profile-card next" data-user="3">
+                        <div class="user-profile">
+                            <img src="https://i.pravatar.cc/150?img=13" alt="Alex" class="profile-photo">
+                            <div class="profile-info">
+                                <div class="name-match-row">
+                                    <div class="name-username">
+                                        <div class="user-name"><a href="/alexthompson">Alex Thompson</a></div>
+                                        <div class="username"><a href="/alexthompson">@alexthompson</a></div>
+                                    </div>
+                                    <div class="match-percentage">
+                                        <div class="match-number">81%</div>
+                                        <div class="match-label">Great Match!</div>
+                                    </div>
+                                </div>
+                                <button class="follow-btn" onclick="toggleFollow(this)">FOLLOW</button>
+                            </div>
+                        </div>
+                        <div class="bio">Comedy buff • Reality TV guilty pleasure</div>
+                        <div class="watchlist-stats">
+                            <div class="stat-item">
+                                <div class="stat-number">15</div>
+                                <div class="stat-label">Want to Watch</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">11</div>
+                                <div class="stat-label">Watching</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">198</div>
+                                <div class="stat-label">Watched</div>
+                            </div>
+                        </div>
+                        <div class="friends-common">
+                            <div class="friend-avatars-stack">
+                                <img src="https://i.pravatar.cc/150?img=15" alt="Friend">
+                                <img src="https://i.pravatar.cc/150?img=16" alt="Friend">
+                                <img src="https://i.pravatar.cc/150?img=17" alt="Friend">
+                            </div>
+                            <span>6 friends in common</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Carousel dots -->
+                <div class="carousel-dots">
+                    <div class="dot active" onclick="goToSlide(0)"></div>
+                    <div class="dot" onclick="goToSlide(1)"></div>
+                    <div class="dot" onclick="goToSlide(2)"></div>
+                    <div class="dot" onclick="goToSlide(3)"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const totalSlides = 4;
+        let autoRotateInterval;
+
+        function showSlide(index) {
+            const cards = document.querySelectorAll('.user-profile-card');
+
+            cards.forEach((card, i) => {
+                card.classList.remove('active', 'prev', 'next');
+
+                if (i === index) {
+                    card.classList.add('active');
+                } else if (i < index) {
+                    card.classList.add('prev');
+                } else {
+                    card.classList.add('next');
+                }
+            });
+
+            // Update dots
+            document.querySelectorAll('.dot').forEach((dot, i) => {
+                if (i === index) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+
+            currentSlide = index;
+        }
+
+        function goToSlide(index) {
+            showSlide(index);
+            resetAutoRotate();
+        }
+
+        function nextSlide() {
+            const next = (currentSlide + 1) % totalSlides;
+            showSlide(next);
+        }
+
+        function startAutoRotate() {
+            autoRotateInterval = setInterval(nextSlide, 6000);
+        }
+
+        function resetAutoRotate() {
+            clearInterval(autoRotateInterval);
+            startAutoRotate();
+        }
+
+        function toggleFollow(button) {
+            button.classList.toggle('following');
+
+            if (button.classList.contains('following')) {
+                button.textContent = 'FOLLOWING';
+            } else {
+                button.textContent = 'FOLLOW';
+            }
+
+            // Add visual feedback
+            button.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                button.style.transform = 'scale(1)';
+            }, 100);
+        }
+
+        // Initialize
+        showSlide(0);
+        startAutoRotate();
+
+        // Pause auto-rotate on hover
+        document.querySelector('.card').addEventListener('mouseenter', () => {
+            clearInterval(autoRotateInterval);
+        });
+
+        document.querySelector('.card').addEventListener('mouseleave', () => {
+            startAutoRotate();
+        });
+
+        // Touch swipe support for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+        const carousel = document.querySelector('.carousel-container');
+
+        carousel.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+            clearInterval(autoRotateInterval);
+        }, { passive: true });
+
+        carousel.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+            startAutoRotate();
+        }, { passive: true });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    // Swiped left - go to next
+                    nextSlide();
+                } else {
+                    // Swiped right - go to previous
+                    const prev = (currentSlide - 1 + totalSlides) % totalSlides;
+                    showSlide(prev);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
