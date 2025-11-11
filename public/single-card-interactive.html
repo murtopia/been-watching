@@ -321,6 +321,7 @@
         .card-front {
             z-index: 2;
             overflow: hidden;
+            border-radius: 16px;
         }
 
         .card-back {
@@ -2864,6 +2865,9 @@
             
             commentsFull.addEventListener('touchmove', (e) => {
                 if (!document.querySelector('.comments-tab.expanded')) return;
+                
+                // Prevent scroll from propagating to card container
+                e.stopPropagation();
                 
                 const touchY = e.touches[0].clientY;
                 const currentTime = performance.now();

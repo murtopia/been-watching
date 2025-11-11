@@ -36,7 +36,12 @@
             color: var(--text-primary);
             overflow-x: hidden;
             padding-bottom: 90px;
+        }
+
+        html {
+            scroll-snap-type: y proximity;
             -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
         }
 
         /* Header */
@@ -115,20 +120,19 @@
             max-width: 600px;
             margin: 0 auto;
             padding: 0 20px;
-            scroll-snap-type: y proximity;
-            -webkit-overflow-scrolling: touch;
         }
 
         /* Card Container */
         .card-wrapper {
             margin-bottom: 20px;
             scroll-snap-align: center;
-            scroll-snap-stop: normal;
+            scroll-snap-stop: always;
         }
 
         .card-wrapper:first-child {
             scroll-snap-align: start;
             margin-top: 20px;
+            scroll-snap-stop: always;
         }
 
         /* Card Iframe */
@@ -213,9 +217,9 @@
             margin: 0 auto;
         }
 
-        /* Smooth Scrolling */
-        html {
-            scroll-behavior: smooth;
+        /* Optimize for touch scrolling */
+        * {
+            -webkit-tap-highlight-color: transparent;
         }
 
         /* Loading Indicator */
@@ -312,96 +316,6 @@
     </nav>
 
     <script>
-        // Snap Scroll Behavior
-        const feedContainer = document.getElementById('feedContainer');
-        const cardWrappers = document.querySelectorAll('.card-wrapper');
-        let isSnapping = false;
-        let scrollEndTimeout;
-        let lastScrollTime = 0;
-
-        // Snap to nearest card on scroll end
-        function snapToNearestCard() {
-            if (isSnapping) return;
-
-            const viewportHeight = window.innerHeight;
-            const headerHeight = document.querySelector('.app-header').offsetHeight;
-            const centerPoint = viewportHeight / 2;
-
-            let nearestCard = null;
-            let nearestDistance = Infinity;
-
-            cardWrappers.forEach((wrapper, index) => {
-                const rect = wrapper.getBoundingClientRect();
-                const cardCenter = rect.top + (rect.height / 2);
-                const distance = Math.abs(cardCenter - centerPoint);
-
-                if (distance < nearestDistance) {
-                    nearestDistance = distance;
-                    nearestCard = { wrapper, index };
-                }
-            });
-
-            if (nearestCard) {
-                const isFirstCard = nearestCard.index === 0;
-                const threshold = nearestCard.wrapper.offsetHeight * 0.5; // 50% threshold
-
-                // Check if we should snap
-                if (nearestDistance < threshold || nearestDistance < 200) {
-                    isSnapping = true;
-
-                    // Calculate target scroll position
-                    let targetScrollTop;
-
-                    if (isFirstCard) {
-                        // First card snaps to top + 20px
-                        targetScrollTop = nearestCard.wrapper.offsetTop - 20;
-                    } else {
-                        // Other cards snap to center
-                        const cardRect = nearestCard.wrapper.getBoundingClientRect();
-                        const cardHeight = cardRect.height;
-                        const viewportCenter = viewportHeight / 2;
-                        const cardOffsetTop = nearestCard.wrapper.offsetTop;
-
-                        targetScrollTop = cardOffsetTop - viewportCenter + (cardHeight / 2) + headerHeight;
-                    }
-
-                    // Smooth scroll to target
-                    window.scrollTo({
-                        top: targetScrollTop,
-                        behavior: 'smooth'
-                    });
-
-                    setTimeout(() => {
-                        isSnapping = false;
-                    }, 500);
-                }
-            }
-        }
-
-        // Detect scroll end
-        window.addEventListener('scroll', () => {
-            lastScrollTime = Date.now();
-
-            clearTimeout(scrollEndTimeout);
-            scrollEndTimeout = setTimeout(() => {
-                if (Date.now() - lastScrollTime >= 150) {
-                    snapToNearestCard();
-                }
-            }, 150);
-        }, { passive: true });
-
-        // Handle iframe messaging for scroll conflicts
-        window.addEventListener('message', (event) => {
-            // If a card reports it's handling scroll internally, prevent feed scroll
-            if (event.data.type === 'card-scrolling') {
-                // Card is handling its own scroll, don't interfere
-                clearTimeout(scrollEndTimeout);
-            } else if (event.data.type === 'card-scroll-end') {
-                // Card finished scrolling, resume snap behavior
-                snapToNearestCard();
-            }
-        });
-
         // Prevent zoom on double-tap (iOS)
         let lastTouchEnd = 0;
         document.addEventListener('touchend', (event) => {
@@ -414,7 +328,7 @@
 
         // Load cards
         window.addEventListener('load', () => {
-            console.log('Activity Feed Loaded');
+            console.log('Activity Feed Loaded - Using native CSS scroll-snap');
 
             // Ensure first card is at top on load
             window.scrollTo({ top: 0, behavior: 'instant' });
