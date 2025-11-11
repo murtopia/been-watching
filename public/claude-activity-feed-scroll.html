@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Activity Feed - Been Watching</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Light Mode Colors */
+            --bg-primary: #FFFFFF;
+            --surface: rgba(255, 255, 255, 0.7);
+            --glass: rgba(255, 255, 255, 0.6);
+            --border: rgba(0, 0, 0, 0.08);
+            --text-primary: #000000;
+            --text-secondary: #6B6B75;
+            --brand-gradient: linear-gradient(135deg, #e94d88 0%, #f27121 100%);
+            --brand-blue: #0095f6;
+
+            /* Bottom Nav Colors */
+            --nav-container: rgba(255, 255, 255, 0.6);
+            --nav-button: rgba(0, 0, 0, 0.06);
+            --nav-button-active: rgba(0, 0, 0, 0.12);
+            --nav-text: #000000;
+            --nav-text-active: #0095f6;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            padding-bottom: 90px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Header */
+        .app-header {
+            padding: 1rem 1.5rem;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            max-width: 600px;
+            margin: 0 auto 0.5rem;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-img {
+            height: 40px;
+            width: auto;
+        }
+
+        .logo-text {
+            background: var(--brand-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .notification-btn, .profile-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            position: relative;
+        }
+
+        .profile-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--brand-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.875rem;
+            font-weight: 700;
+        }
+
+        /* Feed Container */
+        .feed-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0 20px;
+            scroll-snap-type: y proximity;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Card Container */
+        .card-wrapper {
+            margin-bottom: 20px;
+            scroll-snap-align: center;
+            scroll-snap-stop: normal;
+        }
+
+        .card-wrapper:first-child {
+            scroll-snap-align: start;
+            margin-top: 20px;
+        }
+
+        /* Card Iframe */
+        .card-frame {
+            width: 100%;
+            height: 665px; /* 645px card + 20px padding */
+            border: none;
+            border-radius: 16px;
+            overflow: hidden;
+            display: block;
+            background: transparent;
+            pointer-events: auto;
+        }
+
+        /* Bottom Navigation */
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 8px 16px 24px;
+            background: var(--nav-container);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+            z-index: 1000;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .tab-item {
+            flex: 1;
+            padding: 12px 16px;
+            background: var(--nav-button);
+            border: none;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--nav-text);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .tab-item.active {
+            background: var(--nav-button-active);
+            color: var(--nav-text-active);
+        }
+
+        .tab-add {
+            width: 56px;
+            height: 56px;
+            background: var(--brand-gradient);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 2rem;
+            font-weight: 300;
+            cursor: pointer;
+            margin: 0 8px;
+            transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .tab-add:active {
+            transform: scale(0.95);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Smooth Scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Loading Indicator */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 600px) {
+            .feed-container {
+                padding: 0 10px;
+            }
+
+            .card-wrapper {
+                margin-bottom: 16px;
+            }
+
+            .card-wrapper:first-child {
+                margin-top: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- App Header -->
+    <div class="app-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <img src="/bw-logo.png" alt="Been Watching" class="logo-img" onerror="this.style.display='none'">
+                <h1 class="logo-text">Been Watching</h1>
+            </div>
+            <div class="header-actions">
+                <button class="notification-btn" aria-label="Notifications">
+                    ✨
+                </button>
+                <button class="profile-btn" aria-label="Profile">
+                    <div class="profile-avatar">
+                        N
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feed Container -->
+    <div class="feed-container" id="feedContainer">
+        <!-- Card 1: User Activity -->
+        <div class="card-wrapper" data-card-index="0">
+            <iframe src="single-card-interactive.html" class="card-frame" id="card1" scrolling="no"></iframe>
+        </div>
+
+        <!-- Card 2: Because You Liked -->
+        <div class="card-wrapper" data-card-index="1">
+            <iframe src="card-2-better-call-saul.html" class="card-frame" id="card2" scrolling="no"></iframe>
+        </div>
+
+        <!-- Card 3: Your Friends Loved -->
+        <div class="card-wrapper" data-card-index="2">
+            <iframe src="card-3-your-friends-loved.html" class="card-frame" id="card3" scrolling="no"></iframe>
+        </div>
+
+        <!-- Card 4: Coming Soon -->
+        <div class="card-wrapper" data-card-index="3">
+            <iframe src="card-4-new-season-alert.html" class="card-frame" id="card4" scrolling="no"></iframe>
+        </div>
+
+        <!-- Card 5: Now Streaming -->
+        <div class="card-wrapper" data-card-index="4">
+            <iframe src="card-5-now-streaming.html" class="card-frame" id="card5" scrolling="no"></iframe>
+        </div>
+
+        <!-- Card 6: Top 3 Update -->
+        <div class="card-wrapper" data-card-index="5">
+            <iframe src="card-6-top-3-update.html" class="card-frame" id="card6" scrolling="no"></iframe>
+        </div>
+
+        <!-- Card 7: Follow Suggestions -->
+        <div class="card-wrapper" data-card-index="6">
+            <iframe src="card-7-follow-suggestions-v2.html" class="card-frame" id="card7" scrolling="no"></iframe>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>© 2025 Been Watching • Made with ❤️ for TV lovers</p>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="tab-bar">
+        <button class="tab-item active">🏠 Feed</button>
+        <button class="tab-add">+</button>
+        <button class="tab-item">📚 My Shows</button>
+    </nav>
+
+    <script>
+        // Snap Scroll Behavior
+        const feedContainer = document.getElementById('feedContainer');
+        const cardWrappers = document.querySelectorAll('.card-wrapper');
+        let isSnapping = false;
+        let scrollEndTimeout;
+        let lastScrollTime = 0;
+
+        // Snap to nearest card on scroll end
+        function snapToNearestCard() {
+            if (isSnapping) return;
+
+            const viewportHeight = window.innerHeight;
+            const headerHeight = document.querySelector('.app-header').offsetHeight;
+            const centerPoint = viewportHeight / 2;
+
+            let nearestCard = null;
+            let nearestDistance = Infinity;
+
+            cardWrappers.forEach((wrapper, index) => {
+                const rect = wrapper.getBoundingClientRect();
+                const cardCenter = rect.top + (rect.height / 2);
+                const distance = Math.abs(cardCenter - centerPoint);
+
+                if (distance < nearestDistance) {
+                    nearestDistance = distance;
+                    nearestCard = { wrapper, index };
+                }
+            });
+
+            if (nearestCard) {
+                const isFirstCard = nearestCard.index === 0;
+                const threshold = nearestCard.wrapper.offsetHeight * 0.5; // 50% threshold
+
+                // Check if we should snap
+                if (nearestDistance < threshold || nearestDistance < 200) {
+                    isSnapping = true;
+
+                    // Calculate target scroll position
+                    let targetScrollTop;
+
+                    if (isFirstCard) {
+                        // First card snaps to top + 20px
+                        targetScrollTop = nearestCard.wrapper.offsetTop - 20;
+                    } else {
+                        // Other cards snap to center
+                        const cardRect = nearestCard.wrapper.getBoundingClientRect();
+                        const cardHeight = cardRect.height;
+                        const viewportCenter = viewportHeight / 2;
+                        const cardOffsetTop = nearestCard.wrapper.offsetTop;
+
+                        targetScrollTop = cardOffsetTop - viewportCenter + (cardHeight / 2) + headerHeight;
+                    }
+
+                    // Smooth scroll to target
+                    window.scrollTo({
+                        top: targetScrollTop,
+                        behavior: 'smooth'
+                    });
+
+                    setTimeout(() => {
+                        isSnapping = false;
+                    }, 500);
+                }
+            }
+        }
+
+        // Detect scroll end
+        window.addEventListener('scroll', () => {
+            lastScrollTime = Date.now();
+
+            clearTimeout(scrollEndTimeout);
+            scrollEndTimeout = setTimeout(() => {
+                if (Date.now() - lastScrollTime >= 150) {
+                    snapToNearestCard();
+                }
+            }, 150);
+        }, { passive: true });
+
+        // Handle iframe messaging for scroll conflicts
+        window.addEventListener('message', (event) => {
+            // If a card reports it's handling scroll internally, prevent feed scroll
+            if (event.data.type === 'card-scrolling') {
+                // Card is handling its own scroll, don't interfere
+                clearTimeout(scrollEndTimeout);
+            } else if (event.data.type === 'card-scroll-end') {
+                // Card finished scrolling, resume snap behavior
+                snapToNearestCard();
+            }
+        });
+
+        // Prevent zoom on double-tap (iOS)
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (event) => {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, { passive: false });
+
+        // Load cards with slight delay to improve performance
+        window.addEventListener('load', () => {
+            console.log('Activity Feed Loaded');
+
+            // Ensure first card is at top on load
+            window.scrollTo({ top: 0, behavior: 'instant' });
+        });
+
+        // Bottom nav interactions
+        document.querySelectorAll('.tab-item').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        document.querySelector('.tab-add').addEventListener('click', function() {
+            alert('Search functionality would open here');
+        });
+    </script>
+</body>
+</html>
