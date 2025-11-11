@@ -321,13 +321,11 @@
 
         .card-front {
             z-index: 2;
-            border-radius: 16px;
         }
 
         .card-back {
             transform: rotateY(180deg);
             background: linear-gradient(to bottom, #1a1a1a 0%, #0a0a0a 100%);
-            position: relative;
             overflow: hidden;
         }
 
@@ -539,7 +537,7 @@
         .card-back-content {
             padding: 20px 16px;
             padding-top: 50px;
-            padding-bottom: 40px;
+            padding-bottom: 20px;
             /* Use absolute positioning to fill card-back */
             position: absolute;
             top: 0;
@@ -557,8 +555,6 @@
             touch-action: pan-y;
             -webkit-tap-highlight-color: transparent;
             z-index: 1;
-            /* Ensure text is visible */
-            color: white;
         }
 
         /* Title Section */

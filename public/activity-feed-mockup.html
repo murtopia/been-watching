@@ -91,6 +91,7 @@
         .card-back {
             transform: rotateY(180deg);
             background: linear-gradient(to bottom, #1a1a1a 0%, #0a0a0a 100%);
+            position: relative;
             overflow: hidden;
             z-index: 1;
         }
@@ -303,7 +304,7 @@
         .card-back-content {
             padding: 20px 16px;
             padding-top: 50px;
-            padding-bottom: 20px;
+            padding-bottom: 40px;
             position: absolute;
             top: 0;
             left: 0;
@@ -314,9 +315,12 @@
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch !important;
             overscroll-behavior: contain;
+            overscroll-behavior-y: contain;
             touch-action: pan-y;
             pointer-events: auto;
             will-change: scroll-position;
+            /* Ensure text is visible */
+            color: white;
         }
 
         .back-title-section {
@@ -1187,9 +1191,128 @@
                                 </div>
                             </div>
                             <p class="back-synopsis collapsed" id="synopsis1">
-                                A high school chemistry teacher diagnosed with inoperable lung cancer turns to manufacturing and selling methamphetamine in order to secure his family's future.
+                                A high school chemistry teacher diagnosed with inoperable lung cancer turns to manufacturing and selling methamphetamine in order to secure his family's future. As Walter White descends deeper into the criminal underworld, he transforms from mild-mannered educator to ruthless drug kingpin.
                             </p>
                             <span class="read-more" onclick="toggleSynopsis('synopsis1')">Read more</span>
+
+                            <!-- Action Icons -->
+                            <div class="back-action-icons">
+                                <button class="back-icon-btn primary">
+                                    <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;">
+                                        <path d="M19 11H13V5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5V11H5C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13H11V19C11 19.5523 11.4477 20 12 20C12.5523 20 13 19.5523 13 19V13H19C19.5523 13 20 12.5523 20 12C20 11.4477 19.5523 11 19 11Z" stroke="white" fill="none" stroke-width="1.5"/>
+                                    </svg>
+                                </button>
+                                <button class="back-icon-btn">
+                                    <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;">
+                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="white" fill="none" stroke-width="1.5"/>
+                                    </svg>
+                                </button>
+                                <button class="back-icon-btn">
+                                    <svg viewBox="0 0 20 22" fill="none" style="width: 20px; height: 22px;">
+                                        <path d="M10 3L10 14M10 3L6 7M10 3L14 7" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                        <path d="M17 11V18C17 19 16 20 15 20H5C4 20 3 19 3 18V11" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Info Grid -->
+                            <div class="back-info-grid">
+                                <div class="back-info-item">
+                                    <span class="back-info-label">Creator</span>
+                                    <span class="back-info-value">Vince Gilligan</span>
+                                </div>
+                                <div class="back-info-item">
+                                    <span class="back-info-label">Genre</span>
+                                    <span class="back-info-value">Crime, Drama</span>
+                                </div>
+                            </div>
+
+                            <!-- Cast -->
+                            <div class="back-section">
+                                <h3 class="back-section-title">Cast</h3>
+                                <div class="cast-list">
+                                    <span class="cast-member">Bryan Cranston</span>
+                                    <span class="cast-member">Aaron Paul</span>
+                                    <span class="cast-member">Anna Gunn</span>
+                                    <span class="cast-member">Dean Norris</span>
+                                </div>
+                            </div>
+
+                            <!-- Friends Watching -->
+                            <div class="back-section">
+                                <h3 class="back-section-title">Friends Watching</h3>
+                                <div class="friends-categories">
+                                    <div class="friends-category">
+                                        <div class="friends-avatars-stack">
+                                            <img src="https://i.pravatar.cc/150?img=5" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=6" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=7" alt="Friend">
+                                        </div>
+                                        <div class="friends-category-text">
+                                            <span class="count">8</span> friends watching
+                                        </div>
+                                    </div>
+                                    <div class="friends-category">
+                                        <div class="friends-avatars-stack">
+                                            <img src="https://i.pravatar.cc/150?img=8" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=9" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=10" alt="Friend">
+                                        </div>
+                                        <div class="friends-category-text">
+                                            <span class="count">12</span> friends want to watch
+                                        </div>
+                                    </div>
+                                    <div class="friends-category">
+                                        <div class="friends-avatars-stack">
+                                            <img src="https://i.pravatar.cc/150?img=11" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=12" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=13" alt="Friend">
+                                        </div>
+                                        <div class="friends-category-text">
+                                            <span class="count">42</span> friends watched
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Friends Ratings -->
+                                <div class="friends-ratings-container">
+                                    <div class="friends-ratings">
+                                        <h3 class="friends-ratings-title">Friends Ratings</h3>
+                                        <div class="friends-ratings-stats">
+                                            <div class="rating-stat">
+                                                <div class="rating-icon-wrapper">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <circle cx="12" cy="12" r="10"/>
+                                                        <line x1="8" y1="15" x2="16" y2="15"/>
+                                                        <line x1="9" y1="9" x2="9" y2="10"/>
+                                                        <line x1="15" y1="9" x2="15" y2="10"/>
+                                                    </svg>
+                                                    <div class="rating-count">5</div>
+                                                </div>
+                                                <div class="rating-label">Meh</div>
+                                            </div>
+                                            <div class="rating-stat">
+                                                <div class="rating-icon-wrapper">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                                                    </svg>
+                                                    <div class="rating-count">23</div>
+                                                </div>
+                                                <div class="rating-label">Like</div>
+                                            </div>
+                                            <div class="rating-stat">
+                                                <div class="rating-icon-wrapper active-user-rating">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                    </svg>
+                                                    <div class="rating-count">48</div>
+                                                </div>
+                                                <div class="rating-label">Love</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1246,6 +1369,125 @@
                             </div>
                             <p class="back-synopsis collapsed" id="synopsis2">The final season finds Jimmy McGill living as Gene Takavic in Omaha. As he completes his transformation into criminal lawyer Saul Goodman, tensions between Gus Fring and Lalo Salamanca escalate.</p>
                             <span class="read-more" onclick="toggleSynopsis('synopsis2')">Read more</span>
+
+                            <!-- Action Icons -->
+                            <div class="back-action-icons">
+                                <button class="back-icon-btn primary">
+                                    <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;">
+                                        <path d="M19 11H13V5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5V11H5C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13H11V19C11 19.5523 11.4477 20 12 20C12.5523 20 13 19.5523 13 19V13H19C19.5523 13 20 12.5523 20 12C20 11.4477 19.5523 11 19 11Z" stroke="white" fill="none" stroke-width="1.5"/>
+                                    </svg>
+                                </button>
+                                <button class="back-icon-btn">
+                                    <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;">
+                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="white" fill="none" stroke-width="1.5"/>
+                                    </svg>
+                                </button>
+                                <button class="back-icon-btn">
+                                    <svg viewBox="0 0 20 22" fill="none" style="width: 20px; height: 22px;">
+                                        <path d="M10 3L10 14M10 3L6 7M10 3L14 7" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                        <path d="M17 11V18C17 19 16 20 15 20H5C4 20 3 19 3 18V11" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Info Grid -->
+                            <div class="back-info-grid">
+                                <div class="back-info-item">
+                                    <span class="back-info-label">Creator</span>
+                                    <span class="back-info-value">Vince Gilligan</span>
+                                </div>
+                                <div class="back-info-item">
+                                    <span class="back-info-label">Genre</span>
+                                    <span class="back-info-value">Crime, Drama</span>
+                                </div>
+                            </div>
+
+                            <!-- Cast -->
+                            <div class="back-section">
+                                <h3 class="back-section-title">Cast</h3>
+                                <div class="cast-list">
+                                    <span class="cast-member">Bob Odenkirk</span>
+                                    <span class="cast-member">Jonathan Banks</span>
+                                    <span class="cast-member">Rhea Seehorn</span>
+                                    <span class="cast-member">Michael Mando</span>
+                                </div>
+                            </div>
+
+                            <!-- Friends Watching -->
+                            <div class="back-section">
+                                <h3 class="back-section-title">Friends Watching</h3>
+                                <div class="friends-categories">
+                                    <div class="friends-category">
+                                        <div class="friends-avatars-stack">
+                                            <img src="https://i.pravatar.cc/150?img=5" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=6" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=7" alt="Friend">
+                                        </div>
+                                        <div class="friends-category-text">
+                                            <span class="count">6</span> friends watching
+                                        </div>
+                                    </div>
+                                    <div class="friends-category">
+                                        <div class="friends-avatars-stack">
+                                            <img src="https://i.pravatar.cc/150?img=8" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=9" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=10" alt="Friend">
+                                        </div>
+                                        <div class="friends-category-text">
+                                            <span class="count">10</span> friends want to watch
+                                        </div>
+                                    </div>
+                                    <div class="friends-category">
+                                        <div class="friends-avatars-stack">
+                                            <img src="https://i.pravatar.cc/150?img=11" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=12" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=13" alt="Friend">
+                                        </div>
+                                        <div class="friends-category-text">
+                                            <span class="count">35</span> friends watched
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Friends Ratings -->
+                                <div class="friends-ratings-container">
+                                    <div class="friends-ratings">
+                                        <h3 class="friends-ratings-title">Friends Ratings</h3>
+                                        <div class="friends-ratings-stats">
+                                            <div class="rating-stat">
+                                                <div class="rating-icon-wrapper">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <circle cx="12" cy="12" r="10"/>
+                                                        <line x1="8" y1="15" x2="16" y2="15"/>
+                                                        <line x1="9" y1="9" x2="9" y2="10"/>
+                                                        <line x1="15" y1="9" x2="15" y2="10"/>
+                                                    </svg>
+                                                    <div class="rating-count">3</div>
+                                                </div>
+                                                <div class="rating-label">Meh</div>
+                                            </div>
+                                            <div class="rating-stat">
+                                                <div class="rating-icon-wrapper">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                                                    </svg>
+                                                    <div class="rating-count">18</div>
+                                                </div>
+                                                <div class="rating-label">Like</div>
+                                            </div>
+                                            <div class="rating-stat">
+                                                <div class="rating-icon-wrapper active-user-rating">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                    </svg>
+                                                    <div class="rating-count">33</div>
+                                                </div>
+                                                <div class="rating-label">Love</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1298,6 +1540,125 @@
                             </div>
                             <p class="back-synopsis collapsed" id="synopsis3">After a global pandemic destroys civilization, a hardened survivor takes charge of a 14-year-old girl who may be humanity's last hope.</p>
                             <span class="read-more" onclick="toggleSynopsis('synopsis3')">Read more</span>
+
+                            <!-- Action Icons -->
+                            <div class="back-action-icons">
+                                <button class="back-icon-btn primary">
+                                    <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;">
+                                        <path d="M19 11H13V5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5V11H5C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13H11V19C11 19.5523 11.4477 20 12 20C12.5523 20 13 19.5523 13 19V13H19C19.5523 13 20 12.5523 20 12C20 11.4477 19.5523 11 19 11Z" stroke="white" fill="none" stroke-width="1.5"/>
+                                    </svg>
+                                </button>
+                                <button class="back-icon-btn">
+                                    <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;">
+                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="white" fill="none" stroke-width="1.5"/>
+                                    </svg>
+                                </button>
+                                <button class="back-icon-btn">
+                                    <svg viewBox="0 0 20 22" fill="none" style="width: 20px; height: 22px;">
+                                        <path d="M10 3L10 14M10 3L6 7M10 3L14 7" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                        <path d="M17 11V18C17 19 16 20 15 20H5C4 20 3 19 3 18V11" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Info Grid -->
+                            <div class="back-info-grid">
+                                <div class="back-info-item">
+                                    <span class="back-info-label">Creator</span>
+                                    <span class="back-info-value">Craig Mazin</span>
+                                </div>
+                                <div class="back-info-item">
+                                    <span class="back-info-label">Genre</span>
+                                    <span class="back-info-value">Drama, Sci-Fi</span>
+                                </div>
+                            </div>
+
+                            <!-- Cast -->
+                            <div class="back-section">
+                                <h3 class="back-section-title">Cast</h3>
+                                <div class="cast-list">
+                                    <span class="cast-member">Pedro Pascal</span>
+                                    <span class="cast-member">Bella Ramsey</span>
+                                    <span class="cast-member">Anna Torv</span>
+                                    <span class="cast-member">Nick Offerman</span>
+                                </div>
+                            </div>
+
+                            <!-- Friends Watching -->
+                            <div class="back-section">
+                                <h3 class="back-section-title">Friends Watching</h3>
+                                <div class="friends-categories">
+                                    <div class="friends-category">
+                                        <div class="friends-avatars-stack">
+                                            <img src="https://i.pravatar.cc/150?img=5" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=6" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=7" alt="Friend">
+                                        </div>
+                                        <div class="friends-category-text">
+                                            <span class="count">15</span> friends watching
+                                        </div>
+                                    </div>
+                                    <div class="friends-category">
+                                        <div class="friends-avatars-stack">
+                                            <img src="https://i.pravatar.cc/150?img=8" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=9" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=10" alt="Friend">
+                                        </div>
+                                        <div class="friends-category-text">
+                                            <span class="count">20</span> friends want to watch
+                                        </div>
+                                    </div>
+                                    <div class="friends-category">
+                                        <div class="friends-avatars-stack">
+                                            <img src="https://i.pravatar.cc/150?img=11" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=12" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=13" alt="Friend">
+                                        </div>
+                                        <div class="friends-category-text">
+                                            <span class="count">28</span> friends watched
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Friends Ratings -->
+                                <div class="friends-ratings-container">
+                                    <div class="friends-ratings">
+                                        <h3 class="friends-ratings-title">Friends Ratings</h3>
+                                        <div class="friends-ratings-stats">
+                                            <div class="rating-stat">
+                                                <div class="rating-icon-wrapper">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <circle cx="12" cy="12" r="10"/>
+                                                        <line x1="8" y1="15" x2="16" y2="15"/>
+                                                        <line x1="9" y1="9" x2="9" y2="10"/>
+                                                        <line x1="15" y1="9" x2="15" y2="10"/>
+                                                    </svg>
+                                                    <div class="rating-count">2</div>
+                                                </div>
+                                                <div class="rating-label">Meh</div>
+                                            </div>
+                                            <div class="rating-stat">
+                                                <div class="rating-icon-wrapper">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                                                    </svg>
+                                                    <div class="rating-count">12</div>
+                                                </div>
+                                                <div class="rating-label">Like</div>
+                                            </div>
+                                            <div class="rating-stat">
+                                                <div class="rating-icon-wrapper active-user-rating">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                    </svg>
+                                                    <div class="rating-count">38</div>
+                                                </div>
+                                                <div class="rating-label">Love</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1346,8 +1707,127 @@
                                 <div class="back-meta"><span class="back-year">2024</span><span class="meta-dot">•</span><span>Fantasy, Drama</span><span class="meta-dot">•</span><span class="back-rating">8 episodes</span></div>
                                 <div class="back-badges"><div class="back-badge">S2</div><div class="back-badge">TV</div><div class="back-badge">HBO</div></div>
                             </div>
-                            <p class="back-synopsis collapsed" id="synopsis4">The Targaryen dynasty is at the absolute apex of its power, with more than 10 dragons under their yoke.</p>
+                            <p class="back-synopsis collapsed" id="synopsis4">The Targaryen dynasty is at the absolute apex of its power, with more than 10 dragons under their yoke. The Targaryen dynasty is at the absolute apex of its power, with more than 10 dragons under their yoke.</p>
                             <span class="read-more" onclick="toggleSynopsis('synopsis4')">Read more</span>
+
+                            <!-- Action Icons -->
+                            <div class="back-action-icons">
+                                <button class="back-icon-btn primary">
+                                    <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;">
+                                        <path d="M19 11H13V5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5V11H5C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13H11V19C11 19.5523 11.4477 20 12 20C12.5523 20 13 19.5523 13 19V13H19C19.5523 13 20 12.5523 20 12C20 11.4477 19.5523 11 19 11Z" stroke="white" fill="none" stroke-width="1.5"/>
+                                    </svg>
+                                </button>
+                                <button class="back-icon-btn">
+                                    <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;">
+                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="white" fill="none" stroke-width="1.5"/>
+                                    </svg>
+                                </button>
+                                <button class="back-icon-btn">
+                                    <svg viewBox="0 0 20 22" fill="none" style="width: 20px; height: 22px;">
+                                        <path d="M10 3L10 14M10 3L6 7M10 3L14 7" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                        <path d="M17 11V18C17 19 16 20 15 20H5C4 20 3 19 3 18V11" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Info Grid -->
+                            <div class="back-info-grid">
+                                <div class="back-info-item">
+                                    <span class="back-info-label">Creator</span>
+                                    <span class="back-info-value">Ryan Condal</span>
+                                </div>
+                                <div class="back-info-item">
+                                    <span class="back-info-label">Genre</span>
+                                    <span class="back-info-value">Fantasy, Drama</span>
+                                </div>
+                            </div>
+
+                            <!-- Cast -->
+                            <div class="back-section">
+                                <h3 class="back-section-title">Cast</h3>
+                                <div class="cast-list">
+                                    <span class="cast-member">Matt Smith</span>
+                                    <span class="cast-member">Emma D'Arcy</span>
+                                    <span class="cast-member">Olivia Cooke</span>
+                                    <span class="cast-member">Rhys Ifans</span>
+                                </div>
+                            </div>
+
+                            <!-- Friends Watching -->
+                            <div class="back-section">
+                                <h3 class="back-section-title">Friends Watching</h3>
+                                <div class="friends-categories">
+                                    <div class="friends-category">
+                                        <div class="friends-avatars-stack">
+                                            <img src="https://i.pravatar.cc/150?img=5" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=6" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=7" alt="Friend">
+                                        </div>
+                                        <div class="friends-category-text">
+                                            <span class="count">10</span> friends watching
+                                        </div>
+                                    </div>
+                                    <div class="friends-category">
+                                        <div class="friends-avatars-stack">
+                                            <img src="https://i.pravatar.cc/150?img=8" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=9" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=10" alt="Friend">
+                                        </div>
+                                        <div class="friends-category-text">
+                                            <span class="count">15</span> friends want to watch
+                                        </div>
+                                    </div>
+                                    <div class="friends-category">
+                                        <div class="friends-avatars-stack">
+                                            <img src="https://i.pravatar.cc/150?img=11" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=12" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=13" alt="Friend">
+                                        </div>
+                                        <div class="friends-category-text">
+                                            <span class="count">25</span> friends watched
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Friends Ratings -->
+                                <div class="friends-ratings-container">
+                                    <div class="friends-ratings">
+                                        <h3 class="friends-ratings-title">Friends Ratings</h3>
+                                        <div class="friends-ratings-stats">
+                                            <div class="rating-stat">
+                                                <div class="rating-icon-wrapper">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <circle cx="12" cy="12" r="10"/>
+                                                        <line x1="8" y1="15" x2="16" y2="15"/>
+                                                        <line x1="9" y1="9" x2="9" y2="10"/>
+                                                        <line x1="15" y1="9" x2="15" y2="10"/>
+                                                    </svg>
+                                                    <div class="rating-count">4</div>
+                                                </div>
+                                                <div class="rating-label">Meh</div>
+                                            </div>
+                                            <div class="rating-stat">
+                                                <div class="rating-icon-wrapper">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                                                    </svg>
+                                                    <div class="rating-count">16</div>
+                                                </div>
+                                                <div class="rating-label">Like</div>
+                                            </div>
+                                            <div class="rating-stat">
+                                                <div class="rating-icon-wrapper active-user-rating">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                    </svg>
+                                                    <div class="rating-count">30</div>
+                                                </div>
+                                                <div class="rating-label">Love</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1398,6 +1878,125 @@
                             </div>
                             <p class="back-synopsis collapsed" id="synopsis5">Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family.</p>
                             <span class="read-more" onclick="toggleSynopsis('synopsis5')">Read more</span>
+
+                            <!-- Action Icons -->
+                            <div class="back-action-icons">
+                                <button class="back-icon-btn primary">
+                                    <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;">
+                                        <path d="M19 11H13V5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5V11H5C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13H11V19C11 19.5523 11.4477 20 12 20C12.5523 20 13 19.5523 13 19V13H19C19.5523 13 20 12.5523 20 12C20 11.4477 19.5523 11 19 11Z" stroke="white" fill="none" stroke-width="1.5"/>
+                                    </svg>
+                                </button>
+                                <button class="back-icon-btn">
+                                    <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;">
+                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="white" fill="none" stroke-width="1.5"/>
+                                    </svg>
+                                </button>
+                                <button class="back-icon-btn">
+                                    <svg viewBox="0 0 20 22" fill="none" style="width: 20px; height: 22px;">
+                                        <path d="M10 3L10 14M10 3L6 7M10 3L14 7" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                        <path d="M17 11V18C17 19 16 20 15 20H5C4 20 3 19 3 18V11" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Info Grid -->
+                            <div class="back-info-grid">
+                                <div class="back-info-item">
+                                    <span class="back-info-label">Director</span>
+                                    <span class="back-info-value">Denis Villeneuve</span>
+                                </div>
+                                <div class="back-info-item">
+                                    <span class="back-info-label">Genre</span>
+                                    <span class="back-info-value">Sci-Fi, Adventure</span>
+                                </div>
+                            </div>
+
+                            <!-- Cast -->
+                            <div class="back-section">
+                                <h3 class="back-section-title">Cast</h3>
+                                <div class="cast-list">
+                                    <span class="cast-member">Timothée Chalamet</span>
+                                    <span class="cast-member">Zendaya</span>
+                                    <span class="cast-member">Rebecca Ferguson</span>
+                                    <span class="cast-member">Javier Bardem</span>
+                                </div>
+                            </div>
+
+                            <!-- Friends Watching -->
+                            <div class="back-section">
+                                <h3 class="back-section-title">Friends Watching</h3>
+                                <div class="friends-categories">
+                                    <div class="friends-category">
+                                        <div class="friends-avatars-stack">
+                                            <img src="https://i.pravatar.cc/150?img=5" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=6" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=7" alt="Friend">
+                                        </div>
+                                        <div class="friends-category-text">
+                                            <span class="count">7</span> friends watching
+                                        </div>
+                                    </div>
+                                    <div class="friends-category">
+                                        <div class="friends-avatars-stack">
+                                            <img src="https://i.pravatar.cc/150?img=8" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=9" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=10" alt="Friend">
+                                        </div>
+                                        <div class="friends-category-text">
+                                            <span class="count">18</span> friends want to watch
+                                        </div>
+                                    </div>
+                                    <div class="friends-category">
+                                        <div class="friends-avatars-stack">
+                                            <img src="https://i.pravatar.cc/150?img=11" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=12" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=13" alt="Friend">
+                                        </div>
+                                        <div class="friends-category-text">
+                                            <span class="count">22</span> friends watched
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Friends Ratings -->
+                                <div class="friends-ratings-container">
+                                    <div class="friends-ratings">
+                                        <h3 class="friends-ratings-title">Friends Ratings</h3>
+                                        <div class="friends-ratings-stats">
+                                            <div class="rating-stat">
+                                                <div class="rating-icon-wrapper">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <circle cx="12" cy="12" r="10"/>
+                                                        <line x1="8" y1="15" x2="16" y2="15"/>
+                                                        <line x1="9" y1="9" x2="9" y2="10"/>
+                                                        <line x1="15" y1="9" x2="15" y2="10"/>
+                                                    </svg>
+                                                    <div class="rating-count">1</div>
+                                                </div>
+                                                <div class="rating-label">Meh</div>
+                                            </div>
+                                            <div class="rating-stat">
+                                                <div class="rating-icon-wrapper">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                                                    </svg>
+                                                    <div class="rating-count">9</div>
+                                                </div>
+                                                <div class="rating-label">Like</div>
+                                            </div>
+                                            <div class="rating-stat">
+                                                <div class="rating-icon-wrapper active-user-rating">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                    </svg>
+                                                    <div class="rating-count">37</div>
+                                                </div>
+                                                <div class="rating-label">Love</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1492,6 +2091,125 @@
                             </div>
                             <p class="back-synopsis collapsed" id="synopsis6">Carmy pushes himself harder than ever and demands excellence from his crew, who do their best to match his intensity.</p>
                             <span class="read-more" onclick="toggleSynopsis('synopsis6')">Read more</span>
+
+                            <!-- Action Icons -->
+                            <div class="back-action-icons">
+                                <button class="back-icon-btn primary">
+                                    <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;">
+                                        <path d="M19 11H13V5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5V11H5C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13H11V19C11 19.5523 11.4477 20 12 20C12.5523 20 13 19.5523 13 19V13H19C19.5523 13 20 12.5523 20 12C20 11.4477 19.5523 11 19 11Z" stroke="white" fill="none" stroke-width="1.5"/>
+                                    </svg>
+                                </button>
+                                <button class="back-icon-btn">
+                                    <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;">
+                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="white" fill="none" stroke-width="1.5"/>
+                                    </svg>
+                                </button>
+                                <button class="back-icon-btn">
+                                    <svg viewBox="0 0 20 22" fill="none" style="width: 20px; height: 22px;">
+                                        <path d="M10 3L10 14M10 3L6 7M10 3L14 7" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                        <path d="M17 11V18C17 19 16 20 15 20H5C4 20 3 19 3 18V11" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Info Grid -->
+                            <div class="back-info-grid">
+                                <div class="back-info-item">
+                                    <span class="back-info-label">Creator</span>
+                                    <span class="back-info-value">Christopher Storer</span>
+                                </div>
+                                <div class="back-info-item">
+                                    <span class="back-info-label">Genre</span>
+                                    <span class="back-info-value">Comedy, Drama</span>
+                                </div>
+                            </div>
+
+                            <!-- Cast -->
+                            <div class="back-section">
+                                <h3 class="back-section-title">Cast</h3>
+                                <div class="cast-list">
+                                    <span class="cast-member">Jeremy Allen White</span>
+                                    <span class="cast-member">Ayo Edebiri</span>
+                                    <span class="cast-member">Ebon Moss-Bachrach</span>
+                                    <span class="cast-member">Liza Colón-Zayas</span>
+                                </div>
+                            </div>
+
+                            <!-- Friends Watching -->
+                            <div class="back-section">
+                                <h3 class="back-section-title">Friends Watching</h3>
+                                <div class="friends-categories">
+                                    <div class="friends-category">
+                                        <div class="friends-avatars-stack">
+                                            <img src="https://i.pravatar.cc/150?img=5" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=6" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=7" alt="Friend">
+                                        </div>
+                                        <div class="friends-category-text">
+                                            <span class="count">9</span> friends watching
+                                        </div>
+                                    </div>
+                                    <div class="friends-category">
+                                        <div class="friends-avatars-stack">
+                                            <img src="https://i.pravatar.cc/150?img=8" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=9" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=10" alt="Friend">
+                                        </div>
+                                        <div class="friends-category-text">
+                                            <span class="count">14</span> friends want to watch
+                                        </div>
+                                    </div>
+                                    <div class="friends-category">
+                                        <div class="friends-avatars-stack">
+                                            <img src="https://i.pravatar.cc/150?img=11" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=12" alt="Friend">
+                                            <img src="https://i.pravatar.cc/150?img=13" alt="Friend">
+                                        </div>
+                                        <div class="friends-category-text">
+                                            <span class="count">31</span> friends watched
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Friends Ratings -->
+                                <div class="friends-ratings-container">
+                                    <div class="friends-ratings">
+                                        <h3 class="friends-ratings-title">Friends Ratings</h3>
+                                        <div class="friends-ratings-stats">
+                                            <div class="rating-stat">
+                                                <div class="rating-icon-wrapper">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <circle cx="12" cy="12" r="10"/>
+                                                        <line x1="8" y1="15" x2="16" y2="15"/>
+                                                        <line x1="9" y1="9" x2="9" y2="10"/>
+                                                        <line x1="15" y1="9" x2="15" y2="10"/>
+                                                    </svg>
+                                                    <div class="rating-count">2</div>
+                                                </div>
+                                                <div class="rating-label">Meh</div>
+                                            </div>
+                                            <div class="rating-stat">
+                                                <div class="rating-icon-wrapper">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                                                    </svg>
+                                                    <div class="rating-count">14</div>
+                                                </div>
+                                                <div class="rating-label">Like</div>
+                                            </div>
+                                            <div class="rating-stat">
+                                                <div class="rating-icon-wrapper active-user-rating">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                    </svg>
+                                                    <div class="rating-count">40</div>
+                                                </div>
+                                                <div class="rating-label">Love</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1801,6 +2519,28 @@
         document.querySelectorAll('.comments-full').forEach((commentsFull, index) => {
             const cardId = `activityCard${index + 1}`;
             const card = document.getElementById(cardId);
+            const commentsTab = card ? card.querySelector('.comments-tab') : null;
+            
+            // Prevent touch events on comments tab from propagating to card
+            if (commentsTab) {
+                commentsTab.addEventListener('touchstart', (e) => {
+                    if (commentsTab.classList.contains('expanded')) {
+                        e.stopPropagation();
+                    }
+                }, { passive: true });
+                
+                commentsTab.addEventListener('touchmove', (e) => {
+                    if (commentsTab.classList.contains('expanded')) {
+                        e.stopPropagation();
+                    }
+                }, { passive: false });
+                
+                commentsTab.addEventListener('touchend', (e) => {
+                    if (commentsTab.classList.contains('expanded')) {
+                        e.stopPropagation();
+                    }
+                }, { passive: true });
+            }
             
             if (!card) return;
             

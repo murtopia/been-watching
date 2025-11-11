@@ -321,13 +321,11 @@
 
         .card-front {
             z-index: 2;
-            border-radius: 16px;
         }
 
         .card-back {
             transform: rotateY(180deg);
             background: linear-gradient(to bottom, #1a1a1a 0%, #0a0a0a 100%);
-            position: relative;
             overflow: hidden;
         }
 
@@ -539,7 +537,7 @@
         .card-back-content {
             padding: 20px 16px;
             padding-top: 50px;
-            padding-bottom: 40px;
+            padding-bottom: 20px;
             /* Use absolute positioning to fill card-back */
             position: absolute;
             top: 0;
@@ -557,12 +555,6 @@
             touch-action: pan-y;
             -webkit-tap-highlight-color: transparent;
             z-index: 1;
-            /* Ensure the element can receive touch events */
-            pointer-events: auto;
-            /* Force repaint for iOS */
-            will-change: scroll-position;
-            /* Ensure text is visible */
-            color: white;
         }
 
         /* Title Section */
@@ -1429,22 +1421,6 @@
             stroke-width: 2;
         }
 
-        /* Instructions */
-        .instructions {
-            margin-top: 20px;
-            font-size: 12px;
-            color: #666;
-            text-align: center;
-            padding: 0 20px;
-            transition: opacity 0.2s ease, transform 0.2s ease;
-        }
-
-        /* Hide instructions when keyboard is visible to reduce gap */
-        .instructions.keyboard-hidden {
-            opacity: 0;
-            transform: translateY(10px);
-            pointer-events: none;
-        }
 
         /* Action Overlay Modal */
         .action-overlay {
@@ -1703,182 +1679,6 @@
                                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                             </svg>
                                             <span>3</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="activity-comment-item">
-                                    <div class="activity-comment-header">
-                                        <img src="https://i.pravatar.cc/150?img=7" alt="User" class="activity-comment-avatar">
-                                        <div class="activity-comment-username">Alex Chen</div>
-                                        <div class="activity-comment-time">2h ago</div>
-                                    </div>
-                                    <div class="activity-comment-text">The character development throughout this season was masterful. Every episode kept me on the edge of my seat!</div>
-                                    <div class="comment-actions">
-                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this, event)">
-                                            <svg viewBox="0 0 24 24">
-                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                            </svg>
-                                            <span>15</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="activity-comment-item">
-                                    <div class="activity-comment-header">
-                                        <img src="https://i.pravatar.cc/150?img=8" alt="User" class="activity-comment-avatar">
-                                        <div class="activity-comment-username">Jordan Martinez</div>
-                                        <div class="activity-comment-time">3h ago</div>
-                                    </div>
-                                    <div class="activity-comment-text">Just finished binging the whole season. Mind = blown 🤯</div>
-                                    <div class="comment-actions">
-                                        <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
-                                            <svg viewBox="0 0 24 24">
-                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                            </svg>
-                                            <span>7</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="activity-comment-item">
-                                    <div class="activity-comment-header">
-                                        <img src="https://i.pravatar.cc/150?img=9" alt="User" class="activity-comment-avatar">
-                                        <div class="activity-comment-username">Sam Taylor</div>
-                                        <div class="activity-comment-time">4h ago</div>
-                                    </div>
-                                    <div class="activity-comment-text">This is peak television. Nothing comes close!</div>
-                                    <div class="comment-actions">
-                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this, event)">
-                                            <svg viewBox="0 0 24 24">
-                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                            </svg>
-                                            <span>22</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="activity-comment-item">
-                                    <div class="activity-comment-header">
-                                        <img src="https://i.pravatar.cc/150?img=10" alt="User" class="activity-comment-avatar">
-                                        <div class="activity-comment-username">Riley Kim</div>
-                                        <div class="activity-comment-time">5h ago</div>
-                                    </div>
-                                    <div class="activity-comment-text">The cinematography in the final episodes was absolutely stunning. Pure art.</div>
-                                    <div class="comment-actions">
-                                        <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
-                                            <svg viewBox="0 0 24 24">
-                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                            </svg>
-                                            <span>11</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="activity-comment-item">
-                                    <div class="activity-comment-header">
-                                        <img src="https://i.pravatar.cc/150?img=11" alt="User" class="activity-comment-avatar">
-                                        <div class="activity-comment-username">Casey Brown</div>
-                                        <div class="activity-comment-time">6h ago</div>
-                                    </div>
-                                    <div class="activity-comment-text">I need to rewatch this immediately. So many details I missed the first time!</div>
-                                    <div class="comment-actions">
-                                        <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
-                                            <svg viewBox="0 0 24 24">
-                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                            </svg>
-                                            <span>5</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="activity-comment-item">
-                                    <div class="activity-comment-header">
-                                        <img src="https://i.pravatar.cc/150?img=12" alt="User" class="activity-comment-avatar">
-                                        <div class="activity-comment-username">Morgan Lee</div>
-                                        <div class="activity-comment-time">7h ago</div>
-                                    </div>
-                                    <div class="activity-comment-text">The writing is just incredible. Every line matters.</div>
-                                    <div class="comment-actions">
-                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this, event)">
-                                            <svg viewBox="0 0 24 24">
-                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                            </svg>
-                                            <span>18</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="activity-comment-item">
-                                    <div class="activity-comment-header">
-                                        <img src="https://i.pravatar.cc/150?img=13" alt="User" class="activity-comment-avatar">
-                                        <div class="activity-comment-username">Taylor White</div>
-                                        <div class="activity-comment-time">8h ago</div>
-                                    </div>
-                                    <div class="activity-comment-text">Best season finale I've ever seen. Period.</div>
-                                    <div class="comment-actions">
-                                        <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
-                                            <svg viewBox="0 0 24 24">
-                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                            </svg>
-                                            <span>9</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="activity-comment-item">
-                                    <div class="activity-comment-header">
-                                        <img src="https://i.pravatar.cc/150?img=14" alt="User" class="activity-comment-avatar">
-                                        <div class="activity-comment-username">Jamie Park</div>
-                                        <div class="activity-comment-time">9h ago</div>
-                                    </div>
-                                    <div class="activity-comment-text">The emotional payoff was everything. I'm still processing it.</div>
-                                    <div class="comment-actions">
-                                        <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
-                                            <svg viewBox="0 0 24 24">
-                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                            </svg>
-                                            <span>14</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="activity-comment-item">
-                                    <div class="activity-comment-header">
-                                        <img src="https://i.pravatar.cc/150?img=15" alt="User" class="activity-comment-avatar">
-                                        <div class="activity-comment-username">Drew Anderson</div>
-                                        <div class="activity-comment-time">10h ago</div>
-                                    </div>
-                                    <div class="activity-comment-text">This show set the bar so high, nothing else compares now.</div>
-                                    <div class="comment-actions">
-                                        <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
-                                            <svg viewBox="0 0 24 24">
-                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                            </svg>
-                                            <span>6</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="activity-comment-item">
-                                    <div class="activity-comment-header">
-                                        <img src="https://i.pravatar.cc/150?img=16" alt="User" class="activity-comment-avatar">
-                                        <div class="activity-comment-username">Quinn Rodriguez</div>
-                                        <div class="activity-comment-time">11h ago</div>
-                                    </div>
-                                    <div class="activity-comment-text">The tension in every scene was masterfully crafted. Absolutely brilliant.</div>
-                                    <div class="comment-actions">
-                                        <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
-                                            <svg viewBox="0 0 24 24">
-                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                            </svg>
-                                            <span>12</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="activity-comment-item">
-                                    <div class="activity-comment-header">
-                                        <img src="https://i.pravatar.cc/150?img=17" alt="User" class="activity-comment-avatar">
-                                        <div class="activity-comment-username">Blake Thompson</div>
-                                        <div class="activity-comment-time">12h ago</div>
-                                    </div>
-                                    <div class="activity-comment-text">I've been recommending this to everyone. It's that good!</div>
-                                    <div class="comment-actions">
-                                        <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
-                                            <svg viewBox="0 0 24 24">
-                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                            </svg>
-                                            <span>20</span>
                                         </button>
                                     </div>
                                 </div>
@@ -2558,64 +2358,63 @@
 
             cardBackContent.addEventListener('touchstart', (e) => {
                 if (!card.classList.contains('flipped')) return;
-                
-                // Cancel any ongoing momentum
+                e.stopPropagation();
+
                 if (momentumAnimation) {
                     cancelAnimationFrame(momentumAnimation);
                     momentumAnimation = null;
                 }
                 velocity = 0;
                 isScrolling = true;
-                
+
                 touchStartY = e.touches[0].clientY;
                 touchStartScrollTop = cardBackContent.scrollTop;
                 lastTouchY = touchStartY;
                 lastTouchTime = performance.now();
             }, { passive: true });
-            
+
             cardBackContent.addEventListener('touchmove', (e) => {
                 if (!card.classList.contains('flipped')) return;
-                
+                e.stopPropagation();
+
                 const touchY = e.touches[0].clientY;
                 const currentTime = performance.now();
                 const deltaTime = currentTime - lastTouchTime;
-                
-                // Calculate velocity for momentum based on recent movement
-                // Positive velocity = scrolling down (content moving up)
+
                 if (deltaTime > 0 && lastTouchY !== 0) {
-                    const deltaY = lastTouchY - touchY; // Positive when swiping down
-                    velocity = (deltaY / deltaTime) * 16; // Normalize to 60fps, scale up for momentum
+                    const deltaY = lastTouchY - touchY;
+                    velocity = (deltaY / deltaTime) * 16;
                 }
-                
+
                 const deltaY = touchStartY - touchY;
                 const newScrollTop = touchStartScrollTop + deltaY;
                 const maxScroll = cardBackContent.scrollHeight - cardBackContent.clientHeight;
-                
-                // Manually set scroll position with rubber band effect at boundaries
+
                 if (newScrollTop >= 0 && newScrollTop <= maxScroll) {
                     cardBackContent.scrollTop = newScrollTop;
+                    e.preventDefault();
                 } else if (newScrollTop < 0) {
-                    // Rubber band effect - reduce scroll amount when past boundary
                     const overscroll = Math.abs(newScrollTop);
                     cardBackContent.scrollTop = -overscroll * 0.3;
+                    e.preventDefault();
                 } else if (newScrollTop > maxScroll) {
-                    // Rubber band effect
                     const overscroll = newScrollTop - maxScroll;
                     cardBackContent.scrollTop = maxScroll + (overscroll * 0.3);
+                    e.preventDefault();
                 }
-                
+
                 lastTouchY = touchY;
                 lastTouchTime = currentTime;
             }, { passive: false });
-            
-            cardBackContent.addEventListener('touchend', () => {
+
+            cardBackContent.addEventListener('touchend', (e) => {
                 if (!card.classList.contains('flipped')) return;
-                
+                e.stopPropagation();
+
                 isScrolling = false;
                 const maxScroll = cardBackContent.scrollHeight - cardBackContent.clientHeight;
                 const currentScrollTop = cardBackContent.scrollTop;
-                
-                // Snap back if overscrolled
+
                 if (currentScrollTop < 0) {
                     smoothScrollTo(0);
                     velocity = 0;
@@ -2623,7 +2422,6 @@
                     smoothScrollTo(maxScroll);
                     velocity = 0;
                 } else if (Math.abs(velocity) > 0.5) {
-                    // Apply momentum scrolling - continue in the direction of the swipe
                     applyMomentum();
                 } else {
                     velocity = 0;
@@ -2631,8 +2429,9 @@
             }, { passive: true });
         }
 
-        // iOS scroll handler for comments section (same technique as card back)
-        const commentsFull = document.querySelector('.card-front .comments-full');
+        // iOS scroll workaround for comments section
+        const commentsFull = document.querySelector('.comments-full');
+
         if (commentsFull) {
             let commentsTouchStartY = 0;
             let commentsTouchStartScrollTop = 0;
@@ -2699,16 +2498,13 @@
 
             commentsFull.addEventListener('touchstart', (e) => {
                 if (!document.querySelector('.comments-tab.expanded')) return;
-                
-                // Prevent event from bubbling to body
-                e.stopPropagation();
-                
+
                 if (commentsMomentumAnimation) {
                     cancelAnimationFrame(commentsMomentumAnimation);
                     commentsMomentumAnimation = null;
                 }
                 commentsVelocity = 0;
-                
+
                 commentsTouchStartY = e.touches[0].clientY;
                 commentsTouchStartScrollTop = commentsFull.scrollTop;
                 commentsLastTouchY = commentsTouchStartY;
@@ -2717,24 +2513,20 @@
 
             commentsFull.addEventListener('touchmove', (e) => {
                 if (!document.querySelector('.comments-tab.expanded')) return;
-                
-                // Prevent body scroll when scrolling comments
-                e.preventDefault();
-                e.stopPropagation();
-                
+
                 const touchY = e.touches[0].clientY;
                 const currentTime = performance.now();
                 const deltaTime = currentTime - commentsLastTouchTime;
-                
+
                 if (deltaTime > 0 && commentsLastTouchY !== 0) {
                     const deltaY = commentsLastTouchY - touchY;
                     commentsVelocity = (deltaY / deltaTime) * 16;
                 }
-                
+
                 const deltaY = commentsTouchStartY - touchY;
                 const newScrollTop = commentsTouchStartScrollTop + deltaY;
                 const maxScroll = commentsFull.scrollHeight - commentsFull.clientHeight;
-                
+
                 if (newScrollTop >= 0 && newScrollTop <= maxScroll) {
                     commentsFull.scrollTop = newScrollTop;
                 } else if (newScrollTop < 0) {
@@ -2744,17 +2536,14 @@
                     const overscroll = newScrollTop - maxScroll;
                     commentsFull.scrollTop = maxScroll + (overscroll * 0.3);
                 }
-                
+
                 commentsLastTouchY = touchY;
                 commentsLastTouchTime = currentTime;
             }, { passive: false });
 
-            commentsFull.addEventListener('touchend', (e) => {
+            commentsFull.addEventListener('touchend', () => {
                 if (!document.querySelector('.comments-tab.expanded')) return;
-                
-                // Prevent event from bubbling to body
-                e.stopPropagation();
-                
+
                 const maxScroll = commentsFull.scrollHeight - commentsFull.clientHeight;
                 const currentScrollTop = commentsFull.scrollTop;
 
@@ -2801,21 +2590,9 @@
                                     const shiftAmount = inputBottom - viewportBottom + 8; // Minimal 8px gap
                                     commentsTab.style.transform = `translateY(-${shiftAmount}px)`;
                                     commentsTab.classList.add('keyboard-visible');
-
-                                    // Hide instructions/version info to reduce gap
-                                    const instructions = document.querySelector('.instructions');
-                                    if (instructions) {
-                                        instructions.classList.add('keyboard-hidden');
-                                    }
                                 } else {
                                     commentsTab.style.transform = 'translateY(0)';
                                     commentsTab.classList.remove('keyboard-visible');
-
-                                    // Show instructions again
-                                    const instructions = document.querySelector('.instructions');
-                                    if (instructions) {
-                                        instructions.classList.remove('keyboard-hidden');
-                                    }
                                 }
                             }
                         } else {
@@ -2824,12 +2601,6 @@
                             if (commentsTab) {
                                 commentsTab.style.transform = 'translateY(0)';
                                 commentsTab.classList.remove('keyboard-visible');
-                            }
-
-                            // Show instructions again
-                            const instructions = document.querySelector('.instructions');
-                            if (instructions) {
-                                instructions.classList.remove('keyboard-hidden');
                             }
                         }
                     };
@@ -2844,12 +2615,6 @@
                         if (commentsTab) {
                             commentsTab.style.transform = 'translateY(0)';
                             commentsTab.classList.remove('keyboard-visible');
-                        }
-
-                        // Show instructions again
-                        const instructions = document.querySelector('.instructions');
-                        if (instructions) {
-                            instructions.classList.remove('keyboard-hidden');
                         }
                     }, { once: true });
                 } else {
