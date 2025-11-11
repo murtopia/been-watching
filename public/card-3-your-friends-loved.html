@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Card 3 - "Your Friends Loved" Social Recommendation</title>
     <style>
         * {
@@ -301,6 +301,7 @@
             transform-style: preserve-3d;
             transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
             border-radius: 16px;
+            touch-action: none;
         }
 
         .card.flipped {
@@ -535,16 +536,28 @@
         .card-back-content {
             padding: 20px 16px;
             padding-top: 50px;
-            height: 100%;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
+            padding-bottom: 20px;
+            /* Use absolute positioning to fill card-back */
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            /* Enable scrolling - content will overflow */
+            overflow-y: scroll;
+            overflow-x: hidden;
+            /* Critical for iOS momentum scrolling - MUST be present */
+            -webkit-overflow-scrolling: touch !important;
             overscroll-behavior: contain;
+            overscroll-behavior-y: contain;
             touch-action: pan-y;
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior: contain;
-            touch-action: pan-y;
-            position: relative;
+            -webkit-tap-highlight-color: transparent;
             z-index: 1;
+            /* Ensure the element can receive touch events */
+            pointer-events: auto;
+            /* Force repaint for iOS */
+            will-change: scroll-position;
         }
 
         /* Title Section */
@@ -906,6 +919,7 @@
             display: flex;
             gap: 12px;
             margin-top: 6px;
+            justify-content: flex-end;
         }
 
         .comment-like-btn {
@@ -1042,6 +1056,40 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            justify-content: space-between;
+        }
+
+        .comments-preview-content {
+            flex: 1;
+        }
+
+        .comments-close-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+
+        .comments-close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .comments-close-btn:active {
+            transform: scale(0.9);
+        }
+
+        .comments-close-btn svg {
+            width: 14px;
+            height: 14px;
+            stroke: white;
+            stroke-width: 2;
         }
 
         .comments-full {
@@ -1110,12 +1158,18 @@
             margin-left: 38px;
         }
 
+        .activity-comment-item .comment-actions {
+            justify-content: flex-end;
+        }
+
         .activity-comment-input-wrapper {
             padding: 16px 20px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             gap: 12px;
             align-items: center;
+            /* Keep input fixed at bottom - don't shrink */
+            flex-shrink: 0;
         }
 
         .activity-comment-input {
@@ -1125,8 +1179,10 @@
             border-radius: 20px;
             padding: 10px 16px;
             color: white;
-            font-size: 13px;
+            font-size: 16px; /* 16px prevents iOS zoom on focus */
             outline: none;
+            -webkit-appearance: none;
+            appearance: none;
         }
 
         .activity-comment-input::placeholder {
@@ -1136,6 +1192,8 @@
         .send-btn {
             width: 32px;
             height: 32px;
+            min-width: 32px;
+            min-height: 32px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.2);
             border: none;
@@ -1143,6 +1201,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            flex-shrink: 0; /* Prevent stretching in flex container */
         }
 
         .send-btn svg {
@@ -1348,6 +1407,41 @@
             stroke-width: 2;
         }
 
+        /* Instructions */
+        .instructions {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            padding: 0 20px;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        
+        /* Hide instructions when keyboard is visible to reduce gap */
+        .instructions.keyboard-hidden {
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: none;
+        }
+
+        /* iOS body scroll lock when card is flipped */
+        /* Using overflow: hidden instead of position: fixed to allow nested scrolling */
+        body.scroll-locked {
+            overflow: hidden;
+            height: 100%;
+            position: relative;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: none;
+            overscroll-behavior-y: none;
+        }
+
+        /* Prevent iOS rubber band scrolling when card is flipped */
+        html.scroll-locked {
+            overflow: hidden;
+            height: 100%;
+            overscroll-behavior: none;
+            overscroll-behavior-y: none;
+        }
 
         /* Action Overlay Modal */
         .action-overlay {
@@ -1485,9 +1579,78 @@
             stroke-width: 2;
         }
 
+        /* Navigation Bar */
+        .card-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 20px;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            overflow-x: auto;
+        }
+
+        .nav-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            text-decoration: none;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.9);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(135deg, #FF006E, #FF8E53);
+            border-color: #FF006E;
+            color: white;
+        }
+
+        .nav-btn.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .nav-btn.disabled:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        body {
+            padding-top: 60px;
+        }
     </style>
 </head>
 <body>
+    <!-- Navigation -->
+    <nav class="card-nav">
+        <a href="single-card-interactive.html" class="nav-btn">1. User Activity</a>
+        <a href="card-2-better-call-saul.html" class="nav-btn">2. "Because You Liked"</a>
+        <a href="card-3-your-friends-loved.html" class="nav-btn active">3. "Friends Loved"</a>
+        <a href="card-4-new-season-alert.html" class="nav-btn">4. Coming Soon</a>
+        <a href="card-5-now-streaming.html" class="nav-btn">5. Now Streaming</a>
+        <a href="card-6-top-3-update.html" class="nav-btn">6. Top 3 Update</a>
+        <a href="card-7-follow-suggestions-v2.html" class="nav-btn">7. Follow Suggestions</a>
+    </nav>
+
     <div class="card-container">
                 <div class="card" id="activityCard">
                     <!-- FRONT OF CARD -->
@@ -1547,6 +1710,236 @@
                                         <path d="M17 11V18C17 19 16 20 15 20H5C4 20 3 19 3 18V11" stroke="white" stroke-width="2" stroke-linecap="round"/>
                                     </svg>
                                 </div>
+                            </div>
+                        </div>
+
+                        <div class="comments-tab" onclick="toggleCommentsExpanded(event)">
+                            <div class="comments-preview">
+                                <div class="comments-preview-content">💬 View 12 comments...</div>
+                                <button class="comments-close-btn" onclick="closeCommentsTab(event)">
+                                    <svg viewBox="0 0 24 24" fill="none">
+                                        <line x1="18" y1="6" x2="6" y2="18"/>
+                                        <line x1="6" y1="6" x2="18" y2="18"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="comments-full">
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=5" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Mike Johnson</div>
+                                        <div class="activity-comment-time">1h ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">This finale was absolutely incredible! Best TV I've seen all year.</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this, event)">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span>8</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=6" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Emma Davis</div>
+                                        <div class="activity-comment-time">45m ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">Can't believe it's over. What a ride! 🎬</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span>3</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=7" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Alex Chen</div>
+                                        <div class="activity-comment-time">2h ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">The character development throughout this season was masterful. Every episode kept me on the edge of my seat!</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this, event)">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span>15</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=8" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Jordan Martinez</div>
+                                        <div class="activity-comment-time">3h ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">Just finished binging the whole season. Mind = blown 🤯</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span>7</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=9" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Sam Taylor</div>
+                                        <div class="activity-comment-time">4h ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">This is peak television. Nothing comes close!</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this, event)">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span>22</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=10" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Riley Kim</div>
+                                        <div class="activity-comment-time">5h ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">The cinematography in the final episodes was absolutely stunning. Pure art.</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span>11</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=11" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Casey Brown</div>
+                                        <div class="activity-comment-time">6h ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">I need to rewatch this immediately. So many details I missed the first time!</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span>5</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=12" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Morgan Lee</div>
+                                        <div class="activity-comment-time">7h ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">The writing is just incredible. Every line matters.</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this, event)">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span>18</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=13" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Taylor White</div>
+                                        <div class="activity-comment-time">8h ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">Best season finale I've ever seen. Period.</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span>9</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=14" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Jamie Park</div>
+                                        <div class="activity-comment-time">9h ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">The emotional payoff was everything. I'm still processing it.</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this, event)">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span>14</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=15" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Drew Anderson</div>
+                                        <div class="activity-comment-time">10h ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">This show set the bar so high, nothing else compares now.</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span>6</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=16" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Quinn Rodriguez</div>
+                                        <div class="activity-comment-time">11h ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">The tension in every scene was masterfully crafted. Absolutely brilliant.</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span>12</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="activity-comment-item">
+                                    <div class="activity-comment-header">
+                                        <img src="https://i.pravatar.cc/150?img=17" alt="User" class="activity-comment-avatar">
+                                        <div class="activity-comment-username">Blake Thompson</div>
+                                        <div class="activity-comment-time">12h ago</div>
+                                    </div>
+                                    <div class="activity-comment-text">I've been recommending this to everyone. It's that good!</div>
+                                    <div class="comment-actions">
+                                        <button class="comment-like-btn liked" onclick="toggleCommentLike(this, event)">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span>20</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="activity-comment-input-wrapper">
+                                <input type="text" class="activity-comment-input" placeholder="Add a comment...">
+                                <button class="send-btn">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                                    </svg>
+                                </button>
                             </div>
                         </div>
 
@@ -1731,7 +2124,7 @@
                                             </div>
                                             <div class="comment-text">This season is absolutely phenomenal. The tension keeps building and you can't look away. Best TV I've ever watched.</div>
                                             <div class="comment-actions">
-                                                <button class="comment-like-btn liked" onclick="toggleCommentLike(this)">
+                                                <button class="comment-like-btn liked" onclick="toggleCommentLike(this, event)">
                                                     <svg viewBox="0 0 24 24">
                                                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                                     </svg>
@@ -1750,7 +2143,7 @@
                                             </div>
                                             <div class="comment-text">Started this last month and I'm already hooked. Can't believe I waited so long to watch it!</div>
                                             <div class="comment-actions">
-                                                <button class="comment-like-btn" onclick="toggleCommentLike(this)">
+                                                <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
                                                     <svg viewBox="0 0 24 24">
                                                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                                     </svg>
@@ -1769,7 +2162,7 @@
                                             </div>
                                             <div class="comment-text">The character development in this season is incredible. Every episode leaves me wanting more.</div>
                                             <div class="comment-actions">
-                                                <button class="comment-like-btn" onclick="toggleCommentLike(this)">
+                                                <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
                                                     <svg viewBox="0 0 24 24">
                                                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                                     </svg>
@@ -1891,6 +2284,10 @@
                     </div>
                 </div>
 
+    <div class="instructions">
+        Version 1.1 • Last updated: Nov 10, 2025 at 07:42 PM (Fixed formatting: Added missing blank line before iOS scroll lock comment to match card 2 structure)
+    </div>
+
     <script>
         function flipCard() {
             const card = document.getElementById('activityCard');
@@ -1928,6 +2325,118 @@
             event.stopPropagation();
             const commentsTab = event.currentTarget;
             commentsTab.classList.toggle('expanded');
+            
+            // Ensure input stays visible when expanding
+            if (commentsTab.classList.contains('expanded')) {
+                setTimeout(() => {
+                    const input = commentsTab.querySelector('.activity-comment-input');
+                    if (input) {
+                        // Scroll comments section if needed to keep input visible
+                        const commentsFull = commentsTab.querySelector('.comments-full');
+                        if (commentsFull) {
+                            commentsFull.scrollTop = 0;
+                        }
+                    }
+                }, 100);
+            }
+        }
+        
+        function closeCommentsTab(event) {
+            event.stopPropagation();
+            const commentsTab = document.querySelector('.card-front .comments-tab');
+            if (commentsTab) {
+                commentsTab.classList.remove('visible');
+                commentsTab.classList.remove('expanded');
+            }
+        }
+        
+        // Handle iOS keyboard appearance smoothly (Instagram-like behavior)
+        const commentInput = document.querySelector('.activity-comment-input');
+        if (commentInput) {
+            // Prevent zoom and handle keyboard smoothly
+            commentInput.addEventListener('focus', () => {
+                const initialViewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                
+                // Use visualViewport API for smooth keyboard handling (iOS 13+)
+                if (window.visualViewport) {
+                    const handleViewportChange = () => {
+                        const viewportHeight = window.visualViewport.height;
+                        const keyboardHeight = initialViewportHeight - viewportHeight;
+                        
+                        if (keyboardHeight > 0) {
+                            // Keyboard is visible - adjust comments tab position
+                            const commentsTab = document.querySelector('.comments-tab.expanded');
+                            if (commentsTab) {
+                                // Calculate how much to shift up
+                                const inputRect = commentInput.getBoundingClientRect();
+                                const tabRect = commentsTab.getBoundingClientRect();
+                                const inputBottom = inputRect.bottom;
+                                const viewportBottom = window.visualViewport.height;
+                                
+                                // If input would be hidden by keyboard, shift tab up
+                                // Position input just above keyboard with minimal gap (like Instagram)
+                                if (inputBottom > viewportBottom) {
+                                    const shiftAmount = inputBottom - viewportBottom + 8; // Minimal 8px gap
+                                    commentsTab.style.transform = `translateY(-${shiftAmount}px)`;
+                                    commentsTab.classList.add('keyboard-visible');
+                                    
+                                    // Hide instructions/version info to reduce gap
+                                    const instructions = document.querySelector('.instructions');
+                                    if (instructions) {
+                                        instructions.classList.add('keyboard-hidden');
+                                    }
+                                } else {
+                                    commentsTab.style.transform = 'translateY(0)';
+                                    commentsTab.classList.remove('keyboard-visible');
+                                    
+                                    // Show instructions again
+                                    const instructions = document.querySelector('.instructions');
+                                    if (instructions) {
+                                        instructions.classList.remove('keyboard-hidden');
+                                    }
+                                }
+                            }
+                        } else {
+                            // Keyboard hidden - reset position smoothly
+                            const commentsTab = document.querySelector('.comments-tab.expanded');
+                            if (commentsTab) {
+                                commentsTab.style.transform = 'translateY(0)';
+                                commentsTab.classList.remove('keyboard-visible');
+                            }
+                            
+                            // Show instructions again
+                            const instructions = document.querySelector('.instructions');
+                            if (instructions) {
+                                instructions.classList.remove('keyboard-hidden');
+                            }
+                        }
+                    };
+                    
+                    window.visualViewport.addEventListener('resize', handleViewportChange);
+                    handleViewportChange();
+                    
+                    // Clean up on blur
+                    commentInput.addEventListener('blur', () => {
+                        window.visualViewport.removeEventListener('resize', handleViewportChange);
+                        const commentsTab = document.querySelector('.comments-tab.expanded');
+                        if (commentsTab) {
+                            commentsTab.style.transform = 'translateY(0)';
+                            commentsTab.classList.remove('keyboard-visible');
+                        }
+                        
+                        // Show instructions again
+                        const instructions = document.querySelector('.instructions');
+                        if (instructions) {
+                            instructions.classList.remove('keyboard-hidden');
+                        }
+                    }, { once: true });
+                } else {
+                    // Fallback for older iOS - scroll input into view
+                    setTimeout(() => {
+                        commentInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 300);
+                }
+            });
         }
 
         // Close comments when clicking outside
@@ -2020,7 +2529,13 @@
         });
 
         // Comment like button interaction
-        function toggleCommentLike(button) {
+        function toggleCommentLike(button, event) {
+            // Prevent event from bubbling up and closing the comments bubble
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+            
             button.classList.toggle('liked');
             const countSpan = button.querySelector('span');
             let count = parseInt(countSpan.textContent);
@@ -2059,31 +2574,215 @@
             // Log the rating (in production, this would save to database)
             console.log('User rated show as:', rating);
         }
-        // iOS scroll fix: Lock body when card is flipped
-        const card = document.getElementById('activityCard');
-        const flipBtn = document.querySelector('.action-btn');
-        let scrollPosition = 0;
 
-        if (flipBtn) {
-            flipBtn.addEventListener('click', () => {
-                setTimeout(() => {
-                    if (card.classList.contains('flipped')) {
-                        // Card is now flipped - lock body scroll
-                        scrollPosition = window.pageYOffset;
-                        document.body.style.overflow = 'hidden';
-                        document.body.style.position = 'fixed';
-                        document.body.style.top = `-${scrollPosition}px`;
-                        document.body.style.width = '100%';
-                    } else {
-                        // Card is now unflipped - restore body scroll
-                        document.body.style.removeProperty('overflow');
-                        document.body.style.removeProperty('position');
-                        document.body.style.removeProperty('top');
-                        document.body.style.removeProperty('width');
-                        window.scrollTo(0, scrollPosition);
+        // iOS scroll lock/unlock functions
+        function lockBodyScroll() {
+            document.body.classList.add('scroll-locked');
+            document.documentElement.classList.add('scroll-locked');
+        }
+        
+        function unlockBodyScroll() {
+            document.body.classList.remove('scroll-locked');
+            document.documentElement.classList.remove('scroll-locked');
+        }
+
+        // iOS scroll management
+        const card = document.getElementById('activityCard');
+        const cardBackContent = document.querySelector('.card-back-content');
+        
+        if (card) {
+            // Watch for card flip and manage scroll locking
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        const isFlipped = card.classList.contains('flipped');
+                        if (isFlipped) {
+                            // Card flipped - lock body scroll
+                            lockBodyScroll();
+                        } else {
+                            // Card unflipped - unlock body scroll
+                            unlockBodyScroll();
+                        }
                     }
-                }, 100);
+                });
             });
+            
+            observer.observe(card, { attributes: true, attributeFilter: ['class'] });
+            
+            // Initial state check
+            if (card.classList.contains('flipped')) {
+                lockBodyScroll();
+            }
+        }
+        
+        // iOS scroll workaround - manually handle scrolling for transformed elements
+        // This is necessary because iOS Safari has a bug where scrolling doesn't work
+        // inside elements with CSS transforms (like our card flip)
+        if (cardBackContent) {
+            let touchStartY = 0;
+            let touchStartScrollTop = 0;
+            let lastTouchY = 0;
+            let lastTouchTime = 0;
+            let velocity = 0;
+            let momentumAnimation = null;
+            let isScrolling = false;
+            
+            // Smooth scroll with easing
+            function smoothScrollTo(targetScrollTop) {
+                const startScrollTop = cardBackContent.scrollTop;
+                const distance = targetScrollTop - startScrollTop;
+                const duration = Math.min(Math.abs(distance) * 0.5, 300); // Max 300ms
+                const startTime = performance.now();
+                
+                function animate(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    // Easing function (ease-out cubic)
+                    const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+                    
+                    const currentScrollTop = startScrollTop + (distance * easeOutCubic);
+                    cardBackContent.scrollTop = currentScrollTop;
+                    
+                    if (progress < 1) {
+                        momentumAnimation = requestAnimationFrame(animate);
+                    } else {
+                        momentumAnimation = null;
+                    }
+                }
+                
+                if (momentumAnimation) {
+                    cancelAnimationFrame(momentumAnimation);
+                }
+                momentumAnimation = requestAnimationFrame(animate);
+            }
+            
+            // Momentum scrolling after touch ends
+            function applyMomentum() {
+                if (Math.abs(velocity) < 0.1) {
+                    velocity = 0;
+                    return;
+                }
+                
+                const maxScroll = cardBackContent.scrollHeight - cardBackContent.clientHeight;
+                const currentScrollTop = cardBackContent.scrollTop;
+                const friction = 0.92; // Deceleration factor - Apple-like smooth deceleration
+                
+                // Apply friction to velocity
+                velocity *= friction;
+                
+                // Calculate new scroll position
+                // Positive velocity = swiping down = scroll down (increase scrollTop)
+                // Negative velocity = swiping up = scroll up (decrease scrollTop)
+                let newScrollTop = currentScrollTop + velocity;
+                
+                // Stop at boundaries
+                if (newScrollTop < 0) {
+                    newScrollTop = 0;
+                    velocity = 0;
+                } else if (newScrollTop > maxScroll) {
+                    newScrollTop = maxScroll;
+                    velocity = 0;
+                }
+                
+                cardBackContent.scrollTop = newScrollTop;
+                
+                // Continue momentum if velocity is still significant
+                if (Math.abs(velocity) > 0.1) {
+                    requestAnimationFrame(applyMomentum);
+                } else {
+                    velocity = 0;
+                }
+            }
+            
+            cardBackContent.addEventListener('touchstart', (e) => {
+                if (!card.classList.contains('flipped')) return;
+                
+                // Prevent event from bubbling to body
+                e.stopPropagation();
+                
+                // Cancel any ongoing momentum
+                if (momentumAnimation) {
+                    cancelAnimationFrame(momentumAnimation);
+                    momentumAnimation = null;
+                }
+                velocity = 0;
+                isScrolling = true;
+                
+                touchStartY = e.touches[0].clientY;
+                touchStartScrollTop = cardBackContent.scrollTop;
+                lastTouchY = touchStartY;
+                lastTouchTime = performance.now();
+            }, { passive: true });
+            
+            cardBackContent.addEventListener('touchmove', (e) => {
+                if (!card.classList.contains('flipped')) return;
+                
+                // Prevent event from bubbling to body to prevent page bounce
+                e.stopPropagation();
+                
+                const touchY = e.touches[0].clientY;
+                const currentTime = performance.now();
+                const deltaTime = currentTime - lastTouchTime;
+                
+                // Calculate velocity for momentum based on recent movement
+                // Positive velocity = scrolling down (content moving up)
+                if (deltaTime > 0 && lastTouchY !== 0) {
+                    const deltaY = lastTouchY - touchY; // Positive when swiping down
+                    velocity = (deltaY / deltaTime) * 16; // Normalize to 60fps, scale up for momentum
+                }
+                
+                const deltaY = touchStartY - touchY;
+                const newScrollTop = touchStartScrollTop + deltaY;
+                const maxScroll = cardBackContent.scrollHeight - cardBackContent.clientHeight;
+                
+                // Manually set scroll position with rubber band effect at boundaries
+                if (newScrollTop >= 0 && newScrollTop <= maxScroll) {
+                    cardBackContent.scrollTop = newScrollTop;
+                    // Prevent default to stop body scroll when we're handling it
+                    e.preventDefault();
+                } else if (newScrollTop < 0) {
+                    // Rubber band effect - reduce scroll amount when past boundary
+                    const overscroll = Math.abs(newScrollTop);
+                    cardBackContent.scrollTop = -overscroll * 0.3;
+                    // Always prevent default at boundaries to prevent page bounce
+                    e.preventDefault();
+                } else if (newScrollTop > maxScroll) {
+                    // Rubber band effect
+                    const overscroll = newScrollTop - maxScroll;
+                    cardBackContent.scrollTop = maxScroll + (overscroll * 0.3);
+                    // Always prevent default at boundaries to prevent page bounce
+                    e.preventDefault();
+                }
+                
+                lastTouchY = touchY;
+                lastTouchTime = currentTime;
+            }, { passive: false });
+            
+            cardBackContent.addEventListener('touchend', (e) => {
+                if (!card.classList.contains('flipped')) return;
+                
+                // Prevent event from bubbling to body
+                e.stopPropagation();
+                
+                isScrolling = false;
+                const maxScroll = cardBackContent.scrollHeight - cardBackContent.clientHeight;
+                const currentScrollTop = cardBackContent.scrollTop;
+                
+                // Snap back if overscrolled
+                if (currentScrollTop < 0) {
+                    smoothScrollTo(0);
+                    velocity = 0;
+                } else if (currentScrollTop > maxScroll) {
+                    smoothScrollTo(maxScroll);
+                    velocity = 0;
+                } else if (Math.abs(velocity) > 0.5) {
+                    // Apply momentum scrolling - continue in the direction of the swipe
+                    applyMomentum();
+                } else {
+                    velocity = 0;
+                }
+            }, { passive: true });
         }
     </script>
 </body>
