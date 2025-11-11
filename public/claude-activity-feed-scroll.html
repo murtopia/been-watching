@@ -127,6 +127,9 @@
             margin-bottom: 20px;
             scroll-snap-align: center;
             scroll-snap-stop: always;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .card-wrapper:first-child {
@@ -140,12 +143,9 @@
             width: 100%;
             height: 665px; /* 645px card + 20px padding */
             border: none;
-            border-radius: 16px;
-            overflow: visible;
             display: block;
             background: transparent;
             pointer-events: auto;
-            clip-path: inset(0 round 16px);
         }
 
         /* Bottom Navigation */
