@@ -555,6 +555,10 @@
             touch-action: pan-y;
             -webkit-tap-highlight-color: transparent;
             z-index: 1;
+            /* Ensure the element can receive touch events */
+            pointer-events: auto;
+            /* Force repaint for iOS */
+            will-change: scroll-position;
         }
 
         /* Title Section */
@@ -2447,63 +2451,64 @@
 
             cardBackContent.addEventListener('touchstart', (e) => {
                 if (!card.classList.contains('flipped')) return;
-                e.stopPropagation();
-
+                
+                // Cancel any ongoing momentum
                 if (momentumAnimation) {
                     cancelAnimationFrame(momentumAnimation);
                     momentumAnimation = null;
                 }
                 velocity = 0;
                 isScrolling = true;
-
+                
                 touchStartY = e.touches[0].clientY;
                 touchStartScrollTop = cardBackContent.scrollTop;
                 lastTouchY = touchStartY;
                 lastTouchTime = performance.now();
             }, { passive: true });
-
+            
             cardBackContent.addEventListener('touchmove', (e) => {
                 if (!card.classList.contains('flipped')) return;
-                e.stopPropagation();
-
+                
                 const touchY = e.touches[0].clientY;
                 const currentTime = performance.now();
                 const deltaTime = currentTime - lastTouchTime;
-
+                
+                // Calculate velocity for momentum based on recent movement
+                // Positive velocity = scrolling down (content moving up)
                 if (deltaTime > 0 && lastTouchY !== 0) {
-                    const deltaY = lastTouchY - touchY;
-                    velocity = (deltaY / deltaTime) * 16;
+                    const deltaY = lastTouchY - touchY; // Positive when swiping down
+                    velocity = (deltaY / deltaTime) * 16; // Normalize to 60fps, scale up for momentum
                 }
-
+                
                 const deltaY = touchStartY - touchY;
                 const newScrollTop = touchStartScrollTop + deltaY;
                 const maxScroll = cardBackContent.scrollHeight - cardBackContent.clientHeight;
-
+                
+                // Manually set scroll position with rubber band effect at boundaries
                 if (newScrollTop >= 0 && newScrollTop <= maxScroll) {
                     cardBackContent.scrollTop = newScrollTop;
-                    e.preventDefault();
                 } else if (newScrollTop < 0) {
+                    // Rubber band effect - reduce scroll amount when past boundary
                     const overscroll = Math.abs(newScrollTop);
                     cardBackContent.scrollTop = -overscroll * 0.3;
-                    e.preventDefault();
                 } else if (newScrollTop > maxScroll) {
+                    // Rubber band effect
                     const overscroll = newScrollTop - maxScroll;
                     cardBackContent.scrollTop = maxScroll + (overscroll * 0.3);
-                    e.preventDefault();
                 }
-
+                
                 lastTouchY = touchY;
                 lastTouchTime = currentTime;
             }, { passive: false });
-
-            cardBackContent.addEventListener('touchend', (e) => {
+            
+            cardBackContent.addEventListener('touchend', () => {
                 if (!card.classList.contains('flipped')) return;
-                e.stopPropagation();
-
+                
                 isScrolling = false;
                 const maxScroll = cardBackContent.scrollHeight - cardBackContent.clientHeight;
                 const currentScrollTop = cardBackContent.scrollTop;
-
+                
+                // Snap back if overscrolled
                 if (currentScrollTop < 0) {
                     smoothScrollTo(0);
                     velocity = 0;
@@ -2511,6 +2516,7 @@
                     smoothScrollTo(maxScroll);
                     velocity = 0;
                 } else if (Math.abs(velocity) > 0.5) {
+                    // Apply momentum scrolling - continue in the direction of the swipe
                     applyMomentum();
                 } else {
                     velocity = 0;
@@ -2602,20 +2608,20 @@
 
             commentsFull.addEventListener('touchmove', (e) => {
                 if (!document.querySelector('.comments-tab.expanded')) return;
-
+                
                 const touchY = e.touches[0].clientY;
                 const currentTime = performance.now();
                 const deltaTime = currentTime - commentsLastTouchTime;
-
+                
                 if (deltaTime > 0 && commentsLastTouchY !== 0) {
                     const deltaY = commentsLastTouchY - touchY;
                     commentsVelocity = (deltaY / deltaTime) * 16;
                 }
-
+                
                 const deltaY = commentsTouchStartY - touchY;
                 const newScrollTop = commentsTouchStartScrollTop + deltaY;
                 const maxScroll = commentsFull.scrollHeight - commentsFull.clientHeight;
-
+                
                 if (newScrollTop >= 0 && newScrollTop <= maxScroll) {
                     commentsFull.scrollTop = newScrollTop;
                 } else if (newScrollTop < 0) {
@@ -2625,7 +2631,7 @@
                     const overscroll = newScrollTop - maxScroll;
                     commentsFull.scrollTop = maxScroll + (overscroll * 0.3);
                 }
-
+                
                 commentsLastTouchY = touchY;
                 commentsLastTouchTime = currentTime;
             }, { passive: false });
