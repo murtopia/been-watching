@@ -327,12 +327,37 @@
             lastTouchEnd = now;
         }, { passive: false });
 
-        // Load cards
+        // Load cards and inject CSS to hide navigation
         window.addEventListener('load', () => {
             console.log('Activity Feed Loaded - Using native CSS scroll-snap');
 
             // Ensure first card is at top on load
             window.scrollTo({ top: 0, behavior: 'instant' });
+
+            // Hide navigation and instructions in all iframes
+            const iframes = document.querySelectorAll('.card-frame');
+            iframes.forEach((iframe) => {
+                iframe.addEventListener('load', () => {
+                    try {
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        const style = iframeDoc.createElement('style');
+                        style.textContent = `
+                            .card-nav {
+                                display: none !important;
+                            }
+                            .instructions {
+                                display: none !important;
+                            }
+                            body {
+                                padding-top: 0 !important;
+                            }
+                        `;
+                        iframeDoc.head.appendChild(style);
+                    } catch (e) {
+                        console.error('Could not inject styles into iframe:', e);
+                    }
+                });
+            });
         });
 
         // Bottom nav interactions
