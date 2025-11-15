@@ -356,7 +356,7 @@ export default function CardPreviewPage() {
               src={selectedCard.file}
               style={{
                 width: '430px',
-                height: '460px',
+                height: '500px',
                 border: 'none',
                 display: 'block'
               }}
@@ -375,7 +375,7 @@ export default function CardPreviewPage() {
                         padding: 0 !important;
                         display: block !important;
                         min-height: auto !important;
-                        overflow: hidden !important;
+                        overflow: visible !important;
                       }
                       .card-container {
                         margin: 0 !important;
