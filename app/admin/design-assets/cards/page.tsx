@@ -355,8 +355,8 @@ export default function CardPreviewPage() {
               key={iframeKey}
               src={selectedCard.file}
               style={{
-                width: '430px',
-                height: '500px',
+                width: '398px',
+                height: '645px',
                 border: 'none',
                 display: 'block'
               }}
