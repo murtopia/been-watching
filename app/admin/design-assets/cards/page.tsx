@@ -355,12 +355,38 @@ export default function CardPreviewPage() {
               key={iframeKey}
               src={selectedCard.file}
               style={{
-                width: '470px',
-                height: '725px',
+                width: '430px',
+                height: '460px',
                 border: 'none',
                 display: 'block'
               }}
               title={selectedCard.title}
+              onLoad={(e) => {
+                try {
+                  const iframe = e.target as HTMLIFrameElement
+                  const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
+                  if (iframeDoc) {
+                    // Inject CSS to hide navigation and clean up the display
+                    const style = iframeDoc.createElement('style')
+                    style.textContent = `
+                      #cardNav, #themeSwitcher { display: none !important; }
+                      body {
+                        background: transparent !important;
+                        padding: 0 !important;
+                        display: block !important;
+                        min-height: auto !important;
+                        overflow: hidden !important;
+                      }
+                      .card-container {
+                        margin: 0 !important;
+                      }
+                    `
+                    iframeDoc.head.appendChild(style)
+                  }
+                } catch (err) {
+                  console.error('Could not inject iframe styles:', err)
+                }
+              }}
             />
           </div>
 
