@@ -89,9 +89,18 @@ function getColor(theme: IconProps['theme'], customColor?: string): string {
 }
 
 /**
+ * Icon Component with static size variants
+ */
+interface IconComponent extends React.FC<IconProps> {
+  Small: React.FC<Omit<IconProps, 'size'>>;
+  Medium: React.FC<Omit<IconProps, 'size'>>;
+  Large: React.FC<Omit<IconProps, 'size'>>;
+}
+
+/**
  * Icon Component
  */
-export const Icon: React.FC<IconProps> = ({
+const IconBase: React.FC<IconProps> = ({
   name,
   size = 24,
   state = 'default',
@@ -148,8 +157,10 @@ export const IconSize = {
  * <Icon.Small name="heart" />
  * <Icon.Large name="star" />
  */
-Icon.Small = (props: Omit<IconProps, 'size'>) => <Icon size={IconSize.sm} {...props} />;
-Icon.Medium = (props: Omit<IconProps, 'size'>) => <Icon size={IconSize.md} {...props} />;
-Icon.Large = (props: Omit<IconProps, 'size'>) => <Icon size={IconSize.lg} {...props} />;
+const Icon = IconBase as IconComponent;
+Icon.Small = (props: Omit<IconProps, 'size'>) => <IconBase size={IconSize.sm} {...props} />;
+Icon.Medium = (props: Omit<IconProps, 'size'>) => <IconBase size={IconSize.md} {...props} />;
+Icon.Large = (props: Omit<IconProps, 'size'>) => <IconBase size={IconSize.lg} {...props} />;
 
+export { Icon };
 export default Icon;
