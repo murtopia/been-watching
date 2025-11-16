@@ -148,6 +148,7 @@ export default function FeedCardsPreviewPage() {
 
   // Sample data for Follow Suggestions Card
   const followSuggestionsData = {
+    type: 'follow-suggestions' as const,
     id: '2',
     timestamp: new Date(),
     suggestions: [
