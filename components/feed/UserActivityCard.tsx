@@ -9,6 +9,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
+import { Icon } from '@/components/ui/Icon'
 
 // ============================================================================
 // TypeScript Interfaces
@@ -1052,11 +1053,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
 
             {/* Menu Button (Three Dots) */}
             <div className="menu-btn" onClick={flipCard}>
-              <svg viewBox="0 0 24 24">
-                <circle cx="12" cy="6" r="1.5" fill="white" />
-                <circle cx="12" cy="12" r="1.5" fill="white" />
-                <circle cx="12" cy="18" r="1.5" fill="white" />
-              </svg>
+              <Icon name="menu-dots" size={20} color="white" />
             </div>
 
             {/* Card Content */}
@@ -1088,14 +1085,10 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                     }}
                   >
                     {badge.text === 'Loved' && (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill={badge.textColor}>
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                      </svg>
+                      <Icon name="heart" state="filled" size={14} color={badge.textColor} />
                     )}
                     {badge.text === 'Currently Watching' && (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={badge.textColor} strokeWidth="2">
-                        <polygon points="5 3 19 12 5 21 5 3" fill={badge.textColor} />
-                      </svg>
+                      <Icon name="play" state="filled" size={14} color={badge.textColor} />
                     )}
                     {badge.text}
                   </div>
@@ -1129,9 +1122,12 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                   className={`action-btn ${localLiked ? 'liked' : ''}`}
                   onClick={handleLike}
                 >
-                  <svg viewBox="0 0 24 24">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                  </svg>
+                  <Icon
+                    name="heart"
+                    state={localLiked ? 'filled' : 'default'}
+                    size={24}
+                    color={localLiked ? '#FF3B5C' : 'white'}
+                  />
                   <div className="action-count">{localLikeCount}</div>
                 </button>
               </div>
@@ -1139,19 +1135,14 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
               {/* Add Button */}
               <div>
                 <button className="action-btn" onClick={toggleActionOverlay}>
-                  <svg viewBox="0 0 24 24">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
+                  <Icon name="plus" size={24} color="white" />
                 </button>
               </div>
 
               {/* Comment Button */}
               <div>
                 <button className="action-btn" onClick={toggleComments}>
-                  <svg viewBox="0 0 24 24">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                  </svg>
+                  <Icon name="comment" size={24} color="white" />
                   <div className="action-count">{data.stats.commentCount}</div>
                 </button>
               </div>
@@ -1171,10 +1162,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                   e.stopPropagation()
                   toggleComments()
                 }}>
-                  <svg viewBox="0 0 24 24" fill="none">
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
+                  <Icon name="close" size={14} color="white" />
                 </button>
               </div>
 
@@ -1197,9 +1185,12 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                       <button
                         className={`comment-like-btn ${comment.userLiked ? 'liked' : ''}`}
                       >
-                        <svg viewBox="0 0 24 24">
-                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                        </svg>
+                        <Icon
+                          name="heart"
+                          state={comment.userLiked ? 'filled' : 'default'}
+                          size={14}
+                          color={comment.userLiked ? '#FF3B5C' : 'rgba(255, 255, 255, 0.6)'}
+                        />
                         {comment.likes}
                       </button>
                     </div>
@@ -1212,9 +1203,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                     placeholder="Add a comment..."
                   />
                   <button className="send-btn">
-                    <svg viewBox="0 0 24 24">
-                      <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
-                    </svg>
+                    <Icon name="send" size={16} color="white" />
                   </button>
                 </div>
               </div>
@@ -1224,10 +1213,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           {/* BACK FACE */}
           <div className="card-face card-back">
             <button className="close-btn" onClick={flipCard}>
-              <svg viewBox="0 0 24 24" fill="none">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
+              <Icon name="close" size={16} color="white" />
             </button>
 
             <div className="card-back-content">
@@ -1335,22 +1321,30 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                 <div className="back-section-title">Friends Ratings</div>
                 <div className="friends-ratings-grid">
                   <div className={`rating-stat ${data.friendsActivity.ratings.userRating === 'meh' ? 'active-user-rating' : ''}`}>
-                    <svg viewBox="0 0 24 24">
-                      <circle cx="12" cy="12" r="10" />
-                      <line x1="8" y1="15" x2="16" y2="15" />
-                    </svg>
+                    <Icon
+                      name="meh-face"
+                      state={data.friendsActivity.ratings.userRating === 'meh' ? 'filled' : 'default'}
+                      size={28}
+                      color={data.friendsActivity.ratings.userRating === 'meh' ? '#FF3B5C' : 'rgba(255, 255, 255, 0.6)'}
+                    />
                     <div className="rating-stat-count">{data.friendsActivity.ratings.meh}</div>
                   </div>
                   <div className={`rating-stat ${data.friendsActivity.ratings.userRating === 'like' ? 'active-user-rating' : ''}`}>
-                    <svg viewBox="0 0 24 24">
-                      <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
-                    </svg>
+                    <Icon
+                      name="thumbs-up"
+                      state={data.friendsActivity.ratings.userRating === 'like' ? 'filled' : 'default'}
+                      size={28}
+                      color={data.friendsActivity.ratings.userRating === 'like' ? '#FF3B5C' : 'rgba(255, 255, 255, 0.6)'}
+                    />
                     <div className="rating-stat-count">{data.friendsActivity.ratings.like}</div>
                   </div>
                   <div className={`rating-stat ${data.friendsActivity.ratings.userRating === 'love' ? 'active-user-rating' : ''}`}>
-                    <svg viewBox="0 0 24 24">
-                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                    </svg>
+                    <Icon
+                      name="heart"
+                      state={data.friendsActivity.ratings.userRating === 'love' ? 'filled' : 'default'}
+                      size={28}
+                      color={data.friendsActivity.ratings.userRating === 'love' ? '#FF3B5C' : 'rgba(255, 255, 255, 0.6)'}
+                    />
                     <div className="rating-stat-count">{data.friendsActivity.ratings.love}</div>
                   </div>
                 </div>
@@ -1371,9 +1365,12 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                         <div className="comment-text">{comment.text}</div>
                         <div className="comment-actions">
                           <button className={`comment-like-btn ${comment.userLiked ? 'liked' : ''}`}>
-                            <svg viewBox="0 0 24 24">
-                              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                            </svg>
+                            <Icon
+                              name="heart"
+                              state={comment.userLiked ? 'filled' : 'default'}
+                              size={14}
+                              color={comment.userLiked ? '#FF3B5C' : 'rgba(255, 255, 255, 0.6)'}
+                            />
                             {comment.likes}
                           </button>
                         </div>
