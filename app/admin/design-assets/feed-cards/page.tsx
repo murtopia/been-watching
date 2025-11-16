@@ -20,26 +20,41 @@ export default function FeedCardsPreviewPage() {
   // Sample data for User Activity Card
   const userActivityData = {
     id: '1',
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+    timestamp: '2 hours ago',
     user: {
       id: 'user-1',
       name: 'Sarah Mitchell',
       username: 'sarahmitchell',
       avatar: 'https://i.pravatar.cc/150?img=5'
     },
-    activityType: 'loved',
+    activityType: 'loved' as 'loved',
+    activityBadges: [
+      {
+        text: 'Loved',
+        color: 'rgba(255, 59, 92, 0.2)',
+        borderColor: 'rgba(255, 59, 92, 0.4)',
+        textColor: '#FF3B5C'
+      },
+      {
+        text: 'Currently Watching',
+        color: 'rgba(52, 211, 153, 0.2)',
+        borderColor: 'rgba(52, 211, 153, 0.4)',
+        textColor: '#34D399'
+      }
+    ],
     media: {
       id: 'media-1',
-      title: 'Breaking Bad',
-      year: 2008,
+      title: 'Breaking Bad Season 5',
+      year: 2012,
       genres: ['Crime', 'Drama', 'Thriller'],
       rating: 9.5,
       posterUrl: 'https://image.tmdb.org/t/p/w500/ggFHVNu6YYI5L9pCfOacjizRGt.jpg',
-      synopsis: 'A high school chemistry teacher diagnosed with inoperable lung cancer turns to manufacturing and selling methamphetamine in order to secure his family\'s future.',
+      synopsis: 'In the final season, being bad is all that remains for Walter White. His empire grows, endangering his family and himself in ways he could never have imagined.',
       creator: 'Vince Gilligan',
       cast: ['Bryan Cranston', 'Aaron Paul', 'Anna Gunn', 'Dean Norris'],
       network: 'AMC',
-      trailer: 'https://youtube.com/watch?v=example'
+      season: 5,
+      mediaType: 'TV' as const
     },
     friends: {
       avatars: [
@@ -47,18 +62,88 @@ export default function FeedCardsPreviewPage() {
         { id: '3', name: 'Jane Smith', username: 'janesmith', avatar: 'https://i.pravatar.cc/150?img=20' },
         { id: '4', name: 'Mike Wilson', username: 'mikewilson', avatar: 'https://i.pravatar.cc/150?img=33' }
       ],
-      count: 8
-    },
-    ratings: {
-      meh: 2,
-      like: 5,
-      love: 12
+      count: 8,
+      text: '8 friends also loved this'
     },
     stats: {
       likeCount: 24,
-      commentCount: 7
+      commentCount: 7,
+      userLiked: false
     },
-    comments: []
+    friendsActivity: {
+      watching: {
+        count: 8,
+        avatars: [
+          'https://i.pravatar.cc/150?img=12',
+          'https://i.pravatar.cc/150?img=20',
+          'https://i.pravatar.cc/150?img=33'
+        ]
+      },
+      wantToWatch: {
+        count: 12,
+        avatars: [
+          'https://i.pravatar.cc/150?img=15',
+          'https://i.pravatar.cc/150?img=25',
+          'https://i.pravatar.cc/150?img=35'
+        ]
+      },
+      watched: {
+        count: 42,
+        avatars: [
+          'https://i.pravatar.cc/150?img=40',
+          'https://i.pravatar.cc/150?img=45',
+          'https://i.pravatar.cc/150?img=50'
+        ]
+      },
+      ratings: {
+        meh: 5,
+        like: 23,
+        love: 48,
+        userRating: 'love' as const
+      }
+    },
+    comments: [
+      {
+        id: 'c1',
+        user: { name: 'John Doe', avatar: 'https://i.pravatar.cc/150?img=12' },
+        text: 'This season was absolutely incredible! Best TV finale ever.',
+        timestamp: '1 hour ago',
+        likes: 12,
+        userLiked: false
+      },
+      {
+        id: 'c2',
+        user: { name: 'Jane Smith', avatar: 'https://i.pravatar.cc/150?img=20' },
+        text: 'The intensity in every episode is unmatched.',
+        timestamp: '45 min ago',
+        likes: 8,
+        userLiked: true
+      }
+    ],
+    showComments: [
+      {
+        id: 'sc1',
+        user: { name: 'Mike Wilson', avatar: 'https://i.pravatar.cc/150?img=33' },
+        text: 'I can\'t stop thinking about this show. Masterpiece!',
+        timestamp: '30 min ago',
+        likes: 15,
+        userLiked: false
+      },
+      {
+        id: 'sc2',
+        user: { name: 'Sarah Johnson', avatar: 'https://i.pravatar.cc/150?img=40' },
+        text: 'The character development is phenomenal.',
+        timestamp: '15 min ago',
+        likes: 7,
+        userLiked: true
+      }
+    ],
+    similarShows: [
+      { id: 's1', title: 'Better Call Saul', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
+      { id: 's2', title: 'Ozark', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
+      { id: 's3', title: 'The Sopranos', gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' },
+      { id: 's4', title: 'The Wire', gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' }
+    ]
   }
 
   // Sample data for Follow Suggestions Card
