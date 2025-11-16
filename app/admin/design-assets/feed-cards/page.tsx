@@ -9,7 +9,7 @@
 import { useState } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import DesignAssetsNav from '../DesignAssetsNav'
-import { UserActivityCard } from '@/components/feed/UserActivityCard'
+import { UserActivityCard, UserActivityCardData } from '@/components/feed/UserActivityCard'
 import { FollowSuggestionsCard } from '@/components/feed/FollowSuggestionsCard'
 
 export default function FeedCardsPreviewPage() {
@@ -18,7 +18,7 @@ export default function FeedCardsPreviewPage() {
   const [trackingLog, setTrackingLog] = useState<string[]>([])
 
   // Sample data for User Activity Card
-  const userActivityData = {
+  const userActivityData: UserActivityCardData = {
     id: '1',
     timestamp: '2 hours ago',
     user: {
