@@ -10,7 +10,6 @@ import { useState } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import DesignAssetsNav from '../DesignAssetsNav'
 import { UserActivityCard, UserActivityCardData } from '@/components/feed/UserActivityCard'
-import { FollowSuggestionsCard } from '@/components/feed/FollowSuggestionsCard'
 
 export default function FeedCardsPreviewPage() {
   const colors = useThemeColors()
@@ -146,83 +145,6 @@ export default function FeedCardsPreviewPage() {
     ]
   }
 
-  // Sample data for Follow Suggestions Card
-  const followSuggestionsData = {
-    type: 'follow-suggestions' as const,
-    id: '2',
-    timestamp: new Date(),
-    suggestions: [
-      {
-        user: {
-          id: 'suggest-1',
-          name: 'Alex Thompson',
-          username: 'alexthompson',
-          avatar: 'https://i.pravatar.cc/150?img=15'
-        },
-        matchPercentage: 89,
-        bio: 'Sci-fi enthusiast and TV show addict. Always looking for the next binge-worthy series!',
-        stats: {
-          wantToWatch: 42,
-          watching: 8,
-          watched: 156
-        },
-        mutualFriends: {
-          avatars: [
-            { id: '2', name: 'John Doe', username: 'johndoe', avatar: 'https://i.pravatar.cc/150?img=12' },
-            { id: '3', name: 'Jane Smith', username: 'janesmith', avatar: 'https://i.pravatar.cc/150?img=20' }
-          ],
-          count: 5
-        },
-        isFollowing: false
-      },
-      {
-        user: {
-          id: 'suggest-2',
-          name: 'Emily Chen',
-          username: 'emilychen',
-          avatar: 'https://i.pravatar.cc/150?img=25'
-        },
-        matchPercentage: 92,
-        bio: 'Drama lover with a soft spot for British shows. Let\'s discuss our favorite series!',
-        stats: {
-          wantToWatch: 38,
-          watching: 12,
-          watched: 203
-        },
-        mutualFriends: {
-          avatars: [
-            { id: '4', name: 'Mike Wilson', username: 'mikewilson', avatar: 'https://i.pravatar.cc/150?img=33' }
-          ],
-          count: 3
-        },
-        isFollowing: false
-      },
-      {
-        user: {
-          id: 'suggest-3',
-          name: 'Marcus Johnson',
-          username: 'marcusj',
-          avatar: 'https://i.pravatar.cc/150?img=40'
-        },
-        matchPercentage: 85,
-        bio: 'Animation fan and comedy connoisseur. Love discovering hidden gems!',
-        stats: {
-          wantToWatch: 29,
-          watching: 6,
-          watched: 178
-        },
-        mutualFriends: {
-          avatars: [
-            { id: '2', name: 'John Doe', username: 'johndoe', avatar: 'https://i.pravatar.cc/150?img=12' },
-            { id: '3', name: 'Jane Smith', username: 'janesmith', avatar: 'https://i.pravatar.cc/150?img=20' },
-            { id: '4', name: 'Mike Wilson', username: 'mikewilson', avatar: 'https://i.pravatar.cc/150?img=33' }
-          ],
-          count: 7
-        },
-        isFollowing: false
-      }
-    ]
-  }
 
   const handleTrack = (action: string, metadata?: any) => {
     const log = `[${new Date().toLocaleTimeString()}] ${action}: ${JSON.stringify(metadata || {})}`
@@ -370,78 +292,41 @@ export default function FeedCardsPreviewPage() {
         </div>
       </div>
 
-      {/* Cards Grid */}
+      {/* Cards Vertical Stack */}
       <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, 398px)',
-        gap: '2rem',
-        justifyContent: 'start',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '3rem',
         marginBottom: '2rem'
       }}>
         {/* Card 1: User Activity */}
-        <div>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '1rem'
+        }}>
           <h3 style={{
             fontSize: '0.875rem',
             fontWeight: 600,
             color: colors.textPrimary,
-            margin: '0 0 1rem 0',
+            margin: 0,
             textTransform: 'uppercase',
             letterSpacing: '0.05em'
           }}>
             Card 1: User Activity
           </h3>
-          <div style={{
-            background: selectedTheme === 'dark'
-              ? 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)'
-              : 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-            borderRadius: '20px',
-            padding: '2rem',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}>
-            <UserActivityCard
-              data={userActivityData}
-              onLike={() => handleTrack('like', { cardId: userActivityData.id })}
-              onComment={() => handleTrack('comment', { cardId: userActivityData.id })}
-              onShare={() => handleTrack('share', { cardId: userActivityData.id })}
-              onAddToWatchlist={() => handleTrack('watchlist', { cardId: userActivityData.id })}
-              onUserClick={(userId) => handleTrack('click-user', { userId })}
-              onMediaClick={(mediaId) => handleTrack('click-media', { mediaId })}
-              onTrack={handleTrack}
-            />
-          </div>
-        </div>
-
-        {/* Card 7: Follow Suggestions */}
-        <div>
-          <h3 style={{
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            color: colors.textPrimary,
-            margin: '0 0 1rem 0',
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em'
-          }}>
-            Card 7: Follow Suggestions
-          </h3>
-          <div style={{
-            background: selectedTheme === 'dark'
-              ? 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)'
-              : 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-            borderRadius: '20px',
-            padding: '2rem',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}>
-            <FollowSuggestionsCard
-              data={followSuggestionsData}
-              onFollow={(userId) => handleTrack('follow', { userId })}
-              onUserClick={(userId) => handleTrack('click-user', { userId })}
-              onTrack={handleTrack}
-            />
-          </div>
+          <UserActivityCard
+            data={userActivityData}
+            onLike={() => handleTrack('like', { cardId: userActivityData.id })}
+            onComment={() => handleTrack('comment', { cardId: userActivityData.id })}
+            onShare={() => handleTrack('share', { cardId: userActivityData.id })}
+            onAddToWatchlist={() => handleTrack('watchlist', { cardId: userActivityData.id })}
+            onUserClick={(userId) => handleTrack('click-user', { userId })}
+            onMediaClick={(mediaId) => handleTrack('click-media', { mediaId })}
+            onTrack={handleTrack}
+          />
         </div>
       </div>
 
@@ -512,40 +397,6 @@ export default function FeedCardsPreviewPage() {
               width: '20px',
               height: '20px',
               borderRadius: '4px',
-              background: '#22C55E',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontSize: '12px',
-              fontWeight: 700
-            }}>✓</div>
-            <span style={{ fontSize: '0.875rem', color: colors.textPrimary }}>
-              Card 1: User Activity (with flip animation & full back face)
-            </span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{
-              width: '20px',
-              height: '20px',
-              borderRadius: '4px',
-              background: '#22C55E',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontSize: '12px',
-              fontWeight: 700
-            }}>✓</div>
-            <span style={{ fontSize: '0.875rem', color: colors.textPrimary }}>
-              Card 7: Follow Suggestions (with auto-rotate carousel)
-            </span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{
-              width: '20px',
-              height: '20px',
-              borderRadius: '4px',
               background: '#F59E0B',
               display: 'flex',
               alignItems: 'center',
@@ -554,8 +405,25 @@ export default function FeedCardsPreviewPage() {
               fontSize: '12px',
               fontWeight: 700
             }}>⏳</div>
+            <span style={{ fontSize: '0.875rem', color: colors.textPrimary }}>
+              Card 1: User Activity - Converting from HTML to React
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{
+              width: '20px',
+              height: '20px',
+              borderRadius: '4px',
+              background: '#6B7280',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontSize: '12px',
+              fontWeight: 700
+            }}>◯</div>
             <span style={{ fontSize: '0.875rem', color: colors.textSecondary }}>
-              Cards 2-6: Awaiting approval before implementation
+              Cards 2-7: Pending Card 1 approval
             </span>
           </div>
         </div>
