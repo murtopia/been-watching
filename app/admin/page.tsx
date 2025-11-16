@@ -2,2030 +2,391 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useThemeColors } from '@/hooks/useThemeColors'
+import MetricCard from '@/components/admin/MetricCard'
+import {
+  Users,
+  UserCheck,
+  UserPlus,
+  Repeat,
+  Star,
+  Activity,
+  Heart,
+  TrendingUp,
+  Search,
+  AlertCircle,
+  Clock,
+  Gift,
+  CheckCircle
+} from 'lucide-react'
 
-interface InviteStats {
-  code: string
-  type: string
-  max_uses: number | null
-  current_uses: number
-  uses_status: string
-  is_active: boolean
-  created_at: string
-  total_signups: number
-}
-
-interface WaitlistEntry {
-  id: string
-  email: string
-  name: string | null
-  position: number
-  invited_at: string | null
-  invite_code: string | null
-  created_at: string
-}
-
-interface AdminUser {
-  id: string
-  username: string
-  display_name: string
-  is_admin: boolean
-  is_super_admin: boolean
-  admin_granted_at: string | null
-  granted_by_username: string | null
-  created_at: string
-}
-
-interface SocialMetrics {
-  totalFollows: number
-  avgFollowsPerUser: number
-  mostFollowed: Array<{ username: string; display_name: string; followerCount: number }>
-  mostActive: Array<{ username: string; display_name: string; activityCount: number }>
-  orphanedUsers: Array<{ username: string; display_name: string }>
-}
-
-export default function AdminPage() {
-  const [user, setUser] = useState<any>(null)
-  const [profile, setProfile] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
-  const [inviteStats, setInviteStats] = useState<InviteStats[]>([])
-  const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([])
-  const [adminUsers, setAdminUsers] = useState<AdminUser[]>([])
-  const [allUsers, setAllUsers] = useState<AdminUser[]>([])
-  const [newCodeType, setNewCodeType] = useState<'limited' | 'unlimited'>('limited')
-  const [creatingCode, setCreatingCode] = useState(false)
-  const [newCode, setNewCode] = useState('')
-  const [isDarkMode, setIsDarkMode] = useState(false)
-  const [socialMetrics, setSocialMetrics] = useState<SocialMetrics | null>(null)
-  const [loadingMetrics, setLoadingMetrics] = useState(false)
-
-  // Announcement state
-  const [announcementTitle, setAnnouncementTitle] = useState('')
-  const [announcementMessage, setAnnouncementMessage] = useState('')
-  const [announcementType, setAnnouncementType] = useState<'announcement' | 'feature_release' | 'maintenance'>('announcement')
-  const [announcementIcon, setAnnouncementIcon] = useState('📢')
-  const [hasAction, setHasAction] = useState(false)
-  const [actionType, setActionType] = useState<'internal' | 'external'>('internal')
-  const [actionUrl, setActionUrl] = useState('')
-  const [actionText, setActionText] = useState('')
-  const [targetAudience, setTargetAudience] = useState<'all' | 'incomplete_profiles' | 'active_users'>('all')
-  const [sendingAnnouncement, setSendingAnnouncement] = useState(false)
-  const [announcementResult, setAnnouncementResult] = useState<{ success: boolean; message: string; recipients?: number } | null>(null)
-  const [announcementStats, setAnnouncementStats] = useState<any[]>([])
-
-  // Confirmation modal state
-  const [showConfirmModal, setShowConfirmModal] = useState(false)
-  const [pendingAnnouncementData, setPendingAnnouncementData] = useState<any>(null)
-
+export default function AdminDashboard() {
+  const colors = useThemeColors()
   const supabase = createClient()
-  const router = useRouter()
 
-  // Get seasonal icons based on current month
-  const getSeasonalIcons = () => {
-    const month = new Date().getMonth() // 0-11
-    const baseIcons = ['📢', '🎉', '✨', '🚀', '⚡', '🔧']
+  // Metric states
+  const [totalUsers, setTotalUsers] = useState(0)
+  const [activeUsers, setActiveUsers] = useState(0)
+  const [newSignups, setNewSignups] = useState(0)
+  const [totalRatings, setTotalRatings] = useState(0)
+  const [totalLikes, setTotalLikes] = useState(0)
+  const [totalFollows, setTotalFollows] = useState(0)
+  const [totalInvites, setTotalInvites] = useState(0)
+  const [invitesAccepted, setInvitesAccepted] = useState(0)
+  const [loading, setLoading] = useState(true)
 
-    // October: Halloween
-    if (month === 9) {
-      return [...baseIcons, '🎃', '👻', '🦇', '🕷️', '💀', '🍂']
-    }
-    // November-December: Holidays
-    else if (month === 10 || month === 11) {
-      return [...baseIcons, '🎄', '🎅', '❄️', '⛄', '🎁', '🦃']
-    }
-    // January-February: Winter/Valentine's
-    else if (month === 0 || month === 1) {
-      return [...baseIcons, '❄️', '⛄', '💝', '💘', '🎊', '🎆']
-    }
-    // March-April: Spring
-    else if (month === 2 || month === 3) {
-      return [...baseIcons, '🌸', '🌷', '🌼', '🦋', '🐣', '☘️']
-    }
-    // May-June: Summer
-    else if (month === 4 || month === 5) {
-      return [...baseIcons, '☀️', '🌻', '🌊', '🏖️', '🍉', '🌺']
-    }
-    // July-August: Summer
-    else if (month === 6 || month === 7) {
-      return [...baseIcons, '🏖️', '🌊', '☀️', '🍦', '🎆', '🔥']
-    }
-    // September: Fall
-    else if (month === 8) {
-      return [...baseIcons, '🍂', '🍁', '🌰', '🎒', '📚', '🏈']
-    }
-
-    return baseIcons
-  }
-
-  // Check system preference on mount
   useEffect(() => {
-    const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    setIsDarkMode(darkModeQuery.matches)
-
-    const handler = (e: MediaQueryListEvent) => setIsDarkMode(e.matches)
-    darkModeQuery.addEventListener('change', handler)
-    return () => darkModeQuery.removeEventListener('change', handler)
+    loadMetrics()
   }, [])
 
-  useEffect(() => {
-    checkUser()
-  }, [])
-
-  useEffect(() => {
-    if (user) {
-      loadData()
-    }
-  }, [user])
-
-  const checkUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      router.push('/auth')
-      return
-    }
-
-    // Check if user is admin
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single()
-
-    if (!profileData?.is_admin) {
-      alert('Access denied. You must be an admin to view this page.')
-      router.push('/')
-      return
-    }
-
-    setIsAdmin(profileData.is_admin)
-    setIsSuperAdmin(profileData.is_super_admin || false)
-    setProfile(profileData)
-    setUser(user)
-    setLoading(false)
-  }
-
-  const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut()
-    if (error) {
-      console.error('Error logging out:', error)
-    } else {
-      router.push('/auth')
-    }
-  }
-
-  const getInitials = (name: string) => {
-    if (!name) return 'AD'
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'AD'
-  }
-
-  const loadData = async () => {
-    // Load master code stats
-    const { data: invites } = await supabase
-      .from('admin_master_code_stats')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (invites) {
-      setInviteStats(invites)
-    }
-
-    // Load waitlist
-    const { data: waitlistData } = await supabase
-      .from('waitlist')
-      .select('*')
-      .order('position', { ascending: true })
-      .limit(50)
-
-    if (waitlistData) {
-      setWaitlist(waitlistData)
-    }
-
-    // Load users for admin management (super admins only)
-    if (isSuperAdmin) {
-      const { data: users } = await supabase
-        .from('profiles')
-        .select('id, username, display_name, is_admin, is_super_admin, created_at')
-        .order('created_at', { ascending: false })
-        .limit(100)
-
-      if (users) {
-        setAllUsers(users as any)
-        setAdminUsers(users.filter(u => u.is_admin) as any)
-      }
-    }
-
-    // Load social metrics
-    loadSocialMetrics()
-
-    // Load announcement stats
-    loadAnnouncementStats()
-  }
-
-  const loadSocialMetrics = async () => {
-    setLoadingMetrics(true)
+  const loadMetrics = async () => {
     try {
-      // Total follows count
-      const { count: totalFollows } = await supabase
-        .from('follows')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'accepted')
-
-      // Get total users count
-      const { count: totalUsers } = await supabase
+      // Total Users
+      const { count: usersCount } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true })
+      setTotalUsers(usersCount || 0)
 
-      // Calculate average follows per user
-      const avgFollowsPerUser = totalUsers && totalFollows
-        ? Math.round((totalFollows / totalUsers) * 10) / 10
-        : 0
-
-      // Most followed users
-      const { data: followsData } = await supabase
-        .from('follows')
-        .select('following_id')
-        .eq('status', 'accepted')
-
-      const followCounts: Record<string, number> = {}
-      followsData?.forEach(f => {
-        followCounts[f.following_id] = (followCounts[f.following_id] || 0) + 1
-      })
-
-      const topFollowedIds = Object.entries(followCounts)
-        .sort(([, a], [, b]) => b - a)
-        .slice(0, 10)
-        .map(([id]) => id)
-
-      const { data: mostFollowedProfiles } = await supabase
+      // New Signups (last 7 days)
+      const sevenDaysAgo = new Date()
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+      const { count: signupsCount } = await supabase
         .from('profiles')
-        .select('username, display_name, id')
-        .in('id', topFollowedIds)
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', sevenDaysAgo.toISOString())
+      setNewSignups(signupsCount || 0)
 
-      const mostFollowed = mostFollowedProfiles?.map(p => ({
-        username: p.username,
-        display_name: p.display_name,
-        followerCount: followCounts[p.id]
-      }))
-        .sort((a, b) => b.followerCount - a.followerCount) || []
-
-      // Most active users (last 30 days)
-      const thirtyDaysAgo = new Date()
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-
-      const { data: activitiesData } = await supabase
+      // Active Users (users with activity in last 7 days)
+      const { data: activeUsersData } = await supabase
         .from('activities')
         .select('user_id')
-        .gte('created_at', thirtyDaysAgo.toISOString())
+        .gte('created_at', sevenDaysAgo.toISOString())
+      const uniqueActiveUsers = new Set(activeUsersData?.map(a => a.user_id) || [])
+      setActiveUsers(uniqueActiveUsers.size)
 
-      const activityCounts: Record<string, number> = {}
-      activitiesData?.forEach(a => {
-        activityCounts[a.user_id] = (activityCounts[a.user_id] || 0) + 1
-      })
+      // Total Ratings
+      const { count: ratingsCount } = await supabase
+        .from('ratings')
+        .select('*', { count: 'exact', head: true })
+      setTotalRatings(ratingsCount || 0)
 
-      const topActiveIds = Object.entries(activityCounts)
-        .sort(([, a], [, b]) => b - a)
-        .slice(0, 10)
-        .map(([id]) => id)
+      // Total Likes
+      const { count: likesCount } = await supabase
+        .from('activity_likes')
+        .select('*', { count: 'exact', head: true })
+      setTotalLikes(likesCount || 0)
 
-      const { data: mostActiveProfiles } = await supabase
-        .from('profiles')
-        .select('username, display_name, id')
-        .in('id', topActiveIds)
-
-      const mostActive = mostActiveProfiles?.map(p => ({
-        username: p.username,
-        display_name: p.display_name,
-        activityCount: activityCounts[p.id]
-      }))
-        .sort((a, b) => b.activityCount - a.activityCount) || []
-
-      // Orphaned users (no follows, no followers)
-      const { data: allProfiles } = await supabase
-        .from('profiles')
-        .select('id, username, display_name')
-
-      const { data: allFollows } = await supabase
+      // Total Follows
+      const { count: followsCount } = await supabase
         .from('follows')
-        .select('follower_id, following_id')
+        .select('*', { count: 'exact', head: true })
+      setTotalFollows(followsCount || 0)
 
-      const userWithFollows = new Set<string>()
-      allFollows?.forEach(f => {
-        userWithFollows.add(f.follower_id)
-        userWithFollows.add(f.following_id)
-      })
+      // Invite Metrics
+      const { data: invites } = await supabase
+        .from('invite_codes')
+        .select('is_used')
+      const totalInvites = invites?.length || 0
+      const usedInvites = invites?.filter(i => i.is_used).length || 0
+      setTotalInvites(totalInvites)
+      setInvitesAccepted(usedInvites)
 
-      const orphanedUsers = allProfiles?.filter(p => !userWithFollows.has(p.id))
-        .map(p => ({
-          username: p.username,
-          display_name: p.display_name
-        })) || []
-
-      setSocialMetrics({
-        totalFollows: totalFollows || 0,
-        avgFollowsPerUser,
-        mostFollowed,
-        mostActive,
-        orphanedUsers
-      })
+      setLoading(false)
     } catch (error) {
-      console.error('Error loading social metrics:', error)
-    } finally {
-      setLoadingMetrics(false)
+      console.error('Error loading metrics:', error)
+      setLoading(false)
     }
   }
 
-  const grantAdminAccess = async (userId: string) => {
-    try {
-      const { error } = await supabase.rpc('grant_admin_access', { target_user_id: userId })
-      if (error) throw error
-      alert('Admin access granted successfully!')
-      loadData()
-    } catch (error: any) {
-      alert('Error: ' + error.message)
-    }
+  const calculateRetention = () => {
+    if (totalUsers === 0) return '0'
+    return ((activeUsers / totalUsers) * 100).toFixed(1)
   }
 
-  const revokeAdminAccess = async (userId: string) => {
-    try {
-      const { error } = await supabase.rpc('revoke_admin_access', { target_user_id: userId })
-      if (error) throw error
-      alert('Admin access revoked successfully!')
-      loadData()
-    } catch (error: any) {
-      alert('Error: ' + error.message)
-    }
-  }
-
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text)
-      alert(`Copied: ${text}`)
-    } catch (error) {
-      console.error('Failed to copy:', error)
-      alert('Failed to copy to clipboard')
-    }
-  }
-
-  const deactivateCode = async (code: string) => {
-    if (!confirm(`Are you sure you want to deactivate code: ${code}?\n\nExisting users who used this code will keep their access, but no new signups will be allowed.`)) {
-      return
-    }
-
-    try {
-      const { error } = await supabase.rpc('deactivate_master_code', { code_to_deactivate: code })
-
-      if (error) throw error
-      alert('Code deactivated successfully!')
-      loadData()
-    } catch (error: any) {
-      alert('Error: ' + error.message)
-    }
-  }
-
-  const createNewCode = async () => {
-    setCreatingCode(true)
-    setNewCode('')
-
-    try {
-      if (newCodeType === 'unlimited') {
-        // Create unlimited code (like BOOZEHOUND)
-        const code = 'BW_' + Math.random().toString(36).substring(2, 10).toUpperCase()
-        const { error } = await supabase
-          .from('master_codes')
-          .insert({
-            code,
-            type: 'master_unlimited',
-            max_uses: null,
-            is_active: true
-          })
-
-        if (error) throw error
-        setNewCode(code)
-      } else {
-        // Create limited code using the function
-        const { data, error } = await supabase.rpc('create_bwalpha_code')
-
-        if (error) throw error
-        if (data) setNewCode(data)
-      }
-
-      loadData()
-    } catch (error: any) {
-      console.error('Error creating code:', error)
-      alert('Error creating code: ' + error.message)
-    } finally {
-      setCreatingCode(false)
-    }
-  }
-
-  const sendAnnouncement = () => {
-    if (!announcementTitle.trim() || !announcementMessage.trim()) {
-      alert('Please enter both title and message')
-      return
-    }
-
-    if (hasAction && (!actionUrl.trim() || !actionText.trim())) {
-      alert('Please fill in both action URL and button text')
-      return
-    }
-
-    // Show confirmation modal
-    setPendingAnnouncementData({
-      title: announcementTitle.trim(),
-      message: announcementMessage.trim(),
-      type: announcementType,
-      icon: announcementIcon,
-      action_type: hasAction ? actionType : 'none',
-      action_url: hasAction ? actionUrl.trim() : null,
-      action_text: hasAction ? actionText.trim() : null,
-      target_audience: targetAudience
-    })
-    setShowConfirmModal(true)
-  }
-
-  const confirmSendAnnouncement = async () => {
-    if (!pendingAnnouncementData) return
-
-    setShowConfirmModal(false)
-    setSendingAnnouncement(true)
-    setAnnouncementResult(null)
-
-    try {
-      const { data, error } = await supabase.rpc('send_global_announcement', {
-        announcement_title: pendingAnnouncementData.title,
-        announcement_message: pendingAnnouncementData.message,
-        announcement_type: pendingAnnouncementData.type,
-        announcement_icon: pendingAnnouncementData.icon,
-        action_type: pendingAnnouncementData.action_type,
-        action_url: pendingAnnouncementData.action_url,
-        action_text: pendingAnnouncementData.action_text,
-        target_audience: pendingAnnouncementData.target_audience
-      })
-
-      if (error) throw error
-
-      setAnnouncementResult({
-        success: true,
-        message: 'Announcement sent successfully!',
-        recipients: data?.recipients || 0
-      })
-
-      // Reset form
-      setAnnouncementTitle('')
-      setAnnouncementMessage('')
-      setHasAction(false)
-      setActionUrl('')
-      setActionText('')
-      setPendingAnnouncementData(null)
-
-      // Reload stats
-      loadAnnouncementStats()
-    } catch (error: any) {
-      console.error('Error sending announcement:', error)
-      setAnnouncementResult({
-        success: false,
-        message: 'Error: ' + error.message
-      })
-    } finally {
-      setSendingAnnouncement(false)
-    }
-  }
-
-  const loadAnnouncementStats = async () => {
-    try {
-      const { data, error } = await supabase.rpc('get_announcement_stats')
-      if (error) throw error
-      setAnnouncementStats(data || [])
-    } catch (error) {
-      console.error('Error loading announcement stats:', error)
-    }
-  }
-
-  const bgGradient = isDarkMode
-    ? 'linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 100%)'
-    : 'linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%)'
-  const cardBg = isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.95)'
-  const cardBorder = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-  const textPrimary = isDarkMode ? '#ffffff' : '#1a1a1a'
-  const textSecondary = isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)'
-  const inputBg = isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)'
-  const inputBorder = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-
-  if (loading) {
-    return (
-      <div
-        style={{
-          minHeight: '100vh',
-          background: bgGradient,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <div
-          style={{
-            width: '32px',
-            height: '32px',
-            border: '4px solid rgba(233, 77, 136, 0.3)',
-            borderTopColor: '#e94d88',
-            borderRadius: '50%',
-            animation: 'spin 0.8s linear infinite',
-          }}
-        />
-      </div>
-    )
+  const calculateAvgRatingsPerUser = () => {
+    if (totalUsers === 0) return '0'
+    return (totalRatings / totalUsers).toFixed(1)
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: bgGradient,
-        padding: '2rem',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      }}
-    >
-      {/* User Profile & Controls */}
-      <div
-        style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          paddingTop: '1rem',
-          paddingBottom: '1rem',
+    <div style={{
+      padding: '2rem',
+      maxWidth: '1600px',
+      margin: '0 auto'
+    }}>
+      {/* Header */}
+      <div style={{ marginBottom: '2rem' }}>
+        <h1 style={{
+          fontSize: '2rem',
+          fontWeight: 700,
+          background: colors.brandGradient,
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          margin: 0,
+          marginBottom: '0.5rem'
+        }}>
+          Dashboard
+        </h1>
+        <p style={{
+          fontSize: '1rem',
+          color: colors.textSecondary,
+          margin: 0
+        }}>
+          Overview of Been Watching metrics and analytics
+        </p>
+      </div>
+
+      {/* Core Metrics Grid */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        gap: '1.5rem',
+        marginBottom: '2rem'
+      }}>
+        <MetricCard
+          title="Total Users"
+          value={loading ? '-' : totalUsers.toLocaleString()}
+          icon={Users}
+          subtitle="All registered users"
+          loading={loading}
+        />
+
+        <MetricCard
+          title="Active Users (7d)"
+          value={loading ? '-' : activeUsers.toLocaleString()}
+          icon={UserCheck}
+          trend={{
+            value: totalUsers > 0 ? Math.round((activeUsers / totalUsers) * 100) : 0,
+            label: 'of total'
+          }}
+          loading={loading}
+        />
+
+        <MetricCard
+          title="New Signups (7d)"
+          value={loading ? '-' : newSignups.toLocaleString()}
+          icon={UserPlus}
+          subtitle="Users joined this week"
+          loading={loading}
+        />
+
+        <MetricCard
+          title="Retention Rate"
+          value={loading ? '-' : `${calculateRetention()}%`}
+          icon={Repeat}
+          subtitle="7-day active / total"
+          loading={loading}
+        />
+      </div>
+
+      {/* Engagement Metrics */}
+      <h2 style={{
+        fontSize: '1.25rem',
+        fontWeight: 600,
+        color: colors.textPrimary,
+        margin: '2rem 0 1rem 0'
+      }}>
+        Engagement Metrics
+      </h2>
+
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        gap: '1.5rem',
+        marginBottom: '2rem'
+      }}>
+        <MetricCard
+          title="Total Ratings"
+          value={loading ? '-' : totalRatings.toLocaleString()}
+          icon={Star}
+          subtitle={`${calculateAvgRatingsPerUser()} per user avg.`}
+          loading={loading}
+        />
+
+        <MetricCard
+          title="Social Actions"
+          value={loading ? '-' : (totalLikes + totalFollows).toLocaleString()}
+          icon={Activity}
+          subtitle={`${totalLikes} likes, ${totalFollows} follows`}
+          loading={loading}
+        />
+
+        <MetricCard
+          title="Total Likes"
+          value={loading ? '-' : totalLikes.toLocaleString()}
+          icon={Heart}
+          subtitle="Activity likes"
+          loading={loading}
+        />
+
+        <MetricCard
+          title="Total Follows"
+          value={loading ? '-' : totalFollows.toLocaleString()}
+          icon={TrendingUp}
+          subtitle="User connections"
+          loading={loading}
+        />
+      </div>
+
+      {/* Invite Metrics */}
+      <h2 style={{
+        fontSize: '1.25rem',
+        fontWeight: 600,
+        color: colors.textPrimary,
+        margin: '2rem 0 1rem 0'
+      }}>
+        Invite System
+      </h2>
+
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        gap: '1.5rem',
+        marginBottom: '2rem'
+      }}>
+        <MetricCard
+          title="Total Invites Shared"
+          value={loading ? '-' : totalInvites.toLocaleString()}
+          icon={Gift}
+          subtitle="All invite codes created"
+          loading={loading}
+        />
+
+        <MetricCard
+          title="Invites Accepted"
+          value={loading ? '-' : invitesAccepted.toLocaleString()}
+          icon={CheckCircle}
+          trend={{
+            value: totalInvites > 0 ? Math.round((invitesAccepted / totalInvites) * 100) : 0,
+            label: 'acceptance rate'
+          }}
+          loading={loading}
+        />
+
+        <MetricCard
+          title="Active Invites"
+          value={loading ? '-' : (totalInvites - invitesAccepted).toLocaleString()}
+          icon={Clock}
+          subtitle="Available to be used"
+          loading={loading}
+        />
+      </div>
+
+      {/* PostHog Analytics Note */}
+      <div style={{
+        marginTop: '3rem',
+        padding: '1.5rem',
+        background: colors.isDark ? 'rgba(233, 77, 136, 0.1)' : 'rgba(233, 77, 136, 0.05)',
+        border: `1px solid ${colors.brandPink}`,
+        borderRadius: '12px'
+      }}>
+        <h3 style={{
+          fontSize: '1rem',
+          fontWeight: 600,
+          color: colors.brandPink,
+          margin: '0 0 0.5rem 0',
           display: 'flex',
-          justifyContent: 'flex-end',
           alignItems: 'center',
-          gap: '0.75rem',
-        }}
-      >
-        {/* Theme Toggle */}
-        <button
-          onClick={() => setIsDarkMode(!isDarkMode)}
-          style={{
-            padding: '0.5rem',
-            background: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-            border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'}`,
-            borderRadius: '8px',
-            color: textPrimary,
-            fontSize: '1.25rem',
-            backdropFilter: 'blur(10px)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-          title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-        >
-          {isDarkMode ? '🌙' : '☀️'}
-        </button>
-
-        {/* User Info */}
-        {profile && (
-          <div
+          gap: '0.5rem'
+        }}>
+          <TrendingUp size={20} />
+          PostHog Analytics Available
+        </h3>
+        <p style={{
+          fontSize: '0.875rem',
+          color: colors.textSecondary,
+          margin: 0,
+          lineHeight: 1.6
+        }}>
+          For deeper analytics including event tracking, user flows, funnels, and retention analysis,
+          visit your <a
+            href="https://app.posthog.com"
+            target="_blank"
+            rel="noopener noreferrer"
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              padding: '0.5rem 1rem',
-              background: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-              border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'}`,
-              borderRadius: '8px',
-              backdropFilter: 'blur(10px)',
+              color: colors.brandPink,
+              textDecoration: 'underline',
+              fontWeight: 500
             }}
           >
-            {/* Avatar */}
-            {profile.avatar_url ? (
-              <img
-                src={profile.avatar_url}
-                alt={profile.display_name}
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  objectFit: 'cover',
-                }}
-              />
-            ) : (
-              <div
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                }}
-              >
-                {getInitials(profile.display_name)}
-              </div>
-            )}
-
-            {/* Username */}
-            <span style={{ color: textPrimary, fontSize: '0.875rem', fontWeight: 600 }}>
-              {profile.username}
-            </span>
-
-            {/* Logout Button */}
-            <button
-              onClick={handleLogout}
-              style={{
-                padding: '0.375rem 0.75rem',
-                background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              Log Out
-            </button>
-          </div>
-        )}
+            PostHog Dashboard
+          </a>. All user events (signups, ratings, follows, searches) are being tracked in real-time.
+        </p>
       </div>
 
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        {/* Header */}
-        <div style={{ marginBottom: '2rem' }}>
-          <h1
-            style={{
-              fontSize: '2.5rem',
-              fontWeight: 700,
-              background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              marginBottom: '0.5rem',
-            }}
-          >
-            Admin Dashboard
-          </h1>
-          <p style={{ color: textSecondary, fontSize: '1rem' }}>
-            Manage invite codes and waitlist
-          </p>
-        </div>
-
-        {/* Create New Code Card */}
-        <div
-          style={{
-            background: cardBg,
-            backdropFilter: 'blur(20px)',
-            border: `1px solid ${cardBorder}`,
-            borderRadius: '16px',
-            padding: '2rem',
-            marginBottom: '2rem',
-            boxShadow: isDarkMode
-              ? '0 10px 30px rgba(0, 0, 0, 0.3)'
-              : '0 10px 30px rgba(0, 0, 0, 0.05)',
-          }}
-        >
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: textPrimary, marginBottom: '1rem' }}>
-            Create New Invite Code
-          </h2>
-
-          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-            <button
-              onClick={() => setNewCodeType('limited')}
-              style={{
-                padding: '0.75rem 1.5rem',
-                background: newCodeType === 'limited'
-                  ? 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)'
-                  : inputBg,
-                border: `1px solid ${newCodeType === 'limited' ? 'transparent' : inputBorder}`,
-                borderRadius: '8px',
-                color: newCodeType === 'limited' ? '#fff' : textPrimary,
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-            >
-              Limited (5 uses)
-            </button>
-
-            <button
-              onClick={() => setNewCodeType('unlimited')}
-              style={{
-                padding: '0.75rem 1.5rem',
-                background: newCodeType === 'unlimited'
-                  ? 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)'
-                  : inputBg,
-                border: `1px solid ${newCodeType === 'unlimited' ? 'transparent' : inputBorder}`,
-                borderRadius: '8px',
-                color: newCodeType === 'unlimited' ? '#fff' : textPrimary,
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-            >
-              Unlimited
-            </button>
-
-            <button
-              onClick={createNewCode}
-              disabled={creatingCode}
-              style={{
-                padding: '0.75rem 2rem',
-                background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-                border: 'none',
-                borderRadius: '8px',
-                color: '#fff',
-                fontSize: '0.875rem',
-                fontWeight: 700,
-                cursor: creatingCode ? 'not-allowed' : 'pointer',
-                opacity: creatingCode ? 0.6 : 1,
-                transition: 'all 0.2s',
-              }}
-            >
-              {creatingCode ? 'Creating...' : 'Generate Code'}
-            </button>
-          </div>
-
-          {newCode && (
-            <div
-              style={{
-                padding: '1rem',
-                background: 'rgba(34, 197, 94, 0.1)',
-                border: '1px solid rgba(34, 197, 94, 0.3)',
-                borderRadius: '8px',
-                marginTop: '1rem',
-              }}
-            >
-              <p style={{ color: textSecondary, fontSize: '0.75rem', marginBottom: '0.5rem' }}>
-                New code created:
-              </p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <p
-                  style={{
-                    color: '#22c55e',
-                    fontSize: '1.25rem',
-                    fontWeight: 700,
-                    fontFamily: 'monospace',
-                    margin: 0,
-                    flex: 1,
-                  }}
-                >
-                  {newCode}
-                </p>
-                <button
-                  onClick={() => copyToClipboard(newCode)}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    background: 'rgba(34, 197, 94, 0.2)',
-                    border: '1px solid rgba(34, 197, 94, 0.4)',
-                    borderRadius: '8px',
-                    color: '#22c55e',
-                    fontSize: '0.875rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                  }}
-                >
-                  📋 Copy
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Create Announcement Card */}
-        <div
-          style={{
-            background: cardBg,
-            backdropFilter: 'blur(20px)',
-            border: `1px solid ${cardBorder}`,
-            borderRadius: '16px',
-            padding: '2rem',
-            marginBottom: '2rem',
-            boxShadow: isDarkMode
-              ? '0 10px 30px rgba(0, 0, 0, 0.3)'
-              : '0 10px 30px rgba(0, 0, 0, 0.05)',
-          }}
-        >
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: textPrimary, marginBottom: '1rem' }}>
-            📢 Send Announcement
-          </h2>
-
-          {/* Title */}
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', color: textSecondary, fontSize: '0.875rem', marginBottom: '0.5rem', fontWeight: 600 }}>
-              Title *
-            </label>
-            <input
-              type="text"
-              value={announcementTitle}
-              onChange={(e) => setAnnouncementTitle(e.target.value)}
-              placeholder="Earn Invite Codes!"
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                background: inputBg,
-                border: `1px solid ${inputBorder}`,
-                borderRadius: '8px',
-                color: textPrimary,
-                fontSize: '0.875rem',
-                outline: 'none',
-              }}
-            />
-          </div>
-
-          {/* Message */}
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', color: textSecondary, fontSize: '0.875rem', marginBottom: '0.5rem', fontWeight: 600 }}>
-              Message *
-            </label>
-            <textarea
-              value={announcementMessage}
-              onChange={(e) => setAnnouncementMessage(e.target.value)}
-              placeholder="Complete your profile to unlock invite codes and invite your friends!"
-              rows={3}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                background: inputBg,
-                border: `1px solid ${inputBorder}`,
-                borderRadius: '8px',
-                color: textPrimary,
-                fontSize: '0.875rem',
-                outline: 'none',
-                resize: 'vertical',
-                fontFamily: 'inherit',
-              }}
-            />
-          </div>
-
-          {/* Type and Icon Row */}
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-            {/* Type Selector */}
-            <div>
-              <label style={{ display: 'block', color: textSecondary, fontSize: '0.875rem', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Type
-              </label>
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <button
-                  onClick={() => setAnnouncementType('announcement')}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    background: announcementType === 'announcement' ? 'rgba(59, 130, 246, 0.2)' : inputBg,
-                    border: `1px solid ${announcementType === 'announcement' ? '#3b82f6' : inputBorder}`,
-                    borderRadius: '6px',
-                    color: announcementType === 'announcement' ? '#3b82f6' : textPrimary,
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Announcement
-                </button>
-                <button
-                  onClick={() => setAnnouncementType('feature_release')}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    background: announcementType === 'feature_release' ? 'rgba(168, 85, 247, 0.2)' : inputBg,
-                    border: `1px solid ${announcementType === 'feature_release' ? '#a855f7' : inputBorder}`,
-                    borderRadius: '6px',
-                    color: announcementType === 'feature_release' ? '#a855f7' : textPrimary,
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Feature
-                </button>
-                <button
-                  onClick={() => setAnnouncementType('maintenance')}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    background: announcementType === 'maintenance' ? 'rgba(239, 68, 68, 0.2)' : inputBg,
-                    border: `1px solid ${announcementType === 'maintenance' ? '#ef4444' : inputBorder}`,
-                    borderRadius: '6px',
-                    color: announcementType === 'maintenance' ? '#ef4444' : textPrimary,
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Maintenance
-                </button>
-              </div>
-            </div>
-
-            {/* Icon Selector */}
-            <div>
-              <label style={{ display: 'block', color: textSecondary, fontSize: '0.875rem', marginBottom: '0.5rem', fontWeight: 600 }}>
-                Icon
-              </label>
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                {getSeasonalIcons().map(emoji => (
-                  <button
-                    key={emoji}
-                    onClick={() => setAnnouncementIcon(emoji)}
-                    style={{
-                      padding: '0.5rem',
-                      background: announcementIcon === emoji ? 'rgba(233, 77, 136, 0.2)' : inputBg,
-                      border: `1px solid ${announcementIcon === emoji ? '#e94d88' : inputBorder}`,
-                      borderRadius: '6px',
-                      fontSize: '1.25rem',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {emoji}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Action Button Section */}
-          <div style={{
-            padding: '1rem',
-            background: inputBg,
-            border: `1px solid ${inputBorder}`,
-            borderRadius: '8px',
-            marginBottom: '1rem',
-          }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={hasAction}
-                onChange={(e) => setHasAction(e.target.checked)}
-                style={{ width: '16px', height: '16px', cursor: 'pointer' }}
-              />
-              <span style={{ color: textPrimary, fontSize: '0.875rem', fontWeight: 600 }}>
-                Add Action Button
-              </span>
-            </label>
-
-            {hasAction && (
-              <>
-                {/* Action Type */}
-                <div style={{ marginBottom: '0.75rem' }}>
-                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                    <button
-                      onClick={() => setActionType('internal')}
-                      style={{
-                        padding: '0.5rem 1rem',
-                        background: actionType === 'internal' ? 'rgba(34, 197, 94, 0.2)' : 'transparent',
-                        border: `1px solid ${actionType === 'internal' ? '#22c55e' : inputBorder}`,
-                        borderRadius: '6px',
-                        color: actionType === 'internal' ? '#22c55e' : textPrimary,
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Internal Link
-                    </button>
-                    <button
-                      onClick={() => setActionType('external')}
-                      style={{
-                        padding: '0.5rem 1rem',
-                        background: actionType === 'external' ? 'rgba(34, 197, 94, 0.2)' : 'transparent',
-                        border: `1px solid ${actionType === 'external' ? '#22c55e' : inputBorder}`,
-                        borderRadius: '6px',
-                        color: actionType === 'external' ? '#22c55e' : textPrimary,
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      External URL
-                    </button>
-                  </div>
-                </div>
-
-                {/* Action URL */}
-                <div style={{ marginBottom: '0.75rem' }}>
-                  <label style={{ display: 'block', color: textSecondary, fontSize: '0.75rem', marginBottom: '0.25rem' }}>
-                    {actionType === 'internal' ? 'Path' : 'URL'}
-                  </label>
-                  <input
-                    type="text"
-                    value={actionUrl}
-                    onChange={(e) => setActionUrl(e.target.value)}
-                    placeholder={actionType === 'internal' ? '/profile' : 'https://beenwatching.com/blog'}
-                    style={{
-                      width: '100%',
-                      padding: '0.5rem',
-                      background: isDarkMode ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.5)',
-                      border: `1px solid ${inputBorder}`,
-                      borderRadius: '6px',
-                      color: textPrimary,
-                      fontSize: '0.75rem',
-                      outline: 'none',
-                    }}
-                  />
-                </div>
-
-                {/* Action Text */}
-                <div>
-                  <label style={{ display: 'block', color: textSecondary, fontSize: '0.75rem', marginBottom: '0.25rem' }}>
-                    Button Text
-                  </label>
-                  <input
-                    type="text"
-                    value={actionText}
-                    onChange={(e) => setActionText(e.target.value)}
-                    placeholder="Complete Profile"
-                    maxLength={20}
-                    style={{
-                      width: '100%',
-                      padding: '0.5rem',
-                      background: isDarkMode ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.5)',
-                      border: `1px solid ${inputBorder}`,
-                      borderRadius: '6px',
-                      color: textPrimary,
-                      fontSize: '0.75rem',
-                      outline: 'none',
-                    }}
-                  />
-                  <span style={{ fontSize: '0.625rem', color: textSecondary, marginTop: '0.25rem', display: 'block' }}>
-                    {actionText.length}/20 characters
-                  </span>
-                </div>
-
-                {/* Preview */}
-                {actionText && (
-                  <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: `1px solid ${inputBorder}` }}>
-                    <span style={{ fontSize: '0.75rem', color: textSecondary, marginBottom: '0.5rem', display: 'block' }}>
-                      Button Preview:
-                    </span>
-                    <button
-                      style={{
-                        padding: '0.5rem 1rem',
-                        background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-                        border: 'none',
-                        borderRadius: '8px',
-                        color: '#fff',
-                        fontSize: '0.75rem',
-                        fontWeight: 700,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                      }}
-                    >
-                      {actionText} {actionType === 'external' ? '↗' : '→'}
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-
-          {/* Target Audience */}
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', color: textSecondary, fontSize: '0.875rem', marginBottom: '0.5rem', fontWeight: 600 }}>
-              Target Audience
-            </label>
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <button
-                onClick={() => setTargetAudience('all')}
-                style={{
-                  padding: '0.5rem 1rem',
-                  background: targetAudience === 'all' ? 'rgba(34, 197, 94, 0.2)' : inputBg,
-                  border: `1px solid ${targetAudience === 'all' ? '#22c55e' : inputBorder}`,
-                  borderRadius: '6px',
-                  color: targetAudience === 'all' ? '#22c55e' : textPrimary,
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                All Users
-              </button>
-              <button
-                onClick={() => setTargetAudience('incomplete_profiles')}
-                style={{
-                  padding: '0.5rem 1rem',
-                  background: targetAudience === 'incomplete_profiles' ? 'rgba(251, 191, 36, 0.2)' : inputBg,
-                  border: `1px solid ${targetAudience === 'incomplete_profiles' ? '#fbbf24' : inputBorder}`,
-                  borderRadius: '6px',
-                  color: targetAudience === 'incomplete_profiles' ? '#fbbf24' : textPrimary,
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                Incomplete Profiles
-              </button>
-              <button
-                onClick={() => setTargetAudience('active_users')}
-                style={{
-                  padding: '0.5rem 1rem',
-                  background: targetAudience === 'active_users' ? 'rgba(59, 130, 246, 0.2)' : inputBg,
-                  border: `1px solid ${targetAudience === 'active_users' ? '#3b82f6' : inputBorder}`,
-                  borderRadius: '6px',
-                  color: targetAudience === 'active_users' ? '#3b82f6' : textPrimary,
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                Active Users (30d)
-              </button>
-            </div>
-          </div>
-
-          {/* Send Button */}
-          <button
-            onClick={sendAnnouncement}
-            disabled={sendingAnnouncement || !announcementTitle.trim() || !announcementMessage.trim()}
-            style={{
-              width: '100%',
-              padding: '1rem',
-              background: sendingAnnouncement || !announcementTitle.trim() || !announcementMessage.trim()
-                ? textSecondary
-                : 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-              border: 'none',
-              borderRadius: '8px',
-              color: '#fff',
-              fontSize: '1rem',
-              fontWeight: 700,
-              cursor: sendingAnnouncement || !announcementTitle.trim() || !announcementMessage.trim() ? 'not-allowed' : 'pointer',
-              opacity: sendingAnnouncement || !announcementTitle.trim() || !announcementMessage.trim() ? 0.6 : 1,
-              transition: 'all 0.2s',
-            }}
-          >
-            {sendingAnnouncement ? 'Sending...' : 'Send Announcement'}
-          </button>
-
-          {/* Result Message */}
-          {announcementResult && (
-            <div
-              style={{
-                padding: '1rem',
-                background: announcementResult.success ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                border: `1px solid ${announcementResult.success ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
-                borderRadius: '8px',
-                marginTop: '1rem',
-              }}
-            >
-              <p style={{ color: announcementResult.success ? '#22c55e' : '#ef4444', fontSize: '0.875rem', margin: 0 }}>
-                {announcementResult.message}
-                {announcementResult.recipients !== undefined && ` Sent to ${announcementResult.recipients} users.`}
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Announcement History Card */}
-        {announcementStats.length > 0 && (
-          <div
-            style={{
-              background: cardBg,
-              backdropFilter: 'blur(20px)',
-              border: `1px solid ${cardBorder}`,
-              borderRadius: '16px',
-              padding: '2rem',
-              marginBottom: '2rem',
-              boxShadow: isDarkMode
-                ? '0 10px 30px rgba(0, 0, 0, 0.3)'
-                : '0 10px 30px rgba(0, 0, 0, 0.05)',
-            }}
-          >
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: textPrimary, marginBottom: '1.5rem' }}>
-              Announcement History ({announcementStats.length})
-            </h2>
-
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ borderBottom: `1px solid ${inputBorder}` }}>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                      Title
-                    </th>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                      Type
-                    </th>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                      Sent
-                    </th>
-                    <th style={{ padding: '0.75rem', textAlign: 'right', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                      Recipients
-                    </th>
-                    <th style={{ padding: '0.75rem', textAlign: 'right', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                      Read Rate
-                    </th>
-                    <th style={{ padding: '0.75rem', textAlign: 'right', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                      Click Rate
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {announcementStats.map((stat) => (
-                    <tr key={stat.id} style={{ borderBottom: `1px solid ${inputBorder}` }}>
-                      <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem' }}>
-                        {stat.title}
-                      </td>
-                      <td style={{ padding: '1rem', color: textSecondary, fontSize: '0.875rem' }}>
-                        {stat.type}
-                      </td>
-                      <td style={{ padding: '1rem', color: textSecondary, fontSize: '0.875rem' }}>
-                        {new Date(stat.sent_at).toLocaleDateString()}
-                      </td>
-                      <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem', textAlign: 'right' }}>
-                        {stat.total_recipients}
-                      </td>
-                      <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem', textAlign: 'right' }}>
-                        {stat.read_rate}%
-                      </td>
-                      <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem', textAlign: 'right' }}>
-                        {stat.click_rate}%
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* Invite Stats Card */}
-        <div
-          style={{
-            background: cardBg,
-            backdropFilter: 'blur(20px)',
-            border: `1px solid ${cardBorder}`,
-            borderRadius: '16px',
-            padding: '2rem',
-            marginBottom: '2rem',
-            boxShadow: isDarkMode
-              ? '0 10px 30px rgba(0, 0, 0, 0.3)'
-              : '0 10px 30px rgba(0, 0, 0, 0.05)',
-          }}
-        >
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: textPrimary, marginBottom: '1.5rem' }}>
-            Invite Codes ({inviteStats.length})
-          </h2>
-
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ borderBottom: `1px solid ${inputBorder}` }}>
-                  <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                    Code
-                  </th>
-                  <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                    Type
-                  </th>
-                  <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                    Uses
-                  </th>
-                  <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                    Signups
-                  </th>
-                  <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                    Status
-                  </th>
-                  <th style={{ padding: '0.75rem', textAlign: 'right', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {inviteStats.map((stat) => (
-                  <tr key={stat.code} style={{ borderBottom: `1px solid ${inputBorder}` }}>
-                    <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem', fontFamily: 'monospace' }}>
-                      {stat.code}
-                    </td>
-                    <td style={{ padding: '1rem', color: textSecondary, fontSize: '0.875rem' }}>
-                      {stat.type}
-                    </td>
-                    <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem' }}>
-                      {stat.current_uses} / {stat.max_uses || '∞'}
-                    </td>
-                    <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem' }}>
-                      {stat.total_signups}
-                    </td>
-                    <td style={{ padding: '1rem' }}>
-                      <span
-                        style={{
-                          padding: '0.25rem 0.75rem',
-                          background: stat.is_active ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                          color: stat.is_active ? '#22c55e' : '#ef4444',
-                          borderRadius: '9999px',
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
-                        }}
-                      >
-                        {stat.is_active ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td style={{ padding: '1rem', textAlign: 'right' }}>
-                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                        <button
-                          onClick={() => copyToClipboard(stat.code)}
-                          style={{
-                            padding: '0.5rem',
-                            background: inputBg,
-                            border: `1px solid ${inputBorder}`,
-                            borderRadius: '6px',
-                            color: textPrimary,
-                            fontSize: '1rem',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                          title="Copy code"
-                        >
-                          📋
-                        </button>
-                        {stat.is_active && (
-                          <button
-                            onClick={() => deactivateCode(stat.code)}
-                            style={{
-                              padding: '0.5rem',
-                              background: 'rgba(239, 68, 68, 0.1)',
-                              border: '1px solid rgba(239, 68, 68, 0.2)',
-                              borderRadius: '6px',
-                              color: '#ef4444',
-                              fontSize: '1rem',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                            title="Deactivate code"
-                          >
-                            🗑️
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Waitlist Card */}
-        <div
-          style={{
-            background: cardBg,
-            backdropFilter: 'blur(20px)',
-            border: `1px solid ${cardBorder}`,
-            borderRadius: '16px',
-            padding: '2rem',
-            boxShadow: isDarkMode
-              ? '0 10px 30px rgba(0, 0, 0, 0.3)'
-              : '0 10px 30px rgba(0, 0, 0, 0.05)',
-          }}
-        >
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: textPrimary, marginBottom: '1.5rem' }}>
-            Waitlist ({waitlist.length})
-          </h2>
-
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ borderBottom: `1px solid ${inputBorder}` }}>
-                  <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                    Position
-                  </th>
-                  <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                    Email
-                  </th>
-                  <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                    Name
-                  </th>
-                  <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                    Joined
-                  </th>
-                  <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {waitlist.map((entry) => (
-                  <tr key={entry.id} style={{ borderBottom: `1px solid ${inputBorder}` }}>
-                    <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem', fontWeight: 700 }}>
-                      #{entry.position}
-                    </td>
-                    <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem' }}>
-                      {entry.email}
-                    </td>
-                    <td style={{ padding: '1rem', color: textSecondary, fontSize: '0.875rem' }}>
-                      {entry.name || '-'}
-                    </td>
-                    <td style={{ padding: '1rem', color: textSecondary, fontSize: '0.875rem' }}>
-                      {new Date(entry.created_at).toLocaleDateString()}
-                    </td>
-                    <td style={{ padding: '1rem' }}>
-                      <span
-                        style={{
-                          padding: '0.25rem 0.75rem',
-                          background: entry.invited_at ? 'rgba(34, 197, 94, 0.1)' : 'rgba(251, 191, 36, 0.1)',
-                          color: entry.invited_at ? '#22c55e' : '#fbbf24',
-                          borderRadius: '9999px',
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
-                        }}
-                      >
-                        {entry.invited_at ? 'Invited' : 'Waiting'}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Social Metrics Card */}
-        <div
-          style={{
-            background: cardBg,
-            backdropFilter: 'blur(20px)',
-            border: `1px solid ${cardBorder}`,
-            borderRadius: '16px',
-            padding: '2rem',
-            marginBottom: '2rem',
-            boxShadow: isDarkMode
-              ? '0 10px 30px rgba(0, 0, 0, 0.3)'
-              : '0 10px 30px rgba(0, 0, 0, 0.05)',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: textPrimary, margin: 0 }}>
-              📊 Social Metrics
-            </h2>
-            <button
-              onClick={loadSocialMetrics}
-              disabled={loadingMetrics}
-              style={{
-                padding: '0.5rem 1rem',
-                background: inputBg,
-                border: `1px solid ${inputBorder}`,
-                borderRadius: '8px',
-                color: textPrimary,
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                cursor: loadingMetrics ? 'not-allowed' : 'pointer',
-                opacity: loadingMetrics ? 0.6 : 1,
-              }}
-            >
-              {loadingMetrics ? 'Loading...' : '🔄 Refresh'}
-            </button>
-          </div>
-
-          {socialMetrics && (
-            <>
-              {/* Overview Stats */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                  gap: '1rem',
-                  marginBottom: '2rem',
-                }}
-              >
-                <div
-                  style={{
-                    padding: '1.5rem',
-                    background: inputBg,
-                    border: `1px solid ${inputBorder}`,
-                    borderRadius: '12px',
-                  }}
-                >
-                  <div style={{ fontSize: '0.75rem', color: textSecondary, fontWeight: 600, marginBottom: '0.5rem', textTransform: 'uppercase' }}>
-                    Total Follows
-                  </div>
-                  <div style={{ fontSize: '2rem', fontWeight: 700, color: textPrimary }}>
-                    {socialMetrics.totalFollows}
-                  </div>
-                </div>
-                <div
-                  style={{
-                    padding: '1.5rem',
-                    background: inputBg,
-                    border: `1px solid ${inputBorder}`,
-                    borderRadius: '12px',
-                  }}
-                >
-                  <div style={{ fontSize: '0.75rem', color: textSecondary, fontWeight: 600, marginBottom: '0.5rem', textTransform: 'uppercase' }}>
-                    Avg per User
-                  </div>
-                  <div style={{ fontSize: '2rem', fontWeight: 700, color: textPrimary }}>
-                    {socialMetrics.avgFollowsPerUser}
-                  </div>
-                </div>
-                <div
-                  style={{
-                    padding: '1.5rem',
-                    background: inputBg,
-                    border: `1px solid ${inputBorder}`,
-                    borderRadius: '12px',
-                  }}
-                >
-                  <div style={{ fontSize: '0.75rem', color: textSecondary, fontWeight: 600, marginBottom: '0.5rem', textTransform: 'uppercase' }}>
-                    Orphaned Users
-                  </div>
-                  <div style={{ fontSize: '2rem', fontWeight: 700, color: socialMetrics.orphanedUsers.length > 0 ? '#ef4444' : '#22c55e' }}>
-                    {socialMetrics.orphanedUsers.length}
-                  </div>
-                </div>
-              </div>
-
-              {/* Most Followed Users */}
-              {socialMetrics.mostFollowed.length > 0 && (
-                <div style={{ marginBottom: '2rem' }}>
-                  <h3 style={{ fontSize: '1rem', fontWeight: 600, color: textPrimary, marginBottom: '1rem' }}>
-                    🏆 Most Followed Users
-                  </h3>
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                      <thead>
-                        <tr style={{ borderBottom: `1px solid ${inputBorder}` }}>
-                          <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                            Rank
-                          </th>
-                          <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                            Username
-                          </th>
-                          <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                            Display Name
-                          </th>
-                          <th style={{ padding: '0.75rem', textAlign: 'right', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                            Followers
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {socialMetrics.mostFollowed.map((user, index) => (
-                          <tr key={user.username} style={{ borderBottom: `1px solid ${inputBorder}` }}>
-                            <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem', fontWeight: 700 }}>
-                              {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
-                            </td>
-                            <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem', fontFamily: 'monospace' }}>
-                              @{user.username}
-                            </td>
-                            <td style={{ padding: '1rem', color: textSecondary, fontSize: '0.875rem' }}>
-                              {user.display_name}
-                            </td>
-                            <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem', fontWeight: 600, textAlign: 'right' }}>
-                              {user.followerCount}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-
-              {/* Most Active Users */}
-              {socialMetrics.mostActive.length > 0 && (
-                <div style={{ marginBottom: '2rem' }}>
-                  <h3 style={{ fontSize: '1rem', fontWeight: 600, color: textPrimary, marginBottom: '1rem' }}>
-                    🔥 Most Active (Last 30 Days)
-                  </h3>
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                      <thead>
-                        <tr style={{ borderBottom: `1px solid ${inputBorder}` }}>
-                          <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                            Rank
-                          </th>
-                          <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                            Username
-                          </th>
-                          <th style={{ padding: '0.75rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                            Display Name
-                          </th>
-                          <th style={{ padding: '0.75rem', textAlign: 'right', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                            Activities
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {socialMetrics.mostActive.map((user, index) => (
-                          <tr key={user.username} style={{ borderBottom: `1px solid ${inputBorder}` }}>
-                            <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem', fontWeight: 700 }}>
-                              {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
-                            </td>
-                            <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem', fontFamily: 'monospace' }}>
-                              @{user.username}
-                            </td>
-                            <td style={{ padding: '1rem', color: textSecondary, fontSize: '0.875rem' }}>
-                              {user.display_name}
-                            </td>
-                            <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem', fontWeight: 600, textAlign: 'right' }}>
-                              {user.activityCount}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-
-              {/* Orphaned Users */}
-              {socialMetrics.orphanedUsers.length > 0 && (
-                <div>
-                  <h3 style={{ fontSize: '1rem', fontWeight: 600, color: textPrimary, marginBottom: '1rem' }}>
-                    ⚠️ Orphaned Users ({socialMetrics.orphanedUsers.length})
-                  </h3>
-                  <p style={{ fontSize: '0.875rem', color: textSecondary, marginBottom: '1rem' }}>
-                    Users with no follows and no followers
-                  </p>
-                  <div
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                      gap: '0.75rem',
-                    }}
-                  >
-                    {socialMetrics.orphanedUsers.slice(0, 12).map((user) => (
-                      <div
-                        key={user.username}
-                        style={{
-                          padding: '0.75rem',
-                          background: inputBg,
-                          border: `1px solid ${inputBorder}`,
-                          borderRadius: '8px',
-                        }}
-                      >
-                        <div style={{ fontSize: '0.875rem', fontWeight: 600, color: textPrimary, fontFamily: 'monospace' }}>
-                          @{user.username}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: textSecondary }}>
-                          {user.display_name}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  {socialMetrics.orphanedUsers.length > 12 && (
-                    <p style={{ fontSize: '0.75rem', color: textSecondary, marginTop: '0.75rem', textAlign: 'center' }}>
-                      ... and {socialMetrics.orphanedUsers.length - 12} more
-                    </p>
-                  )}
-                </div>
-              )}
-            </>
-          )}
-
-          {!socialMetrics && !loadingMetrics && (
-            <div style={{ textAlign: 'center', padding: '2rem', color: textSecondary }}>
-              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📊</div>
-              <div style={{ fontSize: '0.875rem' }}>Click refresh to load metrics</div>
-            </div>
-          )}
-        </div>
-
-        {/* Admin Management (Super Admins Only) */}
-        {isSuperAdmin && (
-          <div
-            style={{
-              background: cardBg,
-              backdropFilter: 'blur(20px)',
-              border: `1px solid ${cardBorder}`,
-              borderRadius: '16px',
-              padding: '2rem',
-              marginTop: '2rem',
-              boxShadow: isDarkMode
-                ? '0 8px 32px rgba(0, 0, 0, 0.3)'
-                : '0 2px 8px rgba(0, 0, 0, 0.1)',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: textPrimary, margin: 0 }}>
-                Admin Management
-              </h2>
-              <span
-                style={{
-                  padding: '0.25rem 0.75rem',
-                  background: 'rgba(168, 85, 247, 0.1)',
-                  color: '#a855f7',
-                  borderRadius: '9999px',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                }}
-              >
-                Super Admin Only
-              </span>
-            </div>
-
-            {/* Current Admins */}
-            <div style={{ marginBottom: '2rem' }}>
-              <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: textPrimary, marginBottom: '1rem' }}>
-                Current Admins ({adminUsers.length})
-              </h3>
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr style={{ borderBottom: `2px solid ${cardBorder}` }}>
-                      <th style={{ padding: '1rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                        Username
-                      </th>
-                      <th style={{ padding: '1rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                        Display Name
-                      </th>
-                      <th style={{ padding: '1rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                        Role
-                      </th>
-                      <th style={{ padding: '1rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {adminUsers.map((adminUser) => (
-                      <tr key={adminUser.id} style={{ borderBottom: `1px solid ${cardBorder}` }}>
-                        <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem', fontWeight: 500 }}>
-                          {adminUser.username}
-                        </td>
-                        <td style={{ padding: '1rem', color: textSecondary, fontSize: '0.875rem' }}>
-                          {adminUser.display_name}
-                        </td>
-                        <td style={{ padding: '1rem' }}>
-                          <span
-                            style={{
-                              padding: '0.25rem 0.75rem',
-                              background: adminUser.is_super_admin ? 'rgba(168, 85, 247, 0.1)' : 'rgba(59, 130, 246, 0.1)',
-                              color: adminUser.is_super_admin ? '#a855f7' : '#3b82f6',
-                              borderRadius: '9999px',
-                              fontSize: '0.75rem',
-                              fontWeight: 600,
-                            }}
-                          >
-                            {adminUser.is_super_admin ? 'Super Admin' : 'Admin'}
-                          </span>
-                        </td>
-                        <td style={{ padding: '1rem' }}>
-                          {!adminUser.is_super_admin && (
-                            <button
-                              onClick={() => revokeAdminAccess(adminUser.id)}
-                              style={{
-                                padding: '0.5rem 1rem',
-                                background: 'rgba(239, 68, 68, 0.1)',
-                                color: '#ef4444',
-                                border: '1px solid rgba(239, 68, 68, 0.2)',
-                                borderRadius: '8px',
-                                fontSize: '0.875rem',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                              }}
-                            >
-                              Revoke
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* All Users - Can Grant Admin */}
-            <div>
-              <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: textPrimary, marginBottom: '1rem' }}>
-                All Users ({allUsers.length})
-              </h3>
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr style={{ borderBottom: `2px solid ${cardBorder}` }}>
-                      <th style={{ padding: '1rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                        Username
-                      </th>
-                      <th style={{ padding: '1rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                        Display Name
-                      </th>
-                      <th style={{ padding: '1rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                        Status
-                      </th>
-                      <th style={{ padding: '1rem', textAlign: 'left', color: textSecondary, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {allUsers.slice(0, 20).map((u) => (
-                      <tr key={u.id} style={{ borderBottom: `1px solid ${cardBorder}` }}>
-                        <td style={{ padding: '1rem', color: textPrimary, fontSize: '0.875rem', fontWeight: 500 }}>
-                          {u.username}
-                        </td>
-                        <td style={{ padding: '1rem', color: textSecondary, fontSize: '0.875rem' }}>
-                          {u.display_name}
-                        </td>
-                        <td style={{ padding: '1rem' }}>
-                          {u.is_admin ? (
-                            <span
-                              style={{
-                                padding: '0.25rem 0.75rem',
-                                background: 'rgba(34, 197, 94, 0.1)',
-                                color: '#22c55e',
-                                borderRadius: '9999px',
-                                fontSize: '0.75rem',
-                                fontWeight: 600,
-                              }}
-                            >
-                              Admin
-                            </span>
-                          ) : (
-                            <span
-                              style={{
-                                padding: '0.25rem 0.75rem',
-                                background: 'rgba(156, 163, 175, 0.1)',
-                                color: '#9ca3af',
-                                borderRadius: '9999px',
-                                fontSize: '0.75rem',
-                                fontWeight: 600,
-                              }}
-                            >
-                              User
-                            </span>
-                          )}
-                        </td>
-                        <td style={{ padding: '1rem' }}>
-                          {!u.is_admin && (
-                            <button
-                              onClick={() => grantAdminAccess(u.id)}
-                              style={{
-                                padding: '0.5rem 1rem',
-                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                color: '#fff',
-                                border: 'none',
-                                borderRadius: '8px',
-                                fontSize: '0.875rem',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                              }}
-                            >
-                              Grant Admin
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Back to App Link */}
-        <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-          <a
-            href="/"
-            style={{
-              color: 'rgba(233, 77, 136, 1)',
-              textDecoration: 'none',
-              fontSize: '0.875rem',
-              fontWeight: 600,
-            }}
-          >
-            ← Back to App
-          </a>
-        </div>
+      {/* Quick Actions */}
+      <div style={{
+        marginTop: '2rem',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '1rem'
+      }}>
+        <QuickActionLink
+          label="View All Users"
+          href="/admin/users"
+          icon={Users}
+          colors={colors}
+        />
+        <QuickActionLink
+          label="View Analytics"
+          href="https://app.posthog.com"
+          icon={TrendingUp}
+          colors={colors}
+          external
+        />
+        <QuickActionLink
+          label="Manage Invites"
+          href="/admin/invites"
+          icon={UserPlus}
+          colors={colors}
+        />
       </div>
-
-      {/* Confirmation Modal */}
-      {showConfirmModal && pendingAnnouncementData && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0, 0, 0, 0.7)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            padding: '2rem',
-          }}
-          onClick={() => {
-            setShowConfirmModal(false)
-            setPendingAnnouncementData(null)
-          }}
-        >
-          <div
-            style={{
-              background: cardBg,
-              backdropFilter: 'blur(20px)',
-              border: `1px solid ${cardBorder}`,
-              borderRadius: '16px',
-              padding: '2rem',
-              maxWidth: '500px',
-              width: '100%',
-              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 style={{
-              fontSize: '1.5rem',
-              fontWeight: 700,
-              color: textPrimary,
-              marginBottom: '1rem',
-            }}>
-              Send announcement to {pendingAnnouncementData.target_audience === 'all' ? 'ALL users' : pendingAnnouncementData.target_audience.replace('_', ' ')}?
-            </h2>
-
-            <div style={{
-              padding: '1rem',
-              background: inputBg,
-              border: `1px solid ${inputBorder}`,
-              borderRadius: '12px',
-              marginBottom: '1rem',
-            }}>
-              <div style={{
-                fontSize: '1rem',
-                fontWeight: 600,
-                color: textPrimary,
-                marginBottom: '0.5rem',
-              }}>
-                {pendingAnnouncementData.icon} {pendingAnnouncementData.title}
-              </div>
-              <div style={{
-                fontSize: '0.875rem',
-                color: textSecondary,
-                lineHeight: 1.5,
-              }}>
-                {pendingAnnouncementData.message}
-              </div>
-            </div>
-
-            <p style={{
-              fontSize: '0.875rem',
-              color: textSecondary,
-              marginBottom: '1.5rem',
-            }}>
-              This will create notifications for all targeted users.
-            </p>
-
-            <div style={{
-              display: 'flex',
-              gap: '1rem',
-            }}>
-              <button
-                onClick={() => {
-                  setShowConfirmModal(false)
-                  setPendingAnnouncementData(null)
-                }}
-                style={{
-                  flex: 1,
-                  padding: '0.875rem',
-                  background: inputBg,
-                  border: `1px solid ${inputBorder}`,
-                  borderRadius: '8px',
-                  color: textPrimary,
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmSendAnnouncement}
-                style={{
-                  flex: 1,
-                  padding: '0.875rem',
-                  background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-                  border: 'none',
-                  borderRadius: '8px',
-                  color: '#fff',
-                  fontSize: '1rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
-              >
-                OK
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Keyframes for spinner animation */}
-      <style jsx>{`
-        @keyframes spin {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-      `}</style>
     </div>
+  )
+}
+
+function QuickActionLink({
+  label,
+  href,
+  icon: Icon,
+  colors,
+  external
+}: {
+  label: string
+  href: string
+  icon: any
+  colors: any
+  external?: boolean
+}) {
+  const [isHovered, setIsHovered] = useState(false)
+
+  return (
+    <a
+      href={href}
+      target={external ? '_blank' : undefined}
+      rel={external ? 'noopener noreferrer' : undefined}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.75rem',
+        padding: '1rem',
+        background: colors.cardBg,
+        border: colors.cardBorder,
+        borderRadius: '8px',
+        color: colors.textPrimary,
+        textDecoration: 'none',
+        fontSize: '0.875rem',
+        fontWeight: 500,
+        transition: 'all 0.2s',
+        cursor: 'pointer',
+        transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
+        borderColor: isHovered ? colors.brandPink : colors.cardBorder.split(' ')[2]
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <Icon size={18} />
+      {label}
+    </a>
   )
 }

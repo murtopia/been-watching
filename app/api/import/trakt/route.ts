@@ -1,5 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
+import { checkAdminAccess } from '@/utils/admin/permissions'
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3'
@@ -86,21 +87,11 @@ async function ensureMediaExists(
 export async function POST(request: Request) {
   const supabase = await createClient()
 
-  // Verify user is authenticated
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
-  if (userError || !user) {
+  // Verify user is authenticated and has admin access
+  const { hasAccess } = await checkAdminAccess()
+
+  if (!hasAccess) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  // Verify user is admin
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('is_admin')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile?.is_admin) {
-    return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
   }
 
   try {

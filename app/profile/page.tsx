@@ -7,7 +7,6 @@ import BottomNav from '@/components/navigation/BottomNav'
 import AppHeader from '@/components/navigation/AppHeader'
 import SearchModal from '@/components/search/SearchModal'
 import MediaDetailModal from '@/components/media/MediaDetailModal'
-import EditProfileModal from '@/components/profile/EditProfileModal'
 import AvatarUploadModal from '@/components/profile/AvatarUploadModal'
 import UserCard from '@/components/friends/UserCard'
 import Footer from '@/components/navigation/Footer'
@@ -16,14 +15,13 @@ import ReferralDashboard from '@/components/profile/ReferralDashboard'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { getTasteMatchBetweenUsers, findSimilarUsers } from '@/utils/tasteMatch'
 import { safeFormatDate } from '@/utils/dateFormatting'
+import { trackUserLoggedOut, resetUser } from '@/utils/analytics'
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
   const [friendsTab, setFriendsTab] = useState<'following' | 'followers' | 'discover'>('following')
   const [loading, setLoading] = useState(true)
-  const [isPrivate, setIsPrivate] = useState(false)
-  const [showEditModal, setShowEditModal] = useState(false)
   const [showAvatarModal, setShowAvatarModal] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [detailModalOpen, setDetailModalOpen] = useState(false)
@@ -76,7 +74,6 @@ export default function ProfilePage() {
 
     if (data) {
       setProfile(data)
-      setIsPrivate(data.is_private || false)
     } else {
       // Create default profile
       setProfile({
@@ -273,20 +270,6 @@ export default function ProfilePage() {
     }
   }
 
-  const handlePrivacyToggle = async () => {
-    const newValue = !isPrivate
-    setIsPrivate(newValue)
-
-    const { error } = await supabase
-      .from('profiles')
-      .update({ is_private: newValue })
-      .eq('id', user.id)
-
-    if (error) {
-      console.error('Error updating privacy:', error)
-      setIsPrivate(!newValue) // Revert on error
-    }
-  }
 
   const handleDetailModalRate = (rating: string) => {
     if (selectedMedia) {
@@ -387,10 +370,15 @@ export default function ProfilePage() {
   }
 
   const handleLogout = async () => {
+    // Track logout BEFORE signing out (while user is still identified)
+    trackUserLoggedOut()
+
     const { error } = await supabase.auth.signOut()
     if (error) {
       console.error('Error logging out:', error)
     } else {
+      // Reset PostHog user identity
+      resetUser()
       router.push('/auth')
     }
   }
@@ -476,9 +464,9 @@ export default function ProfilePage() {
             <p style={{ fontSize: '0.875rem', color: colors.textSecondary, margin: 0 }}>{profile.bio || 'What have you been watching?'}</p>
           </div>
 
-          {/* Edit Button */}
+          {/* Settings Button */}
           <button
-            onClick={() => setShowEditModal(true)}
+            onClick={() => router.push('/profile/settings')}
             style={{
               padding: '0.5rem 1rem',
               background: colors.buttonBg,
@@ -488,10 +476,13 @@ export default function ProfilePage() {
               fontWeight: '600',
               color: colors.textPrimary,
               cursor: 'pointer',
-              whiteSpace: 'nowrap'
+              whiteSpace: 'nowrap',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.25rem'
             }}
           >
-            Edit Profile
+            ⚙️
           </button>
         </div>
 
@@ -513,66 +504,6 @@ export default function ProfilePage() {
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '1.5rem', fontWeight: '700', color: colors.textPrimary }}>{counts.watchedCount}</div>
             <div style={{ fontSize: '0.875rem', color: colors.textSecondary }}>Watched</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Privacy Settings */}
-      <div style={{
-        padding: '1.5rem',
-        background: colors.cardBg,
-        border: colors.cardBorder,
-        borderRadius: '12px',
-        margin: '0.5rem auto',
-        maxWidth: '600px',
-        backdropFilter: 'blur(20px)'
-      }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0', color: colors.textPrimary }}>Privacy</h3>
-        <div style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          gap: '0.75rem'
-        }}>
-          <label style={{
-            position: 'relative',
-            display: 'inline-block',
-            width: '48px',
-            height: '28px',
-            flexShrink: 0
-          }}>
-            <input
-              type="checkbox"
-              checked={isPrivate}
-              onChange={handlePrivacyToggle}
-              style={{ opacity: 0, width: 0, height: 0 }}
-            />
-            <span style={{
-              position: 'absolute',
-              cursor: 'pointer',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: isPrivate ? colors.brandBlue : '#ccc',
-              borderRadius: '28px',
-              transition: '0.3s'
-            }}>
-              <span style={{
-                position: 'absolute',
-                content: '""',
-                height: '22px',
-                width: '22px',
-                left: isPrivate ? '23px' : '3px',
-                bottom: '3px',
-                background: 'white',
-                borderRadius: '50%',
-                transition: '0.3s'
-              }}></span>
-            </span>
-          </label>
-          <div>
-            <div style={{ fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.25rem', color: colors.textPrimary }}>Private Account</div>
-            <div style={{ fontSize: '0.8rem', color: colors.textSecondary }}>Only approved followers can see your activity</div>
           </div>
         </div>
       </div>
@@ -620,7 +551,6 @@ export default function ProfilePage() {
             checkUser()
           }}
           onOpenAvatarUpload={() => setShowAvatarModal(true)}
-          onOpenEditProfile={() => setShowEditModal(true)}
           onOpenSearch={() => setSearchOpen(true)}
           onNavigateToMyShows={() => router.push('/myshows')}
         />
@@ -889,18 +819,6 @@ export default function ProfilePage() {
       <Footer variant="minimal" />
 
       <BottomNav onSearchOpen={() => setSearchOpen(true)} />
-
-      {/* Modals */}
-      {showEditModal && (
-        <EditProfileModal
-          profile={profile}
-          onClose={() => setShowEditModal(false)}
-          onSave={(updated) => {
-            setProfile(updated)
-            setShowEditModal(false)
-          }}
-        />
-      )}
 
     </div>
   )

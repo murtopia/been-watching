@@ -5,6 +5,8 @@ import MediaBadges from './MediaBadges'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { safeExtractYear } from '@/utils/dateFormatting'
 
+export type MediaCardVariant = 'grid' | 'list' | 'feed'
+
 interface MediaCardProps {
   media: {
     id?: string
@@ -21,31 +23,41 @@ interface MediaCardProps {
     number_of_seasons?: number
     networks?: any[]
   }
+  variant?: MediaCardVariant
   onRate?: (rating: string) => void
   onStatus?: (status: string) => void
+  onClick?: () => void
   currentRating?: string | null
   currentStatus?: string | null
   seasonNumber?: number
   showActions?: boolean
+  showOverview?: boolean
+  posterSize?: 'w185' | 'w342' | 'w500'
 }
 
 export default function MediaCard({
   media,
+  variant = 'feed',
   onRate,
   onStatus,
+  onClick,
   currentRating,
   currentStatus,
   seasonNumber,
-  showActions = true
+  showActions = true,
+  showOverview = true,
+  posterSize = 'w185'
 }: MediaCardProps) {
   const [showFullOverview, setShowFullOverview] = useState(false)
   const [trailerKey, setTrailerKey] = useState<string | null>(null)
+  const [imageError, setImageError] = useState(false)
   const colors = useThemeColors()
 
   const title = media.title || media.name || 'Untitled'
   const releaseDate = media.release_date || media.first_air_date
   const year = safeExtractYear(releaseDate)
-  const mediaType = media.media_type || (media.id?.startsWith('tv-') ? 'tv' : 'movie')
+  const mediaIdStr = media.id ? String(media.id) : ''
+  const mediaType = media.media_type || (mediaIdStr.startsWith('tv-') ? 'tv' : 'movie')
   const tmdbId = media.tmdb_id
 
   // Fetch trailer on mount
@@ -67,20 +79,94 @@ export default function MediaCard({
     fetchTrailer()
   }, [tmdbId, mediaType])
 
-  const handleTrailerClick = () => {
+  const handleTrailerClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
     if (trailerKey) {
       window.open(`https://www.youtube.com/watch?v=${trailerKey}`, '_blank')
     }
   }
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (onClick) {
+      onClick()
+    }
+  }
+
+  const handleImageError = () => {
+    setImageError(true)
+  }
+
+  // Fallback poster URL - use a data URI for a simple placeholder
+  const getPlaceholderUrl = () => {
+    // Create a simple SVG placeholder
+    const svg = `
+      <svg width="342" height="513" xmlns="http://www.w3.org/2000/svg">
+        <rect width="342" height="513" fill="#1a1a1a"/>
+        <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="24" fill="#666" text-anchor="middle" dominant-baseline="middle">No Image</text>
+      </svg>
+    `
+    return `data:image/svg+xml,${encodeURIComponent(svg)}`
+  }
+
+  const posterUrl = imageError || !media.poster_path
+    ? getPlaceholderUrl()
+    : `https://image.tmdb.org/t/p/${posterSize}${media.poster_path}`
+
+  // Grid variant - compact card for grid layouts
+  if (variant === 'grid') {
+    return (
+      <div
+        className="show-card"
+        onClick={handleCardClick}
+        style={{ cursor: onClick ? 'pointer' : 'default' }}
+      >
+        <div className="poster-container" style={{ position: 'relative' }}>
+          <img
+            src={posterUrl}
+            alt={title}
+            className="show-poster"
+            onError={handleImageError}
+          />
+          {/* Rating Badge */}
+          {currentRating && (
+            <div style={{
+              position: 'absolute',
+              bottom: '8px',
+              right: '8px',
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              background: 'rgba(0, 0, 0, 0.75)',
+              backdropFilter: 'blur(10px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1.125rem',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+            }}>
+              {currentRating === 'love' ? '❤️' : currentRating === 'like' ? '👍' : '😐'}
+            </div>
+          )}
+        </div>
+        <div className="show-title">{title}</div>
+      </div>
+    )
+  }
+
+  // List/Feed variant - horizontal layout
   return (
-    <div className="media-card-container">
+    <div 
+      className={`media-card-container ${variant === 'list' ? 'media-card-list' : ''}`}
+      onClick={handleCardClick}
+      style={{ cursor: onClick ? 'pointer' : 'default' }}
+    >
       <div className="feed-show-content">
         {media.poster_path && (
           <img
-            src={`https://image.tmdb.org/t/p/w185${media.poster_path}`}
+            src={posterUrl}
             alt={title}
             className="feed-show-poster"
+            onError={handleImageError}
           />
         )}
         <div className="feed-show-info">
@@ -103,11 +189,11 @@ export default function MediaCard({
               onTrailerClick={handleTrailerClick}
             />
           </div>
-          {media.overview && (
+          {showOverview && media.overview && (
             <div className="feed-show-overview">
               <p style={{
                 fontSize: '0.875rem',
-                color: colors.textPrimary,
+                color: colors.textSecondary || 'rgba(255, 255, 255, 0.7)',
                 lineHeight: '1.4',
                 margin: '0.5rem 0 0 0',
                 display: showFullOverview ? 'block' : '-webkit-box',
@@ -120,9 +206,12 @@ export default function MediaCard({
               {media.overview.length > 100 && (
                 <div style={{ textAlign: 'right' }}>
                   <button
-                    onClick={() => setShowFullOverview(!showFullOverview)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setShowFullOverview(!showFullOverview)
+                    }}
                     style={{
-                      color: colors.brandBlue,
+                      color: colors.brandBlue || '#0095f6',
                       fontSize: '0.875rem',
                       fontWeight: '500',
                       marginTop: '0.25rem',
@@ -143,7 +232,7 @@ export default function MediaCard({
 
       {/* Quick rate buttons */}
       {showActions && onRate && (
-        <div className="quick-rate">
+        <div className="quick-rate" onClick={(e) => e.stopPropagation()}>
           <button
             className={`quick-rate-btn meh ${currentRating === 'meh' ? 'active' : ''}`}
             onClick={() => onRate('meh')}
@@ -167,7 +256,7 @@ export default function MediaCard({
 
       {/* Quick status buttons */}
       {showActions && onStatus && (
-        <div className="quick-status">
+        <div className="quick-status" onClick={(e) => e.stopPropagation()}>
           <div className="status-btn-group">
             <button
               className={`quick-status-btn ${currentStatus === 'want' ? 'active' : ''}`}

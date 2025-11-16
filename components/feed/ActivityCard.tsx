@@ -1,10 +1,12 @@
 'use client'
 
 import { formatDistanceToNow } from 'date-fns'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useTheme } from '@/contexts/ThemeContext'
-import MediaBadges from '../media/MediaBadges'
-import { safeExtractYear } from '@/utils/dateFormatting'
+import MediaCard from '../media/MediaCard'
+import DropdownMenu from '../ui/DropdownMenu'
+import ReportModal from '../moderation/ReportModal'
+import { Trash2, Flag } from 'lucide-react'
 
 interface ActivityCardProps {
   activity: {
@@ -34,6 +36,8 @@ interface ActivityCardProps {
     comments?: any[]
     likes?: any[]
   }
+  activityTypes?: string[] // For grouped activities
+  activityData?: any[] // For grouped activities
   onLike: (activityId: string) => void
   onComment: (activityId: string, comment: string) => void
   onDeleteComment?: (commentId: string) => void
@@ -48,6 +52,8 @@ interface ActivityCardProps {
 
 export default function ActivityCard({
   activity,
+  activityTypes,
+  activityData,
   onLike,
   onComment,
   onDeleteComment,
@@ -62,9 +68,8 @@ export default function ActivityCard({
   const [showComments, setShowComments] = useState(false)
   const [showLikes, setShowLikes] = useState(false)
   const [commentText, setCommentText] = useState('')
-  const [showFullOverview, setShowFullOverview] = useState(false)
   const [lastTap, setLastTap] = useState(0)
-  const [trailerKey, setTrailerKey] = useState<string | null>(null)
+  const [reportingComment, setReportingComment] = useState<{id: string, text: string, username: string} | null>(null)
   const { resolvedTheme } = useTheme()
 
   // Theme-based colors
@@ -73,45 +78,73 @@ export default function ActivityCard({
 
   // Extract media info
   const mediaType = activity.media.media_type || (activity.media.id?.startsWith('tv-') ? 'tv' : 'movie')
-  const tmdbId = activity.media.tmdb_id
 
   // Extract season number from ID if it's a season-specific record (format: tv-{tmdb_id}-s{season_number})
   const seasonNumber = activity.media.id?.includes('-s')
     ? parseInt(activity.media.id.split('-s')[1])
     : (activity.media.tmdb_data?.season_number || null)
 
-  // Fetch trailer on mount
-  useEffect(() => {
-    const fetchTrailer = async () => {
-      if (!activity.media.tmdb_id) return
-      try {
-        const type = mediaType === 'tv' ? 'tv' : 'movie'
-        const response = await fetch(`/api/tmdb/${type}/${activity.media.tmdb_id}/videos`)
-        const data = await response.json()
-        const trailer = data.results?.find((v: any) => v.type === 'Trailer' && v.site === 'YouTube')
-        if (trailer) {
-          setTrailerKey(trailer.key)
-        }
-      } catch (error) {
-        console.error('Error fetching trailer:', error)
-      }
-    }
-    fetchTrailer()
-  }, [activity.media.tmdb_id, mediaType])
-
-  const handleTrailerClick = () => {
-    if (trailerKey) {
-      window.open(`https://www.youtube.com/watch?v=${trailerKey}`, '_blank')
-    }
-  }
-
   const getActivityText = () => {
+    // Handle grouped activities
+    const types = activityTypes || [activity.activity_type]
+    const dataArray = activityData || [activity.activity_data]
+
+    // If multiple activities, combine them
+    if (types.length > 1) {
+      const parts: string[] = []
+      
+      types.forEach((type, index) => {
+        const data = dataArray[index]
+        if (type === 'rated') {
+          const verb = data.rating === 'love' ? 'loved' :
+                      data.rating === 'like' ? 'liked' : 'felt meh about'
+          parts.push(verb)
+        } else if (type === 'status_changed') {
+          const status = data.status === 'want' ? 'added to Want to Watch' :
+                        data.status === 'watching' ? 'started watching' : 
+                        data.status === 'watched' ? 'finished watching' : 'updated status'
+          parts.push(status)
+        }
+      })
+
+      const combinedAction = parts.length > 1 
+        ? `${parts[0]} and ${parts.slice(1).join(' ')}`
+        : parts[0] || 'updated'
+
+      return (
+        <>
+          <strong
+            onClick={(e) => {
+              e.stopPropagation()
+              onUserClick?.(activity.user.username)
+            }}
+            style={{ cursor: onUserClick ? 'pointer' : 'default' }}
+            onMouseEnter={(e) => onUserClick && (e.currentTarget.style.textDecoration = 'underline')}
+            onMouseLeave={(e) => onUserClick && (e.currentTarget.style.textDecoration = 'none')}
+          >
+            {activity.user.display_name}
+          </strong>
+          <span className="action-type"> {combinedAction} </span>
+          <strong
+            onClick={(e) => {
+              e.stopPropagation()
+              onMediaClick?.(activity.media)
+            }}
+            style={{ cursor: onMediaClick ? 'pointer' : 'default' }}
+            onMouseEnter={(e) => onMediaClick && (e.currentTarget.style.textDecoration = 'underline')}
+            onMouseLeave={(e) => onMediaClick && (e.currentTarget.style.textDecoration = 'none')}
+          >
+            {activity.media.title}
+          </strong>
+        </>
+      )
+    }
+
+    // Single activity (original logic)
     const { activity_type, activity_data } = activity
 
     switch (activity_type) {
       case 'rated':
-        const emoji = activity_data.rating === 'love' ? '❤️' :
-                      activity_data.rating === 'like' ? '👍' : '😐'
         const verb = activity_data.rating === 'love' ? 'loved' :
                     activity_data.rating === 'like' ? 'liked' : 'felt meh about'
         return (
@@ -142,7 +175,7 @@ export default function ActivityCard({
           </>
         )
       case 'status_changed':
-        const status = activity_data.status === 'want' ? 'wants to watch' :
+        const status = activity_data.status === 'want' ? 'added to Want to Watch' :
                       activity_data.status === 'watching' ? 'started watching' : 'finished watching'
         return (
           <>
@@ -223,6 +256,10 @@ export default function ActivityCard({
     setLastTap(now)
   }
 
+  const handleMediaCardClick = () => {
+    onMediaClick?.(activity.media)
+  }
+
   const truncateText = (text: string, lines: number = 2) => {
     const words = text.split(' ')
     const lineHeight = 20
@@ -266,79 +303,34 @@ export default function ActivityCard({
             {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
           </div>
         </div>
+        {currentUserId === activity.user.id && (
+          <DropdownMenu
+            items={[
+              {
+                label: 'Delete',
+                icon: <Trash2 size={16} />,
+                onClick: () => {
+                  // TODO: Add delete activity functionality
+                  console.log('Delete activity', activity.id)
+                },
+                danger: true
+              }
+            ]}
+          />
+        )}
       </div>
 
       {/* Media Card - Clickable to open modal */}
-      <div
-        className="feed-show-content"
-        onClick={() => onMediaClick?.(activity.media)}
-        style={{ cursor: onMediaClick ? 'pointer' : 'default' }}
-      >
-        {activity.media.poster_path && (
-          <img
-            src={`https://image.tmdb.org/t/p/w185${activity.media.poster_path}`}
-            alt={activity.media.title}
-            className="feed-show-poster"
-            onClick={handleDoubleTap}
-            style={{ cursor: 'pointer' }}
-          />
-        )}
-        <div className="feed-show-info">
-          <div className="feed-show-title">{activity.media.title}</div>
-          <div className="feed-show-meta">
-            {activity.media.release_date && safeExtractYear(activity.media.release_date) && (
-              <span>{safeExtractYear(activity.media.release_date)}</span>
-            )}
-            {activity.media.vote_average && (
-              <span> • ⭐ {activity.media.vote_average.toFixed(1)}</span>
-            )}
-          </div>
-          <div style={{ marginTop: '0.5rem' }}>
-            <MediaBadges
-              mediaType={mediaType as 'tv' | 'movie'}
-              seasonNumber={seasonNumber || undefined}
-              season={!seasonNumber && mediaType === 'tv' ? (activity.media.tmdb_data?.number_of_seasons || 1) : undefined}
-              networks={activity.media.tmdb_data?.networks || []}
-              showTrailer={!!trailerKey}
-              onTrailerClick={handleTrailerClick}
-            />
-          </div>
-          {activity.media.overview && (
-            <div className="feed-show-overview">
-              <p style={{
-                fontSize: '0.875rem',
-                color: textSecondary,
-                lineHeight: '1.4',
-                margin: '0.5rem 0 0 0',
-                display: showFullOverview ? 'block' : '-webkit-box',
-                WebkitLineClamp: showFullOverview ? 'unset' : 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden'
-              }}>
-                {activity.media.overview}
-              </p>
-              {activity.media.overview.length > 100 && (
-                <div style={{ textAlign: 'right' }}>
-                  <button
-                    onClick={() => setShowFullOverview(!showFullOverview)}
-                    style={{
-                      color: '#0095f6',
-                      fontSize: '0.875rem',
-                      fontWeight: '500',
-                      marginTop: '0.25rem',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: 0
-                    }}
-                  >
-                    {showFullOverview ? 'Show less' : 'Read more'}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+      <div onClick={handleDoubleTap}>
+        <MediaCard
+          media={activity.media}
+          variant="feed"
+          onClick={handleMediaCardClick}
+          seasonNumber={seasonNumber || undefined}
+          showActions={false}
+          showOverview={true}
+          posterSize="w185"
+        />
       </div>
 
 
@@ -409,14 +401,28 @@ export default function ActivityCard({
                       <span>{comment.comment_text}</span>
                     </div>
                   </div>
-                  {currentUserId === comment.user_id && onDeleteComment && (
-                    <button
-                      onClick={() => onDeleteComment(comment.id)}
-                      className="delete-comment-btn"
-                    >
-                      ×
-                    </button>
-                  )}
+                  <DropdownMenu
+                    size={16}
+                    items={[
+                      {
+                        label: 'Delete',
+                        icon: <Trash2 size={14} />,
+                        onClick: () => onDeleteComment?.(comment.id),
+                        danger: true,
+                        show: currentUserId === comment.user_id && !!onDeleteComment
+                      },
+                      {
+                        label: 'Report',
+                        icon: <Flag size={14} />,
+                        onClick: () => setReportingComment({
+                          id: comment.id,
+                          text: comment.comment_text,
+                          username: comment.user.username
+                        }),
+                        show: currentUserId !== comment.user_id
+                      }
+                    ]}
+                  />
                 </div>
               ))}
             </div>
@@ -439,6 +445,18 @@ export default function ActivityCard({
             </button>
           </div>
         </div>
+      )}
+
+      {/* Report Comment Modal */}
+      {reportingComment && (
+        <ReportModal
+          isOpen={true}
+          onClose={() => setReportingComment(null)}
+          reportType="comment"
+          targetId={reportingComment.id}
+          targetUsername={reportingComment.username}
+          targetContent={reportingComment.text}
+        />
       )}
     </div>
   )

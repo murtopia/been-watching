@@ -5,6 +5,7 @@ import MediaCard from './MediaCard'
 import { createClient } from '@/utils/supabase/client'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import ShowCommentInput from '@/components/notes/ShowCommentInput'
+import { trackShowCommentAdded } from '@/utils/analytics'
 
 interface MediaDetailModalProps {
   isOpen: boolean
@@ -199,6 +200,14 @@ export default function MediaDetailModal({
           console.error('Error creating comment:', error)
         } else {
           setUserComment(data)
+
+          // Track new comment added
+          trackShowCommentAdded({
+            media_id: mediaId,
+            media_title: media.title || media.name,
+            comment_length: commentText.length,
+            is_public: true // Comments are public by default
+          })
         }
       }
     } catch (error) {

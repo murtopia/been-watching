@@ -1,7 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { getTasteMatchLabel } from '@/utils/tasteMatch'
+import DropdownMenu from '../ui/DropdownMenu'
+import ReportModal from '../moderation/ReportModal'
+import { Flag } from 'lucide-react'
 
 interface Profile {
   id: string
@@ -38,6 +42,7 @@ export default function UserCard({
 }: UserCardProps) {
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
+  const [showReportModal, setShowReportModal] = useState(false)
 
   const getInitials = (name: string) => {
     if (!name) return '?'
@@ -198,48 +203,73 @@ export default function UserCard({
         )}
       </div>
 
-      {/* Follow Button */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation() // Prevent card click when clicking button
-          if (isFollowing) {
-            onUnfollow(user.id)
-          } else {
-            onFollow(user.id)
-          }
-        }}
-        style={{
-          padding: '0.5rem 1.5rem',
-          background: isFollowing ? buttonBg : 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-          color: isFollowing ? textSecondary : 'white',
-          border: isFollowing ? buttonBorder : 'none',
-          borderRadius: '8px',
-          fontSize: '0.875rem',
-          fontWeight: '600',
-          cursor: 'pointer',
-          flexShrink: 0,
-          transition: 'all 0.2s',
-          whiteSpace: 'nowrap'
-        }}
-        onMouseEnter={(e) => {
-          if (isFollowing) {
-            e.currentTarget.style.background = buttonBgHover
-            e.currentTarget.style.borderColor = buttonBorderHover.replace('1px solid ', '')
-          } else {
-            e.currentTarget.style.transform = 'scale(1.05)'
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (isFollowing) {
-            e.currentTarget.style.background = buttonBg
-            e.currentTarget.style.borderColor = buttonBorder.replace('1px solid ', '')
-          } else {
-            e.currentTarget.style.transform = 'scale(1)'
-          }
-        }}
-      >
-        {isFollowing ? 'Following' : followsYou ? 'Follow Back' : 'Follow'}
-      </button>
+      {/* Actions */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <button
+          onClick={(e) => {
+            e.stopPropagation() // Prevent card click when clicking button
+            if (isFollowing) {
+              onUnfollow(user.id)
+            } else {
+              onFollow(user.id)
+            }
+          }}
+          style={{
+            padding: '0.5rem 1.5rem',
+            background: isFollowing ? buttonBg : 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+            color: isFollowing ? textSecondary : 'white',
+            border: isFollowing ? buttonBorder : 'none',
+            borderRadius: '8px',
+            fontSize: '0.875rem',
+            fontWeight: '600',
+            cursor: 'pointer',
+            flexShrink: 0,
+            transition: 'all 0.2s',
+            whiteSpace: 'nowrap'
+          }}
+          onMouseEnter={(e) => {
+            if (isFollowing) {
+              e.currentTarget.style.background = buttonBgHover
+              e.currentTarget.style.borderColor = buttonBorderHover.replace('1px solid ', '')
+            } else {
+              e.currentTarget.style.transform = 'scale(1.05)'
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (isFollowing) {
+              e.currentTarget.style.background = buttonBg
+              e.currentTarget.style.borderColor = buttonBorder.replace('1px solid ', '')
+            } else {
+              e.currentTarget.style.transform = 'scale(1)'
+            }
+          }}
+        >
+          {isFollowing ? 'Following' : followsYou ? 'Follow Back' : 'Follow'}
+        </button>
+
+        <div onClick={(e) => e.stopPropagation()}>
+          <DropdownMenu
+            size={18}
+            items={[
+              {
+                label: 'Report User',
+                icon: <Flag size={14} />,
+                onClick: () => setShowReportModal(true),
+                danger: true
+              }
+            ]}
+          />
+        </div>
+      </div>
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        reportType="user"
+        targetId={user.id}
+        targetUsername={user.username}
+      />
     </div>
   )
 }

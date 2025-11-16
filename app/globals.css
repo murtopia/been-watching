@@ -282,6 +282,26 @@ body {
     border-radius: 8px;
 }
 
+.media-card-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.media-card-list {
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    transition: all 0.2s;
+}
+
+.media-card-list:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
 .feed-show-content {
     display: flex;
     gap: 1rem;

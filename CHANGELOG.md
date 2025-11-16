@@ -9,12 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### In Progress
 - Avatar upload functionality (modal and UI complete, storage integration pending)
-- Friend/follow system
-- Activity feed
+- Admin System section (health checks, error logs, API performance)
 - Enhanced filtering on My Shows page
 - Statistics dashboard
 
-### Recently Completed (2025-10-18)
+### Recently Completed (2025-10-30)
+- ✅ Complete Moderation section of admin console
+- ✅ User reporting system with 3-dot menu pattern
+- ✅ ReportModal component with 6 report categories
+- ✅ DropdownMenu component for consistent UI
+- ✅ Comment reporting functionality
+- ✅ User profile reporting functionality
+- ✅ Fixed AppHeader avatar display
+- ✅ Glassmorphism theme consistency across admin pages
+
+### Previously Completed (2025-10-18)
 - ✅ Logout functionality across all pages
 - ✅ Google OAuth authentication fix
 - ✅ Admin page security and UX improvements
@@ -24,6 +33,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2025-01-XX (Current Development)
 
 ### Added
+
+- **Moderation & Reporting System (2025-10-30)**
+  - Complete Moderation section in admin console
+    - Reports queue page (pending, actioned, dismissed reports)
+    - Flagged content page (auto-flagged items needing review)
+    - Moderation log page (audit trail of all actions)
+    - Ban list page (permanent and temporary bans)
+    - Overview dashboard with moderation statistics
+  - User reporting system with 3-dot menu pattern
+    - Report comments from activity feed
+    - Report users from profiles and following/followers lists
+    - 6 report categories: spam, harassment, hate speech, inappropriate content, impersonation, other
+  - ReportModal component with category selection and context display
+  - DropdownMenu component for consistent three-dot menus
+  - Database schema for reports and moderation actions
+  - Glassmorphism theme applied across all moderation pages
+
 - **Authentication & Security (2025-10-18)**
   - OAuth error page at `/auth/error` for handling authentication failures
   - Logout functionality on profile page
@@ -75,6 +101,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Top 3 shows now clickable for viewing details instead of only for selection (2025-10-18)
 
 ### Fixed
+- Fixed event handler errors in Client Components by using styled-jsx hover states (2025-10-30)
+- Fixed AppHeader avatar not displaying logged-in user's profile picture (2025-10-30)
 - Fixed TypeError in TopShowModal when displaying TV seasons
 - Fixed database column not found error by running migration
 - Fixed component prop mismatches in season display

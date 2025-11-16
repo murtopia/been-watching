@@ -8,11 +8,12 @@ import BottomNav from '@/components/navigation/BottomNav'
 import AppHeader from '@/components/navigation/AppHeader'
 import SearchModal from '@/components/search/SearchModal'
 import MediaDetailModal from '@/components/media/MediaDetailModal'
-import MediaBadges from '@/components/media/MediaBadges'
+import MediaCardGrid from '@/components/media/MediaCardGrid'
 import TopShowModal from '@/components/profile/TopShowModal'
 import Footer from '@/components/navigation/Footer'
 import { Grid3x3, List } from 'lucide-react'
 import { safeFormatDate } from '@/utils/dateFormatting'
+import { trackMediaRated, trackWatchStatusChanged, trackMyShowsViewed } from '@/utils/analytics'
 
 export default function MyShowsPage() {
   const [user, setUser] = useState<any>(null)
@@ -42,6 +43,13 @@ export default function MyShowsPage() {
     if (user) {
       loadMediaForTab(activeTab)
       loadCounts()
+
+      // Track My Shows page view
+      trackMyShowsViewed({
+        tab: activeTab,
+        view_mode: viewMode,
+        items_count: mediaItems.length
+      })
     }
   }, [user, activeTab])
 
@@ -192,11 +200,44 @@ export default function MyShowsPage() {
               media_id: mediaId,
               rating: rating
             }, { onConflict: 'user_id,media_id' })
+
+          // Track rating event (only when adding/changing rating, not removing)
+          const mediaIdStr = String(mediaId)
+          const seasonNumber = mediaIdStr.includes('-s')
+            ? parseInt(mediaIdStr.split('-s')[1])
+            : undefined
+
+          // Check if there's a comment for this media
+          const { data: commentData } = await supabase
+            .from('show_comments')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('media_id', mediaId)
+            .maybeSingle()
+
+          trackMediaRated({
+            media_id: mediaId,
+            media_type: mediaType as 'movie' | 'tv',
+            media_title: media.title || media.name,
+            rating: rating as 'meh' | 'like' | 'love',
+            season_number: seasonNumber,
+            has_comment: !!commentData
+          })
         }
       }
 
       // Save status if provided
       if (status !== undefined) {
+        // Get old status for tracking
+        const { data: oldStatusData } = await supabase
+          .from('watch_status')
+          .select('status')
+          .eq('user_id', user.id)
+          .eq('media_id', mediaId)
+          .maybeSingle()
+
+        const oldStatus = oldStatusData?.status
+
         if (status === null) {
           // Delete watch_status if null (user unchecked)
           await supabase
@@ -204,6 +245,23 @@ export default function MyShowsPage() {
             .delete()
             .eq('user_id', user.id)
             .eq('media_id', mediaId)
+
+          // Track status removal
+          if (oldStatus) {
+            const mediaIdStr = String(mediaId)
+            const seasonNumber = mediaIdStr.includes('-s')
+              ? parseInt(mediaIdStr.split('-s')[1])
+              : undefined
+
+            trackWatchStatusChanged({
+              media_id: mediaId,
+              media_type: mediaType as 'movie' | 'tv',
+              media_title: media.title || media.name,
+              old_status: oldStatus as 'want' | 'watching' | 'watched',
+              new_status: null,
+              season_number: seasonNumber
+            })
+          }
         } else {
           await supabase
             .from('watch_status')
@@ -212,6 +270,21 @@ export default function MyShowsPage() {
               media_id: mediaId,
               status: status
             }, { onConflict: 'user_id,media_id' })
+
+          // Track status change
+          const mediaIdStr = String(mediaId)
+          const seasonNumber = mediaIdStr.includes('-s')
+            ? parseInt(mediaIdStr.split('-s')[1])
+            : undefined
+
+          trackWatchStatusChanged({
+            media_id: mediaId,
+            media_type: mediaType as 'movie' | 'tv',
+            media_title: media.title || media.name,
+            old_status: oldStatus as 'want' | 'watching' | 'watched' | null,
+            new_status: status as 'want' | 'watching' | 'watched',
+            season_number: seasonNumber
+          })
         }
       }
 
@@ -627,111 +700,14 @@ export default function MyShowsPage() {
               <div style={{ width: '32px', height: '32px', border: `4px solid ${colors.brandPink}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
             </div>
           ) : mediaItems.length > 0 ? (
-            viewMode === 'grid' ? (
-              <div className="shows-grid">
-                {mediaItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="show-card"
-                    onClick={() => handlePosterClick(item)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <div className="poster-container" style={{ position: 'relative' }}>
-                      <img
-                        src={`https://image.tmdb.org/t/p/w342${item.media.poster_path}`}
-                        alt={item.media.title}
-                        className="show-poster"
-                      />
-                      {/* Rating Badge */}
-                      {item.user_rating && (
-                        <div style={{
-                          position: 'absolute',
-                          bottom: '8px',
-                          right: '8px',
-                          width: '32px',
-                          height: '32px',
-                          borderRadius: '50%',
-                          background: 'rgba(0, 0, 0, 0.75)',
-                          backdropFilter: 'blur(10px)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '1.125rem',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
-                        }}>
-                          {item.user_rating === 'love' ? '❤️' : item.user_rating === 'like' ? '👍' : '😐'}
-                        </div>
-                      )}
-                    </div>
-                    <div className="show-title">{item.media.title}</div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {mediaItems.map((item) => {
-                  const mediaType = item.media.media_type || (item.media.tmdb_data?.first_air_date ? 'tv' : 'movie')
-                  const tmdbId = item.media.tmdb_id
-
-                  // Extract season number from ID if it's a season-specific record
-                  const seasonNumber = item.media.id?.includes('-s')
-                    ? parseInt(item.media.id.split('-s')[1])
-                    : (item.media.tmdb_data?.season_number || null)
-
-                  return (
-                    <div
-                      key={item.id}
-                      onClick={() => handlePosterClick(item)}
-                      style={{
-                        display: 'flex',
-                        gap: '1rem',
-                        padding: '0.75rem',
-                        background: colors.cardBg,
-                        border: colors.cardBorder,
-                        borderRadius: '12px',
-                        alignItems: 'center',
-                        cursor: 'pointer',
-                        backdropFilter: 'blur(20px)'
-                      }}
-                    >
-                      <img
-                        src={`https://image.tmdb.org/t/p/w185${item.media.poster_path}`}
-                        alt={item.media.title}
-                        style={{
-                          width: '60px',
-                          height: '90px',
-                          borderRadius: '8px',
-                          objectFit: 'cover'
-                        }}
-                      />
-                      <div style={{ flex: 1 }}>
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          marginBottom: '0.25rem'
-                        }}>
-                          <div style={{ fontWeight: '600', fontSize: '1rem', color: colors.textPrimary }}>
-                            {item.media.title}
-                          </div>
-                          {item.user_rating && (
-                            <span style={{ fontSize: '1.25rem' }}>
-                              {item.user_rating === 'love' ? '❤️' : item.user_rating === 'like' ? '👍' : '😐'}
-                            </span>
-                          )}
-                        </div>
-                        <MediaBadges
-                          mediaType={mediaType as 'tv' | 'movie'}
-                          seasonNumber={seasonNumber || undefined}
-                          season={!seasonNumber && mediaType === 'tv' ? (item.media.tmdb_data?.number_of_seasons || 1) : undefined}
-                          networks={item.media.tmdb_data?.networks || []}
-                        />
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            )
+            <MediaCardGrid
+              items={mediaItems}
+              variant={viewMode}
+              onCardClick={(item) => handlePosterClick(item)}
+              showActions={false}
+              showOverview={viewMode === 'list'}
+              posterSize={viewMode === 'grid' ? 'w342' : 'w185'}
+            />
           ) : (
             <div style={{ textAlign: 'center', padding: '4rem 2rem', color: colors.textSecondary }}>
               <p style={{ fontSize: '1rem' }}>

@@ -8,6 +8,7 @@ import { useThemeColors } from '@/hooks/useThemeColors'
 import TVSeasonCard from './TVSeasonCard'
 import MediaCard from '@/components/media/MediaCard'
 import MediaBadges from '@/components/media/MediaBadges'
+import { trackSearchPerformed } from '@/utils/analytics'
 
 interface SearchModalProps {
   isOpen: boolean
@@ -59,6 +60,14 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
       // Filter out person results
       const filtered = data.results?.filter((item: any) => item.media_type !== 'person') || []
       setResults(filtered)
+
+      // Track search event
+      trackSearchPerformed({
+        query: searchQuery,
+        results_count: filtered.length,
+        media_type_filter: mediaType,
+        result_clicked: false // Will be tracked separately on click
+      })
     } catch (error) {
       console.error('Search error:', error)
       setResults([])

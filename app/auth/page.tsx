@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useTheme } from '@/contexts/ThemeContext'
 import ThemeToggle from '@/components/theme/ThemeToggle'
 import Footer from '@/components/navigation/Footer'
+import { trackUserSignedUp, trackUserLoggedIn, identifyUser } from '@/utils/analytics'
 
 export default function AuthPage() {
   const [email, setEmail] = useState('')
@@ -219,6 +220,19 @@ export default function AuthPage() {
             }
           }
 
+          // Track signup event
+          identifyUser(data.user.id, {
+            email: data.user.email,
+            signup_date: new Date().toISOString()
+          })
+
+          trackUserSignedUp({
+            signup_method: 'email',
+            invite_code: inviteType === 'vip' ? inviteCode.trim().toUpperCase() : undefined,
+            username: data.user.email?.split('@')[0] || 'unknown',
+            email: data.user.email
+          })
+
           setMessage('Account created! Check your email to verify your account.')
         }
       } else {
@@ -232,6 +246,17 @@ export default function AuthPage() {
           setErrorMessage(error.message)
           setShowForgotPassword(true)
         } else {
+          // Track login event
+          const { data: { user } } = await supabase.auth.getUser()
+          if (user) {
+            identifyUser(user.id, {
+              email: user.email
+            })
+            trackUserLoggedIn({
+              login_method: 'session',
+              username: user.email?.split('@')[0]
+            })
+          }
           router.push('/')
         }
       }

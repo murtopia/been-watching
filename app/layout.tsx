@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { PostHogProvider } from "@/providers/PostHogProvider";
+import { ConsentBanner } from "@/components/ConsentBanner";
 import ThemeScript from "@/components/theme/ThemeScript";
 import "./globals.css";
 
@@ -22,10 +24,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} antialiased`}>
-        <ThemeProvider>
-          <ThemeScript />
-          {children}
-        </ThemeProvider>
+        <PostHogProvider>
+          <ThemeProvider>
+            <ThemeScript />
+            {children}
+            <ConsentBanner />
+          </ThemeProvider>
+        </PostHogProvider>
       </body>
     </html>
   );

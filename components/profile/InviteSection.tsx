@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { checkProfileCompletion, awardProfileCompletionInvite, getCompletionStepLabel, ProfileCompletionStatus } from '@/utils/profileCompletion'
 import { Share2, Copy, Check } from 'lucide-react'
@@ -12,12 +13,12 @@ interface InviteSectionProps {
   invitesRemaining: number
   onInviteEarned?: () => void
   onOpenAvatarUpload?: () => void
-  onOpenEditProfile?: () => void
   onOpenSearch?: () => void
   onNavigateToMyShows?: () => void
 }
 
-export default function InviteSection({ userId, username, invitesRemaining, onInviteEarned, onOpenAvatarUpload, onOpenEditProfile, onOpenSearch, onNavigateToMyShows }: InviteSectionProps) {
+export default function InviteSection({ userId, username, invitesRemaining, onInviteEarned, onOpenAvatarUpload, onOpenSearch, onNavigateToMyShows }: InviteSectionProps) {
+  const router = useRouter()
   const colors = useThemeColors()
   const [completionStatus, setCompletionStatus] = useState<ProfileCompletionStatus | null>(null)
   const [loading, setLoading] = useState(true)
@@ -285,7 +286,7 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
         onOpenAvatarUpload?.()
         break
       case 'hasBio':
-        onOpenEditProfile?.()
+        router.push('/profile/settings/account')
         break
       case 'hasTopShows':
         onNavigateToMyShows?.()

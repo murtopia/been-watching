@@ -1185,9 +1185,10 @@
                                     <span class="back-rating">⭐ 9.5</span>
                                 </div>
                                 <div class="back-badges">
-                                    <div class="back-badge">S5</div>
-                                    <div class="back-badge">TV</div>
-                                    <div class="back-badge">AMC</div>
+                                    <div class="back-badge season">S5</div>
+                                    <div class="back-badge type">TV</div>
+                                    <div class="back-badge network">AMC</div>
+                                    <div class="back-badge trailer">▶ Trailer</div>
                                 </div>
                             </div>
                             <p class="back-synopsis collapsed" id="synopsis1">
@@ -1197,7 +1198,7 @@
 
                             <!-- Action Icons -->
                             <div class="back-action-icons">
-                                <button class="back-icon-btn primary">
+                                <button class="back-icon-btn primary" onclick="toggleActionOverlay(event)">
                                     <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;">
                                         <path d="M19 11H13V5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5V11H5C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13H11V19C11 19.5523 11.4477 20 12 20C12.5523 20 13 19.5523 13 19V13H19C19.5523 13 20 12.5523 20 12C20 11.4477 19.5523 11 19 11Z" stroke="white" fill="none" stroke-width="1.5"/>
                                     </svg>
@@ -1242,7 +1243,7 @@
                             <div class="back-section">
                                 <h3 class="back-section-title">Friends Watching</h3>
                                 <div class="friends-categories">
-                                    <div class="friends-category">
+                                    <div class="friends-category" onclick="expandFriendsCategory('watching')">
                                         <div class="friends-avatars-stack">
                                             <img src="https://i.pravatar.cc/150?img=5" alt="Friend">
                                             <img src="https://i.pravatar.cc/150?img=6" alt="Friend">
@@ -1252,7 +1253,7 @@
                                             <span class="count">8</span> friends watching
                                         </div>
                                     </div>
-                                    <div class="friends-category">
+                                    <div class="friends-category" onclick="expandFriendsCategory('want')">
                                         <div class="friends-avatars-stack">
                                             <img src="https://i.pravatar.cc/150?img=8" alt="Friend">
                                             <img src="https://i.pravatar.cc/150?img=9" alt="Friend">
@@ -1262,7 +1263,7 @@
                                             <span class="count">12</span> friends want to watch
                                         </div>
                                     </div>
-                                    <div class="friends-category">
+                                    <div class="friends-category" onclick="expandFriendsCategory('watched')">
                                         <div class="friends-avatars-stack">
                                             <img src="https://i.pravatar.cc/150?img=11" alt="Friend">
                                             <img src="https://i.pravatar.cc/150?img=12" alt="Friend">
@@ -1310,6 +1311,99 @@
                                                 <div class="rating-label">Love</div>
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Show Comments -->
+                            <div class="back-section show-comments-section">
+                                <h3 class="back-section-title">Show Comments</h3>
+
+                                <!-- Comment Input -->
+                                <div class="comment-input-container">
+                                    <img src="https://i.pravatar.cc/150?img=1" alt="You" class="comment-input-avatar">
+                                    <div class="comment-input-wrapper">
+                                        <textarea class="comment-input" placeholder="Share your thoughts about this show..."></textarea>
+                                        <button class="comment-submit-btn">Post Comment</button>
+                                    </div>
+                                </div>
+
+                                <!-- Comments List -->
+                                <div class="comments-list">
+                                    <div class="comment-item">
+                                        <img src="https://i.pravatar.cc/150?img=14" alt="Jessica" class="comment-avatar">
+                                        <div class="comment-content">
+                                            <div class="comment-header">
+                                                <span class="comment-username">Jessica Chen</span>
+                                                <span class="comment-timestamp">3 days ago</span>
+                                            </div>
+                                            <div class="comment-text">This season is absolutely phenomenal. The tension keeps building and you can't look away. Best TV I've ever watched.</div>
+                                            <div class="comment-actions">
+                                                <button class="comment-like-btn liked" onclick="toggleCommentLike(this, event)">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                    </svg>
+                                                    <span>24</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="comment-item">
+                                        <img src="https://i.pravatar.cc/150?img=15" alt="Marcus" class="comment-avatar">
+                                        <div class="comment-content">
+                                            <div class="comment-header">
+                                                <span class="comment-username">Marcus Williams</span>
+                                                <span class="comment-timestamp">1 week ago</span>
+                                            </div>
+                                            <div class="comment-text">Started this last month and I'm already hooked. Can't believe I waited so long to watch it!</div>
+                                            <div class="comment-actions">
+                                                <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                    </svg>
+                                                    <span>8</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="comment-item">
+                                        <img src="https://i.pravatar.cc/150?img=16" alt="Emma" class="comment-avatar">
+                                        <div class="comment-content">
+                                            <div class="comment-header">
+                                                <span class="comment-username">Emma Davis</span>
+                                                <span class="comment-timestamp">2 weeks ago</span>
+                                            </div>
+                                            <div class="comment-text">The character development in this season is incredible. Every episode leaves me wanting more.</div>
+                                            <div class="comment-actions">
+                                                <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                    </svg>
+                                                    <span>15</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Load More Button -->
+                                <button class="load-more-btn" onclick="loadMoreComments()">Load More Comments</button>
+                            </div>
+
+                            <!-- Similar Shows -->
+                            <div class="back-section">
+                                <h3 class="back-section-title">Similar Shows</h3>
+                                <div class="similar-shows">
+                                    <div class="similar-show" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent), linear-gradient(135deg, #4B0082, #FF1493);">
+                                        <div class="similar-show-title">Better Call Saul</div>
+                                    </div>
+                                    <div class="similar-show" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent), linear-gradient(135deg, #1a1a1a, #4a4a4a);">
+                                        <div class="similar-show-title">Ozark</div>
+                                    </div>
+                                    <div class="similar-show" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent), linear-gradient(135deg, #8B0000, #FF6347);">
+                                        <div class="similar-show-title">Narcos</div>
                                     </div>
                                 </div>
                             </div>
@@ -1362,12 +1456,30 @@
                             <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         </div>
                         <div class="card-back-content" id="cardBackContent2">
+                            <!-- Title Section -->
                             <div class="back-title-section">
                                 <h1 class="back-title">Better Call Saul - Season 6</h1>
-                                <div class="back-meta"><span class="back-year">2022</span><span class="meta-dot">•</span><span>Crime, Drama</span><span class="meta-dot">•</span><span class="back-rating">⭐ 9.0</span></div>
-                                <div class="back-badges"><div class="back-badge">S6</div><div class="back-badge">TV</div><div class="back-badge">AMC</div></div>
+                                <div class="back-meta">
+                                    <span class="back-year">2022</span>
+                                    <span class="meta-dot">•</span>
+                                    <span>Crime, Drama</span>
+                                    <span class="meta-dot">•</span>
+                                    <span class="back-rating">⭐ 9.0</span>
+                                </div>
+
+                                <!-- Badges -->
+                                <div class="back-badges">
+                                    <div class="back-badge season">S6</div>
+                                    <div class="back-badge type">TV</div>
+                                    <div class="back-badge network">AMC</div>
+                                    <div class="back-badge trailer">▶ Trailer</div>
+                                </div>
                             </div>
-                            <p class="back-synopsis collapsed" id="synopsis2">The final season finds Jimmy McGill living as Gene Takavic in Omaha. As he completes his transformation into criminal lawyer Saul Goodman, tensions between Gus Fring and Lalo Salamanca escalate.</p>
+
+                            <!-- Synopsis -->
+                            <p class="back-synopsis collapsed" id="synopsis2">
+                                The final season finds Jimmy McGill living as Gene Takavic in Omaha. As he completes his transformation into criminal lawyer Saul Goodman, tensions between Gus Fring and Lalo Salamanca escalate. Kim and Jimmy's relationship reaches a breaking point as they navigate an increasingly dangerous world.
+                            </p>
                             <span class="read-more" onclick="toggleSynopsis('synopsis2')">Read more</span>
 
                             <!-- Action Icons -->
@@ -1406,10 +1518,10 @@
                             <div class="back-section">
                                 <h3 class="back-section-title">Cast</h3>
                                 <div class="cast-list">
-                                    <span class="cast-member">Bob Odenkirk</span>
-                                    <span class="cast-member">Jonathan Banks</span>
-                                    <span class="cast-member">Rhea Seehorn</span>
-                                    <span class="cast-member">Michael Mando</span>
+                                    <span class="cast-member">Bryan Cranston</span>
+                                    <span class="cast-member">Aaron Paul</span>
+                                    <span class="cast-member">Anna Gunn</span>
+                                    <span class="cast-member">Dean Norris</span>
                                 </div>
                             </div>
 
@@ -1417,34 +1529,34 @@
                             <div class="back-section">
                                 <h3 class="back-section-title">Friends Watching</h3>
                                 <div class="friends-categories">
-                                    <div class="friends-category">
+                                    <div class="friends-category" onclick="expandFriendsCategory('watching')">
                                         <div class="friends-avatars-stack">
                                             <img src="https://i.pravatar.cc/150?img=5" alt="Friend">
                                             <img src="https://i.pravatar.cc/150?img=6" alt="Friend">
                                             <img src="https://i.pravatar.cc/150?img=7" alt="Friend">
                                         </div>
                                         <div class="friends-category-text">
-                                            <span class="count">6</span> friends watching
+                                            <span class="count">8</span> friends watching
                                         </div>
                                     </div>
-                                    <div class="friends-category">
+                                    <div class="friends-category" onclick="expandFriendsCategory('want')">
                                         <div class="friends-avatars-stack">
                                             <img src="https://i.pravatar.cc/150?img=8" alt="Friend">
                                             <img src="https://i.pravatar.cc/150?img=9" alt="Friend">
                                             <img src="https://i.pravatar.cc/150?img=10" alt="Friend">
                                         </div>
                                         <div class="friends-category-text">
-                                            <span class="count">10</span> friends want to watch
+                                            <span class="count">12</span> friends want to watch
                                         </div>
                                     </div>
-                                    <div class="friends-category">
+                                    <div class="friends-category" onclick="expandFriendsCategory('watched')">
                                         <div class="friends-avatars-stack">
                                             <img src="https://i.pravatar.cc/150?img=11" alt="Friend">
                                             <img src="https://i.pravatar.cc/150?img=12" alt="Friend">
                                             <img src="https://i.pravatar.cc/150?img=13" alt="Friend">
                                         </div>
                                         <div class="friends-category-text">
-                                            <span class="count">35</span> friends watched
+                                            <span class="count">42</span> friends watched
                                         </div>
                                     </div>
                                 </div>
@@ -1462,7 +1574,7 @@
                                                         <line x1="9" y1="9" x2="9" y2="10"/>
                                                         <line x1="15" y1="9" x2="15" y2="10"/>
                                                     </svg>
-                                                    <div class="rating-count">3</div>
+                                                    <div class="rating-count">5</div>
                                                 </div>
                                                 <div class="rating-label">Meh</div>
                                             </div>
@@ -1471,7 +1583,7 @@
                                                     <svg viewBox="0 0 24 24">
                                                         <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
                                                     </svg>
-                                                    <div class="rating-count">18</div>
+                                                    <div class="rating-count">23</div>
                                                 </div>
                                                 <div class="rating-label">Like</div>
                                             </div>
@@ -1480,11 +1592,104 @@
                                                     <svg viewBox="0 0 24 24">
                                                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                                     </svg>
-                                                    <div class="rating-count">33</div>
+                                                    <div class="rating-count">48</div>
                                                 </div>
                                                 <div class="rating-label">Love</div>
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Show Comments -->
+                            <div class="back-section show-comments-section">
+                                <h3 class="back-section-title">Show Comments</h3>
+
+                                <!-- Comment Input -->
+                                <div class="comment-input-container">
+                                    <img src="https://i.pravatar.cc/150?img=1" alt="You" class="comment-input-avatar">
+                                    <div class="comment-input-wrapper">
+                                        <textarea class="comment-input" placeholder="Share your thoughts about this show..."></textarea>
+                                        <button class="comment-submit-btn">Post Comment</button>
+                                    </div>
+                                </div>
+
+                                <!-- Comments List -->
+                                <div class="comments-list">
+                                    <div class="comment-item">
+                                        <img src="https://i.pravatar.cc/150?img=14" alt="Jessica" class="comment-avatar">
+                                        <div class="comment-content">
+                                            <div class="comment-header">
+                                                <span class="comment-username">Jessica Chen</span>
+                                                <span class="comment-timestamp">3 days ago</span>
+                                            </div>
+                                            <div class="comment-text">This season is absolutely phenomenal. The tension keeps building and you can't look away. Best TV I've ever watched.</div>
+                                            <div class="comment-actions">
+                                                <button class="comment-like-btn liked" onclick="toggleCommentLike(this, event)">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                    </svg>
+                                                    <span>24</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="comment-item">
+                                        <img src="https://i.pravatar.cc/150?img=15" alt="Marcus" class="comment-avatar">
+                                        <div class="comment-content">
+                                            <div class="comment-header">
+                                                <span class="comment-username">Marcus Williams</span>
+                                                <span class="comment-timestamp">1 week ago</span>
+                                            </div>
+                                            <div class="comment-text">Started this last month and I'm already hooked. Can't believe I waited so long to watch it!</div>
+                                            <div class="comment-actions">
+                                                <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                    </svg>
+                                                    <span>8</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="comment-item">
+                                        <img src="https://i.pravatar.cc/150?img=16" alt="Emma" class="comment-avatar">
+                                        <div class="comment-content">
+                                            <div class="comment-header">
+                                                <span class="comment-username">Emma Davis</span>
+                                                <span class="comment-timestamp">2 weeks ago</span>
+                                            </div>
+                                            <div class="comment-text">The character development in this season is incredible. Every episode leaves me wanting more.</div>
+                                            <div class="comment-actions">
+                                                <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                    </svg>
+                                                    <span>15</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Load More Button -->
+                                <button class="load-more-btn" onclick="loadMoreComments()">Load More Comments</button>
+                            </div>
+
+                            <!-- Similar Shows -->
+                            <div class="back-section">
+                                <h3 class="back-section-title">Similar Shows</h3>
+                                <div class="similar-shows">
+                                    <div class="similar-show" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent), linear-gradient(135deg, #4B0082, #FF1493);">
+                                        <div class="similar-show-title">Better Call Saul</div>
+                                    </div>
+                                    <div class="similar-show" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent), linear-gradient(135deg, #1a1a1a, #4a4a4a);">
+                                        <div class="similar-show-title">Ozark</div>
+                                    </div>
+                                    <div class="similar-show" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent), linear-gradient(135deg, #8B0000, #FF6347);">
+                                        <div class="similar-show-title">Narcos</div>
                                     </div>
                                 </div>
                             </div>
@@ -1533,12 +1738,30 @@
                             <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         </div>
                         <div class="card-back-content" id="cardBackContent3">
+                            <!-- Title Section -->
                             <div class="back-title-section">
                                 <h1 class="back-title">The Last of Us - Season 1</h1>
-                                <div class="back-meta"><span class="back-year">2023</span><span class="meta-dot">•</span><span>Drama, Sci-Fi</span><span class="meta-dot">•</span><span class="back-rating">⭐ 8.8</span></div>
-                                <div class="back-badges"><div class="back-badge">S1</div><div class="back-badge">TV</div><div class="back-badge">HBO</div></div>
+                                <div class="back-meta">
+                                    <span class="back-year">2023</span>
+                                    <span class="meta-dot">•</span>
+                                    <span>Drama, Sci-Fi</span>
+                                    <span class="meta-dot">•</span>
+                                    <span class="back-rating">⭐ 8.8</span>
+                                </div>
+
+                                <!-- Badges -->
+                                <div class="back-badges">
+                                    <div class="back-badge season">S1</div>
+                                    <div class="back-badge type">TV</div>
+                                    <div class="back-badge network">HBO</div>
+                                    <div class="back-badge trailer">▶ Trailer</div>
+                                </div>
                             </div>
-                            <p class="back-synopsis collapsed" id="synopsis3">After a global pandemic destroys civilization, a hardened survivor takes charge of a 14-year-old girl who may be humanity's last hope.</p>
+
+                            <!-- Synopsis -->
+                            <p class="back-synopsis collapsed" id="synopsis3">
+                                Twenty years after a fungal outbreak ravages the planet, Joel Miller is tasked with escorting teenager Ellie across a post-apocalyptic United States. As they journey across the ruins of civilization, their relationship deepens while they face infected monsters and desperate survivors in their path.
+                            </p>
                             <span class="read-more" onclick="toggleSynopsis('synopsis3')">Read more</span>
 
                             <!-- Action Icons -->
@@ -1565,11 +1788,11 @@
                             <div class="back-info-grid">
                                 <div class="back-info-item">
                                     <span class="back-info-label">Creator</span>
-                                    <span class="back-info-value">Craig Mazin</span>
+                                    <span class="back-info-value">Vince Gilligan</span>
                                 </div>
                                 <div class="back-info-item">
                                     <span class="back-info-label">Genre</span>
-                                    <span class="back-info-value">Drama, Sci-Fi</span>
+                                    <span class="back-info-value">Crime, Drama</span>
                                 </div>
                             </div>
 
@@ -1577,10 +1800,10 @@
                             <div class="back-section">
                                 <h3 class="back-section-title">Cast</h3>
                                 <div class="cast-list">
-                                    <span class="cast-member">Pedro Pascal</span>
-                                    <span class="cast-member">Bella Ramsey</span>
-                                    <span class="cast-member">Anna Torv</span>
-                                    <span class="cast-member">Nick Offerman</span>
+                                    <span class="cast-member">Bryan Cranston</span>
+                                    <span class="cast-member">Aaron Paul</span>
+                                    <span class="cast-member">Anna Gunn</span>
+                                    <span class="cast-member">Dean Norris</span>
                                 </div>
                             </div>
 
@@ -1588,34 +1811,34 @@
                             <div class="back-section">
                                 <h3 class="back-section-title">Friends Watching</h3>
                                 <div class="friends-categories">
-                                    <div class="friends-category">
+                                    <div class="friends-category" onclick="expandFriendsCategory('watching')">
                                         <div class="friends-avatars-stack">
                                             <img src="https://i.pravatar.cc/150?img=5" alt="Friend">
                                             <img src="https://i.pravatar.cc/150?img=6" alt="Friend">
                                             <img src="https://i.pravatar.cc/150?img=7" alt="Friend">
                                         </div>
                                         <div class="friends-category-text">
-                                            <span class="count">15</span> friends watching
+                                            <span class="count">8</span> friends watching
                                         </div>
                                     </div>
-                                    <div class="friends-category">
+                                    <div class="friends-category" onclick="expandFriendsCategory('want')">
                                         <div class="friends-avatars-stack">
                                             <img src="https://i.pravatar.cc/150?img=8" alt="Friend">
                                             <img src="https://i.pravatar.cc/150?img=9" alt="Friend">
                                             <img src="https://i.pravatar.cc/150?img=10" alt="Friend">
                                         </div>
                                         <div class="friends-category-text">
-                                            <span class="count">20</span> friends want to watch
+                                            <span class="count">12</span> friends want to watch
                                         </div>
                                     </div>
-                                    <div class="friends-category">
+                                    <div class="friends-category" onclick="expandFriendsCategory('watched')">
                                         <div class="friends-avatars-stack">
                                             <img src="https://i.pravatar.cc/150?img=11" alt="Friend">
                                             <img src="https://i.pravatar.cc/150?img=12" alt="Friend">
                                             <img src="https://i.pravatar.cc/150?img=13" alt="Friend">
                                         </div>
                                         <div class="friends-category-text">
-                                            <span class="count">28</span> friends watched
+                                            <span class="count">42</span> friends watched
                                         </div>
                                     </div>
                                 </div>
@@ -1633,7 +1856,7 @@
                                                         <line x1="9" y1="9" x2="9" y2="10"/>
                                                         <line x1="15" y1="9" x2="15" y2="10"/>
                                                     </svg>
-                                                    <div class="rating-count">2</div>
+                                                    <div class="rating-count">5</div>
                                                 </div>
                                                 <div class="rating-label">Meh</div>
                                             </div>
@@ -1642,7 +1865,7 @@
                                                     <svg viewBox="0 0 24 24">
                                                         <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
                                                     </svg>
-                                                    <div class="rating-count">12</div>
+                                                    <div class="rating-count">23</div>
                                                 </div>
                                                 <div class="rating-label">Like</div>
                                             </div>
@@ -1651,11 +1874,104 @@
                                                     <svg viewBox="0 0 24 24">
                                                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                                     </svg>
-                                                    <div class="rating-count">38</div>
+                                                    <div class="rating-count">48</div>
                                                 </div>
                                                 <div class="rating-label">Love</div>
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Show Comments -->
+                            <div class="back-section show-comments-section">
+                                <h3 class="back-section-title">Show Comments</h3>
+
+                                <!-- Comment Input -->
+                                <div class="comment-input-container">
+                                    <img src="https://i.pravatar.cc/150?img=1" alt="You" class="comment-input-avatar">
+                                    <div class="comment-input-wrapper">
+                                        <textarea class="comment-input" placeholder="Share your thoughts about this show..."></textarea>
+                                        <button class="comment-submit-btn">Post Comment</button>
+                                    </div>
+                                </div>
+
+                                <!-- Comments List -->
+                                <div class="comments-list">
+                                    <div class="comment-item">
+                                        <img src="https://i.pravatar.cc/150?img=14" alt="Jessica" class="comment-avatar">
+                                        <div class="comment-content">
+                                            <div class="comment-header">
+                                                <span class="comment-username">Jessica Chen</span>
+                                                <span class="comment-timestamp">3 days ago</span>
+                                            </div>
+                                            <div class="comment-text">This season is absolutely phenomenal. The tension keeps building and you can't look away. Best TV I've ever watched.</div>
+                                            <div class="comment-actions">
+                                                <button class="comment-like-btn liked" onclick="toggleCommentLike(this, event)">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                    </svg>
+                                                    <span>24</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="comment-item">
+                                        <img src="https://i.pravatar.cc/150?img=15" alt="Marcus" class="comment-avatar">
+                                        <div class="comment-content">
+                                            <div class="comment-header">
+                                                <span class="comment-username">Marcus Williams</span>
+                                                <span class="comment-timestamp">1 week ago</span>
+                                            </div>
+                                            <div class="comment-text">Started this last month and I'm already hooked. Can't believe I waited so long to watch it!</div>
+                                            <div class="comment-actions">
+                                                <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                    </svg>
+                                                    <span>8</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="comment-item">
+                                        <img src="https://i.pravatar.cc/150?img=16" alt="Emma" class="comment-avatar">
+                                        <div class="comment-content">
+                                            <div class="comment-header">
+                                                <span class="comment-username">Emma Davis</span>
+                                                <span class="comment-timestamp">2 weeks ago</span>
+                                            </div>
+                                            <div class="comment-text">The character development in this season is incredible. Every episode leaves me wanting more.</div>
+                                            <div class="comment-actions">
+                                                <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                    </svg>
+                                                    <span>15</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Load More Button -->
+                                <button class="load-more-btn" onclick="loadMoreComments()">Load More Comments</button>
+                            </div>
+
+                            <!-- Similar Shows -->
+                            <div class="back-section">
+                                <h3 class="back-section-title">Similar Shows</h3>
+                                <div class="similar-shows">
+                                    <div class="similar-show" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent), linear-gradient(135deg, #4B0082, #FF1493);">
+                                        <div class="similar-show-title">Better Call Saul</div>
+                                    </div>
+                                    <div class="similar-show" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent), linear-gradient(135deg, #1a1a1a, #4a4a4a);">
+                                        <div class="similar-show-title">Ozark</div>
+                                    </div>
+                                    <div class="similar-show" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent), linear-gradient(135deg, #8B0000, #FF6347);">
+                                        <div class="similar-show-title">Narcos</div>
                                     </div>
                                 </div>
                             </div>
@@ -1702,19 +2018,40 @@
                             <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         </div>
                         <div class="card-back-content" id="cardBackContent4">
+                            <!-- Title Section -->
                             <div class="back-title-section">
                                 <h1 class="back-title">House of the Dragon - Season 2</h1>
-                                <div class="back-meta"><span class="back-year">2024</span><span class="meta-dot">•</span><span>Fantasy, Drama</span><span class="meta-dot">•</span><span class="back-rating">8 episodes</span></div>
-                                <div class="back-badges"><div class="back-badge">S2</div><div class="back-badge">TV</div><div class="back-badge">HBO</div></div>
+                                <div class="back-meta">
+                                    <span class="back-year">2024</span>
+                                    <span class="meta-dot">•</span>
+                                    <span>Fantasy, Drama</span>
+                                    <span class="meta-dot">•</span>
+                                    <span class="back-rating">8 episodes</span>
+                                </div>
+
+                                <!-- Badges -->
+                                <div class="back-badges">
+                                    <div class="back-badge season">S2</div>
+                                    <div class="back-badge type">TV</div>
+                                    <div class="back-badge network">HBO</div>
+                                    <div class="back-badge trailer">▶ Trailer</div>
+                                </div>
                             </div>
-                            <p class="back-synopsis collapsed" id="synopsis4">The Targaryen dynasty is at the absolute apex of its power, with more than 10 dragons under their yoke. The Targaryen dynasty is at the absolute apex of its power, with more than 10 dragons under their yoke.</p>
+
+                            <!-- Synopsis -->
+                            <p class="back-synopsis collapsed" id="synopsis4">
+                                The final season finds Jimmy McGill living as Gene Takavic in Omaha. As he completes his transformation into criminal lawyer Saul Goodman, tensions between Gus Fring and Lalo Salamanca escalate. Kim and Jimmy's relationship reaches a breaking point as they navigate an increasingly dangerous world.
+                            </p>
                             <span class="read-more" onclick="toggleSynopsis('synopsis4')">Read more</span>
 
                             <!-- Action Icons -->
                             <div class="back-action-icons">
                                 <button class="back-icon-btn primary">
                                     <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;">
-                                        <path d="M19 11H13V5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5V11H5C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13H11V19C11 19.5523 11.4477 20 12 20C12.5523 20 13 19.5523 13 19V13H19C19.5523 13 20 12.5523 20 12C20 11.4477 19.5523 11 19 11Z" stroke="white" fill="none" stroke-width="1.5"/>
+                                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" fill="white"/>
+                                        <!-- Plus sign overlay -->
+                                        <line x1="12" y1="6" x2="12" y2="12" stroke="black" stroke-width="1.5" stroke-linecap="round"/>
+                                        <line x1="9" y1="9" x2="15" y2="9" stroke="black" stroke-width="1.5" stroke-linecap="round"/>
                                     </svg>
                                 </button>
                                 <button class="back-icon-btn">
@@ -1734,7 +2071,7 @@
                             <div class="back-info-grid">
                                 <div class="back-info-item">
                                     <span class="back-info-label">Creator</span>
-                                    <span class="back-info-value">Ryan Condal</span>
+                                    <span class="back-info-value">Vince Gilligan</span>
                                 </div>
                                 <div class="back-info-item">
                                     <span class="back-info-label">Genre</span>
@@ -1746,85 +2083,120 @@
                             <div class="back-section">
                                 <h3 class="back-section-title">Cast</h3>
                                 <div class="cast-list">
-                                    <span class="cast-member">Matt Smith</span>
-                                    <span class="cast-member">Emma D'Arcy</span>
-                                    <span class="cast-member">Olivia Cooke</span>
-                                    <span class="cast-member">Rhys Ifans</span>
+                                    <span class="cast-member">Bryan Cranston</span>
+                                    <span class="cast-member">Aaron Paul</span>
+                                    <span class="cast-member">Anna Gunn</span>
+                                    <span class="cast-member">Dean Norris</span>
                                 </div>
                             </div>
 
                             <!-- Friends Watching -->
+                            <!-- Friends Want to Watch (Coming Soon - no ratings yet) -->
                             <div class="back-section">
-                                <h3 class="back-section-title">Friends Watching</h3>
+                                <h3 class="back-section-title">Friends Want to Watch</h3>
                                 <div class="friends-categories">
-                                    <div class="friends-category">
-                                        <div class="friends-avatars-stack">
-                                            <img src="https://i.pravatar.cc/150?img=5" alt="Friend">
-                                            <img src="https://i.pravatar.cc/150?img=6" alt="Friend">
-                                            <img src="https://i.pravatar.cc/150?img=7" alt="Friend">
-                                        </div>
-                                        <div class="friends-category-text">
-                                            <span class="count">10</span> friends watching
-                                        </div>
-                                    </div>
-                                    <div class="friends-category">
+                                    <div class="friends-category" onclick="expandFriendsCategory('want')">
                                         <div class="friends-avatars-stack">
                                             <img src="https://i.pravatar.cc/150?img=8" alt="Friend">
                                             <img src="https://i.pravatar.cc/150?img=9" alt="Friend">
                                             <img src="https://i.pravatar.cc/150?img=10" alt="Friend">
                                         </div>
                                         <div class="friends-category-text">
-                                            <span class="count">15</span> friends want to watch
+                                            <span class="count">5</span> friends want to watch
                                         </div>
                                     </div>
-                                    <div class="friends-category">
-                                        <div class="friends-avatars-stack">
-                                            <img src="https://i.pravatar.cc/150?img=11" alt="Friend">
-                                            <img src="https://i.pravatar.cc/150?img=12" alt="Friend">
-                                            <img src="https://i.pravatar.cc/150?img=13" alt="Friend">
+                                </div>
+                            </div>
+
+                            <!-- Show Comments -->
+                            <div class="back-section show-comments-section">
+                                <h3 class="back-section-title">Show Comments</h3>
+
+                                <!-- Comment Input -->
+                                <div class="comment-input-container">
+                                    <img src="https://i.pravatar.cc/150?img=1" alt="You" class="comment-input-avatar">
+                                    <div class="comment-input-wrapper">
+                                        <textarea class="comment-input" placeholder="Share your thoughts about this show..."></textarea>
+                                        <button class="comment-submit-btn">Post Comment</button>
+                                    </div>
+                                </div>
+
+                                <!-- Comments List -->
+                                <div class="comments-list">
+                                    <div class="comment-item">
+                                        <img src="https://i.pravatar.cc/150?img=14" alt="Jessica" class="comment-avatar">
+                                        <div class="comment-content">
+                                            <div class="comment-header">
+                                                <span class="comment-username">Jessica Chen</span>
+                                                <span class="comment-timestamp">3 days ago</span>
+                                            </div>
+                                            <div class="comment-text">This season is absolutely phenomenal. The tension keeps building and you can't look away. Best TV I've ever watched.</div>
+                                            <div class="comment-actions">
+                                                <button class="comment-like-btn liked" onclick="toggleCommentLike(this, event)">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                    </svg>
+                                                    <span>24</span>
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div class="friends-category-text">
-                                            <span class="count">25</span> friends watched
+                                    </div>
+
+                                    <div class="comment-item">
+                                        <img src="https://i.pravatar.cc/150?img=15" alt="Marcus" class="comment-avatar">
+                                        <div class="comment-content">
+                                            <div class="comment-header">
+                                                <span class="comment-username">Marcus Williams</span>
+                                                <span class="comment-timestamp">1 week ago</span>
+                                            </div>
+                                            <div class="comment-text">Started this last month and I'm already hooked. Can't believe I waited so long to watch it!</div>
+                                            <div class="comment-actions">
+                                                <button class="comment-like-btn" onclick="toggleCommentLike(this, event)">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                    </svg>
+                                                    <span>8</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="comment-item">
+                                        <img src="https://i.pravatar.cc/150?img=16" alt="Emma" class="comment-avatar">
+                                        <div class="comment-content">
+                                            <div class="comment-header">
+                                                <span class="comment-username">Emma Davis</span>
+                                                <span class="comment-timestamp">2 weeks ago</span>
+                                            </div>
+                                            <div class="comment-text">The character development in this season is incredible. Every episode leaves me wanting more.</div>
+                                            <div class="comment-actions">
+                                                <button class="comment-like-btn" onclick="toggleCommentLike(this)">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                    </svg>
+                                                    <span>15</span>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Friends Ratings -->
-                                <div class="friends-ratings-container">
-                                    <div class="friends-ratings">
-                                        <h3 class="friends-ratings-title">Friends Ratings</h3>
-                                        <div class="friends-ratings-stats">
-                                            <div class="rating-stat">
-                                                <div class="rating-icon-wrapper">
-                                                    <svg viewBox="0 0 24 24">
-                                                        <circle cx="12" cy="12" r="10"/>
-                                                        <line x1="8" y1="15" x2="16" y2="15"/>
-                                                        <line x1="9" y1="9" x2="9" y2="10"/>
-                                                        <line x1="15" y1="9" x2="15" y2="10"/>
-                                                    </svg>
-                                                    <div class="rating-count">4</div>
-                                                </div>
-                                                <div class="rating-label">Meh</div>
-                                            </div>
-                                            <div class="rating-stat">
-                                                <div class="rating-icon-wrapper">
-                                                    <svg viewBox="0 0 24 24">
-                                                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
-                                                    </svg>
-                                                    <div class="rating-count">16</div>
-                                                </div>
-                                                <div class="rating-label">Like</div>
-                                            </div>
-                                            <div class="rating-stat">
-                                                <div class="rating-icon-wrapper active-user-rating">
-                                                    <svg viewBox="0 0 24 24">
-                                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                                    </svg>
-                                                    <div class="rating-count">30</div>
-                                                </div>
-                                                <div class="rating-label">Love</div>
-                                            </div>
-                                        </div>
+                                <!-- Load More Button -->
+                                <button class="load-more-btn" onclick="loadMoreComments()">Load More Comments</button>
+                            </div>
+
+                            <!-- Similar Shows -->
+                            <div class="back-section">
+                                <h3 class="back-section-title">Similar Shows</h3>
+                                <div class="similar-shows">
+                                    <div class="similar-show" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent), linear-gradient(135deg, #4B0082, #FF1493);">
+                                        <div class="similar-show-title">House of the Dragon</div>
+                                    </div>
+                                    <div class="similar-show" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent), linear-gradient(135deg, #1a1a1a, #4a4a4a);">
+                                        <div class="similar-show-title">Ozark</div>
+                                    </div>
+                                    <div class="similar-show" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent), linear-gradient(135deg, #8B0000, #FF6347);">
+                                        <div class="similar-show-title">Narcos</div>
                                     </div>
                                 </div>
                             </div>

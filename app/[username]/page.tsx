@@ -8,7 +8,10 @@ import MediaDetailModal from '@/components/media/MediaDetailModal'
 import MediaBadges from '@/components/media/MediaBadges'
 import AppHeader from '@/components/navigation/AppHeader'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import { Grid3x3, List } from 'lucide-react'
+import { Grid3x3, List, Flag } from 'lucide-react'
+import { trackUserFollowed, trackUserUnfollowed, trackProfileViewed } from '@/utils/analytics'
+import DropdownMenu from '@/components/ui/DropdownMenu'
+import ReportModal from '@/components/moderation/ReportModal'
 
 interface Profile {
   id: string
@@ -52,6 +55,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
   const router = useRouter()
   const colors = useThemeColors()
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [currentUserProfile, setCurrentUserProfile] = useState<any>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [isFollowing, setIsFollowing] = useState(false)
   const [followsMe, setFollowsMe] = useState(false)
@@ -69,6 +73,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
   const [mediaModalOpen, setMediaModalOpen] = useState(false)
   const [hasMoreItems, setHasMoreItems] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [showReportModal, setShowReportModal] = useState(false)
 
   useEffect(() => {
     loadUserProfile()
@@ -85,6 +90,16 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
       // Get current user
       const { data: { user } } = await supabase.auth.getUser()
       setCurrentUser(user)
+
+      // Load current user's profile for AppHeader
+      if (user) {
+        const { data: userProfile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single()
+        setCurrentUserProfile(userProfile)
+      }
 
       // Get profile by username
       const { data: profileData, error: profileError } = await supabase
@@ -111,6 +126,16 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
 
       // Check if current user is viewing their own profile
       const isOwnProfile = user?.id === profileData.id
+
+      // Track profile view
+      if (user) {
+        trackProfileViewed({
+          viewed_user_id: profileData.id,
+          viewed_username: profileData.username,
+          is_own_profile: isOwnProfile,
+          is_private_profile: profileData.is_private
+        })
+      }
 
       // Check follow status
       if (user && !isOwnProfile) {
@@ -336,6 +361,14 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
       const match = await getTasteMatchBetweenUsers(currentUser.id, profile.id)
       setTasteMatchScore(match?.score || null)
 
+      // Track follow event
+      trackUserFollowed({
+        followed_user_id: profile.id,
+        followed_username: profile.username,
+        followed_display_name: profile.display_name,
+        is_private_profile: profile.is_private
+      })
+
       // Reload activities if profile is private
       if (profile.is_private) {
         await loadActivities(profile.id)
@@ -368,6 +401,12 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         .delete()
         .eq('follower_id', currentUser.id)
         .eq('following_id', profile.id)
+
+      // Track unfollow event
+      trackUserUnfollowed({
+        unfollowed_user_id: profile.id,
+        unfollowed_username: profile.username
+      })
     } catch (error) {
       console.error('Error unfollowing user:', error)
       // ROLLBACK on error
@@ -482,7 +521,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
       background: 'var(--bg-primary)'
     }}>
       {/* App Header */}
-      <AppHeader profile={currentUser ? { display_name: currentUser.user_metadata?.display_name, avatar_url: currentUser.user_metadata?.avatar_url } : undefined} showNotifications={false} />
+      <AppHeader profile={currentUserProfile} showNotifications={false} />
 
       {/* Home and Follow Button Row */}
       <div style={{
@@ -510,26 +549,50 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         </button>
 
         {!isOwnProfile && (
-          <button
-            onClick={isFollowing ? handleUnfollow : handleFollow}
-            disabled={!currentUser}
-            style={{
-              padding: '0.5rem 1rem',
-              background: isFollowing ? 'transparent' : colors.brandGradient,
-              color: isFollowing ? colors.brandPink : 'white',
-              border: isFollowing ? `2px solid ${colors.brandPink}` : 'none',
-              borderRadius: '8px',
-              fontSize: '0.875rem',
-              fontWeight: '600',
-              cursor: currentUser ? 'pointer' : 'not-allowed',
-              opacity: currentUser ? 1 : 0.5,
-              whiteSpace: 'nowrap'
-            }}
-          >
-            {isFollowing ? 'Following' : 'Follow'}
-          </button>
+          <>
+            <button
+              onClick={isFollowing ? handleUnfollow : handleFollow}
+              disabled={!currentUser}
+              style={{
+                padding: '0.5rem 1rem',
+                background: isFollowing ? 'transparent' : colors.brandGradient,
+                color: isFollowing ? colors.brandPink : 'white',
+                border: isFollowing ? `2px solid ${colors.brandPink}` : 'none',
+                borderRadius: '8px',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                cursor: currentUser ? 'pointer' : 'not-allowed',
+                opacity: currentUser ? 1 : 0.5,
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {isFollowing ? 'Following' : 'Follow'}
+            </button>
+            <DropdownMenu
+              size={18}
+              items={[
+                {
+                  label: 'Report User',
+                  icon: <Flag size={14} />,
+                  onClick: () => setShowReportModal(true),
+                  danger: true
+                }
+              ]}
+            />
+          </>
         )}
       </div>
+
+      {/* Report Modal */}
+      {profile && (
+        <ReportModal
+          isOpen={showReportModal}
+          onClose={() => setShowReportModal(false)}
+          reportType="user"
+          targetId={profile.id}
+          targetUsername={profile.username}
+        />
+      )}
 
       {/* Header */}
       <div style={{

@@ -1247,9 +1247,15 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
 
               {/* Action Icons */}
               <div className="back-action-icons">
-                <button className="back-icon-btn">➕</button>
-                <button className="back-icon-btn">💬</button>
-                <button className="back-icon-btn">↗️</button>
+                <button className="back-icon-btn">
+                  <Icon name="plus" size={22} color="white" />
+                </button>
+                <button className="back-icon-btn">
+                  <Icon name="comment" size={22} color="white" />
+                </button>
+                <button className="back-icon-btn">
+                  <Icon name="share" size={20} color="white" />
+                </button>
               </div>
 
               {/* Info Grid */}
