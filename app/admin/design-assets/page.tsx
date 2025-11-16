@@ -15,21 +15,24 @@ export default function DesignAssetsPage() {
       title: 'Icon Library',
       description: 'Browse all 40+ SVG icons with state variations and theme support',
       href: '/admin/design-assets/icons',
-      color: '#A855F7'
+      color: '#A855F7',
+      coming: false
     },
     {
       icon: Palette,
       title: 'Card Preview Gallery',
       description: 'Preview all 7 feed card types with interactive navigation',
       href: '/admin/design-assets/cards',
-      color: '#F59E0B'
+      color: '#F59E0B',
+      coming: false
     },
     {
       icon: Package,
       title: 'Component Showcase',
       description: 'Explore 29 reusable UI components with code examples',
       href: '/admin/design-assets/components',
-      color: '#3B82F6'
+      color: '#3B82F6',
+      coming: false
     }
   ]
 
@@ -69,8 +72,7 @@ export default function DesignAssetsPage() {
           return (
             <button
               key={section.href}
-              onClick={() => !section.coming && router.push(section.href)}
-              disabled={section.coming}
+              onClick={() => router.push(section.href)}
               style={{
                 background: colors.cardBg,
                 border: colors.cardBorder,
