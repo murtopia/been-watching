@@ -1,9 +1,9 @@
 /**
- * User Activity Card (Card 1) - Pixel Perfect React Recreation
+ * User Activity Card - Pixel-Perfect React Conversion
+ * Converted from card-1-minimal.html
  *
- * Recreated from card-1-standalone.html with 100% fidelity
  * Dimensions: 398px × 645px
- * Features: Flip animation, glassmorphic design, interactive buttons, iOS scroll
+ * Features: Flip animation, comments, back face with full details
  */
 
 'use client'
@@ -22,8 +22,8 @@ export interface UserActivityCardData {
     username: string
     avatar: string
   }
-  timestamp: string // e.g., "2 hours ago"
-  activityType: 'loved' | 'watching' | 'watched' | 'want-to-watch'
+  timestamp: string
+  activityType: 'loved' | 'watching' | 'want-to-watch' | 'watched'
   activityBadges: Array<{
     text: string
     color: string
@@ -45,13 +45,8 @@ export interface UserActivityCardData {
     mediaType: 'TV' | 'Movie'
   }
   friends: {
+    avatars: Array<{ id: string; name: string; username: string; avatar: string }>
     count: number
-    avatars: Array<{
-      id: string
-      name: string
-      username: string
-      avatar: string
-    }>
     text: string
   }
   stats: {
@@ -60,18 +55,9 @@ export interface UserActivityCardData {
     userLiked: boolean
   }
   friendsActivity: {
-    watching: {
-      count: number
-      avatars: string[]
-    }
-    wantToWatch: {
-      count: number
-      avatars: string[]
-    }
-    watched: {
-      count: number
-      avatars: string[]
-    }
+    watching: { count: number; avatars: string[] }
+    wantToWatch: { count: number; avatars: string[] }
+    watched: { count: number; avatars: string[] }
     ratings: {
       meh: number
       like: number
@@ -81,10 +67,7 @@ export interface UserActivityCardData {
   }
   comments: Array<{
     id: string
-    user: {
-      name: string
-      avatar: string
-    }
+    user: { name: string; avatar: string }
     text: string
     timestamp: string
     likes: number
@@ -92,10 +75,7 @@ export interface UserActivityCardData {
   }>
   showComments: Array<{
     id: string
-    user: {
-      name: string
-      avatar: string
-    }
+    user: { name: string; avatar: string }
     text: string
     timestamp: string
     likes: number
@@ -123,1350 +103,1308 @@ interface UserActivityCardProps {
 // Main Component
 // ============================================================================
 
-export function UserActivityCard({ data, onLike, onComment, onShare, onAddToWatchlist, onUserClick, onMediaClick, onTrack }: UserActivityCardProps) {
+export const UserActivityCard: React.FC<UserActivityCardProps> = ({
+  data,
+  onLike,
+  onComment,
+  onShare,
+  onAddToWatchlist,
+  onUserClick,
+  onMediaClick,
+  onTrack,
+}) => {
   const [isFlipped, setIsFlipped] = useState(false)
-  const [isCommentsVisible, setIsCommentsVisible] = useState(false)
-  const [isCommentsExpanded, setIsCommentsExpanded] = useState(false)
-  const [isSynopsisExpanded, setIsSynopsisExpanded] = useState(false)
-  const [isActionOverlayVisible, setIsActionOverlayVisible] = useState(false)
+  const [commentsVisible, setCommentsVisible] = useState(false)
+  const [commentsExpanded, setCommentsExpanded] = useState(false)
+  const [synopsisExpanded, setSynopsisExpanded] = useState(false)
+  const [actionOverlayVisible, setActionOverlayVisible] = useState(false)
   const [localLiked, setLocalLiked] = useState(data.stats.userLiked)
   const [localLikeCount, setLocalLikeCount] = useState(data.stats.likeCount)
 
-  const backScrollRef = useRef<HTMLDivElement>(null)
-  const commentsScrollRef = useRef<HTMLDivElement>(null)
+  const cardRef = useRef<HTMLDivElement>(null)
 
-  // iOS-style momentum scrolling
-  useEffect(() => {
-    const scrollRefs = [backScrollRef, commentsScrollRef]
-
-    scrollRefs.forEach(ref => {
-      if (!ref.current) return
-
-      let startY = 0
-      let scrollTop = 0
-      let velocity = 0
-      let isScrolling = false
-      let animationFrame: number
-
-      const handleTouchStart = (e: TouchEvent) => {
-        startY = e.touches[0].pageY
-        scrollTop = ref.current!.scrollTop
-        velocity = 0
-        isScrolling = true
-        if (animationFrame) cancelAnimationFrame(animationFrame)
-      }
-
-      const handleTouchMove = (e: TouchEvent) => {
-        if (!isScrolling) return
-        const deltaY = startY - e.touches[0].pageY
-        velocity = deltaY
-        ref.current!.scrollTop = scrollTop + deltaY
-      }
-
-      const handleTouchEnd = () => {
-        isScrolling = false
-        const decelerate = () => {
-          if (Math.abs(velocity) > 0.5) {
-            ref.current!.scrollTop += velocity
-            velocity *= 0.92 // Friction
-            animationFrame = requestAnimationFrame(decelerate)
-          }
-        }
-        decelerate()
-      }
-
-      ref.current.addEventListener('touchstart', handleTouchStart, { passive: true })
-      ref.current.addEventListener('touchmove', handleTouchMove, { passive: true })
-      ref.current.addEventListener('touchend', handleTouchEnd)
-
-      return () => {
-        if (ref.current) {
-          ref.current.removeEventListener('touchstart', handleTouchStart)
-          ref.current.removeEventListener('touchmove', handleTouchMove)
-          ref.current.removeEventListener('touchend', handleTouchEnd)
-        }
-      }
-    })
-  }, [])
-
-  const handleFlip = () => {
+  const flipCard = () => {
     setIsFlipped(!isFlipped)
-    setIsCommentsVisible(false)
-    setIsCommentsExpanded(false)
-    setIsActionOverlayVisible(false)
-    onTrack?.('card-flip', { cardId: data.id, flipped: !isFlipped })
+    setCommentsVisible(false)
+    setCommentsExpanded(false)
+    setActionOverlayVisible(false)
+  }
+
+  const toggleComments = () => {
+    if (!commentsVisible) {
+      setCommentsVisible(true)
+      setTimeout(() => setCommentsExpanded(true), 50)
+    } else {
+      setCommentsExpanded(false)
+      setTimeout(() => setCommentsVisible(false), 300)
+    }
   }
 
   const handleLike = () => {
     setLocalLiked(!localLiked)
     setLocalLikeCount(localLiked ? localLikeCount - 1 : localLikeCount + 1)
     onLike?.()
-    onTrack?.('like', { cardId: data.id, liked: !localLiked })
   }
 
-  const handleCommentsClick = () => {
-    if (!isCommentsVisible) {
-      setIsCommentsVisible(true)
-      setIsCommentsExpanded(false)
-    } else if (!isCommentsExpanded) {
-      setIsCommentsExpanded(true)
-    } else {
-      setIsCommentsVisible(false)
-      setIsCommentsExpanded(false)
-    }
-    onTrack?.('comments-toggle', { cardId: data.id, visible: !isCommentsVisible })
-  }
-
-  const handleAddClick = () => {
-    setIsActionOverlayVisible(!isActionOverlayVisible)
-    onTrack?.('action-overlay-toggle', { cardId: data.id })
-  }
-
-  const handleActionSelect = (action: string) => {
-    setIsActionOverlayVisible(false)
-    onTrack?.('action-select', { cardId: data.id, action })
+  const toggleActionOverlay = () => {
+    setActionOverlayVisible(!actionOverlayVisible)
   }
 
   return (
-    <div style={styles.cardContainer}>
-      <div style={{
-        ...styles.card,
-        transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
-      }}>
-        {/* FRONT SIDE */}
-        <div style={styles.cardFront}>
-          {/* Background */}
-          <div style={styles.cardBackground}>
-            <img src={data.media.posterUrl} alt={data.media.title} style={styles.backgroundImage} />
-            <div style={styles.backgroundOverlay} />
-          </div>
+    <>
+      <style jsx>{`
+        /* Card container with 3D perspective */
+        .card-container {
+          width: 398px;
+          height: 645px;
+          perspective: 1000px;
+          position: relative;
+        }
 
-          {/* Menu Button */}
-          <button style={styles.menuBtn} onClick={handleFlip}>
-            <svg viewBox="0 0 24 24" style={{ width: 20, height: 20 }}>
-              <circle cx="12" cy="6" r="1.5" fill="white"/>
-              <circle cx="12" cy="12" r="1.5" fill="white"/>
-              <circle cx="12" cy="18" r="1.5" fill="white"/>
-            </svg>
-          </button>
+        /* Card with flip transformation */
+        .card {
+          width: 100%;
+          height: 100%;
+          position: relative;
+          transform-style: preserve-3d;
+          transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+          border-radius: 16px;
+          touch-action: none;
+        }
 
-          {/* Card Content */}
-          <div style={styles.cardContent}>
-            {/* User Header */}
-            <div style={styles.userHeader}>
-              <img src={data.user.avatar} alt={data.user.name} style={styles.userAvatar} />
-              <div style={styles.userInfo}>
-                <div style={styles.username}>{data.user.name}</div>
-                <div style={styles.timestamp}>{data.timestamp}</div>
-              </div>
+        .card.flipped {
+          transform: rotateY(180deg);
+        }
+
+        /* Card faces */
+        .card-face {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
+          border-radius: 16px;
+        }
+
+        .card-front {
+          z-index: 2;
+          overflow: hidden;
+        }
+
+        .card-back {
+          transform: rotateY(180deg);
+          background: linear-gradient(to bottom, #1a1a1a 0%, #0a0a0a 100%);
+          overflow: hidden;
+          z-index: 1;
+        }
+
+        /* Front card styles */
+        .card-background {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          z-index: 1;
+        }
+
+        .card-background img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .background-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(to bottom,
+            rgba(0, 0, 0, 0) 0%,
+            rgba(0, 0, 0, 0.3) 50%,
+            rgba(0, 0, 0, 0.9) 100%
+          );
+          z-index: 2;
+        }
+
+        .card-content {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          padding: 20px;
+          padding-bottom: 40px;
+          z-index: 3;
+          color: white;
+        }
+
+        /* User header */
+        .user-header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 10px;
+        }
+
+        .user-avatar {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          border: 1.5px solid white;
+          object-fit: cover;
+        }
+
+        .user-info {
+          flex: 1;
+        }
+
+        .username {
+          font-size: 14px;
+          font-weight: 600;
+          margin-bottom: 1px;
+        }
+
+        .timestamp {
+          font-size: 11px;
+          font-weight: 400;
+          opacity: 0.7;
+        }
+
+        /* Activity Badges */
+        .activity-badges {
+          display: flex;
+          gap: 6px;
+          margin-bottom: 10px;
+        }
+
+        .activity-badge {
+          padding: 6px 12px;
+          border-radius: 12px;
+          font-size: 11px;
+          font-weight: 600;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+        }
+
+        /* Show info */
+        .show-title {
+          font-size: 16px;
+          font-weight: 600;
+          line-height: 1.3;
+          margin-bottom: 6px;
+        }
+
+        .show-meta {
+          font-size: 12px;
+          font-weight: 400;
+          opacity: 0.85;
+          margin-bottom: 6px;
+        }
+
+        .meta-dot {
+          margin: 0 4px;
+          opacity: 0.5;
+        }
+
+        /* Friend avatars */
+        .friend-avatars {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-top: 10px;
+        }
+
+        .friend-avatars-stack {
+          display: flex;
+          margin-right: 6px;
+        }
+
+        .friend-avatars-stack img {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          border: 1.5px solid #000;
+          margin-left: -6px;
+        }
+
+        .friend-avatars-stack img:first-child {
+          margin-left: 0;
+        }
+
+        .friend-count {
+          font-size: 12px;
+          font-weight: 400;
+          opacity: 0.85;
+        }
+
+        /* Menu button (three dots) */
+        .menu-btn {
+          position: absolute;
+          top: 20px;
+          right: 12px;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: rgba(60, 60, 60, 0.4);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border: 1.5px solid rgba(255, 255, 255, 0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          z-index: 6;
+          transition: all 0.2s;
+        }
+
+        .menu-btn:active {
+          transform: scale(0.9);
+        }
+
+        .menu-btn svg {
+          width: 20px;
+          height: 20px;
+        }
+
+        /* Side actions */
+        .side-actions {
+          position: absolute;
+          right: 12px;
+          bottom: 60px;
+          z-index: 4;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .action-btn {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: rgba(60, 60, 60, 0.4);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border: 1.5px solid rgba(255, 255, 255, 0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s;
+          position: relative;
+        }
+
+        .action-btn:active {
+          transform: scale(0.9);
+        }
+
+        .action-btn svg {
+          width: 24px;
+          height: 24px;
+          stroke: white;
+          fill: none;
+          stroke-width: 1.5;
+        }
+
+        .action-btn.liked svg {
+          fill: #FF3B5C;
+          stroke: #FF3B5C;
+        }
+
+        .action-count {
+          text-align: center;
+          font-size: 12px;
+          font-weight: 600;
+          margin-top: 2px;
+          color: white;
+          position: absolute;
+          bottom: -18px;
+          left: 50%;
+          transform: translateX(-50%);
+        }
+
+        /* Comments Tab */
+        .comments-tab {
+          position: absolute;
+          bottom: 0;
+          left: 10px;
+          right: 10px;
+          background: rgba(20, 20, 20, 0.95);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border-top-left-radius: 16px;
+          border-top-right-radius: 16px;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          z-index: 5;
+          transition: transform 0.3s ease, opacity 0.3s ease;
+          max-height: 70%;
+          overflow: hidden;
+          transform: translateY(100%);
+          opacity: 0;
+          pointer-events: none;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .comments-tab.visible {
+          transform: translateY(0);
+          opacity: 1;
+          pointer-events: auto;
+        }
+
+        .comments-preview {
+          padding: 16px 20px;
+          cursor: pointer;
+          font-size: 13px;
+          font-weight: 500;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+        }
+
+        .comments-preview-content {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex: 1;
+        }
+
+        .comments-close-btn {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.1);
+          border: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          flex-shrink: 0;
+          transition: background 0.2s;
+        }
+
+        .comments-close-btn:hover {
+          background: rgba(255, 255, 255, 0.2);
+        }
+
+        .comments-close-btn:active {
+          transform: scale(0.9);
+        }
+
+        .comments-close-btn svg {
+          width: 14px;
+          height: 14px;
+          stroke: white;
+          stroke-width: 2;
+        }
+
+        .comments-full {
+          display: none;
+          padding: 20px;
+          padding-bottom: 0;
+          flex: 1;
+          min-height: 0;
+          overflow-y: scroll;
+          overflow-x: hidden;
+          -webkit-overflow-scrolling: touch;
+          overscroll-behavior: contain;
+        }
+
+        .comments-tab.expanded .comments-preview {
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .comments-tab.expanded .comments-full {
+          display: block;
+        }
+
+        .activity-comment-item {
+          margin-bottom: 16px;
+          padding-bottom: 16px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .activity-comment-item:last-child {
+          border-bottom: none;
+        }
+
+        .activity-comment-header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 6px;
+        }
+
+        .activity-comment-avatar {
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .activity-comment-username {
+          font-size: 13px;
+          font-weight: 600;
+        }
+
+        .activity-comment-time {
+          font-size: 11px;
+          opacity: 0.6;
+          margin-left: auto;
+        }
+
+        .activity-comment-text {
+          font-size: 13px;
+          line-height: 1.4;
+          opacity: 0.9;
+          margin-left: 38px;
+        }
+
+        .comment-actions {
+          display: flex;
+          gap: 12px;
+          margin-top: 6px;
+          justify-content: flex-end;
+        }
+
+        .comment-like-btn {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          background: none;
+          border: none;
+          color: rgba(255, 255, 255, 0.6);
+          font-size: 11px;
+          font-weight: 600;
+          cursor: pointer;
+          padding: 4px 8px;
+          border-radius: 12px;
+          transition: all 0.2s;
+        }
+
+        .comment-like-btn:hover {
+          background: rgba(255, 255, 255, 0.05);
+          color: rgba(255, 255, 255, 0.9);
+        }
+
+        .comment-like-btn.liked {
+          color: #FF3B5C;
+        }
+
+        .comment-like-btn svg {
+          width: 14px;
+          height: 14px;
+          stroke: currentColor;
+          fill: none;
+          stroke-width: 2;
+        }
+
+        .comment-like-btn.liked svg {
+          fill: currentColor;
+        }
+
+        .activity-comment-input-wrapper {
+          padding: 16px 20px;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          display: flex;
+          gap: 12px;
+          align-items: center;
+          flex-shrink: 0;
+        }
+
+        .activity-comment-input {
+          flex: 1;
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 20px;
+          padding: 10px 16px;
+          color: white;
+          font-size: 16px;
+          outline: none;
+        }
+
+        .activity-comment-input::placeholder {
+          color: rgba(255, 255, 255, 0.5);
+        }
+
+        .send-btn {
+          width: 32px;
+          height: 32px;
+          min-width: 32px;
+          min-height: 32px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.2);
+          border: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          flex-shrink: 0;
+        }
+
+        .send-btn svg {
+          width: 16px;
+          height: 16px;
+          fill: white;
+        }
+
+        /* Back of card styles */
+        .card-back-content {
+          padding: 20px 16px;
+          padding-top: 50px;
+          padding-bottom: 20px;
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          width: 100%;
+          overflow-y: scroll;
+          overflow-x: hidden;
+          -webkit-overflow-scrolling: touch !important;
+          overscroll-behavior: contain;
+          touch-action: pan-y;
+          color: white;
+        }
+
+        .close-btn {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.15);
+          backdrop-filter: blur(10px);
+          border: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          z-index: 10;
+          transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+          background: rgba(255, 255, 255, 0.25);
+        }
+
+        .close-btn:active {
+          transform: scale(0.9);
+        }
+
+        .close-btn svg {
+          width: 16px;
+          height: 16px;
+          stroke: white;
+          stroke-width: 2;
+        }
+
+        /* Back card sections */
+        .back-title {
+          font-size: 22px;
+          font-weight: 700;
+          margin-bottom: 6px;
+          letter-spacing: -0.5px;
+        }
+
+        .back-meta {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+          margin-bottom: 12px;
+          font-size: 14px;
+          opacity: 0.9;
+        }
+
+        .back-badges {
+          display: flex;
+          gap: 6px;
+          flex-wrap: wrap;
+          margin-bottom: 14px;
+        }
+
+        .back-badge {
+          padding: 8px 14px;
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 10px;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          text-align: center;
+          min-width: 36px;
+        }
+
+        .back-synopsis {
+          font-size: 14px;
+          line-height: 1.5;
+          opacity: 0.9;
+          margin-bottom: 8px;
+        }
+
+        .back-synopsis.collapsed {
+          display: -webkit-box;
+          -webkit-line-clamp: 3;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .read-more {
+          color: #FF006E;
+          font-size: 13px;
+          font-weight: 500;
+          cursor: pointer;
+          margin-bottom: 16px;
+          display: block;
+          text-align: right;
+        }
+
+        .back-action-icons {
+          display: flex;
+          gap: 10px;
+          margin-bottom: 20px;
+          padding-bottom: 16px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .back-icon-btn {
+          width: 42px;
+          height: 42px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 18px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          color: white;
+        }
+
+        .back-icon-btn:active {
+          transform: scale(0.9);
+        }
+
+        .back-info-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 16px;
+          margin-bottom: 20px;
+        }
+
+        .back-info-item {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+
+        .back-info-label {
+          font-size: 11px;
+          opacity: 0.6;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .back-info-value {
+          font-size: 14px;
+          font-weight: 600;
+        }
+
+        .back-section {
+          margin-bottom: 20px;
+        }
+
+        .back-section-title {
+          font-size: 11px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          opacity: 0.6;
+          margin-bottom: 10px;
+        }
+
+        .cast-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+
+        .cast-member {
+          padding: 5px 10px;
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 16px;
+          font-size: 12px;
+        }
+
+        .friends-categories {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .friends-category {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px;
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 10px;
+          cursor: pointer;
+          transition: background 0.2s;
+        }
+
+        .friends-category:hover {
+          background: rgba(255, 255, 255, 0.08);
+        }
+
+        .friends-avatars-stack {
+          display: flex;
+          align-items: center;
+        }
+
+        .friends-avatars-stack img {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          border: 2px solid #1a1a1a;
+          margin-left: -10px;
+          object-fit: cover;
+        }
+
+        .friends-avatars-stack img:first-child {
+          margin-left: 0;
+        }
+
+        .friends-category-text {
+          flex: 1;
+          font-size: 14px;
+          font-weight: 500;
+        }
+
+        .friends-category-text .count {
+          font-weight: 600;
+        }
+
+        .friends-ratings-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 12px;
+          margin-bottom: 20px;
+        }
+
+        .rating-stat {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+          padding: 16px 12px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1.5px solid rgba(255, 255, 255, 0.1);
+          border-radius: 12px;
+        }
+
+        .rating-stat.active-user-rating {
+          background: rgba(255, 59, 92, 0.15);
+          border-color: #FF3B5C;
+        }
+
+        .rating-stat svg {
+          width: 28px;
+          height: 28px;
+          stroke: rgba(255, 255, 255, 0.6);
+          fill: none;
+          stroke-width: 1.5;
+        }
+
+        .rating-stat.active-user-rating svg {
+          stroke: #FF3B5C;
+          fill: #FF3B5C;
+        }
+
+        .rating-stat-count {
+          font-size: 14px;
+          font-weight: 600;
+        }
+
+        .similar-shows {
+          display: flex;
+          gap: 12px;
+          overflow-x: auto;
+          padding-bottom: 10px;
+        }
+
+        .similar-show {
+          flex-shrink: 0;
+          width: 100px;
+          height: 150px;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 8px;
+          display: flex;
+          align-items: flex-end;
+          padding: 8px;
+          position: relative;
+          overflow: hidden;
+          cursor: pointer;
+        }
+
+        .similar-show::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+        }
+
+        .similar-show-title {
+          font-size: 11px;
+          font-weight: 600;
+          position: relative;
+          z-index: 1;
+        }
+
+        .show-comments-list {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .comment-item {
+          display: flex;
+          gap: 10px;
+          padding: 10px;
+          background: rgba(255, 255, 255, 0.03);
+          border-radius: 8px;
+        }
+
+        .comment-avatar {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          object-fit: cover;
+          flex-shrink: 0;
+        }
+
+        .comment-content {
+          flex: 1;
+        }
+
+        .comment-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 4px;
+        }
+
+        .comment-username {
+          font-size: 13px;
+          font-weight: 600;
+        }
+
+        .comment-timestamp {
+          font-size: 11px;
+          opacity: 0.6;
+        }
+
+        .comment-text {
+          font-size: 13px;
+          line-height: 1.4;
+          opacity: 0.9;
+          margin-bottom: 8px;
+        }
+
+        .load-more-btn {
+          width: 100%;
+          padding: 10px;
+          margin-top: 8px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 8px;
+          color: white;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background 0.2s;
+        }
+
+        .load-more-btn:hover {
+          background: rgba(255, 255, 255, 0.08);
+        }
+      `}</style>
+
+      <div className="card-container" ref={cardRef}>
+        <div className={`card ${isFlipped ? 'flipped' : ''}`}>
+          {/* FRONT FACE */}
+          <div className="card-face card-front">
+            {/* Background Image */}
+            <div className="card-background">
+              <img src={data.media.posterUrl} alt={data.media.title} />
+            </div>
+            <div className="background-overlay" />
+
+            {/* Menu Button (Three Dots) */}
+            <div className="menu-btn" onClick={flipCard}>
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="6" r="1.5" fill="white" />
+                <circle cx="12" cy="12" r="1.5" fill="white" />
+                <circle cx="12" cy="18" r="1.5" fill="white" />
+              </svg>
             </div>
 
-            {/* Activity Badges */}
-            {data.activityBadges && data.activityBadges.length > 0 && (
-              <div style={styles.activityBadges}>
+            {/* Card Content */}
+            <div className="card-content">
+              {/* User Header */}
+              <div className="user-header">
+                <img
+                  src={data.user.avatar}
+                  alt={data.user.name}
+                  className="user-avatar"
+                  onClick={() => onUserClick?.(data.user.id)}
+                />
+                <div className="user-info">
+                  <div className="username">{data.user.name}</div>
+                  <div className="timestamp">{data.timestamp}</div>
+                </div>
+              </div>
+
+              {/* Activity Badges */}
+              <div className="activity-badges">
                 {data.activityBadges.map((badge, idx) => (
-                  <div key={idx} style={{
-                    ...styles.badge,
-                    background: badge.color,
-                    border: `1px solid ${badge.borderColor}`,
-                    color: badge.textColor
-                  }}>
+                  <div
+                    key={idx}
+                    className="activity-badge"
+                    style={{
+                      background: badge.color,
+                      border: `1px solid ${badge.borderColor}`,
+                      color: badge.textColor,
+                    }}
+                  >
+                    {badge.text === 'Loved' && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill={badge.textColor}>
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                      </svg>
+                    )}
+                    {badge.text === 'Currently Watching' && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={badge.textColor} strokeWidth="2">
+                        <polygon points="5 3 19 12 5 21 5 3" fill={badge.textColor} />
+                      </svg>
+                    )}
                     {badge.text}
                   </div>
                 ))}
               </div>
-            )}
 
-            {/* Show Title */}
-            <div style={styles.showTitle}>{data.media.title}</div>
+              {/* Show Info */}
+              <div className="show-title">{data.media.title}</div>
+              <div className="show-meta">
+                {data.media.year} <span className="meta-dot">•</span>{' '}
+                {data.media.genres.join(', ')} <span className="meta-dot">•</span> ⭐{' '}
+                {data.media.rating}
+              </div>
 
-            {/* Show Meta */}
-            <div style={styles.showMeta}>
-              {data.media.year}
-              <span style={styles.metaDot}>•</span>
-              {data.media.genres.join(', ')}
-              <span style={styles.metaDot}>•</span>
-              ⭐ {data.media.rating}
-            </div>
-
-            {/* Friend Avatars */}
-            {data.friends.avatars.length > 0 && (
-              <div style={styles.friendAvatars}>
-                <div style={styles.friendAvatarsStack}>
-                  {data.friends.avatars.slice(0, 3).map((friend, idx) => (
-                    <img
-                      key={friend.id}
-                      src={friend.avatar}
-                      alt={friend.name}
-                      style={{
-                        ...styles.friendAvatar,
-                        marginLeft: idx === 0 ? 0 : -6
-                      }}
-                    />
+              {/* Friend Avatars */}
+              <div className="friend-avatars">
+                <div className="friend-avatars-stack">
+                  {data.friends.avatars.slice(0, 3).map((friend) => (
+                    <img key={friend.id} src={friend.avatar} alt={friend.name} />
                   ))}
                 </div>
-                <span style={styles.friendCount}>{data.friends.text}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Side Actions */}
-          <div style={styles.sideActions}>
-            <div style={{ textAlign: 'center' }}>
-              <button
-                style={{
-                  ...styles.actionBtn,
-                  ...(localLiked ? styles.actionBtnLiked : {})
-                }}
-                onClick={handleLike}
-              >
-                <svg viewBox="0 0 24 24" style={styles.actionIcon}>
-                  <path
-                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-                    fill={localLiked ? '#FF3B5C' : 'none'}
-                    stroke={localLiked ? '#FF3B5C' : 'white'}
-                    strokeWidth="1.5"
-                  />
-                </svg>
-              </button>
-              <div style={styles.actionCount}>{localLikeCount}</div>
-            </div>
-
-            <div style={{ textAlign: 'center' }}>
-              <button style={styles.actionBtn} onClick={handleAddClick}>
-                <svg viewBox="0 0 24 24" style={styles.actionIcon}>
-                  <path d="M19 11H13V5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5V11H5C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13H11V19C11 19.5523 11.4477 20 12 20C12.5523 20 13 19.5523 13 19V13H19C19.5523 13 20 12.5523 20 12C20 11.4477 19.5523 11 19 11Z" />
-                </svg>
-              </button>
-            </div>
-
-            <div style={{ textAlign: 'center' }}>
-              <button style={styles.actionBtn} onClick={handleCommentsClick}>
-                <svg viewBox="0 0 24 24" style={styles.actionIcon}>
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
-              </button>
-              <div style={styles.actionCount}>{data.stats.commentCount}</div>
-            </div>
-          </div>
-
-          {/* Comments Tab */}
-          <div style={{
-            ...styles.commentsTab,
-            ...(isCommentsVisible ? styles.commentsTabVisible : {}),
-            ...(isCommentsExpanded ? styles.commentsTabExpanded : {})
-          }}>
-            {!isCommentsExpanded ? (
-              <div style={styles.commentsPreview} onClick={handleCommentsClick}>
-                <span>View {data.stats.commentCount} comments...</span>
-                <svg viewBox="0 0 24 24" style={{ width: 16, height: 16, stroke: 'white', fill: 'none' }}>
-                  <polyline points="18 15 12 9 6 15" strokeWidth="2" />
-                </svg>
-              </div>
-            ) : (
-              <>
-                <div ref={commentsScrollRef} style={styles.commentsFull}>
-                  {data.comments.map((comment) => (
-                    <div key={comment.id} style={styles.activityCommentItem}>
-                      <div style={styles.activityCommentHeader}>
-                        <img src={comment.user.avatar} alt={comment.user.name} style={styles.activityCommentAvatar} />
-                        <span style={styles.activityCommentUsername}>{comment.user.name}</span>
-                        <span style={styles.activityCommentTime}>{comment.timestamp}</span>
-                      </div>
-                      <div style={styles.activityCommentText}>{comment.text}</div>
-                    </div>
-                  ))}
-                </div>
-                <div style={styles.activityCommentInputWrapper}>
-                  <input
-                    type="text"
-                    placeholder="Add a comment..."
-                    style={styles.activityCommentInput}
-                  />
-                  <button style={styles.sendBtn}>
-                    <svg viewBox="0 0 24 24" style={{ width: 16, height: 16, fill: 'white' }}>
-                      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                    </svg>
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* BACK SIDE */}
-        <div style={styles.cardBack}>
-          {/* Close Button */}
-          <button style={styles.closeBtn} onClick={handleFlip}>
-            <svg viewBox="0 0 24 24" style={{ width: 18, height: 18, stroke: 'white', strokeWidth: 2 }}>
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-
-          {/* Scrollable Content */}
-          <div ref={backScrollRef} style={styles.cardBackContent}>
-            {/* Title Section */}
-            <div style={styles.backTitleSection}>
-              <div style={styles.backTitle}>{data.media.title}</div>
-              <div style={styles.backMeta}>
-                <span style={styles.backYear}>{data.media.year}</span>
-                <span style={styles.metaDot}>•</span>
-                <span style={styles.backRating}>⭐ {data.media.rating}</span>
-              </div>
-              <div style={styles.backBadges}>
-                {data.media.season && <div style={styles.backBadge}>S{data.media.season}</div>}
-                <div style={styles.backBadge}>{data.media.mediaType}</div>
-                <div style={styles.backBadge}>{data.media.network}</div>
-                <div style={styles.backBadge}>Trailer</div>
+                <div className="friend-count">{data.friends.text}</div>
               </div>
             </div>
 
-            {/* Synopsis */}
-            <div>
-              <div style={{
-                ...styles.backSynopsis,
-                ...(isSynopsisExpanded ? {} : styles.backSynopsisCollapsed)
-              }}>
-                {data.media.synopsis}
-              </div>
-              <div style={styles.readMore} onClick={() => setIsSynopsisExpanded(!isSynopsisExpanded)}>
-                {isSynopsisExpanded ? 'Show less' : 'Read more'}
-              </div>
-            </div>
-
-            {/* Action Icons */}
-            <div style={styles.backActionIcons}>
-              <button style={styles.backIconBtn}>
-                <svg viewBox="0 0 24 24" style={{ width: 20, height: 20, stroke: 'white', fill: 'none' }}>
-                  <path d="M19 11H13V5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5V11H5C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13H11V19C11 19.5523 11.4477 20 12 20C12.5523 20 13 19.5523 13 19V13H19C19.5523 13 20 12.5523 20 12C20 11.4477 19.5523 11 19 11Z"/>
-                </svg>
-              </button>
-              <button style={styles.backIconBtn}>
-                <svg viewBox="0 0 24 24" style={{ width: 20, height: 20, stroke: 'white', fill: 'none' }}>
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                </svg>
-              </button>
-              <button style={styles.backIconBtn}>
-                <svg viewBox="0 0 20 22" fill="none" style={{ width: 20, height: 20 }}>
-                  <path d="M10 3L10 14M10 3L6 7M10 3L14 7" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                  <path d="M17 11V18C17 19 16 20 15 20H5C4 20 3 19 3 18V11" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
-              </button>
-            </div>
-
-            {/* Info Grid */}
-            <div style={styles.backInfoGrid}>
-              <div style={styles.backInfoItem}>
-                <div style={styles.backInfoLabel}>Creator</div>
-                <div style={styles.backInfoValue}>{data.media.creator}</div>
-              </div>
-              <div style={styles.backInfoItem}>
-                <div style={styles.backInfoLabel}>Genre</div>
-                <div style={styles.backInfoValue}>{data.media.genres[0]}</div>
-              </div>
-            </div>
-
-            {/* Cast */}
-            <div style={styles.backSection}>
-              <div style={styles.backSectionTitle}>Cast</div>
-              <div style={styles.castList}>
-                {data.media.cast.map((actor, idx) => (
-                  <div key={idx} style={styles.castMember}>{actor}</div>
-                ))}
-              </div>
-            </div>
-
-            {/* Friends Watching */}
-            <div style={styles.backSection}>
-              <div style={styles.backSectionTitle}>Friends Watching</div>
-              <div style={styles.friendsCategories}>
-                <div style={styles.friendsCategory}>
-                  <div style={styles.friendsAvatarsStack}>
-                    {data.friendsActivity.watching.avatars.slice(0, 3).map((avatar, idx) => (
-                      <img key={idx} src={avatar} alt="" style={{
-                        ...styles.friendsCategoryAvatar,
-                        marginLeft: idx === 0 ? 0 : -10
-                      }} />
-                    ))}
-                  </div>
-                  <div style={styles.friendsCategoryText}>
-                    {data.friendsActivity.watching.count} watching
-                  </div>
-                </div>
-                <div style={styles.friendsCategory}>
-                  <div style={styles.friendsAvatarsStack}>
-                    {data.friendsActivity.wantToWatch.avatars.slice(0, 3).map((avatar, idx) => (
-                      <img key={idx} src={avatar} alt="" style={{
-                        ...styles.friendsCategoryAvatar,
-                        marginLeft: idx === 0 ? 0 : -10
-                      }} />
-                    ))}
-                  </div>
-                  <div style={styles.friendsCategoryText}>
-                    {data.friendsActivity.wantToWatch.count} want to watch
-                  </div>
-                </div>
-                <div style={styles.friendsCategory}>
-                  <div style={styles.friendsAvatarsStack}>
-                    {data.friendsActivity.watched.avatars.slice(0, 3).map((avatar, idx) => (
-                      <img key={idx} src={avatar} alt="" style={{
-                        ...styles.friendsCategoryAvatar,
-                        marginLeft: idx === 0 ? 0 : -10
-                      }} />
-                    ))}
-                  </div>
-                  <div style={styles.friendsCategoryText}>
-                    {data.friendsActivity.watched.count} watched
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Friends Ratings */}
-            <div style={styles.backSection}>
-              <div style={styles.backSectionTitle}>Friends Ratings</div>
-              <div style={styles.friendsRatings}>
-                <div style={styles.ratingIconWrapper}>
-                  <svg viewBox="0 0 24 24" style={{ width: 20, height: 20, stroke: 'white', fill: 'none' }}>
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="8" y1="15" x2="16" y2="15" strokeWidth="2"/>
-                    <line x1="9" y1="9" x2="9" y2="10" strokeWidth="2"/>
-                    <line x1="15" y1="9" x2="15" y2="10" strokeWidth="2"/>
+            {/* Side Actions */}
+            <div className="side-actions">
+              {/* Like Button */}
+              <div>
+                <button
+                  className={`action-btn ${localLiked ? 'liked' : ''}`}
+                  onClick={handleLike}
+                >
+                  <svg viewBox="0 0 24 24">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                   </svg>
-                  {data.friendsActivity.ratings.meh > 0 && (
-                    <div style={styles.ratingCount}>{data.friendsActivity.ratings.meh}</div>
-                  )}
-                </div>
-                <div style={styles.ratingIconWrapper}>
-                  <svg viewBox="0 0 24 24" style={{ width: 20, height: 20, stroke: 'white', fill: 'none' }}>
-                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" strokeWidth="1.5"/>
+                  <div className="action-count">{localLikeCount}</div>
+                </button>
+              </div>
+
+              {/* Add Button */}
+              <div>
+                <button className="action-btn" onClick={toggleActionOverlay}>
+                  <svg viewBox="0 0 24 24">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
                   </svg>
-                  {data.friendsActivity.ratings.like > 0 && (
-                    <div style={styles.ratingCount}>{data.friendsActivity.ratings.like}</div>
-                  )}
+                </button>
+              </div>
+
+              {/* Comment Button */}
+              <div>
+                <button className="action-btn" onClick={toggleComments}>
+                  <svg viewBox="0 0 24 24">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  </svg>
+                  <div className="action-count">{data.stats.commentCount}</div>
+                </button>
+              </div>
+            </div>
+
+            {/* Comments Tab */}
+            <div
+              className={`comments-tab ${commentsVisible ? 'visible' : ''} ${
+                commentsExpanded ? 'expanded' : ''
+              }`}
+            >
+              <div className="comments-preview" onClick={toggleComments}>
+                <div className="comments-preview-content">
+                  💬 View {data.stats.commentCount} comments...
                 </div>
-                <div style={{
-                  ...styles.ratingIconWrapper,
-                  ...(data.friendsActivity.ratings.userRating === 'love' ? styles.ratingIconWrapperActive : {})
+                <button className="comments-close-btn" onClick={(e) => {
+                  e.stopPropagation()
+                  toggleComments()
                 }}>
-                  <svg viewBox="0 0 24 24" style={{ width: 20, height: 20 }}>
-                    <path
-                      d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-                      fill={data.friendsActivity.ratings.userRating === 'love' ? '#FF3B5C' : 'none'}
-                      stroke={data.friendsActivity.ratings.userRating === 'love' ? '#FF3B5C' : 'white'}
-                      strokeWidth="1.5"
-                    />
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
                   </svg>
-                  {data.friendsActivity.ratings.love > 0 && (
-                    <div style={styles.ratingCount}>{data.friendsActivity.ratings.love}</div>
-                  )}
-                </div>
+                </button>
               </div>
-            </div>
 
-            {/* Show Comments */}
-            <div style={styles.backSection}>
-              <div style={styles.backSectionTitle}>Comments</div>
-              <div style={styles.commentInputContainer}>
-                <textarea placeholder="Add a comment..." style={styles.commentInput} />
-                <button style={styles.commentSubmitBtn}>Post</button>
-              </div>
-              <div style={styles.commentsList}>
-                {data.showComments.map((comment) => (
-                  <div key={comment.id} style={styles.commentItem}>
-                    <img src={comment.user.avatar} alt={comment.user.name} style={styles.commentAvatar} />
-                    <div style={{ flex: 1 }}>
-                      <div style={styles.commentHeader}>
-                        <span style={styles.commentUsername}>{comment.user.name}</span>
-                        <span style={styles.commentTime}>{comment.timestamp}</span>
-                      </div>
-                      <div style={styles.commentText}>{comment.text}</div>
-                      <button style={{
-                        ...styles.commentLikeBtn,
-                        ...(comment.userLiked ? styles.commentLikeBtnLiked : {})
-                      }}>
-                        <svg viewBox="0 0 24 24" style={{ width: 12, height: 12, fill: 'currentColor' }}>
-                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              <div className="comments-full">
+                {data.comments.map((comment) => (
+                  <div key={comment.id} className="activity-comment-item">
+                    <div className="activity-comment-header">
+                      <img
+                        src={comment.user.avatar}
+                        alt={comment.user.name}
+                        className="activity-comment-avatar"
+                      />
+                      <span className="activity-comment-username">
+                        {comment.user.name}
+                      </span>
+                      <span className="activity-comment-time">{comment.timestamp}</span>
+                    </div>
+                    <div className="activity-comment-text">{comment.text}</div>
+                    <div className="comment-actions">
+                      <button
+                        className={`comment-like-btn ${comment.userLiked ? 'liked' : ''}`}
+                      >
+                        <svg viewBox="0 0 24 24">
+                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                         </svg>
-                        {comment.likes > 0 && comment.likes}
+                        {comment.likes}
                       </button>
                     </div>
                   </div>
                 ))}
+                <div className="activity-comment-input-wrapper">
+                  <input
+                    type="text"
+                    className="activity-comment-input"
+                    placeholder="Add a comment..."
+                  />
+                  <button className="send-btn">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
-
-            {/* Similar Shows */}
-            <div style={styles.backSection}>
-              <div style={styles.backSectionTitle}>Similar Shows</div>
-              <div style={styles.similarShows}>
-                {data.similarShows.map((show) => (
-                  <div key={show.id} style={{
-                    ...styles.similarShow,
-                    background: show.gradient
-                  }}>
-                    <div style={styles.similarShowTitle}>{show.title}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Bottom padding */}
-            <div style={{ height: 20 }} />
           </div>
-        </div>
 
-        {/* Action Overlay Modal */}
-        <div style={{
-          ...styles.actionOverlay,
-          ...(isActionOverlayVisible ? styles.actionOverlayVisible : {})
-        }} onClick={() => setIsActionOverlayVisible(false)}>
-          <div style={{
-            ...styles.actionModal,
-            transform: isFlipped
-              ? (isActionOverlayVisible ? 'scale(1) rotateY(180deg)' : 'scale(0.9) rotateY(180deg)')
-              : (isActionOverlayVisible ? 'scale(1)' : 'scale(0.9)')
-          }} onClick={(e) => e.stopPropagation()}>
-            <div style={styles.actionModalGrid}>
-              {/* Row 1: Ratings */}
-              <div style={styles.actionModalItem} onClick={() => handleActionSelect('meh')}>
-                <div style={styles.actionModalIcon}>
-                  <svg viewBox="0 0 24 24" style={{ width: 24, height: 24, stroke: 'white', fill: 'none' }}>
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="8" y1="15" x2="16" y2="15" strokeWidth="2"/>
-                    <line x1="9" y1="9" x2="9" y2="10" strokeWidth="2"/>
-                    <line x1="15" y1="9" x2="15" y2="10" strokeWidth="2"/>
-                  </svg>
-                </div>
-                <div style={styles.actionModalLabel}>Meh</div>
+          {/* BACK FACE */}
+          <div className="card-face card-back">
+            <button className="close-btn" onClick={flipCard}>
+              <svg viewBox="0 0 24 24" fill="none">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+
+            <div className="card-back-content">
+              {/* Title */}
+              <h1 className="back-title">{data.media.title}</h1>
+              <div className="back-meta">
+                <span>{data.media.year}</span>
+                <span className="meta-dot">•</span>
+                <span>{data.media.genres.join(', ')}</span>
+                <span className="meta-dot">•</span>
+                <span>⭐ {data.media.rating}</span>
               </div>
-              <div style={styles.actionModalItem} onClick={() => handleActionSelect('like')}>
-                <div style={styles.actionModalIcon}>
-                  <svg viewBox="0 0 24 24" style={{ width: 24, height: 24, stroke: 'white', fill: 'none' }}>
-                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" strokeWidth="1.5"/>
-                  </svg>
-                </div>
-                <div style={styles.actionModalLabel}>Like</div>
+
+              {/* Badges */}
+              <div className="back-badges">
+                {data.media.season && <div className="back-badge">S{data.media.season}</div>}
+                <div className="back-badge">{data.media.mediaType}</div>
+                <div className="back-badge">{data.media.network}</div>
+                <div className="back-badge">▶ Trailer</div>
               </div>
-              <div style={styles.actionModalItem} onClick={() => handleActionSelect('love')}>
-                <div style={styles.actionModalIcon}>
-                  <svg viewBox="0 0 24 24" style={{ width: 24, height: 24 }}>
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="none" stroke="white" strokeWidth="1.5"/>
-                  </svg>
-                </div>
-                <div style={styles.actionModalLabel}>Love</div>
+
+              {/* Synopsis */}
+              <p className={`back-synopsis ${synopsisExpanded ? '' : 'collapsed'}`}>
+                {data.media.synopsis}
+              </p>
+              {!synopsisExpanded && (
+                <span className="read-more" onClick={() => setSynopsisExpanded(true)}>
+                  Read more
+                </span>
+              )}
+
+              {/* Action Icons */}
+              <div className="back-action-icons">
+                <button className="back-icon-btn">➕</button>
+                <button className="back-icon-btn">💬</button>
+                <button className="back-icon-btn">↗️</button>
               </div>
-            </div>
-            <div style={{ height: 1, background: 'rgba(255,255,255,0.1)', margin: '12px 0' }} />
-            <div style={styles.actionModalGrid}>
-              {/* Row 2: Watchlist */}
-              <div style={styles.actionModalItem} onClick={() => handleActionSelect('want-to-watch')}>
-                <div style={styles.actionModalIcon}>
-                  <svg viewBox="0 0 24 24" style={{ width: 24, height: 24, stroke: 'white', fill: 'none' }}>
-                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" strokeWidth="1.5"/>
-                  </svg>
-                  <div style={styles.watchlistBadge}>
-                    <svg viewBox="0 0 24 24" style={{ width: 10, height: 10, stroke: 'white', fill: 'none' }}>
-                      <path d="M12 5v14M5 12h14" strokeWidth="2"/>
-                    </svg>
+
+              {/* Info Grid */}
+              <div className="back-info-grid">
+                <div className="back-info-item">
+                  <span className="back-info-label">Creator</span>
+                  <span className="back-info-value">{data.media.creator}</span>
+                </div>
+                <div className="back-info-item">
+                  <span className="back-info-label">Genre</span>
+                  <span className="back-info-value">{data.media.genres.join(', ')}</span>
+                </div>
+              </div>
+
+              {/* Cast */}
+              <div className="back-section">
+                <div className="back-section-title">Cast</div>
+                <div className="cast-list">
+                  {data.media.cast.map((actor, idx) => (
+                    <span key={idx} className="cast-member">
+                      {actor}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Friends Watching */}
+              <div className="back-section">
+                <div className="back-section-title">Friends Watching</div>
+                <div className="friends-categories">
+                  <div className="friends-category">
+                    <div className="friends-avatars-stack">
+                      {data.friendsActivity.watching.avatars.slice(0, 3).map((avatar, idx) => (
+                        <img key={idx} src={avatar} alt="Friend" />
+                      ))}
+                    </div>
+                    <div className="friends-category-text">
+                      <span className="count">{data.friendsActivity.watching.count}</span> friends
+                      watching
+                    </div>
+                  </div>
+                  <div className="friends-category">
+                    <div className="friends-avatars-stack">
+                      {data.friendsActivity.wantToWatch.avatars.slice(0, 3).map((avatar, idx) => (
+                        <img key={idx} src={avatar} alt="Friend" />
+                      ))}
+                    </div>
+                    <div className="friends-category-text">
+                      <span className="count">{data.friendsActivity.wantToWatch.count}</span>{' '}
+                      friends want to watch
+                    </div>
+                  </div>
+                  <div className="friends-category">
+                    <div className="friends-avatars-stack">
+                      {data.friendsActivity.watched.avatars.slice(0, 3).map((avatar, idx) => (
+                        <img key={idx} src={avatar} alt="Friend" />
+                      ))}
+                    </div>
+                    <div className="friends-category-text">
+                      <span className="count">{data.friendsActivity.watched.count}</span> friends
+                      watched
+                    </div>
                   </div>
                 </div>
-                <div style={styles.actionModalLabel}>Want To</div>
               </div>
-              <div style={styles.actionModalItem} onClick={() => handleActionSelect('watching')}>
-                <div style={styles.actionModalIcon}>
-                  <svg viewBox="0 0 24 24" style={{ width: 24, height: 24, stroke: 'white', fill: 'white' }}>
-                    <polygon points="5 3 19 12 5 21 5 3"/>
-                  </svg>
-                  <div style={styles.watchlistBadge}>
-                    <svg viewBox="0 0 24 24" style={{ width: 10, height: 10, stroke: 'white', fill: 'none' }}>
-                      <path d="M12 5v14M5 12h14" strokeWidth="2"/>
+
+              {/* Friends Ratings */}
+              <div className="back-section">
+                <div className="back-section-title">Friends Ratings</div>
+                <div className="friends-ratings-grid">
+                  <div className={`rating-stat ${data.friendsActivity.ratings.userRating === 'meh' ? 'active-user-rating' : ''}`}>
+                    <svg viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="8" y1="15" x2="16" y2="15" />
                     </svg>
+                    <div className="rating-stat-count">{data.friendsActivity.ratings.meh}</div>
+                  </div>
+                  <div className={`rating-stat ${data.friendsActivity.ratings.userRating === 'like' ? 'active-user-rating' : ''}`}>
+                    <svg viewBox="0 0 24 24">
+                      <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+                    </svg>
+                    <div className="rating-stat-count">{data.friendsActivity.ratings.like}</div>
+                  </div>
+                  <div className={`rating-stat ${data.friendsActivity.ratings.userRating === 'love' ? 'active-user-rating' : ''}`}>
+                    <svg viewBox="0 0 24 24">
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                    </svg>
+                    <div className="rating-stat-count">{data.friendsActivity.ratings.love}</div>
                   </div>
                 </div>
-                <div style={styles.actionModalLabel}>Watching</div>
               </div>
-              <div style={styles.actionModalItem} onClick={() => handleActionSelect('watched')}>
-                <div style={styles.actionModalIcon}>
-                  <svg viewBox="0 0 24 24" style={{ width: 24, height: 24, stroke: 'white', fill: 'none' }}>
-                    <circle cx="12" cy="12" r="10"/>
-                    <polyline points="9 12 11 14 15 10" strokeWidth="2"/>
-                  </svg>
-                  <div style={styles.watchlistBadge}>
-                    <svg viewBox="0 0 24 24" style={{ width: 10, height: 10, stroke: 'white', fill: 'none' }}>
-                      <path d="M12 5v14M5 12h14" strokeWidth="2"/>
-                    </svg>
-                  </div>
+
+              {/* Show Comments */}
+              <div className="back-section">
+                <div className="back-section-title">Show Comments</div>
+                <div className="show-comments-list">
+                  {data.showComments.map((comment) => (
+                    <div key={comment.id} className="comment-item">
+                      <img src={comment.user.avatar} alt={comment.user.name} className="comment-avatar" />
+                      <div className="comment-content">
+                        <div className="comment-header">
+                          <span className="comment-username">{comment.user.name}</span>
+                          <span className="comment-timestamp">{comment.timestamp}</span>
+                        </div>
+                        <div className="comment-text">{comment.text}</div>
+                        <div className="comment-actions">
+                          <button className={`comment-like-btn ${comment.userLiked ? 'liked' : ''}`}>
+                            <svg viewBox="0 0 24 24">
+                              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                            </svg>
+                            {comment.likes}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <button className="load-more-btn">Load More Comments</button>
                 </div>
-                <div style={styles.actionModalLabel}>Watched</div>
+              </div>
+
+              {/* Similar Shows */}
+              <div className="back-section">
+                <div className="back-section-title">Similar Shows</div>
+                <div className="similar-shows">
+                  {data.similarShows.map((show) => (
+                    <div
+                      key={show.id}
+                      className="similar-show"
+                      style={{ background: show.gradient }}
+                    >
+                      <div className="similar-show-title">{show.title}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }
 
-// ============================================================================
-// Styles (Pixel Perfect CSS-in-JS)
-// ============================================================================
-
-const styles: Record<string, React.CSSProperties> = {
-  cardContainer: {
-    width: 398,
-    height: 645,
-    margin: '20px 16px',
-    perspective: 1000,
-    position: 'relative'
-  },
-  card: {
-    width: '100%',
-    height: '100%',
-    position: 'relative',
-    transformStyle: 'preserve-3d',
-    transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-    borderRadius: 16,
-    touchAction: 'none'
-  },
-  cardFront: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    backfaceVisibility: 'hidden',
-    WebkitBackfaceVisibility: 'hidden',
-    borderRadius: 16,
-    overflow: 'hidden',
-    zIndex: 2
-  },
-  cardBack: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    backfaceVisibility: 'hidden',
-    WebkitBackfaceVisibility: 'hidden',
-    borderRadius: 16,
-    transform: 'rotateY(180deg)',
-    background: 'linear-gradient(to bottom, #1a1a1a 0%, #0a0a0a 100%)',
-    overflow: 'hidden',
-    zIndex: 1
-  },
-  cardBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    zIndex: 1
-  },
-  backgroundImage: {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover'
-  },
-  backgroundOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.3) 50%, rgba(0, 0, 0, 0.9) 100%)',
-    zIndex: 2
-  },
-  menuBtn: {
-    position: 'absolute',
-    top: 20,
-    right: 12,
-    width: 40,
-    height: 40,
-    borderRadius: '50%',
-    background: 'rgba(60, 60, 60, 0.4)',
-    backdropFilter: 'blur(10px)',
-    WebkitBackdropFilter: 'blur(10px)',
-    border: '1.5px solid rgba(255, 255, 255, 0.2)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    zIndex: 6,
-    transition: 'all 0.2s'
-  },
-  cardContent: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 20,
-    paddingBottom: 40,
-    zIndex: 3,
-    color: 'white'
-  },
-  userHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 10
-  },
-  userAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: '50%',
-    border: '1.5px solid white',
-    objectFit: 'cover'
-  },
-  userInfo: {
-    flex: 1
-  },
-  username: {
-    fontSize: 14,
-    fontWeight: 600,
-    marginBottom: 1
-  },
-  timestamp: {
-    fontSize: 11,
-    fontWeight: 400,
-    opacity: 0.7
-  },
-  activityBadges: {
-    display: 'flex',
-    gap: 6,
-    marginBottom: 8
-  },
-  badge: {
-    padding: '4px 10px',
-    borderRadius: 12,
-    fontSize: 11,
-    fontWeight: 600,
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 4
-  },
-  showTitle: {
-    fontSize: 16,
-    fontWeight: 600,
-    lineHeight: 1.3,
-    marginBottom: 6
-  },
-  showMeta: {
-    fontSize: 12,
-    fontWeight: 400,
-    opacity: 0.85,
-    marginBottom: 6
-  },
-  metaDot: {
-    margin: '0 4px',
-    opacity: 0.5
-  },
-  friendAvatars: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 10
-  },
-  friendAvatarsStack: {
-    display: 'flex',
-    marginRight: 6
-  },
-  friendAvatar: {
-    width: 24,
-    height: 24,
-    borderRadius: '50%',
-    border: '1.5px solid #000',
-    objectFit: 'cover'
-  },
-  friendCount: {
-    fontSize: 12,
-    fontWeight: 400,
-    opacity: 0.85
-  },
-  sideActions: {
-    position: 'absolute',
-    right: 12,
-    bottom: 60,
-    zIndex: 4,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 12
-  },
-  actionBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: '50%',
-    background: 'rgba(60, 60, 60, 0.4)',
-    backdropFilter: 'blur(10px)',
-    WebkitBackdropFilter: 'blur(10px)',
-    border: '1.5px solid rgba(255, 255, 255, 0.2)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    transition: 'all 0.2s'
-  },
-  actionBtnLiked: {
-    background: 'rgba(255, 59, 92, 0.3)',
-    border: '1.5px solid rgba(255, 59, 92, 0.5)'
-  },
-  actionIcon: {
-    width: 24,
-    height: 24,
-    stroke: 'white',
-    fill: 'none',
-    strokeWidth: 1.5
-  },
-  actionCount: {
-    textAlign: 'center',
-    fontSize: 12,
-    fontWeight: 600,
-    marginTop: 2,
-    color: 'white'
-  },
-  commentsTab: {
-    position: 'absolute',
-    bottom: 0,
-    left: 10,
-    right: 10,
-    background: 'rgba(20, 20, 20, 0.95)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-    zIndex: 5,
-    transition: 'transform 0.3s ease, opacity 0.3s ease',
-    maxHeight: '70%',
-    overflow: 'hidden',
-    transform: 'translateY(100%)',
-    opacity: 0,
-    pointerEvents: 'none',
-    display: 'flex',
-    flexDirection: 'column'
-  },
-  commentsTabVisible: {
-    transform: 'translateY(0)',
-    opacity: 1,
-    pointerEvents: 'auto'
-  },
-  commentsTabExpanded: {
-    // Keep visible styles
-  },
-  commentsPreview: {
-    padding: '16px 20px',
-    cursor: 'pointer',
-    fontSize: 13,
-    fontWeight: 500,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8
-  },
-  commentsFull: {
-    display: 'block',
-    padding: 20,
-    paddingBottom: 0,
-    flex: 1,
-    minHeight: 0,
-    overflowY: 'scroll',
-    overflowX: 'hidden',
-    WebkitOverflowScrolling: 'touch',
-    overscrollBehavior: 'contain',
-    touchAction: 'pan-y'
-  },
-  activityCommentItem: {
-    marginBottom: 16,
-    paddingBottom: 16,
-    borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
-  },
-  activityCommentHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 6
-  },
-  activityCommentAvatar: {
-    width: 28,
-    height: 28,
-    borderRadius: '50%',
-    border: '1px solid rgba(255, 255, 255, 0.2)'
-  },
-  activityCommentUsername: {
-    fontSize: 13,
-    fontWeight: 600
-  },
-  activityCommentTime: {
-    fontSize: 11,
-    opacity: 0.6,
-    marginLeft: 'auto'
-  },
-  activityCommentText: {
-    fontSize: 13,
-    lineHeight: 1.4,
-    opacity: 0.9,
-    marginLeft: 38
-  },
-  activityCommentInputWrapper: {
-    padding: '16px 20px',
-    borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-    display: 'flex',
-    gap: 12,
-    alignItems: 'center',
-    flexShrink: 0
-  },
-  activityCommentInput: {
-    flex: 1,
-    background: 'rgba(255, 255, 255, 0.1)',
-    border: '1px solid rgba(255, 255, 255, 0.15)',
-    borderRadius: 20,
-    padding: '10px 16px',
-    color: 'white',
-    fontSize: 16,
-    outline: 'none'
-  },
-  sendBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: '50%',
-    background: 'rgba(255, 255, 255, 0.2)',
-    border: 'none',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    flexShrink: 0
-  },
-  cardBackContent: {
-    padding: '20px 16px',
-    paddingTop: 50,
-    paddingBottom: 20,
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: '100%',
-    overflowY: 'scroll',
-    overflowX: 'hidden',
-    WebkitOverflowScrolling: 'touch',
-    overscrollBehavior: 'contain',
-    touchAction: 'pan-y',
-    zIndex: 1,
-    pointerEvents: 'auto',
-    willChange: 'scroll-position'
-  },
-  closeBtn: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
-    width: 36,
-    height: 36,
-    borderRadius: '50%',
-    background: 'rgba(60, 60, 60, 0.6)',
-    backdropFilter: 'blur(10px)',
-    border: '1.5px solid rgba(255, 255, 255, 0.2)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    zIndex: 10
-  },
-  backTitleSection: {
-    marginBottom: 16
-  },
-  backTitle: {
-    fontSize: 22,
-    fontWeight: 700,
-    marginBottom: 6,
-    letterSpacing: -0.5,
-    color: 'white'
-  },
-  backMeta: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    flexWrap: 'wrap',
-    marginBottom: 12,
-    color: 'white'
-  },
-  backYear: {
-    fontSize: 14,
-    opacity: 0.9
-  },
-  backRating: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 4,
-    fontSize: 14,
-    fontWeight: 600
-  },
-  backBadges: {
-    display: 'flex',
-    gap: 6,
-    flexWrap: 'wrap',
-    marginBottom: 14
-  },
-  backBadge: {
-    padding: '8px 14px',
-    background: 'rgba(255, 255, 255, 0.1)',
-    border: '1px solid rgba(255, 255, 255, 0.2)',
-    borderRadius: 10,
-    fontSize: 12,
-    fontWeight: 600,
-    cursor: 'pointer',
-    textAlign: 'center',
-    minWidth: 36,
-    color: 'white'
-  },
-  backSynopsis: {
-    fontSize: 14,
-    lineHeight: 1.5,
-    opacity: 0.9,
-    marginBottom: 8,
-    color: 'white'
-  },
-  backSynopsisCollapsed: {
-    display: '-webkit-box',
-    WebkitLineClamp: 3,
-    WebkitBoxOrient: 'vertical',
-    overflow: 'hidden'
-  },
-  readMore: {
-    color: '#FF006E',
-    fontSize: 13,
-    fontWeight: 500,
-    cursor: 'pointer',
-    marginBottom: 16,
-    display: 'block',
-    textAlign: 'right'
-  },
-  backActionIcons: {
-    display: 'flex',
-    gap: 10,
-    marginBottom: 20,
-    paddingBottom: 16,
-    borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
-  },
-  backIconBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: '50%',
-    background: 'rgba(255, 255, 255, 0.1)',
-    backdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255, 255, 255, 0.2)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: 18,
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    color: 'white'
-  },
-  backInfoGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: 16,
-    marginBottom: 20
-  },
-  backInfoItem: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 2
-  },
-  backInfoLabel: {
-    fontSize: 11,
-    opacity: 0.6,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    color: 'white'
-  },
-  backInfoValue: {
-    fontSize: 14,
-    fontWeight: 600,
-    color: 'white'
-  },
-  backSection: {
-    marginBottom: 20
-  },
-  backSectionTitle: {
-    fontSize: 11,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    opacity: 0.6,
-    marginBottom: 10,
-    color: 'white'
-  },
-  castList: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: 6
-  },
-  castMember: {
-    padding: '5px 10px',
-    background: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 16,
-    fontSize: 12,
-    color: 'white'
-  },
-  friendsCategories: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 10
-  },
-  friendsCategory: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 12,
-    padding: 12,
-    background: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 10,
-    cursor: 'pointer',
-    transition: 'background 0.2s'
-  },
-  friendsCategoryAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: '50%',
-    border: '2px solid #1a1a1a',
-    objectFit: 'cover'
-  },
-  friendsCategoryText: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: 500,
-    color: 'white'
-  },
-  friendsRatings: {
-    display: 'flex',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    padding: 16,
-    background: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: 10
-  },
-  ratingIconWrapper: {
-    width: 42,
-    height: 42,
-    borderRadius: '50%',
-    background: 'rgba(255, 255, 255, 0.1)',
-    backdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255, 255, 255, 0.2)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative'
-  },
-  ratingIconWrapperActive: {
-    background: 'rgba(255, 59, 92, 0.15)',
-    border: '2px solid #FF3B5C'
-  },
-  ratingCount: {
-    position: 'absolute',
-    top: -4,
-    right: -4,
-    background: 'linear-gradient(135deg, #FF006E, #FF8E53)',
-    color: 'white',
-    fontSize: 10,
-    fontWeight: 600,
-    minWidth: 18,
-    height: 18,
-    borderRadius: 9,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '0 4px',
-    border: '2px solid #1a1a1a'
-  },
-  commentInputContainer: {
-    display: 'flex',
-    gap: 10,
-    marginBottom: 16,
-    padding: 12,
-    background: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 10
-  },
-  commentInput: {
-    width: '100%',
-    padding: '8px 12px',
-    background: 'rgba(255, 255, 255, 0.1)',
-    border: '1px solid rgba(255, 255, 255, 0.2)',
-    borderRadius: 8,
-    color: 'white',
-    fontSize: 13,
-    resize: 'none',
-    minHeight: 60,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  },
-  commentSubmitBtn: {
-    alignSelf: 'flex-end',
-    padding: '6px 16px',
-    background: 'linear-gradient(135deg, #FF006E, #FF8E53)',
-    border: 'none',
-    borderRadius: 6,
-    color: 'white',
-    fontSize: 12,
-    fontWeight: 600,
-    cursor: 'pointer'
-  },
-  commentsList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 12
-  },
-  commentItem: {
-    display: 'flex',
-    gap: 10,
-    padding: 10,
-    background: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: 8
-  },
-  commentAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: '50%',
-    border: '1px solid rgba(255, 255, 255, 0.2)'
-  },
-  commentHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 4
-  },
-  commentUsername: {
-    fontSize: 13,
-    fontWeight: 600,
-    color: 'white'
-  },
-  commentTime: {
-    fontSize: 11,
-    opacity: 0.6,
-    marginLeft: 'auto',
-    color: 'white'
-  },
-  commentText: {
-    fontSize: 13,
-    lineHeight: 1.4,
-    opacity: 0.9,
-    marginBottom: 6,
-    color: 'white'
-  },
-  commentLikeBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 4,
-    background: 'none',
-    border: 'none',
-    color: 'rgba(255, 255, 255, 0.6)',
-    fontSize: 11,
-    fontWeight: 600,
-    cursor: 'pointer',
-    padding: '4px 8px',
-    borderRadius: 12,
-    transition: 'all 0.2s'
-  },
-  commentLikeBtnLiked: {
-    color: '#FF3B5C'
-  },
-  similarShows: {
-    display: 'flex',
-    gap: 12,
-    overflowX: 'auto',
-    paddingBottom: 10
-  },
-  similarShow: {
-    flexShrink: 0,
-    width: 100,
-    height: 150,
-    background: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 8,
-    display: 'flex',
-    alignItems: 'flex-end',
-    padding: 8,
-    position: 'relative',
-    overflow: 'hidden',
-    cursor: 'pointer'
-  },
-  similarShowTitle: {
-    fontSize: 11,
-    fontWeight: 600,
-    position: 'relative',
-    zIndex: 1,
-    color: 'white'
-  },
-  actionOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: 'rgba(0, 0, 0, 0.4)',
-    backdropFilter: 'blur(8px)',
-    zIndex: 1000,
-    opacity: 0,
-    pointerEvents: 'none',
-    transition: 'opacity 0.2s ease',
-    borderRadius: 16,
-    overflow: 'hidden'
-  },
-  actionOverlayVisible: {
-    opacity: 1,
-    pointerEvents: 'auto'
-  },
-  actionModal: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    marginLeft: -120,
-    marginTop: -100,
-    background: 'rgba(20, 20, 20, 0.98)',
-    backdropFilter: 'blur(30px)',
-    border: '1px solid rgba(255, 255, 255, 0.15)',
-    borderRadius: 16,
-    padding: 16,
-    width: 240,
-    opacity: 0,
-    transition: 'all 0.2s ease'
-  },
-  actionModalGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: 12
-  },
-  actionModalItem: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 6,
-    cursor: 'pointer'
-  },
-  actionModalIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: '50%',
-    background: 'rgba(255, 255, 255, 0.1)',
-    backdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255, 255, 255, 0.2)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative'
-  },
-  actionModalLabel: {
-    fontSize: 10,
-    fontWeight: 500,
-    opacity: 0.8,
-    textAlign: 'center',
-    color: 'white'
-  },
-  watchlistBadge: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    width: 16,
-    height: 16,
-    borderRadius: '50%',
-    background: 'linear-gradient(135deg, #FF006E, #FF8E53)',
-    border: '2px solid rgba(20, 20, 20, 0.98)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center'
-  }
-}
+export default UserActivityCard
