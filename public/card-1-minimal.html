@@ -2552,6 +2552,7 @@
             
             cardBackContent.addEventListener('touchmove', (e) => {
                 if (!card.classList.contains('flipped')) return;
+                e.preventDefault(); // Prevent default scrolling
                 
                 const touchY = e.touches[0].clientY;
                 const currentTime = performance.now();
@@ -2693,7 +2694,8 @@
             
             commentsFull.addEventListener('touchmove', (e) => {
                 if (!document.querySelector('.comments-tab.expanded')) return;
-                
+                e.preventDefault(); // Prevent default scrolling
+
                 const touchY = e.touches[0].clientY;
                 const currentTime = performance.now();
                 const deltaTime = currentTime - lastTouchTime;
