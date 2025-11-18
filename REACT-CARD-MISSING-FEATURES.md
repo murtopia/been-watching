@@ -1,7 +1,7 @@
 # React Card Missing Features - Pixel-Perfect Conversion Checklist
 
-**Date:** January 16, 2025
-**Status:** In Progress - Major components missing
+**Date:** January 17, 2025
+**Status:** In Progress - Layout needs refinement, major components missing
 
 ## Summary
 
@@ -56,7 +56,17 @@ The entire quick action modal is missing from the React component. This is a maj
 
 ---
 
-### 2. **Star Icons for Ratings**
+### 2. **Layout Not Pixel-Perfect** (CRITICAL)
+
+**Status:** The React card layout (both front and back) doesn't match the approved HTML version exactly.
+
+**Next Steps:**
+- Focus on FRONT side first
+- Compare side-by-side with HTML at `/admin/design-assets/cards`
+- May need screenshots to identify specific spacing/sizing differences
+- Check all padding, margins, font sizes, element positioning
+
+### 3. **Star Icons for Ratings**
 
 Currently using emoji ⭐ instead of SVG star icons.
 
@@ -131,11 +141,25 @@ Review all icon sizes to match HTML exactly:
 
 ## 🔧 IMPLEMENTATION PRIORITY
 
+### Completed ✅
+1. ✅ **Plus icon fixed** - Now using correct stroked path from HTML (stroke-width 1.5, fill none)
+2. ✅ **Activity badge styling fixed** - Updated padding (6px 12px → 8px 14px), font-size (11px → 13px), font-weight (600 → 700)
+3. ✅ **Activity badge icon sizing fixed** - Updated from 14px to 16px to match HTML
+4. ✅ **Activity badges container spacing fixed** - Updated gap (6px → 8px) and margin-bottom (10px → 12px)
+5. ✅ **Sample data colors fixed** - "Loved" badge (0.2 → 0.25, 0.4 → 0.5) and "Currently Watching" badge (green → blue)
+6. ✅ **Sample data genres fixed** - Removed 'Thriller' to match HTML "Crime, Drama"
+7. ✅ **Sample data username fixed** - Changed from "Sarah Mitchell" to "Sarah Miller"
+
 ### High Priority (Blocking pixel-perfect accuracy)
-1. ❌ **Add Action Overlay Modal** - Major feature missing
-2. ❌ **Add bookmark icon** to icon sprite
-3. ❌ **Add check-circle icon** to icon sprite
-4. ❌ **Add plus-small icon** (10px version) to icon sprite
+1. ⚠️ **Verify Front Card Layout** - Need visual comparison after fixes applied
+2. ❌ **Fix Back Card Layout** - Layout doesn't match HTML exactly
+3. ❌ **Add Action Overlay Modal** - Major feature missing (6-option grid popup)
+4. ❌ **Add missing icons to sprite:**
+   - `want-to-watch` (bookmark)
+   - `watched` (check icon)
+   - `plus-small` (10px for badges)
+   - `star-rating-gold` (for "⭐ 9.5" display)
+   - `star-featured-gold` (for Top Show badges)
 5. ❌ **Replace star emoji** with SVG icon
 6. ❌ **Fix activity badge icon sizing** (14px → 16px)
 
@@ -213,5 +237,45 @@ When comparing React vs HTML, check:
 
 ---
 
-**Last Updated:** January 16, 2025
-**Completion Status:** ~60% - Major features still missing
+**Last Updated:** January 17, 2025
+**Completion Status:** ~75% - Front card layout fixes applied, need visual verification
+
+## 📝 SESSION NOTES
+
+**Jan 17, 2025 (Session 3):**
+- ✅ **CRITICAL FIX - Icon pointer-events:** Added `pointerEvents: onClick ? 'auto' : 'none'` to Icon component inline styles
+  - This ensures icons inside buttons don't block the button's cursor pointer
+  - Without this, hovering over icons shows default cursor instead of pointer
+  - **APPLY TO ALL FUTURE CARDS:** All Icon components must have this fix
+- ✅ Fixed side action button count positioning - moved from inside button to sibling
+- ✅ Fixed right edge spacing - changed menu button and side actions from 8px to 12px
+- ✅ Updated poster image to match HTML (original quality)
+- ✅ **Action Overlay Modal fully implemented** with all 6 options (Meh, Like, Love, Want To, Watching, Watched)
+- ✅ **Interactive icon states working** - Ratings are mutually exclusive, watchlist allows multiple selections
+- ✅ **Modal click behavior fixed** - Modal only closes when clicking outside (stopPropagation on icon clicks)
+- ✅ **Verified all icons using sprite sheet correctly** - Icon component properly maps icon names to sprite IDs
+  - Icon mapping: `heart` → `heart-outline`/`heart-filled`
+  - All stateful icons append `-outline` (default) or `-filled` (active/filled state)
+  - Plus badges on watchlist items disappear when active state is selected
+
+**Jan 17, 2025 (Session 2):**
+- ✅ Fixed activity badge CSS to match HTML exactly:
+  - Padding: 6px 12px → 8px 14px
+  - Font size: 11px → 13px
+  - Font weight: 600 → 700
+  - Container gap: 6px → 8px
+  - Container margin-bottom: 10px → 12px
+- ✅ Fixed badge icon sizes: 14px → 16px
+- ✅ Fixed sample data to match HTML:
+  - "Loved" badge colors: rgba opacity 0.2/0.4 → 0.25/0.5
+  - "Currently Watching" badge: green (#34D399) → blue (#3B82F6)
+  - Badge text colors: colored (#FF3B5C, #3B82F6) → white (both badges use white text/icons)
+  - Genres: removed 'Thriller' and removed comma - now shows "Crime Drama" not "Crime, Drama"
+  - Username: "Sarah Mitchell" → "Sarah Miller"
+- ✅ Fixed side action buttons overlapping issue - removed incorrect `position: absolute` from .action-count
+- Next: Visual verification needed to confirm pixel-perfect match and check button positioning
+
+**Jan 17, 2025 (Session 1):**
+- ✅ Fixed plus icon - was using `fill` instead of `stroke`. Now matches HTML with `fill="none" stroke="currentColor" stroke-width="1.5"`
+- ⚠️ User reported layout (front & back) doesn't match HTML version exactly
+- Next: Focus on front card layout first, may need screenshots for comparison

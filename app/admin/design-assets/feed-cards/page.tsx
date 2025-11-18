@@ -22,32 +22,32 @@ export default function FeedCardsPreviewPage() {
     timestamp: '2 hours ago',
     user: {
       id: 'user-1',
-      name: 'Sarah Mitchell',
-      username: 'sarahmitchell',
+      name: 'Sarah Miller',
+      username: 'sarahmiller',
       avatar: 'https://i.pravatar.cc/150?img=5'
     },
     activityType: 'loved' as 'loved',
     activityBadges: [
       {
         text: 'Loved',
-        color: 'rgba(255, 59, 92, 0.2)',
-        borderColor: 'rgba(255, 59, 92, 0.4)',
-        textColor: '#FF3B5C'
+        color: 'rgba(255, 59, 92, 0.25)',
+        borderColor: 'rgba(255, 59, 92, 0.5)',
+        textColor: 'white'
       },
       {
         text: 'Currently Watching',
-        color: 'rgba(52, 211, 153, 0.2)',
-        borderColor: 'rgba(52, 211, 153, 0.4)',
-        textColor: '#34D399'
+        color: 'rgba(59, 130, 246, 0.25)',
+        borderColor: 'rgba(59, 130, 246, 0.5)',
+        textColor: 'white'
       }
     ],
     media: {
       id: 'media-1',
       title: 'Breaking Bad Season 5',
       year: 2012,
-      genres: ['Crime', 'Drama', 'Thriller'],
+      genres: ['Crime', 'Drama'],
       rating: 9.5,
-      posterUrl: 'https://image.tmdb.org/t/p/w500/ggFHVNu6YYI5L9pCfOacjizRGt.jpg',
+      posterUrl: 'https://image.tmdb.org/t/p/original/ztkUQFLlC19CCMYHW9o1zWhJRNq.jpg',
       synopsis: 'In the final season, being bad is all that remains for Walter White. His empire grows, endangering his family and himself in ways he could never have imagined.',
       creator: 'Vince Gilligan',
       cast: ['Bryan Cranston', 'Aaron Paul', 'Anna Gunn', 'Dean Norris'],

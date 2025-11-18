@@ -20,7 +20,7 @@ interface IconDefinition {
 // All available icons organized by category
 const iconCategories: Record<string, IconDefinition[]> = {
   'Action Icons': [
-    { name: 'heart', states: ['outline', 'filled'], description: 'Like/love action • 24px in 40px circle', usage: 'circle' },
+    { name: 'heart-nav', states: ['default', 'active'], description: 'Side action like button • 24px in 40px circle • Circle BG stays same', usage: 'circle-only', displayName: 'heart-nav' },
     { name: 'plus', states: ['default'], description: 'Quick Action bubble launcher • 24px in 40px circle', usage: 'circle-only' },
     { name: 'plus-small', states: ['default'], description: 'Badge overlay • 12px standalone', usage: 'standalone' },
     { name: 'comment', states: ['default'], description: 'Comment action • 24px in 40px circle', usage: 'circle' },
@@ -30,8 +30,9 @@ const iconCategories: Record<string, IconDefinition[]> = {
     { name: 'send', states: ['default'], description: 'Send comment • 18px in 32px circle', usage: 'circle' },
   ],
   'Rating Icons': [
-    { name: 'thumbs-up', states: ['outline', 'filled'], description: 'Like rating • 24px in 42px circle', usage: 'circle', displayName: 'like-thumbs-up' },
     { name: 'meh-face', states: ['outline', 'filled'], description: 'Meh rating • 24px in 42px circle', usage: 'circle' },
+    { name: 'thumbs-up', states: ['outline', 'filled'], description: 'Like rating • 24px in 42px circle', usage: 'circle' },
+    { name: 'heart', states: ['outline', 'filled'], description: 'Love rating • 24px in 42px circle', usage: 'circle', displayName: 'love' },
   ],
   'Watchlist Icons': [
     { name: 'bookmark', states: ['outline', 'filled'], description: 'Want to Watch • 24px in 48px circle', usage: 'circle', displayName: 'want-to-watch' },
@@ -347,8 +348,9 @@ export default function IconLibraryPage() {
                                 <Icon
                                   name={icon.name}
                                   state="default"
-                                  size={32}
+                                  size={icon.name === 'heart-nav' ? 40 : icon.name === 'plus' ? 30 : 32}
                                   theme={selectedTheme}
+                                  color={selectedTheme === 'dark' ? 'white' : undefined}
                                 />
                               </div>
                               <div style={{
@@ -356,7 +358,7 @@ export default function IconLibraryPage() {
                                 color: selectedTheme === 'dark' ? '#9CA3AF' : '#4B5563',
                                 marginTop: '0.5rem'
                               }}>
-                                default
+                                {icon.name}-default
                               </div>
                             </div>
                           ) : null}
@@ -386,9 +388,8 @@ export default function IconLibraryPage() {
                                 <Icon
                                   name={icon.name}
                                   state="active"
-                                  size={32}
+                                  size={icon.name === 'heart-nav' ? 40 : 32}
                                   theme={selectedTheme}
-                                  color={icon.color || ((icon.name === 'heart' || icon.name === 'thumbs-up' || icon.name === 'meh-face' || icon.name === 'bookmark' || icon.name === 'check' || icon.name === 'play' || icon.name === 'bell') ? '#FF3B5C' : undefined)}
                                 />
                               </div>
                               <div style={{
@@ -396,7 +397,7 @@ export default function IconLibraryPage() {
                                 color: selectedTheme === 'dark' ? '#9CA3AF' : '#4B5563',
                                 marginTop: '0.5rem'
                               }}>
-                                active
+                                {icon.name}-active
                               </div>
                             </div>
                           ) : null}
@@ -442,7 +443,7 @@ export default function IconLibraryPage() {
                               color: selectedTheme === 'dark' ? '#9CA3AF' : '#4B5563',
                               marginTop: '0.5rem'
                             }}>
-                              default
+                              {icon.name}-default
                             </div>
                           </div>
                         ) : null}
@@ -454,14 +455,13 @@ export default function IconLibraryPage() {
                               state="active"
                               size={48}
                               theme={selectedTheme}
-                              color={icon.color || ((icon.name === 'heart' || icon.name === 'thumbs-up' || icon.name === 'meh-face' || icon.name === 'bookmark' || icon.name === 'check' || icon.name === 'play' || icon.name === 'bell') ? '#FF3B5C' : undefined)}
                             />
                             <div style={{
                               fontSize: '0.625rem',
                               color: selectedTheme === 'dark' ? '#9CA3AF' : '#4B5563',
                               marginTop: '0.5rem'
                             }}>
-                              active
+                              {icon.name}-active
                             </div>
                           </div>
                         ) : null}

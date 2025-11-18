@@ -30,6 +30,8 @@ export interface IconProps {
   size?: number | string;
   /** Icon state (default, active, filled) */
   state?: 'default' | 'active' | 'filled';
+  /** Icon variant (circle for modal icons) */
+  variant?: 'circle';
   /** Theme (determines default color) */
   theme?: 'light' | 'dark';
   /** Custom color (overrides theme) */
@@ -49,6 +51,7 @@ export interface IconProps {
  */
 const STATEFUL_ICONS = [
   'heart',
+  'heart-nav',
   'bookmark',
   'bell',
   'thumbs-up',
@@ -59,21 +62,29 @@ const STATEFUL_ICONS = [
 ];
 
 /**
- * Get the full icon ID including state suffix
+ * Get the full icon ID including state suffix and variant
  */
-function getIconId(name: string, state: IconProps['state']): string {
-  // Icons without state variants
+function getIconId(name: string, state: IconProps['state'], variant?: IconProps['variant']): string {
+  // Icons without state variants (use as-is)
   if (!STATEFUL_ICONS.includes(name)) {
     return name;
   }
 
+  // Build the icon ID with variant if provided
+  const variantSuffix = variant === 'circle' ? '-c' : '';
+
   // Map state to suffix
-  if (state === 'active' || state === 'filled') {
-    return `${name}-filled`;
+  // Supports both old naming (-outline/-filled) and new naming (-default/-active)
+  if (state === 'active') {
+    return `${name}${variantSuffix}-active`;
   }
 
-  // Default to outline variant
-  return `${name}-outline`;
+  if (state === 'filled') {
+    return `${name}${variantSuffix}-filled`;
+  }
+
+  // Default state
+  return `${name}${variantSuffix}-default`;
 }
 
 /**
@@ -104,6 +115,7 @@ const IconBase: React.FC<IconProps> = ({
   name,
   size = 24,
   state = 'default',
+  variant,
   theme = 'dark',
   color: customColor,
   className = '',
@@ -111,9 +123,14 @@ const IconBase: React.FC<IconProps> = ({
   ariaLabel,
   ariaHidden = false,
 }) => {
-  const iconId = getIconId(name, state);
+  const iconId = getIconId(name, state, variant);
   const color = getColor(theme, customColor);
   const sizeValue = typeof size === 'number' ? `${size}px` : size;
+
+  // Debug logging for modal icons
+  if (variant === 'circle' && typeof window !== 'undefined') {
+    console.log(`Icon: ${name}, state: ${state}, variant: ${variant} → ${iconId}`);
+  }
 
   return (
     <svg
@@ -130,9 +147,10 @@ const IconBase: React.FC<IconProps> = ({
         display: 'inline-block',
         verticalAlign: 'middle',
         flexShrink: 0,
+        pointerEvents: onClick ? 'auto' : 'none',
       }}
     >
-      <use xlinkHref={`/icons/feed-sprite.svg?v=9#${iconId}`} />
+      <use xlinkHref={`/icons/feed-sprite.svg?v=20250118h#${iconId}`} />
     </svg>
   );
 };
