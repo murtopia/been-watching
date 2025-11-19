@@ -36,9 +36,9 @@ const iconCategories: Record<string, IconDefinition[]> = {
   ],
   'Watchlist Icons': [
     { name: 'bookmark', states: ['outline', 'filled'], description: 'Want to Watch • 24px in 48px circle', usage: 'circle', displayName: 'want-to-watch' },
-    { name: 'bookmark-plus', states: ['default'], description: 'Want to Watch compact • 24px in 42px circle', usage: 'circle', displayName: 'instant-add' },
     { name: 'play', states: ['outline', 'filled'], description: 'Watching status • 24px in 48px circle', usage: 'circle', displayName: 'watching' },
     { name: 'check', states: ['outline', 'filled'], description: 'Watched status • 24px in 48px circle', usage: 'circle', displayName: 'watched' },
+    { name: 'bookmark-plus', states: ['default'], description: 'Want to Watch compact • 24px in 42px circle', usage: 'circle', displayName: 'instant-add' },
   ],
   'Badge/Info Icons': [
     { name: 'clock', states: ['default'], description: 'Coming Soon badge • 16px standalone', usage: 'standalone' },
