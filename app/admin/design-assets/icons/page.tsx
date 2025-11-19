@@ -358,7 +358,7 @@ export default function IconLibraryPage() {
                                 color: selectedTheme === 'dark' ? '#9CA3AF' : '#4B5563',
                                 marginTop: '0.5rem'
                               }}>
-                                {icon.name}-default
+                                {icon.usage === 'circle-only' ? `${icon.name}-default` : `${icon.name}-c-default`}
                               </div>
                             </div>
                           ) : null}
@@ -397,7 +397,7 @@ export default function IconLibraryPage() {
                                 color: selectedTheme === 'dark' ? '#9CA3AF' : '#4B5563',
                                 marginTop: '0.5rem'
                               }}>
-                                {icon.name}-active
+                                {icon.usage === 'circle-only' ? `${icon.name}-active` : `${icon.name}-c-active`}
                               </div>
                             </div>
                           ) : null}
