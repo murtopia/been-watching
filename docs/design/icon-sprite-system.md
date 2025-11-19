@@ -363,22 +363,56 @@ export const Icon: React.FC<IconProps> = ({
 <Icon name="heart" color="#FF3B5C" /> // Pink, regardless of theme
 ```
 
-### Accent Colors
+### Active State Color Theme
 
-**By Action Type:**
-```tsx
-// Like/Love actions
-<Icon name="heart" state="active" color="#FF3B5C" />
+**Unified Red Theme (January 2025):**
 
-// Success actions
-<Icon name="check" color="#34D399" />
+All active/filled icon states use a consistent red color scheme:
 
-// Warning actions
-<Icon name="flag" color="#FFC107" />
+| Property | Value | Usage |
+|----------|-------|-------|
+| Fill (shaded) | `rgba(239,68,68,0.2)` | Background fill for standalone active icons |
+| Stroke (bright) | `rgba(239,68,68,1)` | Outline stroke for standalone active icons |
+| Circle fill | `rgba(239,68,68,0.2)` | Outer glassmorphic circle background |
+| Circle stroke | `rgba(239,68,68,0.4)` | Outer glassmorphic circle border |
+| Inner element | `rgba(239,68,68,0.4)` | Inner icon strokes in circle variants |
 
-// Info actions
-<Icon name="info" color="#3B82F6" />
+**Icons using this theme:**
+- heart, heart-nav (love rating)
+- thumbs-up (like rating)
+- meh-face (meh rating)
+- bookmark (want-to-watch)
+- play (watching)
+- check (watched)
+- bell (notifications)
+
+**Standalone active icons:**
+```svg
+<path ... fill="rgba(239,68,68,0.2)" stroke="rgba(239,68,68,1)" stroke-width="1.5"/>
 ```
+
+**Circle variant active icons (-c-active):**
+```svg
+<!-- Outer glassmorphic circle -->
+<circle cx="21" cy="21" r="20" fill="rgba(239,68,68,0.2)" stroke="rgba(239,68,68,0.4)" stroke-width="1"/>
+<!-- Inner icon (outline style) -->
+<path ... fill="none" stroke="rgba(239,68,68,0.4)" stroke-width="1.5"/>
+```
+
+**Exception - Gold Stars:**
+- `star-active`: `fill="#FFD700"` (solid gold for ratings)
+- `star-featured`: `fill="#FFD700"` with inner star `fill="#FFA500"` (two-tone gold/orange)
+
+### Legacy Accent Colors (Deprecated)
+
+The following color assignments are **deprecated** and should not be used:
+- ~~`#FF3B5C`~~ - Old heart pink
+- ~~`#22C55E`~~ - Old green for check/thumbs-up
+- ~~`#3B82F6`~~ - Old blue for bookmark
+- ~~`#8B5CF6`~~ - Old purple for play
+- ~~`#FBBF24`~~ - Old yellow for meh-face
+
+All active states now use the unified red theme above.
 
 ---
 

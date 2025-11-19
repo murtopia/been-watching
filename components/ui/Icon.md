@@ -259,37 +259,62 @@ Icons automatically adapt to theme, or you can specify custom colors:
 
 // Custom color (overrides theme)
 <Icon name="heart" color="#FF3B5C" />
-
-// Active state with accent color
-<Icon
-  name="heart"
-  state="active"
-  color="#FF3B5C"
-/>
 ```
 
-### Accent Colors
+### Unified Red Active Theme (January 2025)
 
-Common accent colors used in Been Watching:
+**IMPORTANT:** Active states for most icons are now hardcoded in the sprite sheet with a unified red color scheme. You do NOT need to pass color props for active states.
 
 ```tsx
-// Pink/Red (likes, love)
+// Active states - colors are built into the sprite
+<Icon name="heart" state="active" />      // Red theme applied automatically
+<Icon name="thumbs-up" state="active" />  // Red theme applied automatically
+<Icon name="meh-face" state="active" />   // Red theme applied automatically
+<Icon name="bookmark" state="active" />   // Red theme applied automatically
+<Icon name="play" state="active" />       // Red theme applied automatically
+<Icon name="check" state="active" />      // Red theme applied automatically
+<Icon name="bell" state="active" />       // Red theme applied automatically
+```
+
+**Color values in sprite:**
+- Standalone active: `fill="rgba(239,68,68,0.2)"` + `stroke="rgba(239,68,68,1)"`
+- Circle variants: `stroke="rgba(239,68,68,0.4)"` for inner elements
+
+**Exception - Gold Stars:**
+```tsx
+// Stars use gold, also hardcoded in sprite
+<Icon name="star" state="active" />  // #FFD700 gold
+```
+
+### Legacy Accent Colors (Deprecated)
+
+The following patterns are **deprecated**:
+
+```tsx
+// ❌ Don't do this - colors are now in sprite
 <Icon name="heart" state="active" color="#FF3B5C" />
-
-// Blue (like rating)
 <Icon name="thumbs-up" state="active" color="#3B82F6" />
-
-// Gold (top 3, premium)
-<Icon name="trophy" color="#FFD700" />
-
-// Green (success, watched)
 <Icon name="check" state="filled" color="#34D399" />
 
-// Purple (recommendations)
+// ✅ Do this instead - sprite handles colors
+<Icon name="heart" state="active" />
+<Icon name="thumbs-up" state="active" />
+<Icon name="check" state="active" />
+```
+
+### Other Icon Colors
+
+For non-stateful icons, you can still use custom colors:
+
+```tsx
+// Gold (top 3, premium badges)
+<Icon name="trophy" color="#FFD700" />
+
+// Purple (AI recommendations)
 <Icon name="sparkles" color="#A855F7" />
 
-// Orange (star ratings)
-<Icon name="star" state="filled" color="#FFA500" />
+// Red (report/flag)
+<Icon name="flag" color="#EF4444" />
 ```
 
 ## Accessibility
