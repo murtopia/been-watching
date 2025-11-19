@@ -1282,7 +1282,6 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                     name="heart-nav"
                     state={localLiked ? 'active' : 'default'}
                     size={24}
-                    color="white"
                   />
                 </button>
                 <div className="action-count">{localLikeCount}</div>
@@ -1291,14 +1290,14 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
               {/* Add Button */}
               <div>
                 <button className="action-btn" onClick={toggleActionOverlay}>
-                  <Icon name="plus" size={30} color="white" />
+                  <Icon name="plus" state="default" size={24} />
                 </button>
               </div>
 
               {/* Comment Button */}
               <div>
                 <button className="action-btn" onClick={toggleComments}>
-                  <Icon name="comment" size={24} color="white" />
+                  <Icon name="comment" state="default" size={24} />
                 </button>
                 <div className="action-count">{data.stats.commentCount}</div>
               </div>
@@ -1313,50 +1312,32 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                 <div className="action-modal-grid">
                   {/* Rating Icons */}
                   <div className="action-modal-item" onClick={(e) => handleRating('meh', e)}>
-                    <div className="action-modal-icon" style={{
-                      background: userRating === 'meh' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)',
-                      borderColor: userRating === 'meh' ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.2)'
-                    }}>
-                      <Icon
-                        name="meh-face"
-                        variant="circle"
-                        state={userRating === 'meh' ? 'active' : 'default'}
-                        size={20}
-                        color="white"
-                      />
-                    </div>
+                    <Icon
+                      name="meh-face"
+                      variant="circle"
+                      state={userRating === 'meh' ? 'active' : 'default'}
+                      size={48}
+                    />
                     <div className="action-modal-label">Meh</div>
                   </div>
 
                   <div className="action-modal-item" onClick={(e) => handleRating('like', e)}>
-                    <div className="action-modal-icon" style={{
-                      background: userRating === 'like' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)',
-                      borderColor: userRating === 'like' ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.2)'
-                    }}>
-                      <Icon
-                        name="thumbs-up"
-                        variant="circle"
-                        state={userRating === 'like' ? 'active' : 'default'}
-                        size={20}
-                        color="white"
-                      />
-                    </div>
+                    <Icon
+                      name="thumbs-up"
+                      variant="circle"
+                      state={userRating === 'like' ? 'active' : 'default'}
+                      size={48}
+                    />
                     <div className="action-modal-label">Like</div>
                   </div>
 
                   <div className="action-modal-item" onClick={(e) => handleRating('love', e)}>
-                    <div className="action-modal-icon" style={{
-                      background: userRating === 'love' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)',
-                      borderColor: userRating === 'love' ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.2)'
-                    }}>
-                      <Icon
-                        name="heart"
-                        variant="circle"
-                        state={userRating === 'love' ? 'active' : 'default'}
-                        size={20}
-                        color="white"
-                      />
-                    </div>
+                    <Icon
+                      name="heart"
+                      variant="circle"
+                      state={userRating === 'love' ? 'active' : 'default'}
+                      size={48}
+                    />
                     <div className="action-modal-label">Love</div>
                   </div>
 
@@ -1365,16 +1346,12 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
 
                   {/* Watchlist Icons */}
                   <div className="action-modal-item" onClick={(e) => handleWatchlist('want', e)}>
-                    <div className="action-modal-icon" style={{
-                      background: watchlistStatus.has('want') ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)',
-                      borderColor: watchlistStatus.has('want') ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.2)'
-                    }}>
+                    <div style={{ position: 'relative' }}>
                       <Icon
                         name="bookmark"
                         variant="circle"
                         state={watchlistStatus.has('want') ? 'active' : 'default'}
-                        size={20}
-                        color="white"
+                        size={48}
                       />
                       {!watchlistStatus.has('want') && (
                         <div className="watchlist-badge">
@@ -1386,16 +1363,12 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                   </div>
 
                   <div className="action-modal-item" onClick={(e) => handleWatchlist('watching', e)}>
-                    <div className="action-modal-icon" style={{
-                      background: watchlistStatus.has('watching') ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)',
-                      borderColor: watchlistStatus.has('watching') ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.2)'
-                    }}>
+                    <div style={{ position: 'relative' }}>
                       <Icon
                         name="play"
                         variant="circle"
                         state={watchlistStatus.has('watching') ? 'active' : 'default'}
-                        size={20}
-                        color="white"
+                        size={48}
                       />
                       {!watchlistStatus.has('watching') && (
                         <div className="watchlist-badge">
@@ -1407,16 +1380,12 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                   </div>
 
                   <div className="action-modal-item" onClick={(e) => handleWatchlist('watched', e)}>
-                    <div className="action-modal-icon" style={{
-                      background: watchlistStatus.has('watched') ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)',
-                      borderColor: watchlistStatus.has('watched') ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.2)'
-                    }}>
+                    <div style={{ position: 'relative' }}>
                       <Icon
                         name="check"
                         variant="circle"
                         state={watchlistStatus.has('watched') ? 'active' : 'default'}
-                        size={20}
-                        color="white"
+                        size={48}
                       />
                       {!watchlistStatus.has('watched') && (
                         <div className="watchlist-badge">
