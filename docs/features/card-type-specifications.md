@@ -6,7 +6,7 @@
 
 ## Overview
 
-The Enhanced Activity Feed features **8 distinct card types** (with a 9th planned), each designed to serve specific user needs: staying connected with friends, discovering new shows, tracking releases, and finding new connections. This document provides complete specifications for each card type.
+The Enhanced Activity Feed features **8 distinct card types**, each designed to serve specific user needs: staying connected with friends, discovering new shows, tracking releases, and finding new connections. This document provides complete specifications for each card type.
 
 ---
 

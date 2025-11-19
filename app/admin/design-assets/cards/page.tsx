@@ -78,6 +78,16 @@ const cardTypes = [
     distribution: '5%',
     features: ['Carousel', 'Mutual friends', 'Quick follow', 'No flip'],
   },
+  {
+    id: 8,
+    title: 'You Might Like',
+    description: 'AI recommendation (Template B)',
+    file: '/card-8-standalone.html',
+    template: 'B',
+    category: 'AI Recommendations',
+    distribution: '20%',
+    features: ['ML-based', 'Generic AI rec', 'Quick actions', 'No source show'],
+  },
 ]
 
 export default function CardPreviewPage() {
@@ -151,7 +161,7 @@ export default function CardPreviewPage() {
             color: colors.textSecondary,
             margin: 0
           }}>
-            Preview all 7 enhanced feed card types • 3 templates • 5 categories
+            Preview all 8 enhanced feed card types • 3 templates • 5 categories
           </p>
         </div>
 
