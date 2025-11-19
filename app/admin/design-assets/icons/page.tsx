@@ -30,27 +30,27 @@ const iconCategories: Record<string, IconDefinition[]> = {
     { name: 'send', states: ['default'], description: 'Send comment • 18px in 32px circle', usage: 'circle' },
   ],
   'Rating Icons': [
-    { name: 'meh-face', states: ['outline', 'filled'], description: 'Meh rating • 24px in 42px circle', usage: 'circle' },
-    { name: 'thumbs-up', states: ['outline', 'filled'], description: 'Like rating • 24px in 42px circle', usage: 'circle' },
-    { name: 'heart', states: ['outline', 'filled'], description: 'Love rating • 24px in 42px circle', usage: 'circle', displayName: 'love' },
+    { name: 'meh-face', states: ['default', 'active'], description: 'Meh rating • 24px in 42px circle', usage: 'circle' },
+    { name: 'thumbs-up', states: ['default', 'active'], description: 'Like rating • 24px in 42px circle', usage: 'circle' },
+    { name: 'heart', states: ['default', 'active'], description: 'Love rating • 24px in 42px circle', usage: 'circle', displayName: 'love' },
   ],
   'Watchlist Icons': [
-    { name: 'bookmark', states: ['outline', 'filled'], description: 'Want to Watch • 24px in 48px circle', usage: 'circle', displayName: 'want-to-watch' },
-    { name: 'play', states: ['outline', 'filled'], description: 'Watching status • 24px in 48px circle', usage: 'circle', displayName: 'watching' },
-    { name: 'check', states: ['outline', 'filled'], description: 'Watched status • 24px in 48px circle', usage: 'circle', displayName: 'watched' },
+    { name: 'bookmark', states: ['default', 'active'], description: 'Want to Watch • 24px in 48px circle', usage: 'circle', displayName: 'want-to-watch' },
+    { name: 'play', states: ['default', 'active'], description: 'Watching status • 24px in 48px circle', usage: 'circle', displayName: 'watching' },
+    { name: 'check', states: ['default', 'active'], description: 'Watched status • 24px in 48px circle', usage: 'circle', displayName: 'watched' },
     { name: 'bookmark-plus', states: ['default'], description: 'Want to Watch compact • 24px in 42px circle', usage: 'circle', displayName: 'instant-add' },
   ],
   'Badge/Info Icons': [
     { name: 'clock', states: ['default'], description: 'Coming Soon badge • 16px standalone', usage: 'standalone' },
-    { name: 'bell', states: ['outline', 'filled'], description: 'Reminder/notify • 24px in 40px circle', usage: 'circle' },
+    { name: 'bell', states: ['default', 'active'], description: 'Reminder/notify • 24px in 40px circle', usage: 'circle' },
     { name: 'tv-screen', states: ['default'], description: 'Now Streaming badge • 16px standalone', usage: 'standalone' },
     { name: 'trophy', states: ['default'], description: 'Top 3 badge • 16px standalone', usage: 'standalone' },
     { name: 'link-chain', states: ['default'], description: 'Find Friends badge • 16px standalone', usage: 'standalone' },
-    { name: 'star', states: ['outline', 'filled', 'half'], description: 'Rating display • 14px standalone', usage: 'standalone' },
+    { name: 'star', states: ['default', 'active', 'half'], description: 'Rating display • 14px standalone', usage: 'standalone' },
     { name: 'sparkles', states: ['default', 'gold'], description: 'AI recs badge • 16px standalone', usage: 'standalone' },
   ],
   'Gold Star Variations': [
-    { name: 'star', states: ['filled'], description: 'Rating star (#FFD700) • Solid gold for ratings like "8.6"', usage: 'standalone', color: '#FFD700', displayName: 'star-rating-gold' },
+    { name: 'star-gold', states: ['default'], description: 'Rating star (#FFD700) • Solid gold for ratings like "8.6"', usage: 'standalone', displayName: 'star-rating-gold' },
     { name: 'star-featured', states: ['default'], description: 'Featured star (two-tone) • Gold/orange for "Top Show" badges', usage: 'standalone', specialIcon: true, displayName: 'star-featured-gold' },
     { name: 'sparkles', states: ['gold'], description: 'AI sparkles gold (#FFD700) • For premium/featured AI recommendations', usage: 'standalone', color: '#FFD700', displayName: 'sparkles-gold' },
   ],
@@ -496,7 +496,7 @@ export default function IconLibraryPage() {
                               color: selectedTheme === 'dark' ? '#9CA3AF' : '#4B5563',
                               marginTop: '0.5rem'
                             }}>
-                              gold
+                              {icon.name}-gold
                             </div>
                           </div>
                         ) : null}
