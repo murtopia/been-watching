@@ -77,21 +77,40 @@
 
     <!-- Share -->
     <symbol id="share" viewBox="0 0 20 22">
-      <path d="M10 3L10 14M10 3L6 7M10 3L14 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      <path d="M17 11V18C17 19 16 20 15 20H5C4 20 3 19 3 18V11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M10 3L10 14M10 3L6 7M10 3L14 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M17 11V18C17 19 16 20 15 20H5C4 20 3 19 3 18V11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </symbol>
+
+    <!-- Share - default state -->
+    <symbol id="share-default" viewBox="0 0 20 22">
+      <path d="M10 3L10 14M10 3L6 7M10 3L14 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M17 11V18C17 19 16 20 15 20H5C4 20 3 19 3 18V11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
     </symbol>
 
     <!-- Share Circle - for back card -->
     <symbol id="share-c-default" viewBox="0 0 42 42">
       <circle cx="21" cy="21" r="20" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
-      <path d="M21 14L21 23M21 14L18 17M21 14L24 17" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-      <path d="M27 20V26C27 26.5 26.5 27 26 27H16C15.5 27 15 26.5 15 26V20" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M21 14L21 23M21 14L18 17M21 14L24 17" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M27 20V26C27 26.5 26.5 27 26 27H16C15.5 27 15 26.5 15 26V20" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
     </symbol>
 
     <!-- Close X -->
     <symbol id="close" viewBox="0 0 24 24">
       <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
       <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </symbol>
+
+    <!-- Close X - default state -->
+    <symbol id="close-default" viewBox="0 0 24 24">
+      <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </symbol>
+
+    <!-- Close Circle - for card back and modals -->
+    <symbol id="close-c-default" viewBox="0 0 42 42">
+      <circle cx="21" cy="21" r="20" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+      <line x1="27" y1="15" x2="15" y2="27" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="15" y1="15" x2="27" y2="27" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
     </symbol>
 
     <!-- Three Dots Menu -->

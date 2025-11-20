@@ -59,6 +59,8 @@ const STATEFUL_ICONS = [
   'check',
   'star',
   'play',
+  'close',
+  'share',
 ];
 
 /**
@@ -127,11 +129,6 @@ const IconBase: React.FC<IconProps> = ({
   const color = getColor(theme, customColor);
   const sizeValue = typeof size === 'number' ? `${size}px` : size;
 
-  // Debug logging for modal icons
-  if (variant === 'circle' && typeof window !== 'undefined') {
-    console.log(`Icon: ${name}, state: ${state}, variant: ${variant} → ${iconId}`);
-  }
-
   return (
     <svg
       className={`icon ${className}`}
@@ -150,7 +147,7 @@ const IconBase: React.FC<IconProps> = ({
         pointerEvents: onClick ? 'auto' : 'none',
       }}
     >
-      <use xlinkHref={`/icons/feed-sprite.svg?v=20250118h#${iconId}`} />
+      <use xlinkHref={`/icons/feed-sprite.svg?v=20250119a#${iconId}`} />
     </svg>
   );
 };

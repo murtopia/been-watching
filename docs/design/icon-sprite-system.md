@@ -94,32 +94,35 @@ Most interactive icons in the Enhanced Feed appear inside circular glassmorphic 
 
 ## Icon Inventory
 
-### Total Icons: 28+
+### Total Icons: 32 Base Icons (80+ Sprite Variants)
 
-Extracted from approved HTML card designs in `/public/` directory.
+Including stateful variants (default/active) and circle variants with built-in glassmorphic containers.
 
 ### Action Icons (Main Interactions)
 
-| Icon Name | Usage | States | Cards |
-|-----------|-------|--------|-------|
-| `heart` | Like/Love | outline, filled | 1, 6 (like activity), 1-6 (love rating) |
-| `plus` | Add to watchlist | default | 1-6 (quick action) |
-| `comment` | Comments | default | 1-6 |
-| `share` | Share (Phase 2) | default | 2-5 |
-| `bookmark` | Want to Watch | outline, filled | 4 (coming soon) |
-| `bell` | Notifications/Remind Me | outline, filled | 4 (coming soon) |
-| `play` | Watching status | default | All (back side) |
-| `check` | Watched status | default | All (back side) |
-| `menu-dots` | Flip card menu | default | 1-6 (three vertical dots) |
-| `close-x` | Close/Back | default | 1-6 (card back) |
+| Icon Name | Usage | States | Circle Variant | Cards |
+|-----------|-------|--------|----------------|-------|
+| `heart` | Like/Love | default, active | ✅ Yes | 1, 6 (like activity), 1-6 (love rating) |
+| `heart-nav` | Side like button | default, active | ✅ Yes | 1-6 (side action) |
+| `plus` | Add to watchlist | default | No | 1-6 (quick action) |
+| `plus-small` | Badge overlay | default | No | Various (12px) |
+| `comment` | Comments | default | No | 1-6 |
+| `share` | Share | default | ✅ Yes | 2-5 (back card) |
+| `bookmark` | Want to Watch | default, active | ✅ Yes | 4, All (back side) |
+| `bell` | Notifications | default, active | ✅ Yes | 4 (coming soon) |
+| `play` | Watching status | default, active | ✅ Yes | All (back side) |
+| `check` | Watched status | default, active | ✅ Yes | All (back side) |
+| `menu-dots` | Flip card menu | default | No | 1-6 (three dots) |
+| `close` | Close/Back | default | ✅ Yes | 1-6 (card back) |
+| `send` | Post comment | default | No | All (comment input) |
 
 ### Rating Icons
 
-| Icon Name | Usage | States | Cards |
-|-----------|-------|--------|-------|
-| `meh-face` | Meh rating (😐) | outline, filled | All (ratings) |
-| `thumbs-up` | Like rating (👍) | outline, filled | All (ratings) |
-| `heart-solid` | Love rating (❤️) | outline, filled | All (ratings) |
+| Icon Name | Usage | States | Circle Variant | Cards |
+|-----------|-------|--------|----------------|-------|
+| `meh-face` | Meh rating (😐) | default, active | ✅ Yes | All (ratings) |
+| `thumbs-up` | Like rating (👍) | default, active | ✅ Yes | All (ratings) |
+| `heart` | Love rating (❤️) | default, active | ✅ Yes | All (ratings) |
 
 ### Badge/Info Icons
 

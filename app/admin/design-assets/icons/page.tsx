@@ -52,7 +52,6 @@ const iconCategories: Record<string, IconDefinition[]> = {
   'Gold Star Variations': [
     { name: 'star-gold', states: ['default'], description: 'Rating star (#FFD700) • Solid gold for ratings like "8.6"', usage: 'standalone', displayName: 'star-rating-gold' },
     { name: 'star-featured', states: ['default'], description: 'Featured star (two-tone) • Gold/orange for "Top Show" badges', usage: 'standalone', specialIcon: true, displayName: 'star-featured-gold' },
-    { name: 'sparkles', states: ['gold'], description: 'AI sparkles gold (#FFD700) • For premium/featured AI recommendations', usage: 'standalone', color: '#FFD700', displayName: 'sparkles-gold' },
   ],
   'Navigation Icons': [
     { name: 'arrow-right', states: ['default'], description: 'Forward nav • 20px standalone', usage: 'standalone' },
@@ -547,7 +546,7 @@ export default function IconLibraryPage() {
           fontSize: '0.875rem',
           lineHeight: 1.8
         }}>
-          <li>All icons use <code style={{ background: colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)', padding: '0.125rem 0.375rem', borderRadius: '4px' }}>currentColor</code> for dynamic theming</li>
+          <li>Default state icons use <code style={{ background: colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)', padding: '0.125rem 0.375rem', borderRadius: '4px' }}>currentColor</code> for theming • Active states have unified color themes defined in sprite</li>
           <li>Icons with multiple states (outline/filled) toggle via <code style={{ background: colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)', padding: '0.125rem 0.375rem', borderRadius: '4px' }}>state</code> prop</li>
           <li>Sprite sheet is cached for 1 year in production (1 day in development)</li>
           <li>File size: ~3.4 KB (minified & gzipped) vs ~110 KB for inline SVGs</li>

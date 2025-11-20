@@ -4,18 +4,31 @@ A flexible SVG icon component that uses a sprite sheet for optimal performance.
 
 ## Features
 
-- 🎨 **40+ icons** from sprite sheet
+- 🎨 **32 base icons** with 80+ sprite variants
 - 🔄 **Multiple states** (default, active, filled)
+- 🔵 **Circle variants** (built-in glassmorphic containers)
 - 🌓 **Theme support** (light, dark)
 - 🎯 **Custom colors**
 - 📏 **Flexible sizing**
 - ♿ **Accessible** (ARIA labels)
 - ⚡ **Performant** (~92% smaller than inline SVGs)
-- 💎 **Glassmorphic circles** for interactive icons
+- 💎 **Unified red active theme**
 
-## Circular Container Usage
+## Circle Variants (Built-in Glassmorphic Containers)
 
-Most icons in the app appear inside circular glassmorphic containers. Here's the standard styling:
+Many icons have circle variants with glassmorphic containers built directly into the sprite. Use the `variant="circle"` prop to access these:
+
+```tsx
+// Standalone icon (no circle)
+<Icon name="close" size={20} />
+
+// Icon WITH built-in circle (from sprite)
+<Icon name="close" variant="circle" size={42} />
+```
+
+### Manual Circular Container Usage
+
+For icons without circle variants, you can wrap them in a glassmorphic container:
 
 ```tsx
 // Standard glassmorphic circle for action buttons
@@ -104,76 +117,81 @@ import { Icon, IconSize } from '@/components/ui/Icon';
 
 ### Action Icons
 
-| Icon Name | States | Usage |
-|-----------|--------|-------|
-| `heart` | outline, filled | Like/love actions |
-| `plus` | default | Add to watchlist |
-| `plus-small` | default | Badge overlays (12px) |
-| `comment` | default | Comment button |
-| `share` | default | Share button |
-| `close` | default | Close/dismiss |
-| `menu-dots` | default | Menu/more options |
-| `send` | default | Submit comment |
+| Icon Name | States | Circle Variant | Usage |
+|-----------|--------|----------------|-------|
+| `heart` | default, active | ✅ Yes | Like/love actions |
+| `heart-nav` | default, active | ✅ Yes | Side action like button |
+| `plus` | default | No | Add to watchlist |
+| `plus-small` | default | No | Badge overlays (12px) |
+| `comment` | default | No | Comment button |
+| `share` | default | ✅ Yes | Share button |
+| `close` | default | ✅ Yes | Close/dismiss |
+| `menu-dots` | default | No | Menu/more options |
+| `send` | default | No | Submit comment |
 
 **Examples:**
 ```tsx
 <Icon name="heart" state="default" />  // Outline heart
-<Icon name="heart" state="active" />   // Filled pink heart
-<Icon name="plus" size={40} />         // Add button
-<Icon name="comment" size={24} />      // Comment icon
+<Icon name="heart" state="active" />   // Filled red heart
+<Icon name="heart-nav" state="active" variant="circle" />  // With circle
+<Icon name="close" variant="circle" />  // Close with circle
+<Icon name="share" variant="circle" />  // Share with circle
 ```
 
 ### Rating Icons
 
-| Icon Name | States | Usage |
-|-----------|--------|-------|
-| `thumbs-up` | outline, filled | Like rating |
-| `meh-face` | outline, filled | Meh rating |
+| Icon Name | States | Circle Variant | Usage |
+|-----------|--------|----------------|-------|
+| `thumbs-up` | default, active | ✅ Yes | Like rating |
+| `meh-face` | default, active | ✅ Yes | Meh rating |
 
 **Examples:**
 ```tsx
-// Rating buttons
-<Icon name="meh-face" state="default" />     // Not selected
-<Icon name="thumbs-up" state="active" />     // Selected
-<Icon name="heart" state="filled" />         // Love rating
+// Rating buttons with circles
+<Icon name="meh-face" state="default" variant="circle" />
+<Icon name="thumbs-up" state="active" variant="circle" />
+<Icon name="heart" state="active" variant="circle" />  // Love rating
 ```
 
 ### Status Icons
 
-| Icon Name | States | Usage |
-|-----------|--------|-------|
-| `bookmark` | outline, filled | Want to Watch |
-| `bookmark-plus` | default | Want to Watch action |
-| `play` | default | Watching status |
-| `check` | outline, filled | Watched status |
+| Icon Name | States | Circle Variant | Usage |
+|-----------|--------|----------------|-------|
+| `bookmark` | default, active | ✅ Yes | Want to Watch |
+| `bookmark-plus` | default | No | Want to Watch action |
+| `play` | default, active | ✅ Yes | Watching status |
+| `check` | default, active | ✅ Yes | Watched status |
 
 **Examples:**
 ```tsx
-<Icon name="bookmark" state="default" />     // Not in watchlist
-<Icon name="bookmark" state="filled" />      // In watchlist
-<Icon name="play" size={20} />               // Watching
-<Icon name="check" state="filled" />         // Watched
+<Icon name="bookmark" state="default" variant="circle" />
+<Icon name="bookmark" state="active" variant="circle" />
+<Icon name="play" variant="circle" />
+<Icon name="check" state="active" variant="circle" />
 ```
 
 ### Badge/Info Icons
 
-| Icon Name | States | Usage |
-|-----------|--------|-------|
-| `clock` | default | Coming Soon badge |
-| `bell` | outline, filled | Notifications/Remind Me |
-| `tv-screen` | default | Now Streaming badge |
-| `trophy` | default | Top 3 badge |
-| `link-chain` | default | Find New Friends badge |
-| `star` | outline, filled, half | Ratings/featured |
-| `sparkles` | default | AI recommendations |
+| Icon Name | States | Circle Variant | Usage |
+|-----------|--------|----------------|-------|
+| `clock` | default | No | Coming Soon badge |
+| `bell` | default, active | ✅ Yes | Notifications/Remind Me |
+| `tv-screen` | default | No | Now Streaming badge |
+| `trophy` | default | No | Top 3 badge |
+| `link-chain` | default | No | Find New Friends badge |
+| `star` | default, active, half | No | Ratings/featured |
+| `star-gold` | default | No | Gold rating star |
+| `star-featured` | default | No | Featured gold/orange star |
+| `sparkles` | default | No | AI recommendations |
 
 **Examples:**
 ```tsx
 <Icon name="clock" size={16} />              // Coming Soon
-<Icon name="bell" state="filled" />          // Notification active
+<Icon name="bell" state="active" variant="circle" />  // With circle
 <Icon name="tv-screen" size={20} />          // Streaming icon
 <Icon name="trophy" color="#FFD700" />       // Gold trophy
-<Icon name="star" state="filled" color="#FFA500" /> // Rating star
+<Icon name="star" state="active" />          // Active star (gold)
+<Icon name="star-gold" size={16} />          // Gold rating star
 ```
 
 ### Navigation Icons
@@ -508,6 +526,49 @@ The sprite sheet uses standard SVG features supported by all modern browsers.
 2. Use `IconSize` constants for consistency
 3. Verify `viewBox` is set correctly in sprite symbol
 
+## Naming Conventions
+
+### Sprite Symbol IDs
+
+Icons in the sprite sheet follow these naming patterns:
+
+**Stateful Icons (in STATEFUL_ICONS array):**
+```
+{name}-default         → Standalone default state
+{name}-active          → Standalone active state
+{name}-c-default       → With circle, default state
+{name}-c-active        → With circle, active state
+```
+
+**Example: heart-nav**
+- `heart-nav-default` → White outline heart (standalone)
+- `heart-nav-active` → Red filled heart (standalone)
+- `heart-nav-c-default` → White outline heart in circle
+- `heart-nav-c-active` → Red filled heart in circle
+
+**Non-Stateful Icons:**
+```
+{name}                 → Single symbol, no variants
+```
+
+**Example: plus**
+- `plus` → Single plus icon (no states or circle variants)
+
+### Icons with Circle Variants
+
+These icons have `-c-default` (and sometimes `-c-active`) variants with built-in glassmorphic circles:
+
+- `heart` / `heart-c-default` / `heart-c-active`
+- `heart-nav` / `heart-nav-c-default` / `heart-nav-c-active`
+- `thumbs-up` / `thumbs-up-c-default` / `thumbs-up-c-active`
+- `meh-face` / `meh-face-c-default` / `meh-face-c-active`
+- `bookmark` / `bookmark-c-default` / `bookmark-c-active`
+- `play` / `play-c-default` / `play-c-active`
+- `check` / `check-c-default` / `check-c-active`
+- `bell` / `bell-c-default` / `bell-c-active`
+- `close` / `close-c-default`
+- `share` / `share-c-default`
+
 ## Updating Icons
 
 When designs change or new icons are needed:
@@ -521,7 +582,8 @@ When designs change or new icons are needed:
    ```
 3. **Add to this documentation**
 4. **Update Icon component** if new states are needed
-5. **Test** across all usage contexts
+5. **Add to STATEFUL_ICONS array** if icon has states
+6. **Test** across all usage contexts
 
 See `/docs/design/icon-sprite-system.md` for detailed workflow.
 
