@@ -582,27 +582,45 @@ body {
 .comment-input-container {
     display: flex;
     gap: 0.5rem;
-    align-items: center;
+    align-items: flex-start;
+}
+
+.comment-input-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
 }
 
 .comment-input {
     flex: 1;
-    padding: 0.5rem 0.75rem;
+    padding: 0.75rem;
     border: 1px solid var(--border);
-    border-radius: 20px;
+    border-radius: 12px;
     background: var(--surface);
     color: var(--text-primary);
     font-size: 0.875rem;
     outline: none;
+    resize: none;
+    min-height: 80px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
 }
 
 .comment-input:focus {
     border-color: var(--accent-primary);
 }
 
+.comment-input-footer {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 0 !important;
+    margin-top: 0.375rem !important;
+}
+
 .comment-submit-btn {
     padding: 0.5rem 1rem;
-    background: var(--accent-primary);
+    background: linear-gradient(135deg, #FF006E, #FF8E53);
     color: white;
     border: none;
     border-radius: 20px;
@@ -610,6 +628,7 @@ body {
     font-weight: 600;
     cursor: pointer;
     transition: opacity 0.2s;
+    line-height: 1;
 }
 
 .comment-submit-btn:hover:not(:disabled) {
@@ -690,4 +709,231 @@ body {
 [data-theme="light"] .note-input-textarea::placeholder {
     color: rgba(0, 0, 0, 0.4);
     opacity: 1;
+}
+
+/* Synopsis - Back Card */
+.back-synopsis {
+    font-size: 14px;
+    line-height: 1.5;
+    opacity: 0.9;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.back-synopsis.collapsed {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.read-more {
+    color: #FF006E;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-bottom: 16px;
+    display: block;
+    text-align: right;
+}
+
+/* Friends Ratings - Approved HTML Design */
+.friends-ratings-container {
+    margin-top: 20px;
+}
+
+.friends-ratings {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+}
+
+.friends-ratings-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.6;
+    margin: 0;
+    padding-top: 11px;
+}
+
+.friends-ratings-stats {
+    display: flex;
+    gap: 16px;
+}
+
+.rating-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.rating-icon-wrapper {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.rating-icon-wrapper svg {
+    width: 20px;
+    height: 20px;
+    stroke: white;
+    fill: none;
+    stroke-width: 1.5;
+}
+
+/* Active user rating styling */
+.rating-icon-wrapper.active-user-rating {
+    background: rgba(255, 59, 92, 0.15);
+    border: 2px solid #FF3B5C;
+}
+
+.rating-icon-wrapper.active-user-rating svg {
+    stroke: #FF3B5C;
+    fill: #FF3B5C;
+}
+
+.rating-count {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: linear-gradient(135deg, #FF006E, #FF8E53);
+    color: white;
+    font-size: 10px;
+    font-weight: 600;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    border: 2px solid #1a1a1a;
+}
+
+.rating-label {
+    font-size: 11px;
+    font-weight: 500;
+    opacity: 0.8;
+    text-align: center;
+}
+
+/* Comment Input Section */
+.comment-input-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.comment-input-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.comment-input-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.comment-input {
+    width: 100%;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: white;
+    font-size: 13px;
+    font-family: inherit;
+    resize: none;
+    min-height: 60px;
+}
+
+.comment-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.comment-input:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.comment-submit-btn {
+    align-self: flex-end;
+    padding: 6px 16px;
+    background: linear-gradient(135deg, #FF006E, #FF8E53);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.comment-submit-btn:active {
+    transform: scale(0.98);
+}
+
+/* Comment Like Button */
+.comment-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 6px;
+    justify-content: flex-end;
+}
+
+.comment-like-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 12px;
+    transition: all 0.2s;
+}
+
+.comment-like-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.comment-like-btn.liked {
+    color: #FF3B5C;
+}
+
+.comment-like-btn svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+}
+
+.comment-like-btn.liked svg {
+    fill: currentColor;
 }

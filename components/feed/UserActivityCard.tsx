@@ -1135,10 +1135,6 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           margin-bottom: 8px;
         }
 
-        .comment-textarea-container {
-          position: relative;
-        }
-
         .comment-input {
           width: 100%;
           padding: 0.75rem;
@@ -1161,18 +1157,21 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           color: rgba(255, 255, 255, 0.5);
         }
 
+        .comment-actions {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-top: 6px;
+        }
+
         .comment-char-count {
-          position: absolute;
-          top: -1.25rem;
-          right: 0;
-          font-size: 11px;
-          color: rgba(255, 255, 255, 0.5);
+          font-size: 10px;
+          color: rgba(255, 255, 255, 0.6);
           font-weight: 400;
           line-height: 1;
         }
 
         .comment-submit-btn {
-          align-self: flex-end;
           padding: 6px 16px;
           background: linear-gradient(135deg, #FF006E, #FF8E53);
           border: none;
@@ -1182,7 +1181,6 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           font-weight: 600;
           cursor: pointer;
           transition: transform 0.2s;
-          margin-top: 8px;
         }
 
         .comment-submit-btn:active {
@@ -1553,24 +1551,24 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                 <div className="comment-input-container">
                   <img src={data.user.avatar} alt="You" className="comment-input-avatar" />
                   <div className="comment-input-wrapper">
-                    <div className="comment-textarea-container">
+                    <textarea
+                      ref={commentInputRef}
+                      className="comment-input"
+                      placeholder="Share your thoughts about this show..."
+                      value={showCommentText}
+                      onChange={(e) => {
+                        if (e.target.value.length <= 280) {
+                          setShowCommentText(e.target.value)
+                        }
+                      }}
+                      maxLength={280}
+                    ></textarea>
+                    <div className="comment-actions">
                       <div className="comment-char-count">
                         {showCommentText.length}/280
                       </div>
-                      <textarea
-                        ref={commentInputRef}
-                        className="comment-input"
-                        placeholder="Share your thoughts about this show..."
-                        value={showCommentText}
-                        onChange={(e) => {
-                          if (e.target.value.length <= 280) {
-                            setShowCommentText(e.target.value)
-                          }
-                        }}
-                        maxLength={280}
-                      ></textarea>
+                      <button className="comment-submit-btn">Post Comment</button>
                     </div>
-                    <button className="comment-submit-btn">Post Comment</button>
                   </div>
                 </div>
 
