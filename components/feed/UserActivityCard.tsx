@@ -123,8 +123,17 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
   const [localLikeCount, setLocalLikeCount] = useState(data.stats.likeCount)
   const [userRating, setUserRating] = useState<'meh' | 'like' | 'love' | null>(data.friendsActivity.ratings.userRating || null)
   const [watchlistStatus, setWatchlistStatus] = useState<Set<'want' | 'watching' | 'watched'>>(new Set())
+  const [commentLikes, setCommentLikes] = useState<Record<string, { liked: boolean; count: number }>>(
+    data.showComments.reduce((acc, comment) => ({
+      ...acc,
+      [comment.id]: { liked: comment.userLiked, count: comment.likes }
+    }), {})
+  )
+  const [visibleShowComments, setVisibleShowComments] = useState(3) // Show 3 comments initially
+  const [showCommentText, setShowCommentText] = useState('') // Track show comment input
 
   const cardRef = useRef<HTMLDivElement>(null)
+  const commentInputRef = useRef<HTMLTextAreaElement>(null)
 
   const flipCard = () => {
     setIsFlipped(!isFlipped)
@@ -133,14 +142,17 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
     setActionOverlayVisible(false)
   }
 
+  const handleCommentButtonClick = () => {
+    setCommentsVisible(true)
+  }
+
   const toggleComments = () => {
-    if (!commentsVisible) {
-      setCommentsVisible(true)
-      setTimeout(() => setCommentsExpanded(true), 50)
-    } else {
-      setCommentsExpanded(false)
-      setTimeout(() => setCommentsVisible(false), 300)
-    }
+    setCommentsExpanded(!commentsExpanded)
+  }
+
+  const closeCommentsTab = () => {
+    setCommentsVisible(false)
+    setCommentsExpanded(false)
   }
 
   const handleLike = () => {
@@ -162,14 +174,35 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
 
   const handleWatchlist = (status: 'want' | 'watching' | 'watched', e: React.MouseEvent) => {
     e.stopPropagation()
-    const newStatus = new Set(watchlistStatus)
-    if (newStatus.has(status)) {
-      newStatus.delete(status)
+    // Toggle off if clicking the same status, otherwise set new status (single-select)
+    if (watchlistStatus.has(status)) {
+      setWatchlistStatus(new Set())
     } else {
-      newStatus.add(status)
+      setWatchlistStatus(new Set([status]))
     }
-    setWatchlistStatus(newStatus)
     onTrack?.('watchlist', { status, mediaId: data.media.id })
+  }
+
+  const handleCommentLike = (commentId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    const current = commentLikes[commentId]
+    setCommentLikes({
+      ...commentLikes,
+      [commentId]: {
+        liked: !current.liked,
+        count: current.liked ? current.count - 1 : current.count + 1
+      }
+    })
+    onTrack?.('comment_like', { commentId, mediaId: data.media.id })
+  }
+
+  const handleCommentIconClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    commentInputRef.current?.focus()
+  }
+
+  const handleLoadMoreComments = () => {
+    setVisibleShowComments(prev => Math.min(prev + 3, data.showComments.length))
   }
 
   return (
@@ -425,18 +458,10 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
         }
 
         .action-btn svg {
-          width: 24px;
-          height: 24px;
-          stroke: white;
-          fill: none;
-          stroke-width: 1.5;
           pointer-events: none;
         }
 
-        .action-btn.liked svg {
-          fill: #FF3B5C;
-          stroke: #FF3B5C;
-        }
+        /* Liked state handled by sprite active state */
 
         .action-count {
           text-align: center;
@@ -454,9 +479,9 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           left: 0;
           right: 0;
           bottom: 0;
-          background: rgba(0, 0, 0, 0.4);
-          backdrop-filter: blur(8px);
-          -webkit-backdrop-filter: blur(8px);
+          background: rgba(0, 0, 0, 0.5);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
           z-index: 1000;
           opacity: 0;
           pointer-events: none;
@@ -472,9 +497,11 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
 
         .action-modal {
           position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%) scale(0.9);
+          bottom: 90px;
+          right: 60px;
+          left: auto;
+          top: auto;
+          transform: scale(0.9);
           background: rgba(20, 20, 20, 0.85);
           backdrop-filter: blur(30px);
           -webkit-backdrop-filter: blur(30px);
@@ -487,17 +514,25 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
         }
 
         .card.flipped .action-modal {
-          transform: translate(-50%, -50%) scale(0.9) rotateY(180deg);
+          transform: scale(0.9) rotateY(180deg);
+          left: 90px;
+          right: auto;
+          bottom: auto;
+          top: 142px;
         }
 
         .action-overlay.visible .action-modal {
-          transform: translate(-50%, -50%) scale(1);
+          transform: scale(1);
           opacity: 1;
         }
 
         .card.flipped .action-overlay.visible .action-modal {
-          transform: translate(-50%, -50%) scale(1) rotateY(180deg);
+          transform: scale(1) rotateY(180deg);
           opacity: 1;
+          left: 90px;
+          right: auto;
+          bottom: auto;
+          top: 142px;
         }
 
         .action-modal-grid {
@@ -539,11 +574,9 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           border-color: rgba(255, 255, 255, 0.3);
         }
 
-        .action-modal-icon svg {
-          width: 20px;
-          height: 20px;
-          fill: none;
-          stroke: currentColor;
+        .action-modal-icon.active {
+          background: rgba(255, 59, 92, 0.15);
+          border-color: #FF3B5C;
         }
 
         .action-modal-label {
@@ -573,14 +606,6 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           display: flex;
           align-items: center;
           justify-content: center;
-        }
-
-        .watchlist-badge svg {
-          width: 10px;
-          height: 10px;
-          stroke: white;
-          fill: none;
-          stroke-width: 2;
         }
 
         /* Comments Tab */
@@ -830,24 +855,14 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
 
         .close-btn {
           position: absolute;
-          top: 12px;
+          top: 20px;
           right: 12px;
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          background: rgba(255, 255, 255, 0.15);
-          backdrop-filter: blur(10px);
           border: none;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          background: transparent;
+          padding: 0;
           cursor: pointer;
           z-index: 10;
           transition: all 0.2s;
-        }
-
-        .close-btn:hover {
-          background: rgba(255, 255, 255, 0.25);
         }
 
         .close-btn:active {
@@ -893,34 +908,15 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           border-radius: 10px;
           font-size: 12px;
           font-weight: 600;
-          cursor: pointer;
           text-align: center;
           min-width: 36px;
         }
 
-        .back-synopsis {
-          font-size: 14px;
-          line-height: 1.5;
-          opacity: 0.9;
-          margin-bottom: 8px;
-        }
-
-        .back-synopsis.collapsed {
-          display: -webkit-box;
-          -webkit-line-clamp: 3;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-
-        .read-more {
-          color: #FF006E;
-          font-size: 13px;
-          font-weight: 500;
+        .back-badge.trailer {
           cursor: pointer;
-          margin-bottom: 16px;
-          display: block;
-          text-align: right;
         }
+
+        /* Synopsis and Read More styles in globals.css */
 
         .back-action-icons {
           display: flex;
@@ -1049,46 +1045,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           font-weight: 600;
         }
 
-        .friends-ratings-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 12px;
-          margin-bottom: 20px;
-        }
-
-        .rating-stat {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 8px;
-          padding: 16px 12px;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1.5px solid rgba(255, 255, 255, 0.1);
-          border-radius: 12px;
-        }
-
-        .rating-stat.active-user-rating {
-          background: rgba(255, 59, 92, 0.15);
-          border-color: #FF3B5C;
-        }
-
-        .rating-stat svg {
-          width: 28px;
-          height: 28px;
-          stroke: rgba(255, 255, 255, 0.6);
-          fill: none;
-          stroke-width: 1.5;
-        }
-
-        .rating-stat.active-user-rating svg {
-          stroke: #FF3B5C;
-          fill: #FF3B5C;
-        }
-
-        .rating-stat-count {
-          font-size: 14px;
-          font-weight: 600;
-        }
+        /* Friends Ratings styles moved to globals.css */
 
         .similar-shows {
           display: flex;
@@ -1178,6 +1135,60 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           margin-bottom: 8px;
         }
 
+        .comment-textarea-container {
+          position: relative;
+        }
+
+        .comment-input {
+          width: 100%;
+          padding: 0.75rem;
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 8px;
+          background: rgba(255, 255, 255, 0.05);
+          color: white;
+          font-size: 13px;
+          outline: none;
+          resize: none;
+          min-height: 80px;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+        }
+
+        .comment-input:focus {
+          border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .comment-input::placeholder {
+          color: rgba(255, 255, 255, 0.5);
+        }
+
+        .comment-char-count {
+          position: absolute;
+          top: -1.25rem;
+          right: 0;
+          font-size: 11px;
+          color: rgba(255, 255, 255, 0.5);
+          font-weight: 400;
+          line-height: 1;
+        }
+
+        .comment-submit-btn {
+          align-self: flex-end;
+          padding: 6px 16px;
+          background: linear-gradient(135deg, #FF006E, #FF8E53);
+          border: none;
+          border-radius: 6px;
+          color: white;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: transform 0.2s;
+          margin-top: 8px;
+        }
+
+        .comment-submit-btn:active {
+          transform: scale(0.95);
+        }
+
         .load-more-btn {
           width: 100%;
           padding: 10px;
@@ -1241,10 +1252,10 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                     }}
                   >
                     {badge.text === 'Loved' && (
-                      <Icon name="heart" state="filled" size={16} color={badge.textColor} />
+                      <Icon name="heart" state="default" size={16} color={badge.textColor} />
                     )}
                     {badge.text === 'Currently Watching' && (
-                      <Icon name="play" state="filled" size={16} color={badge.textColor} />
+                      <Icon name="play" state="default" size={16} color={badge.textColor} />
                     )}
                     {badge.text}
                   </div>
@@ -1255,7 +1266,10 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
               <div className="show-title">{data.media.title}</div>
               <div className="show-meta">
                 {data.media.year} <span className="meta-dot">•</span>{' '}
-                {data.media.genres.join(' ')} <span className="meta-dot">•</span> ⭐{' '}
+                {data.media.genres.join(' ')} <span className="meta-dot">•</span>{' '}
+                <span style={{ display: 'inline-block', transform: 'translateY(-2px)' }}>
+                  <Icon name="star-gold" size={14} />
+                </span>{' '}
                 {data.media.rating}
               </div>
 
@@ -1296,106 +1310,10 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
 
               {/* Comment Button */}
               <div>
-                <button className="action-btn" onClick={toggleComments}>
+                <button className="action-btn" onClick={handleCommentButtonClick}>
                   <Icon name="comment" state="default" size={24} />
                 </button>
                 <div className="action-count">{data.stats.commentCount}</div>
-              </div>
-            </div>
-
-            {/* Action Overlay Modal */}
-            <div
-              className={`action-overlay ${actionOverlayVisible ? 'visible' : ''}`}
-              onClick={() => setActionOverlayVisible(false)}
-            >
-              <div className="action-modal" onClick={(e) => e.stopPropagation()}>
-                <div className="action-modal-grid">
-                  {/* Rating Icons */}
-                  <div className="action-modal-item" onClick={(e) => handleRating('meh', e)}>
-                    <Icon
-                      name="meh-face"
-                      variant="circle"
-                      state={userRating === 'meh' ? 'active' : 'default'}
-                      size={48}
-                    />
-                    <div className="action-modal-label">Meh</div>
-                  </div>
-
-                  <div className="action-modal-item" onClick={(e) => handleRating('like', e)}>
-                    <Icon
-                      name="thumbs-up"
-                      variant="circle"
-                      state={userRating === 'like' ? 'active' : 'default'}
-                      size={48}
-                    />
-                    <div className="action-modal-label">Like</div>
-                  </div>
-
-                  <div className="action-modal-item" onClick={(e) => handleRating('love', e)}>
-                    <Icon
-                      name="heart"
-                      variant="circle"
-                      state={userRating === 'love' ? 'active' : 'default'}
-                      size={48}
-                    />
-                    <div className="action-modal-label">Love</div>
-                  </div>
-
-                  {/* Divider */}
-                  <div className="action-modal-divider"></div>
-
-                  {/* Watchlist Icons */}
-                  <div className="action-modal-item" onClick={(e) => handleWatchlist('want', e)}>
-                    <div style={{ position: 'relative' }}>
-                      <Icon
-                        name="bookmark"
-                        variant="circle"
-                        state={watchlistStatus.has('want') ? 'active' : 'default'}
-                        size={48}
-                      />
-                      {!watchlistStatus.has('want') && (
-                        <div className="watchlist-badge">
-                          <Icon name="plus-small" size={10} color="white" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="action-modal-label">Want To</div>
-                  </div>
-
-                  <div className="action-modal-item" onClick={(e) => handleWatchlist('watching', e)}>
-                    <div style={{ position: 'relative' }}>
-                      <Icon
-                        name="play"
-                        variant="circle"
-                        state={watchlistStatus.has('watching') ? 'active' : 'default'}
-                        size={48}
-                      />
-                      {!watchlistStatus.has('watching') && (
-                        <div className="watchlist-badge">
-                          <Icon name="plus-small" size={10} color="white" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="action-modal-label">Watching</div>
-                  </div>
-
-                  <div className="action-modal-item" onClick={(e) => handleWatchlist('watched', e)}>
-                    <div style={{ position: 'relative' }}>
-                      <Icon
-                        name="check"
-                        variant="circle"
-                        state={watchlistStatus.has('watched') ? 'active' : 'default'}
-                        size={48}
-                      />
-                      {!watchlistStatus.has('watched') && (
-                        <div className="watchlist-badge">
-                          <Icon name="plus-small" size={10} color="white" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="action-modal-label">Watched</div>
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -1407,11 +1325,12 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
             >
               <div className="comments-preview" onClick={toggleComments}>
                 <div className="comments-preview-content">
-                  💬 View {data.stats.commentCount} comments...
+                  <Icon name="comment" size={16} color="white" />
+                  <span>View {data.stats.commentCount} comments...</span>
                 </div>
                 <button className="comments-close-btn" onClick={(e) => {
                   e.stopPropagation()
-                  toggleComments()
+                  closeCommentsTab()
                 }}>
                   <Icon name="close" size={14} color="white" />
                 </button>
@@ -1438,7 +1357,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                       >
                         <Icon
                           name="heart"
-                          state={comment.userLiked ? 'filled' : 'default'}
+                          state={comment.userLiked ? 'active' : 'default'}
                           size={14}
                           color={comment.userLiked ? '#FF3B5C' : 'rgba(255, 255, 255, 0.6)'}
                         />
@@ -1464,44 +1383,55 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           {/* BACK FACE */}
           <div className="card-face card-back">
             <button className="close-btn" onClick={flipCard}>
-              <Icon name="close" size={16} color="white" />
+              <Icon name="close" variant="circle" size={42} />
             </button>
 
             <div className="card-back-content">
-              {/* Title */}
-              <h1 className="back-title">{data.media.title}</h1>
-              <div className="back-meta">
-                <span>{data.media.year}</span>
-                <span className="meta-dot">•</span>
-                <span>{data.media.genres.join(', ')}</span>
-                <span className="meta-dot">•</span>
-                <span>⭐ {data.media.rating}</span>
-              </div>
+              {/* Title Section */}
+              <div className="back-title-section">
+                <h1 className="back-title">
+                  {data.media.title}
+                  {data.media.season && ` - Season ${data.media.season}`}
+                </h1>
+                <div className="back-meta">
+                  <span className="back-year">{data.media.year}</span>
+                  <span className="meta-dot">•</span>
+                  <span>{data.media.genres.join(', ')}</span>
+                  <span className="meta-dot">•</span>
+                  <span className="back-rating" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <Icon name="star-gold" size={14} /> {data.media.rating}
+                  </span>
+                </div>
 
-              {/* Badges */}
-              <div className="back-badges">
-                {data.media.season && <div className="back-badge">S{data.media.season}</div>}
-                <div className="back-badge">{data.media.mediaType}</div>
-                <div className="back-badge">{data.media.network}</div>
-                <div className="back-badge">▶ Trailer</div>
+                {/* Badges */}
+                <div className="back-badges">
+                  {data.media.season && <div className="back-badge season">S{data.media.season}</div>}
+                  <div className="back-badge type">{data.media.mediaType}</div>
+                  <div className="back-badge network">{data.media.network}</div>
+                  <div className="back-badge trailer">▶ Trailer</div>
+                </div>
               </div>
 
               {/* Synopsis */}
               <p className={`back-synopsis ${synopsisExpanded ? '' : 'collapsed'}`}>
                 {data.media.synopsis}
               </p>
-              {!synopsisExpanded && (
-                <span className="read-more" onClick={() => setSynopsisExpanded(true)}>
-                  Read more
-                </span>
-              )}
+              <span className="read-more" onClick={() => setSynopsisExpanded(!synopsisExpanded)}>
+                {synopsisExpanded ? 'Show less' : 'Read more'}
+              </span>
 
               {/* Action Icons */}
               <div className="back-action-icons">
-                <button className="back-icon-btn">
+                <button
+                  className="back-icon-btn primary"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setActionOverlayVisible(true)
+                  }}
+                >
                   <Icon name="plus" size={22} color="white" />
                 </button>
-                <button className="back-icon-btn">
+                <button className="back-icon-btn" onClick={handleCommentIconClick}>
                   <Icon name="comment" size={22} color="white" />
                 </button>
                 <button className="back-icon-btn">
@@ -1523,7 +1453,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
 
               {/* Cast */}
               <div className="back-section">
-                <div className="back-section-title">Cast</div>
+                <h3 className="back-section-title">Cast</h3>
                 <div className="cast-list">
                   {data.media.cast.map((actor, idx) => (
                     <span key={idx} className="cast-member">
@@ -1535,7 +1465,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
 
               {/* Friends Watching */}
               <div className="back-section">
-                <div className="back-section-title">Friends Watching</div>
+                <h3 className="back-section-title">Friends Watching</h3>
                 <div className="friends-categories">
                   <div className="friends-category">
                     <div className="friends-avatars-stack">
@@ -1571,76 +1501,123 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Friends Ratings */}
-              <div className="back-section">
-                <div className="back-section-title">Friends Ratings</div>
-                <div className="friends-ratings-grid">
-                  <div className={`rating-stat ${data.friendsActivity.ratings.userRating === 'meh' ? 'active-user-rating' : ''}`}>
-                    <Icon
-                      name="meh-face"
-                      state={data.friendsActivity.ratings.userRating === 'meh' ? 'filled' : 'default'}
-                      size={28}
-                      color={data.friendsActivity.ratings.userRating === 'meh' ? '#FF3B5C' : 'rgba(255, 255, 255, 0.6)'}
-                    />
-                    <div className="rating-stat-count">{data.friendsActivity.ratings.meh}</div>
-                  </div>
-                  <div className={`rating-stat ${data.friendsActivity.ratings.userRating === 'like' ? 'active-user-rating' : ''}`}>
-                    <Icon
-                      name="thumbs-up"
-                      state={data.friendsActivity.ratings.userRating === 'like' ? 'filled' : 'default'}
-                      size={28}
-                      color={data.friendsActivity.ratings.userRating === 'like' ? '#FF3B5C' : 'rgba(255, 255, 255, 0.6)'}
-                    />
-                    <div className="rating-stat-count">{data.friendsActivity.ratings.like}</div>
-                  </div>
-                  <div className={`rating-stat ${data.friendsActivity.ratings.userRating === 'love' ? 'active-user-rating' : ''}`}>
-                    <Icon
-                      name="heart"
-                      state={data.friendsActivity.ratings.userRating === 'love' ? 'filled' : 'default'}
-                      size={28}
-                      color={data.friendsActivity.ratings.userRating === 'love' ? '#FF3B5C' : 'rgba(255, 255, 255, 0.6)'}
-                    />
-                    <div className="rating-stat-count">{data.friendsActivity.ratings.love}</div>
+                {/* Friends Ratings */}
+                <div className="friends-ratings-container">
+                  <div className="friends-ratings">
+                    <h3 className="friends-ratings-title">Friends Ratings</h3>
+                    <div className="friends-ratings-stats">
+                      <div className="rating-stat">
+                        <div className={`rating-icon-wrapper ${data.friendsActivity.ratings.userRating === 'meh' ? 'active-user-rating' : ''}`}>
+                          <Icon
+                            name="meh-face"
+                            state={data.friendsActivity.ratings.userRating === 'meh' ? 'active' : 'default'}
+                            size={20}
+                          />
+                          <div className="rating-count">{data.friendsActivity.ratings.meh}</div>
+                        </div>
+                        <div className="rating-label">Meh</div>
+                      </div>
+                      <div className="rating-stat">
+                        <div className={`rating-icon-wrapper ${data.friendsActivity.ratings.userRating === 'like' ? 'active-user-rating' : ''}`}>
+                          <Icon
+                            name="thumbs-up"
+                            state={data.friendsActivity.ratings.userRating === 'like' ? 'active' : 'default'}
+                            size={20}
+                          />
+                          <div className="rating-count">{data.friendsActivity.ratings.like}</div>
+                        </div>
+                        <div className="rating-label">Like</div>
+                      </div>
+                      <div className="rating-stat">
+                        <div className={`rating-icon-wrapper ${data.friendsActivity.ratings.userRating === 'love' ? 'active-user-rating' : ''}`}>
+                          <Icon
+                            name="heart"
+                            state={data.friendsActivity.ratings.userRating === 'love' ? 'active' : 'default'}
+                            size={20}
+                          />
+                          <div className="rating-count">{data.friendsActivity.ratings.love}</div>
+                        </div>
+                        <div className="rating-label">Love</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Show Comments */}
-              <div className="back-section">
-                <div className="back-section-title">Show Comments</div>
-                <div className="show-comments-list">
-                  {data.showComments.map((comment) => (
-                    <div key={comment.id} className="comment-item">
-                      <img src={comment.user.avatar} alt={comment.user.name} className="comment-avatar" />
-                      <div className="comment-content">
-                        <div className="comment-header">
-                          <span className="comment-username">{comment.user.name}</span>
-                          <span className="comment-timestamp">{comment.timestamp}</span>
-                        </div>
-                        <div className="comment-text">{comment.text}</div>
-                        <div className="comment-actions">
-                          <button className={`comment-like-btn ${comment.userLiked ? 'liked' : ''}`}>
-                            <Icon
-                              name="heart"
-                              state={comment.userLiked ? 'filled' : 'default'}
-                              size={14}
-                              color={comment.userLiked ? '#FF3B5C' : 'rgba(255, 255, 255, 0.6)'}
-                            />
-                            {comment.likes}
-                          </button>
+              <div className="back-section show-comments-section">
+                <h3 className="back-section-title">Show Comments</h3>
+
+                {/* Comment Input */}
+                <div className="comment-input-container">
+                  <img src={data.user.avatar} alt="You" className="comment-input-avatar" />
+                  <div className="comment-input-wrapper">
+                    <div className="comment-textarea-container">
+                      <div className="comment-char-count">
+                        {showCommentText.length}/280
+                      </div>
+                      <textarea
+                        ref={commentInputRef}
+                        className="comment-input"
+                        placeholder="Share your thoughts about this show..."
+                        value={showCommentText}
+                        onChange={(e) => {
+                          if (e.target.value.length <= 280) {
+                            setShowCommentText(e.target.value)
+                          }
+                        }}
+                        maxLength={280}
+                      ></textarea>
+                    </div>
+                    <button className="comment-submit-btn">Post Comment</button>
+                  </div>
+                </div>
+
+                {/* Comments List */}
+                <div className="comments-list">
+                  {data.showComments.slice(0, visibleShowComments).map((comment) => {
+                    const likeState = commentLikes[comment.id]
+                    return (
+                      <div key={comment.id} className="comment-item">
+                        <img src={comment.user.avatar} alt={comment.user.name} className="comment-avatar" />
+                        <div className="comment-content">
+                          <div className="comment-header">
+                            <span className="comment-username">{comment.user.name}</span>
+                            <span className="comment-timestamp">{comment.timestamp}</span>
+                          </div>
+                          <div className="comment-text">{comment.text}</div>
+                          <div className="comment-actions">
+                            <button
+                              className={`comment-like-btn ${likeState.liked ? 'liked' : ''}`}
+                              onClick={(e) => handleCommentLike(comment.id, e)}
+                            >
+                              <Icon
+                                name="heart"
+                                state={likeState.liked ? 'active' : 'default'}
+                                size={14}
+                                color={likeState.liked ? '#FF3B5C' : 'rgba(255, 255, 255, 0.6)'}
+                              />
+                              {likeState.count}
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                  <button className="load-more-btn">Load More Comments</button>
+                    )
+                  })}
+
+                  {/* Load More Button */}
+                  {visibleShowComments < data.showComments.length && (
+                    <button className="load-more-btn" onClick={handleLoadMoreComments}>
+                      Load More Comments ({data.showComments.length - visibleShowComments} more)
+                    </button>
+                  )}
                 </div>
               </div>
 
-              {/* Similar Shows */}
+              {/* Related Shows */}
               <div className="back-section">
-                <div className="back-section-title">Similar Shows</div>
+                <h3 className="back-section-title">Related Shows</h3>
                 <div className="similar-shows">
                   {data.similarShows.map((show) => (
                     <div
@@ -1651,6 +1628,108 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                       <div className="similar-show-title">{show.title}</div>
                     </div>
                   ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Overlay Modal - Shared between front and back */}
+          <div
+            className={`action-overlay ${actionOverlayVisible ? 'visible' : ''}`}
+            onClick={() => setActionOverlayVisible(false)}
+          >
+            <div className="action-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="action-modal-grid">
+                {/* Rating Icons */}
+                <div className="action-modal-item" onClick={(e) => handleRating('meh', e)}>
+                  <div className={`action-modal-icon ${userRating === 'meh' ? 'active' : ''}`}>
+                    <Icon
+                      name="meh-face"
+                      state={userRating === 'meh' ? 'active' : 'default'}
+                      size={20}
+                      color="white"
+                    />
+                  </div>
+                  <div className="action-modal-label">Meh</div>
+                </div>
+
+                <div className="action-modal-item" onClick={(e) => handleRating('like', e)}>
+                  <div className={`action-modal-icon ${userRating === 'like' ? 'active' : ''}`}>
+                    <Icon
+                      name="thumbs-up"
+                      state={userRating === 'like' ? 'active' : 'default'}
+                      size={20}
+                      color="white"
+                    />
+                  </div>
+                  <div className="action-modal-label">Like</div>
+                </div>
+
+                <div className="action-modal-item" onClick={(e) => handleRating('love', e)}>
+                  <div className={`action-modal-icon ${userRating === 'love' ? 'active' : ''}`}>
+                    <Icon
+                      name="heart"
+                      state={userRating === 'love' ? 'active' : 'default'}
+                      size={20}
+                      color="white"
+                    />
+                  </div>
+                  <div className="action-modal-label">Love</div>
+                </div>
+
+                {/* Divider */}
+                <div className="action-modal-divider"></div>
+
+                {/* Watchlist Icons */}
+                <div className="action-modal-item" onClick={(e) => handleWatchlist('want', e)}>
+                  <div className={`action-modal-icon ${watchlistStatus.has('want') ? 'active' : ''}`}>
+                    <Icon
+                      name="bookmark"
+                      state={watchlistStatus.has('want') ? 'active' : 'default'}
+                      size={20}
+                      color="white"
+                    />
+                    {!watchlistStatus.has('want') && (
+                      <div className="watchlist-badge">
+                        <Icon name="plus-small" size={10} color="white" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="action-modal-label">Want To</div>
+                </div>
+
+                <div className="action-modal-item" onClick={(e) => handleWatchlist('watching', e)}>
+                  <div className={`action-modal-icon ${watchlistStatus.has('watching') ? 'active' : ''}`}>
+                    <Icon
+                      name="play"
+                      state={watchlistStatus.has('watching') ? 'active' : 'default'}
+                      size={20}
+                      color="white"
+                    />
+                    {!watchlistStatus.has('watching') && (
+                      <div className="watchlist-badge">
+                        <Icon name="plus-small" size={10} color="white" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="action-modal-label">Watching</div>
+                </div>
+
+                <div className="action-modal-item" onClick={(e) => handleWatchlist('watched', e)}>
+                  <div className={`action-modal-icon ${watchlistStatus.has('watched') ? 'active' : ''}`}>
+                    <Icon
+                      name="check"
+                      state={watchlistStatus.has('watched') ? 'active' : 'default'}
+                      size={20}
+                      color="white"
+                    />
+                    {!watchlistStatus.has('watched') && (
+                      <div className="watchlist-badge">
+                        <Icon name="plus-small" size={10} color="white" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="action-modal-label">Watched</div>
                 </div>
               </div>
             </div>
