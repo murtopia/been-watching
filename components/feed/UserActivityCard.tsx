@@ -131,6 +131,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
   )
   const [visibleShowComments, setVisibleShowComments] = useState(3) // Show 3 comments initially
   const [showCommentText, setShowCommentText] = useState('') // Track show comment input
+  const [activityCommentText, setActivityCommentText] = useState('') // Track activity comment input
 
   const cardRef = useRef<HTMLDivElement>(null)
   const commentInputRef = useRef<HTMLTextAreaElement>(null)
@@ -632,7 +633,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
         }
 
         .comments-tab.visible {
-          transform: translateY(0);
+          transform: translateY(13px);
           opacity: 1;
           pointer-events: auto;
         }
@@ -696,12 +697,21 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           overscroll-behavior: contain;
         }
 
-        .comments-tab.expanded .comments-preview {
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        .comments-tab.visible .comments-preview {
+          border-bottom: 3px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .comments-tab.visible .comments-full {
+          display: block;
+          overflow: hidden;
+        }
+
+        .comments-tab.visible:not(.expanded) .activity-comment-item {
+          display: none;
         }
 
         .comments-tab.expanded .comments-full {
-          display: block;
+          overflow-y: scroll;
         }
 
         .activity-comment-item {
@@ -789,31 +799,72 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           fill: currentColor;
         }
 
-        .activity-comment-input-wrapper {
-          padding: 16px 20px;
-          border-top: 1px solid rgba(255, 255, 255, 0.1);
+        .activity-comment-input-container {
+          padding: 0;
+          margin-top: -5px;
           display: flex;
-          gap: 12px;
-          align-items: center;
+          align-items: flex-start;
+          gap: 10px;
           flex-shrink: 0;
         }
 
-        .activity-comment-input {
+        .activity-comment-input-avatar {
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          object-fit: cover;
+          flex-shrink: 0;
+          margin-top: 2px;
+        }
+
+        .activity-comment-input-wrapper {
           flex: 1;
-          background: rgba(255, 255, 255, 0.1);
+        }
+
+        .activity-comment-input {
+          width: 100%;
+          background: rgba(255, 255, 255, 0.05);
           border: 1px solid rgba(255, 255, 255, 0.15);
-          border-radius: 20px;
-          padding: 10px 16px;
+          border-radius: 8px;
+          padding: 8px 12px;
           color: white;
-          font-size: 16px;
+          font-size: 13px;
           outline: none;
+          resize: none;
+          min-height: 40px;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+        }
+
+        .activity-comment-input:focus {
+          border-color: rgba(255, 255, 255, 0.3);
         }
 
         .activity-comment-input::placeholder {
           color: rgba(255, 255, 255, 0.5);
         }
 
-        .send-btn {
+        .activity-comment-actions {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 4px;
+        }
+
+        .activity-comment-char-count {
+          font-size: 10px;
+          color: rgba(255, 255, 255, 0.6);
+          font-weight: 400;
+          line-height: 1;
+        }
+
+        .activity-comment-divider {
+          height: 1px;
+          background: rgba(255, 255, 255, 0.1);
+          margin: 11px -20px 12px -20px;
+        }
+
+        .activity-comment-send-btn {
           width: 32px;
           height: 32px;
           min-width: 32px;
@@ -826,9 +877,14 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           justify-content: center;
           cursor: pointer;
           flex-shrink: 0;
+          transition: background 0.2s;
         }
 
-        .send-btn svg {
+        .activity-comment-send-btn:hover {
+          background: rgba(255, 255, 255, 0.3);
+        }
+
+        .activity-comment-send-btn svg {
           width: 16px;
           height: 16px;
           fill: white;
@@ -1159,7 +1215,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
 
         .comment-actions {
           display: flex;
-          justify-content: space-between;
+          justify-content: flex-end;
           align-items: flex-start;
           margin-top: 6px;
         }
@@ -1335,6 +1391,32 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
               </div>
 
               <div className="comments-full">
+                <div className="activity-comment-input-container">
+                  <img src={data.user.avatar} alt="You" className="activity-comment-input-avatar" />
+                  <div className="activity-comment-input-wrapper">
+                    <textarea
+                      className="activity-comment-input"
+                      placeholder="Add a comment..."
+                      value={activityCommentText}
+                      onChange={(e) => {
+                        if (e.target.value.length <= 280) {
+                          setActivityCommentText(e.target.value)
+                        }
+                      }}
+                      maxLength={280}
+                      rows={2}
+                    ></textarea>
+                  </div>
+                  <div className="activity-comment-actions">
+                    <div className="activity-comment-char-count">
+                      {activityCommentText.length}/280
+                    </div>
+                    <button className="activity-comment-send-btn">
+                      <Icon name="send" size={16} color="white" />
+                    </button>
+                  </div>
+                </div>
+                <div className="activity-comment-divider"></div>
                 {data.comments.map((comment) => (
                   <div key={comment.id} className="activity-comment-item">
                     <div className="activity-comment-header">
@@ -1364,16 +1446,6 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                     </div>
                   </div>
                 ))}
-                <div className="activity-comment-input-wrapper">
-                  <input
-                    type="text"
-                    className="activity-comment-input"
-                    placeholder="Add a comment..."
-                  />
-                  <button className="send-btn">
-                    <Icon name="send" size={16} color="white" />
-                  </button>
-                </div>
               </div>
             </div>
           </div>
