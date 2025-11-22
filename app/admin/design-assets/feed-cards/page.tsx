@@ -43,12 +43,12 @@ export default function FeedCardsPreviewPage() {
     ],
     media: {
       id: 'media-1',
-      title: 'Breaking Bad Season 5',
+      title: 'Breaking Bad',
       year: 2012,
       genres: ['Crime', 'Drama'],
       rating: 9.5,
       posterUrl: 'https://image.tmdb.org/t/p/original/ztkUQFLlC19CCMYHW9o1zWhJRNq.jpg',
-      synopsis: 'In the final season, being bad is all that remains for Walter White. His empire grows, endangering his family and himself in ways he could never have imagined.',
+      synopsis: 'A high school chemistry teacher diagnosed with inoperable lung cancer turns to manufacturing and selling methamphetamine in order to secure his family\'s future. As Walter White descends deeper into the criminal underworld, he transforms from mild-mannered educator to ruthless drug kingpin.',
       creator: 'Vince Gilligan',
       cast: ['Bryan Cranston', 'Aaron Paul', 'Anna Gunn', 'Dean Norris'],
       network: 'AMC',
@@ -66,7 +66,7 @@ export default function FeedCardsPreviewPage() {
     },
     stats: {
       likeCount: 24,
-      commentCount: 7,
+      commentCount: 8,
       userLiked: false
     },
     friendsActivity: {
@@ -104,18 +104,66 @@ export default function FeedCardsPreviewPage() {
     comments: [
       {
         id: 'c1',
-        user: { name: 'John Doe', avatar: 'https://i.pravatar.cc/150?img=12' },
-        text: 'This season was absolutely incredible! Best TV finale ever.',
-        timestamp: '1 hour ago',
-        likes: 12,
-        userLiked: false
+        user: { name: 'Mike Johnson', avatar: 'https://i.pravatar.cc/150?img=5' },
+        text: 'This finale was absolutely incredible! Best TV I\'ve seen all year.',
+        timestamp: '1h ago',
+        likes: 8,
+        userLiked: true
       },
       {
         id: 'c2',
-        user: { name: 'Jane Smith', avatar: 'https://i.pravatar.cc/150?img=20' },
-        text: 'The intensity in every episode is unmatched.',
-        timestamp: '45 min ago',
-        likes: 8,
+        user: { name: 'Emma Davis', avatar: 'https://i.pravatar.cc/150?img=6' },
+        text: 'Can\'t believe it\'s over. What a ride! 🎬',
+        timestamp: '45m ago',
+        likes: 3,
+        userLiked: false
+      },
+      {
+        id: 'c3',
+        user: { name: 'Alex Chen', avatar: 'https://i.pravatar.cc/150?img=7' },
+        text: 'The character development throughout this season was masterful. Every episode kept me on the edge of my seat!',
+        timestamp: '2h ago',
+        likes: 15,
+        userLiked: true
+      },
+      {
+        id: 'c4',
+        user: { name: 'Jordan Martinez', avatar: 'https://i.pravatar.cc/150?img=8' },
+        text: 'Just finished binging the whole season. Mind = blown 🤯',
+        timestamp: '3h ago',
+        likes: 7,
+        userLiked: false
+      },
+      {
+        id: 'c5',
+        user: { name: 'Sam Taylor', avatar: 'https://i.pravatar.cc/150?img=9' },
+        text: 'This is peak television. Nothing comes close!',
+        timestamp: '4h ago',
+        likes: 22,
+        userLiked: true
+      },
+      {
+        id: 'c6',
+        user: { name: 'Riley Kim', avatar: 'https://i.pravatar.cc/150?img=10' },
+        text: 'The cinematography in the final episodes was absolutely stunning. Pure art.',
+        timestamp: '5h ago',
+        likes: 11,
+        userLiked: false
+      },
+      {
+        id: 'c7',
+        user: { name: 'Casey Brown', avatar: 'https://i.pravatar.cc/150?img=11' },
+        text: 'I need to rewatch this immediately. So many details I missed the first time!',
+        timestamp: '6h ago',
+        likes: 5,
+        userLiked: false
+      },
+      {
+        id: 'c8',
+        user: { name: 'Morgan Lee', avatar: 'https://i.pravatar.cc/150?img=12' },
+        text: 'The writing is just incredible. Every line matters.',
+        timestamp: '7h ago',
+        likes: 18,
         userLiked: true
       }
     ],
@@ -134,6 +182,38 @@ export default function FeedCardsPreviewPage() {
         text: 'The character development is phenomenal.',
         timestamp: '15 min ago',
         likes: 7,
+        userLiked: true
+      },
+      {
+        id: 'sc3',
+        user: { name: 'David Chen', avatar: 'https://i.pravatar.cc/150?img=15' },
+        text: 'Walter White is one of the greatest TV characters ever written.',
+        timestamp: '1h ago',
+        likes: 23,
+        userLiked: false
+      },
+      {
+        id: 'sc4',
+        user: { name: 'Emily Rodriguez', avatar: 'https://i.pravatar.cc/150?img=25' },
+        text: 'The chemistry between Bryan Cranston and Aaron Paul is incredible.',
+        timestamp: '2h ago',
+        likes: 19,
+        userLiked: true
+      },
+      {
+        id: 'sc5',
+        user: { name: 'James Patterson', avatar: 'https://i.pravatar.cc/150?img=30' },
+        text: 'Every episode is perfectly crafted. The writing is top tier.',
+        timestamp: '3h ago',
+        likes: 12,
+        userLiked: false
+      },
+      {
+        id: 'sc6',
+        user: { name: 'Lisa Wang', avatar: 'https://i.pravatar.cc/150?img=35' },
+        text: 'This show changed television forever. A true masterpiece.',
+        timestamp: '4h ago',
+        likes: 28,
         userLiked: true
       }
     ],
