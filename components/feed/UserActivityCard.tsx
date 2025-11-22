@@ -639,7 +639,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
         }
 
         .comments-preview {
-          padding: 16px 20px;
+          padding: 11px 20px;
           cursor: pointer;
           font-size: 13px;
           font-weight: 500;
@@ -727,8 +727,14 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
         .activity-comment-header {
           display: flex;
           align-items: center;
-          gap: 10px;
+          justify-content: space-between;
           margin-bottom: 6px;
+        }
+
+        .activity-comment-header-left {
+          display: flex;
+          align-items: center;
+          gap: 10px;
         }
 
         .activity-comment-avatar {
@@ -746,7 +752,6 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
         .activity-comment-time {
           font-size: 11px;
           opacity: 0.6;
-          margin-left: auto;
         }
 
         .activity-comment-text {
@@ -1170,8 +1175,14 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
         .comment-header {
           display: flex;
           align-items: center;
-          gap: 8px;
+          justify-content: space-between;
           margin-bottom: 4px;
+        }
+
+        .comment-header-left {
+          display: flex;
+          align-items: center;
+          gap: 8px;
         }
 
         .comment-username {
@@ -1188,7 +1199,6 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           font-size: 13px;
           line-height: 1.4;
           opacity: 0.9;
-          margin-bottom: 8px;
         }
 
         .comment-input {
@@ -1420,18 +1430,17 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                 {data.comments.map((comment) => (
                   <div key={comment.id} className="activity-comment-item">
                     <div className="activity-comment-header">
-                      <img
-                        src={comment.user.avatar}
-                        alt={comment.user.name}
-                        className="activity-comment-avatar"
-                      />
-                      <span className="activity-comment-username">
-                        {comment.user.name}
-                      </span>
-                      <span className="activity-comment-time">{comment.timestamp}</span>
-                    </div>
-                    <div className="activity-comment-text">{comment.text}</div>
-                    <div className="comment-actions">
+                      <div className="activity-comment-header-left">
+                        <img
+                          src={comment.user.avatar}
+                          alt={comment.user.name}
+                          className="activity-comment-avatar"
+                        />
+                        <span className="activity-comment-username">
+                          {comment.user.name}
+                        </span>
+                        <span className="activity-comment-time">{comment.timestamp}</span>
+                      </div>
                       <button
                         className={`comment-like-btn ${comment.userLiked ? 'liked' : ''}`}
                       >
@@ -1444,6 +1453,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                         {comment.likes}
                       </button>
                     </div>
+                    <div className="activity-comment-text">{comment.text}</div>
                   </div>
                 ))}
               </div>
@@ -1653,11 +1663,10 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                         <img src={comment.user.avatar} alt={comment.user.name} className="comment-avatar" />
                         <div className="comment-content">
                           <div className="comment-header">
-                            <span className="comment-username">{comment.user.name}</span>
-                            <span className="comment-timestamp">{comment.timestamp}</span>
-                          </div>
-                          <div className="comment-text">{comment.text}</div>
-                          <div className="comment-actions">
+                            <div className="comment-header-left">
+                              <span className="comment-username">{comment.user.name}</span>
+                              <span className="comment-timestamp">{comment.timestamp}</span>
+                            </div>
                             <button
                               className={`comment-like-btn ${likeState.liked ? 'liked' : ''}`}
                               onClick={(e) => handleCommentLike(comment.id, e)}
@@ -1671,6 +1680,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                               {likeState.count}
                             </button>
                           </div>
+                          <div className="comment-text">{comment.text}</div>
                         </div>
                       </div>
                     )
