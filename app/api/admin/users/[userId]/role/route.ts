@@ -4,10 +4,10 @@ import { checkAdminAccess, AdminRole } from '@/utils/admin/permissions'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const { userId } = params
+    const { userId } = await params
 
     // Check if user has permission to grant roles
     const { hasAccess, role: adminRole, userId: adminUserId } = await checkAdminAccess('canGrantAdmin')
