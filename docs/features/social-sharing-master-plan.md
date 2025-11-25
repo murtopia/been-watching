@@ -461,29 +461,6 @@ const handleSimpleShare = async () => {
 
 ---
 
-### Desktop Experience
-
-**For Rich Content (Custom Modal):**
-```
-Centered modal (600px wide)
-- All same options as mobile
-- No drag handle (not dismissible via swipe)
-- Close button (X) in top right
-- Hover states on buttons
-- "Share via..." opens desktop share (if supported)
-  Fallback: Shows mailto: and SMS: links
-```
-
-**For Simple Content (Native Sheet or Fallback):**
-```
-If navigator.share available:
-  → Opens browser's share modal
-Else:
-  → Copy link + show confirmation
-```
-
----
-
 ## 🖼️ Social Card Generation (Open Graph)
 
 ### Image Generation Strategy

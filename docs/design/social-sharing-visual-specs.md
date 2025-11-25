@@ -124,80 +124,16 @@ Based on feed card design system (40px circular action buttons):
 
 ---
 
-### Tablet View (640px - 1024px viewport)
+### Tablet and Larger Screens
 
-```
-Centered modal (540px wide)
-- Same layout as mobile
-- Slightly wider buttons (100×90px)
-- 4 platform buttons per row instead of 3
-- Still uses bottom sheet pattern
-- Drag handle remains
-```
+**Note:** Been Watching is a mobile-first web app. Even on desktop browsers, users see the mobile version (398px card width) centered on the page. There is no separate desktop layout.
 
----
-
-### Desktop View (1024px+ viewport)
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                   (Centered modal)                      │
-│  ┌───────────────────────────────────────────────────┐  │
-│  │  Share "Breaking Bad"                         [X] │  │ ← Close button
-│  │━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━│  │
-│  │                                                   │  │
-│  │  Preview:                                         │  │
-│  │  ┌─────────────────────────────────────────────┐ │  │
-│  │  │                                             │ │  │
-│  │  │  ╔═══════╗                                  │ │  │
-│  │  │  ║       ║   Breaking Bad                   │ │  │
-│  │  │  ║ IMAGE ║   2008 • Crime Drama             │ │  │
-│  │  │  ║       ║                                  │ │  │
-│  │  │  ╚═══════╝   ⭐ Loved                       │ │  │
-│  │  │                                             │ │  │
-│  │  │  "This finale was absolutely incredible!   │ │  │
-│  │  │   Best TV I've seen all year."             │ │  │
-│  │  │                                             │ │  │
-│  │  │  Shared by @murtopia                       │ │  │
-│  │  │  [Avatar] Nick                             │ │  │
-│  │  │                                             │ │  │
-│  │  └─────────────────────────────────────────────┘ │  │
-│  │                                                   │  │
-│  │  Share to:                                        │  │
-│  │                                                   │  │
-│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐         │  │
-│  │  │    📱    │ │    📱    │ │    🐦    │         │  │
-│  │  │ IG Story │ │  IG Post │ │  Twitter │         │  │
-│  │  └──────────┘ └──────────┘ └──────────┘         │  │
-│  │                                                   │  │
-│  │  ┌─────────────────────────────────────────────┐ │  │
-│  │  │  📤  Share via... (or copy link)            │ │  │
-│  │  └─────────────────────────────────────────────┘ │  │
-│  │                                                   │  │
-│  │  ───────────── or share with friend ─────────────│  │
-│  │                                                   │  │
-│  │  Recent BW Users:                                 │  │
-│  │  [👤] @alex  [👤] @sam  [👤] @pat                │  │
-│  │                                                   │  │
-│  │  [🔍 Search for user...]                          │  │
-│  │                                                   │  │
-│  │  Message (optional):                              │  │
-│  │  ┌─────────────────────────────────────────────┐ │  │
-│  │  │ You need to watch this!                     │ │  │
-│  │  └─────────────────────────────────────────────┘ │  │
-│  │                                                   │  │
-│  │                            [Cancel] [Send Share] │  │
-│  └───────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────┘
-```
-
-**Desktop Dimensions:**
-- Width: `600px` fixed
-- Centered: `position: fixed`, `inset: 0`, `margin: auto`
-- Border radius: `16px` (all corners)
-- No drag handle (not dismissible via swipe)
-- Close button: `32×32px`, top right, `16px` from edges
-- Hover states: All buttons show `background: rgba(255, 255, 255, 0.1)` on hover
+**Behavior on Larger Screens:**
+- Modal remains 398px max width
+- Centered horizontally on screen
+- Bottom sheet behavior persists
+- All touch targets and spacing unchanged
+- Responsive scaling only affects outer container positioning
 
 ---
 
@@ -1183,23 +1119,7 @@ padding: var(--space-5xl);     /* 64px */
   animation: slideDown 0.2s cubic-bezier(0.4, 0, 1, 1);
 }
 
-/* Centered modal (desktop) */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95) translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-@media (min-width: 1024px) {
-  .share-modal {
-    animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-}
+/* Note: No separate desktop animation - mobile bottom sheet used on all screen sizes */
 ```
 
 ### Button Interactions
@@ -1256,66 +1176,40 @@ padding: var(--space-5xl);     /* 64px */
 
 ---
 
-## 📱 Responsive Breakpoints
+## 📱 Responsive Behavior (Mobile-First Only)
+
+**Note:** Been Watching uses a **single mobile-first design** across all screen sizes. There are no desktop-specific layouts.
 
 ```css
-/* Mobile First */
-/* 0-639px: Mobile (default styles) */
+/* Mobile First - All screen sizes use the same design */
+.share-modal {
+  max-width: 398px; /* Card width consistency */
+  margin: 0 auto; /* Center on larger screens */
+  border-radius: 16px 16px 0 0; /* Bottom sheet pattern */
+}
 
-/* Small Tablet */
+/* On larger screens, modal is simply centered */
 @media (min-width: 640px) {
-  /* 640px - 767px */
-  .share-modal {
-    max-width: 480px;
+  .share-modal-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
   }
-}
-
-/* Tablet */
-@media (min-width: 768px) {
-  /* 768px - 1023px */
-  .share-modal {
-    max-width: 540px;
-  }
-
-  .share-platform-buttons {
-    grid-template-columns: repeat(4, 1fr); /* 4 columns */
-  }
-}
-
-/* Desktop */
-@media (min-width: 1024px) {
-  /* 1024px - 1439px */
-  .share-modal {
-    width: 600px;
-    max-width: none;
-    border-radius: 16px; /* All corners */
-  }
-
-  /* Switch from bottom sheet to centered modal */
-  .share-modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    bottom: auto;
-  }
-}
-
-/* Wide Desktop */
-@media (min-width: 1440px) {
-  /* 1440px+ */
-  /* Same as desktop, just more breathing room */
 }
 ```
 
-### Modal Behavior by Breakpoint
+### Modal Behavior Across All Screen Sizes
 
-| Breakpoint | Width | Pattern | Border Radius |
+| Screen Size | Width | Pattern | Border Radius |
 |------------|-------|---------|---------------|
-| Mobile (< 640px) | 100% (max 398px) | Bottom sheet | 16px 16px 0 0 |
-| Sm Tablet (640-767px) | 480px | Bottom sheet | 16px 16px 0 0 |
-| Tablet (768-1023px) | 540px | Bottom sheet | 16px 16px 0 0 |
-| Desktop (1024px+) | 600px | Centered modal | 16px (all corners) |
+| All (mobile, tablet, desktop) | 100% (max 398px) | Bottom sheet | 16px 16px 0 0 |
+
+**Consistent Experience:**
+- Same 398px max width on all devices
+- Bottom sheet slides up from bottom
+- Swipe down to dismiss
+- Touch-optimized spacing (even on desktop)
+- Mobile-first interactions throughout
 
 ---
 
@@ -1460,11 +1354,11 @@ function announceToScreenReader(message: string) {
 - [ ] Nav bar: Bottom safe area padding applied
 - [ ] Back button: Closes modal
 
-**Desktop:**
-- [ ] Chrome: Native share shows if available
-- [ ] Firefox: Copy link fallback works
-- [ ] Safari: Native share shows
-- [ ] Hover states: All buttons show hover effect
+**Desktop Browsers:**
+- [ ] Chrome: Native share shows if available (mobile view maintained)
+- [ ] Firefox: Copy link fallback works (mobile view maintained)
+- [ ] Safari: Native share shows (mobile view maintained)
+- [ ] Note: Same mobile-first layout used, just centered on larger screens
 
 ### Accessibility Tests
 
