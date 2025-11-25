@@ -192,6 +192,7 @@ export const trackProfileViewed = (data: {
   viewed_user_id: string
   viewed_username: string
   is_own_profile: boolean
+  is_private_profile?: boolean
 }) => {
   if (!isPostHogAvailable()) return
 
@@ -284,6 +285,17 @@ export const trackSessionStarted = () => {
     referrer: typeof document !== 'undefined' ? document.referrer : undefined,
     is_mobile: typeof navigator !== 'undefined' ? /mobile/i.test(navigator.userAgent) : undefined,
   })
+}
+
+// ============================================
+// GENERIC EVENT TRACKING
+// ============================================
+
+// Generic event tracking for custom events
+export const trackEvent = (eventName: string, properties?: Record<string, any>) => {
+  if (!isPostHogAvailable()) return
+
+  posthog.capture(eventName, properties)
 }
 
 // ============================================
