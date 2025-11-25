@@ -1,8 +1,8 @@
 # Social Sharing Master Plan - Been Watching
 
 **Created:** 2025-11-23
-**Updated:** 2025-11-24 (Mobile-First Revision)
-**Status:** Planning Phase
+**Updated:** 2025-11-24 (User Feedback Revision)
+**Status:** Planning Phase → Ready for Implementation
 **Owner:** Product Team
 
 ---
@@ -65,7 +65,7 @@ https://beenwatching.com/show/1396?shared_by=murtopia
 - User's comment (if any)
 - "Shared by @username" with avatar
 - Been Watching branding + gradient
-- QR code (bottom corner)
+- QR code (bottom corner) → **Links to:** `beenwatching.com/show/[id]?shared_by=[username]`
 
 ---
 
@@ -89,8 +89,17 @@ https://beenwatching.com/show/1396?shared_by=murtopia
 - Top 3 shows (thumbnails)
 - Total shows watched
 - Followers/following count
-- QR code (bottom corner)
+- QR code (bottom corner) → **Links to:** `beenwatching.com/[username]`
 - Been Watching branding
+
+**Private Profile Handling:**
+When sharing a private profile, the share card and link destination still work but show limited info:
+- ✅ Username, avatar, bio (public info)
+- ✅ Total shows in watchlists (count only)
+- ❌ Top 3 shows (hidden - shows placeholder or "Private Account")
+- ❌ Activity feed (hidden)
+- ❌ Full watchlist details (hidden)
+- **Call to Action:** "Follow @username to see what they're watching"
 
 ---
 
@@ -140,6 +149,7 @@ https://beenwatching.com/murtopia/top-shows
 - "Top 3 Shows" heading
 - Star ratings under each poster
 - Been Watching branding (bottom)
+- QR code (bottom corner) → **Links to:** `beenwatching.com/[username]/top-shows`
 
 ---
 
@@ -165,6 +175,8 @@ https://beenwatching.com/murtopia/want-to-watch
 - List title at top
 - User info (avatar + username)
 - Been Watching branding
+- QR code (bottom corner) → **Links to:** `beenwatching.com/[username]/[list-type]`
+  - Example: `beenwatching.com/murtopia/want-to-watch`
 
 **Truncation Rules:**
 - Show first 6 items in preview card
@@ -190,13 +202,61 @@ https://beenwatching.com/murtopia/want-to-watch
 ---
 
 ### 7. Achievements & Milestones (Future) - **CUSTOM MODAL**
-**Examples:**
+
+**Milestone Examples:**
 - "Just watched my 100th show!"
-- "Completed entire Breaking Bad series"
+- "Completed entire Breaking Bad series (5 seasons)"
 - "5-star streak: Rated 10 shows 5 stars in a row"
 - "Social butterfly: Followed 50 friends"
+- "Binge Master: Watched 10 episodes in one day"
+- "Critic: Left 50 comments on shows"
 
-**Auto-triggers:** System detects milestone, prompts share
+#### Auto-Prompt Share Dialog
+
+**When:** System detects user completed a milestone
+
+**Trigger Examples:**
+- User marks final episode of a show as "Watched"
+- User hits 25th, 50th, 100th show milestone
+- User completes all seasons of a multi-season show
+- User achieves rating streak
+
+**Prompt Dialog (Toast Notification):**
+```
+┌─────────────────────────────────────────┐
+│  🎉 Achievement Unlocked!               │
+│                                         │
+│  You just finished Breaking Bad S5!     │
+│                                         │
+│  [ Share with Friends ]  [ Not Now ]    │
+└─────────────────────────────────────────┘
+```
+
+**If User Clicks "Share with Friends":**
+→ Opens share modal with pre-generated achievement card
+→ Card includes: Show poster, season badge, completion date, "Shared by @username"
+→ QR code → **Links to:** `beenwatching.com/achievement/[id]?user=[username]`
+
+**Analytics Tracking:**
+```typescript
+// Track prompt display
+trackEvent('achievement_share_prompted', {
+  achievement_type: 'season_completed',
+  show_id: 'tv-1396',
+  season_number: 5,
+  user_id: currentUser.id
+})
+
+// Track user response
+trackEvent('achievement_share_accepted', { ... })  // If they share
+trackEvent('achievement_share_dismissed', { ... }) // If they click "Not Now"
+```
+
+**Prompt Frequency Rules:**
+- Maximum 1 prompt per hour (avoid spam)
+- Maximum 3 prompts per day
+- User can disable prompts in settings: "Share Reminders"
+- Never prompt if user has "Do Not Disturb" mode active
 
 ---
 

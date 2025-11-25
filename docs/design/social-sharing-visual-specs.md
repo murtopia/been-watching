@@ -1,8 +1,9 @@
 # Social Sharing - Visual Design Specifications (Mobile-First)
 
 **Created:** 2025-11-23
-**Updated:** 2025-11-24 (Mobile-First Revision)
+**Updated:** 2025-11-24 (User Feedback Revision)
 **Related:** [Social Sharing Master Plan](../features/social-sharing-master-plan.md)
+**Design System:** [Feed Card Design System](feed-card-design-system.md)
 
 ---
 
@@ -11,10 +12,11 @@
 All designs prioritize **mobile experience** first, then scale up to tablet and desktop. Been Watching uses a **398px card width** throughout the app, which informs all share modal dimensions.
 
 ### Design Priorities
-1. **Touch-first:** 44px minimum tap targets
+1. **Touch-first:** Minimum tap targets match navigation icons (40px circular buttons from feed card design system)
 2. **Native patterns:** Bottom sheets, swipe gestures
 3. **Card consistency:** 398px max width on mobile
 4. **App-ready:** Works as PWA, converts to native app easily
+5. **Design System Alignment:** All typography, spacing, colors, and components follow [Feed Card Design System](feed-card-design-system.md)
 
 ---
 
@@ -96,13 +98,18 @@ All designs prioritize **mobile experience** first, then scale up to tablet and 
 - Position: Top center, `12px` from top edge
 - Interactive area: `60px × 20px` (larger than visual)
 
-**Touch Targets (Minimum 44×44px):**
-- Platform buttons: `80×80px` ✅
-- "Share via..." button: `Full width × 56px` ✅
-- Copy link button: `Full width × 56px` ✅
-- User avatars: `60×60px` (tap area extends to name) ✅
+**Touch Targets:**
+Based on feed card design system (40px circular action buttons):
+- Platform icon buttons: `42×42px` circular (matches back card icon buttons) ✅
+- Full-width action buttons: `Full width × 48px` (comfortable tap target) ✅
+- "Share via..." button: `Full width × 48px` ✅
+- Copy link button: `Full width × 48px` ✅
+- User avatars: `40×40px` circular (tap area extends to name label) ✅
 - Search input: `Full width × 48px` ✅
-- Drag handle: `60×20px` tap area ✅
+- Drag handle: Visual 40×4px, tap area 60×20px ✅
+- Close button: `40×40px` circular (matches menu button from feed card) ✅
+
+**Note:** Navigation icons in bottom tab bar use the same 40px size, ensuring consistent touch targets across the entire app.
 
 **Spacing:**
 - Section gap: `20px`
@@ -981,89 +988,109 @@ export function QRCodeDisplay({
 
 ---
 
-## 📐 Typography Scale (Mobile-First)
+## 📐 Typography Scale (Aligned with Feed Card Design System)
 
-### Headings
+**Reference:** All typography follows the established [Feed Card Design System](feed-card-design-system.md)
+
+### Font Family (System Stack)
+```css
+font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+             'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+```
+
+### Share Modal Typography Mapping
+
+| Element | Size | Weight | Line Height | Usage |
+|---------|------|--------|-------------|-------|
+| **Modal Title** | 18px | 600 | 1.3 | "Share Breaking Bad" header |
+| **Preview Title** | 16px | 600 | 1.3 | Show title in preview card |
+| **Section Labels** | 11px | 500 | 1 | "Share to:", "Recent BW Users:" |
+| **Body Text** | 13px | 400 | 1.4 | Comments, descriptions |
+| **Button Labels** | 12px | 600 | - | "Share via...", "Copy Link" |
+| **Username** | 14px | 600 | 1.5 | @username displays |
+| **Timestamps** | 11px | 400 | 1 | "2 min ago" |
+| **Micro Text** | 10px | 400 | 1 | Character counters, small labels |
+
+### Instagram Template Typography (Canvas-Generated)
+
+For Instagram Story/Post cards, scale up from feed card sizes:
+
+| Element | Feed Card | Instagram Story (9:16) | Instagram Post (1:1) |
+|---------|-----------|------------------------|----------------------|
+| **Title** | 16px | 48px (3× scale) | 32px (2× scale) |
+| **Username** | 14px | 36px | 28px |
+| **Meta Info** | 12px | 28px | 20px |
+| **Body Text** | 13px | 32px | 24px |
+
+**Scaling Formula:**
+- Instagram Story (1080×1920): 3× feed card sizes
+- Instagram Post (1080×1080): 2× feed card sizes
+- OG Image (1200×630): 2.5× feed card sizes
+
+### Font Weight Scale
+
+- **700** - Bold/Heavy (modal title, card titles)
+- **600** - Semibold (usernames, show titles, buttons)
+- **500** - Medium (section labels)
+- **400** - Regular (body text, meta info, timestamps)
+
+### Opacity Hierarchy (Matches Feed Card)
 
 ```css
-h1 {
-  font-size: 32px;           /* Mobile */
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-}
+/* Text Opacity - from Feed Card Design System */
+rgba(255, 255, 255, 1.0)   /* Headings, important text */
+rgba(255, 255, 255, 0.9)   /* Primary body text */
+rgba(255, 255, 255, 0.7)   /* Meta information */
+rgba(255, 255, 255, 0.6)   /* Muted text, timestamps */
+rgba(255, 255, 255, 0.5)   /* Placeholder text */
+```
 
-@media (min-width: 768px) {
-  h1 { font-size: 48px; }    /* Tablet */
-}
+### Section Title Pattern (Feed Card Standard)
 
-@media (min-width: 1024px) {
-  h1 { font-size: 56px; }    /* Desktop */
-}
-
-h2 {
-  font-size: 28px;           /* Mobile */
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-@media (min-width: 768px) {
-  h2 { font-size: 36px; }
-}
-
-@media (min-width: 1024px) {
-  h2 { font-size: 48px; }
-}
-
-h3 {
-  font-size: 24px;           /* Mobile */
-  font-weight: 600;
-}
-
-@media (min-width: 768px) {
-  h3 { font-size: 28px; }
-}
-
-h4 {
-  font-size: 20px;           /* Mobile */
-  font-weight: 600;
-}
-
-h5 {
-  font-size: 18px;
-  font-weight: 600;
-}
-
-h6 {
-  font-size: 16px;
-  font-weight: 600;
+```css
+.section-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.6;
+  margin-bottom: 10px;
+  font-weight: 500;
 }
 ```
 
-### Body Text
+**Examples:** "SHARE TO:", "RECENT BW USERS:", "PREVIEW:"
+
+### Body Text (Feed Card Standard)
 
 ```css
-.text-large {
-  font-size: 18px;
-  line-height: 1.6;
-}
-
-.text-default {
-  font-size: 16px;
-  line-height: 1.5;
-}
-
-.text-small {
-  font-size: 14px;
+.body-text {
+  font-size: 13px;
   line-height: 1.4;
+  opacity: 0.9;
+  font-weight: 400;
 }
+```
 
-.text-tiny {
+**Usage:** Comments, descriptions, preview card text
+
+### Button Text (Feed Card Standard)
+
+```css
+.button-text {
   font-size: 12px;
-  line-height: 1.3;
+  font-weight: 600;
+  text-align: center;
 }
+```
 
-.text-micro {
+**Usage:** "Share via...", "Copy Link", "Download QR"
+
+### Instagram Template Text (DO NOT USE IN WEB UI)
+
+The following sizes are ONLY for Canvas API-generated images:
+
+```css
+.instagram-text-micro {
   font-size: 10px;
   line-height: 1.2;
 }
@@ -1603,10 +1630,70 @@ export const designTokens = {
 
 ---
 
-**Document Version:** 2.0
-**Last Updated:** 2025-11-24
+## 📝 Revision History & User Feedback
+
+### Version 2.1 - User Feedback Revision (2025-11-24)
+
+**Changes Made:**
+
+1. **QR Code Destinations Defined** ✅
+   - Show cards QR → `beenwatching.com/show/[id]?shared_by=[username]`
+   - Profile cards QR → `beenwatching.com/[username]`
+   - Top 3 shows QR → `beenwatching.com/[username]/top-shows`
+   - Watchlist QR → `beenwatching.com/[username]/[list-type]`
+   - Achievement QR → `beenwatching.com/achievement/[id]?user=[username]`
+
+2. **Achievement Auto-Prompt Specification Added** ✅
+   - Toast notification design when milestones achieved
+   - "Share with Friends" vs "Not Now" dialog
+   - Analytics tracking for prompts (displayed, accepted, dismissed)
+   - Frequency limits: 1/hour max, 3/day max
+   - User settings: "Share Reminders" toggle
+   - Examples: Season completed, show count milestones, rating streaks
+
+3. **Touch Targets Updated to Match Navigation Icons** ✅
+   - Changed from generic 44px minimum to feed card design system
+   - Platform buttons: 42×42px circular (matches back card icon buttons)
+   - Full-width buttons: 48px height
+   - User avatars: 40×40px circular
+   - Close button: 40×40px circular (matches menu button)
+   - All sizes align with existing navigation icons (40px base)
+
+4. **Private Profile Edge Case Handling Added** ✅
+   - Share card still generates for private profiles
+   - Limited information shown:
+     - ✅ Username, avatar, bio
+     - ✅ Total shows count
+     - ❌ Top 3 shows (placeholder or "Private Account")
+     - ❌ Activity feed
+     - ❌ Watchlist details
+   - CTA: "Follow @username to see what they're watching"
+
+5. **Typography Aligned with Feed Card Design System** ✅
+   - Replaced custom typography scale with feed card system
+   - All text sizes now reference established sizes:
+     - Modal titles: 18px (instead of arbitrary sizes)
+     - Section labels: 11px uppercase with 1px letter-spacing
+     - Body text: 13px (matches comment text)
+     - Button labels: 12px semibold
+   - Added Instagram template scaling formula (3× for stories, 2× for posts)
+   - All font weights match design system (400, 500, 600, 700)
+   - Opacity hierarchy matches feed card (0.5, 0.6, 0.7, 0.9, 1.0)
+
+**User Feedback Addressed:**
+- "Define where QR codes link to" → All destinations now specified
+- "Auto-prompt users for achievements" → Complete specification with analytics
+- "Touch targets should match nav icons" → Updated to 40px/42px system
+- "Private profile sharing" → Edge case handling documented
+- "Typography feels off" → Completely aligned with feed card design system
+
+---
+
+**Document Version:** 2.1
+**Last Updated:** 2025-11-24 (User Feedback Revision)
 **Related Files:**
 - [Social Sharing Master Plan](../features/social-sharing-master-plan.md)
+- [Feed Card Design System](feed-card-design-system.md) ← **Primary Design Reference**
 - [Component Library Spec](./component-library-spec.md)
 - [Design System Audit](./design-system-audit.md)
 - [Activity Card Types](./activity-card-types.md)
@@ -1615,5 +1702,6 @@ export const designTokens = {
 
 **Status:** ✅ Ready for Implementation
 **Mobile-First:** ✅ All designs prioritize mobile
+**Design System Aligned:** ✅ Fully aligned with feed card design system
 **Accessibility:** ✅ WCAG AA compliant
 **App-Ready:** ✅ Converts to native app patterns
