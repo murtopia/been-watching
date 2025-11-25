@@ -126,9 +126,11 @@ export const trackShowCommentAdded = (data: {
 // ============================================
 
 export const trackUserFollowed = (data: {
-  following_user_id: string
-  following_username: string
-  follow_type: 'public' | 'pending'
+  followed_user_id: string
+  followed_username: string
+  followed_display_name?: string
+  is_private_profile?: boolean
+  follow_type?: 'public' | 'pending'
 }) => {
   if (!isPostHogAvailable()) return
 
@@ -179,7 +181,7 @@ export const trackActivityCommented = (data: {
 // ============================================
 
 export const trackFeedViewed = (data: {
-  feed_type: 'following' | 'global'
+  feed_type: 'following' | 'global' | 'enhanced'
   items_shown: number
   scroll_depth?: number
 }) => {
