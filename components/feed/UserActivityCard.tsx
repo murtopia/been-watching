@@ -215,27 +215,26 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
     const clientHeight = backScrollRef.current.clientHeight
     const maxScroll = Math.max(0, scrollHeight - clientHeight)
     
-    // Apply scroll - allow slight over-scroll for natural feel
-    // But clamp aggressively at edges to prevent excessive bounce
-    let clampedScrollTop = newScrollTop
-    if (newScrollTop < 0) {
-      clampedScrollTop = 0
-    } else if (newScrollTop > maxScroll) {
-      // Allow up to 20px over-scroll for natural feel
-      clampedScrollTop = Math.min(newScrollTop, maxScroll + 20)
-    }
+    // Clamp to valid bounds - don't allow over-scroll as browser will reject it
+    const clampedScrollTop = Math.max(0, Math.min(newScrollTop, maxScroll))
     
+    // Set scroll position
     backScrollRef.current.scrollTop = clampedScrollTop
     
-    // Debug on first move after load more
-    if (visibleShowComments >= 6 && Math.abs(deltaYFromStart) < 50) {
-      console.log('TouchMove scroll check:', {
+    // Verify it actually set (browser might clamp differently)
+    const actualScrollTop = backScrollRef.current.scrollTop
+    
+    // Debug if we're near the bottom and trying to scroll further
+    if (visibleShowComments >= 6 && actualScrollTop >= maxScroll - 10 && deltaYFromStart < -5) {
+      console.log('TouchMove at bottom:', {
         newScrollTop,
         maxScroll,
         clampedScrollTop,
+        actualScrollTop,
         scrollHeight,
         clientHeight,
-        deltaY: deltaYFromStart
+        deltaY: deltaYFromStart,
+        canScrollMore: actualScrollTop < maxScroll
       })
     }
     
@@ -269,7 +268,9 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
       }
       
       // Recalculate maxScroll on every frame (content might have changed)
-      const maxScroll = backScrollRef.current.scrollHeight - backScrollRef.current.clientHeight
+      const scrollHeight = backScrollRef.current.scrollHeight
+      const clientHeight = backScrollRef.current.clientHeight
+      const maxScroll = Math.max(0, scrollHeight - clientHeight)
       const currentScrollTop = backScrollRef.current.scrollTop
       
       // Clamp to valid bounds before applying velocity
@@ -287,7 +288,18 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
       
       // Apply velocity and clamp result
       const newScrollTop = currentScrollTop + velocity
-      backScrollRef.current.scrollTop = Math.max(0, Math.min(newScrollTop, maxScroll))
+      const clampedNewScroll = Math.max(0, Math.min(newScrollTop, maxScroll))
+      backScrollRef.current.scrollTop = clampedNewScroll
+      
+      // If browser clamped it differently, adjust velocity
+      const actualScrollTop = backScrollRef.current.scrollTop
+      if (actualScrollTop !== clampedNewScroll) {
+        // Browser clamped it - stop momentum
+        velocity = 0
+        momentumRAF.current = null
+        return
+      }
+      
       velocity *= decelerationPerFrame
       
       momentumRAF.current = requestAnimationFrame(animateMomentum)
