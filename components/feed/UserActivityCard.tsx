@@ -133,13 +133,31 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
   // Recalculate scroll bounds when comments are loaded
   useEffect(() => {
     if (backScrollRef.current && isFlipped) {
-      // Force browser to recalculate layout
-      void backScrollRef.current.offsetHeight
-      // Ensure scroll bounds are valid
-      const maxScroll = backScrollRef.current.scrollHeight - backScrollRef.current.clientHeight
-      if (backScrollRef.current.scrollTop > maxScroll) {
-        backScrollRef.current.scrollTop = maxScroll
-      }
+      // Use requestAnimationFrame to ensure DOM has updated
+      requestAnimationFrame(() => {
+        if (backScrollRef.current) {
+          // Force browser to recalculate layout multiple ways
+          void backScrollRef.current.offsetHeight
+          void backScrollRef.current.scrollHeight
+          
+          // Ensure scroll bounds are valid
+          const maxScroll = backScrollRef.current.scrollHeight - backScrollRef.current.clientHeight
+          
+          // If we're past the max, clamp it
+          if (backScrollRef.current.scrollTop > maxScroll) {
+            backScrollRef.current.scrollTop = maxScroll
+          }
+          
+          // Debug: log scroll info
+          console.log('Scroll recalculation:', {
+            scrollHeight: backScrollRef.current.scrollHeight,
+            clientHeight: backScrollRef.current.clientHeight,
+            scrollTop: backScrollRef.current.scrollTop,
+            maxScroll,
+            visibleComments: visibleShowComments
+          })
+        }
+      })
     }
   }, [visibleShowComments, isFlipped])
 
@@ -1037,6 +1055,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
         /* Inner wrapper to ensure content height is calculated correctly */
         .card-back-inner {
           min-height: min-content;
+          width: 100%;
         }
 
         .close-btn {
