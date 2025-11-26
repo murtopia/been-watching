@@ -137,6 +137,25 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
 
   const cardRef = useRef<HTMLDivElement>(null)
   const commentInputRef = useRef<HTMLTextAreaElement>(null)
+  const backScrollRef = useRef<HTMLDivElement>(null)
+  const touchStartY = useRef<number>(0)
+  const scrollStartY = useRef<number>(0)
+
+  // JavaScript-based scroll for back card (iOS 3D transform workaround)
+  const handleBackTouchStart = (e: React.TouchEvent) => {
+    if (backScrollRef.current) {
+      touchStartY.current = e.touches[0].clientY
+      scrollStartY.current = backScrollRef.current.scrollTop
+    }
+  }
+
+  const handleBackTouchMove = (e: React.TouchEvent) => {
+    if (backScrollRef.current) {
+      const touchY = e.touches[0].clientY
+      const deltaY = touchStartY.current - touchY
+      backScrollRef.current.scrollTop = scrollStartY.current + deltaY
+    }
+  }
 
   const flipCard = () => {
     setIsFlipped(!isFlipped)
@@ -1490,7 +1509,12 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
             </button>
 
             <div className="card-back-scroll-wrapper">
-            <div className="card-back-content">
+            <div 
+              className="card-back-content"
+              ref={backScrollRef}
+              onTouchStart={handleBackTouchStart}
+              onTouchMove={handleBackTouchMove}
+            >
               {/* Title Section */}
               <div className="back-title-section">
                 <h1 className="back-title">
