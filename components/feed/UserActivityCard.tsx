@@ -326,6 +326,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           backface-visibility: hidden;
           -webkit-backface-visibility: hidden;
           border-radius: 16px;
+          overflow: hidden; /* Ensure content is clipped to card bounds */
         }
 
         .card-front {
@@ -1277,15 +1278,15 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
 
         .comment-input {
           width: 100%;
-          padding: 0.75rem;
+          padding: 10px 12px;
           border: 1px solid rgba(255, 255, 255, 0.15);
           border-radius: 8px;
           background: rgba(255, 255, 255, 0.05);
           color: white;
-          font-size: 16px; /* 16px minimum prevents iOS auto-zoom on focus */
+          font-size: 14px;
           outline: none;
           resize: none;
-          min-height: 80px;
+          min-height: 50px;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
         }
 
