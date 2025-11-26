@@ -72,13 +72,24 @@ export async function GET(request: NextRequest) {
 
     if (!showAllUsers) {
       // Only show activities from followed users
-      activitiesQuery = activitiesQuery.in('user_id', 
-        supabase
-          .from('follows')
-          .select('following_id')
-          .eq('follower_id', user.id)
-          .eq('status', 'accepted')
-      )
+      const { data: follows } = await supabase
+        .from('follows')
+        .select('following_id')
+        .eq('follower_id', user.id)
+        .eq('status', 'accepted')
+      
+      const followedUserIds = follows?.map(f => f.following_id) || []
+      if (followedUserIds.length > 0) {
+        activitiesQuery = activitiesQuery.in('user_id', followedUserIds)
+      } else {
+        // No followed users, return empty result
+        return NextResponse.json({
+          items: [],
+          hasMore: false,
+          limit,
+          offset
+        })
+      }
     }
 
     const { data: activities, error: activitiesError } = await activitiesQuery
