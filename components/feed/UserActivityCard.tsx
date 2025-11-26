@@ -251,7 +251,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
         .card-back {
           transform: rotateY(180deg);
           background: linear-gradient(to bottom, #1a1a1a 0%, #0a0a0a 100%);
-          overflow: hidden;
+          overflow: visible;
           z-index: 1;
         }
 
@@ -576,6 +576,12 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           border-color: rgba(255, 255, 255, 0.3);
         }
 
+        /* Touch feedback for mobile */
+        .action-modal-item:active .action-modal-icon {
+          background: rgba(255, 59, 92, 0.25);
+          border-color: rgba(255, 59, 92, 0.5);
+        }
+
         .action-modal-icon.active {
           background: rgba(255, 59, 92, 0.15);
           border-color: #FF3B5C;
@@ -834,7 +840,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           border-radius: 8px;
           padding: 8px 12px;
           color: white;
-          font-size: 13px;
+          font-size: 16px; /* 16px minimum prevents iOS auto-zoom on focus */
           outline: none;
           resize: none;
           min-height: 40px;
@@ -1209,7 +1215,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           border-radius: 8px;
           background: rgba(255, 255, 255, 0.05);
           color: white;
-          font-size: 13px;
+          font-size: 16px; /* 16px minimum prevents iOS auto-zoom on focus */
           outline: none;
           resize: none;
           min-height: 80px;
