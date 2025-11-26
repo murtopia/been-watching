@@ -83,11 +83,6 @@ export interface UserActivityCardData {
     likes: number
     userLiked: boolean
   }>
-  similarShows: Array<{
-    id: string
-    title: string
-    gradient: string
-  }>
 }
 
 interface UserActivityCardProps {
@@ -138,25 +133,14 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
   const cardRef = useRef<HTMLDivElement>(null)
   const commentInputRef = useRef<HTMLTextAreaElement>(null)
   const backScrollRef = useRef<HTMLDivElement>(null)
-  const similarShowsRef = useRef<HTMLDivElement>(null)
   const touchStartY = useRef<number>(0)
   const scrollStartY = useRef<number>(0)
   const velocityY = useRef<number>(0)
   const lastTouchY = useRef<number>(0)
   const lastMoveTime = useRef<number>(0)
   const momentumRAF = useRef<number | null>(null)
-  const isTouchOnSimilarShows = useRef<boolean>(false)
-
   // iOS-style momentum scroll for back card (3D transform workaround)
   const handleBackTouchStart = (e: React.TouchEvent) => {
-    // Check if touch started on similar shows - if so, let native horizontal scroll handle it
-    const target = e.target as HTMLElement
-    if (similarShowsRef.current?.contains(target)) {
-      isTouchOnSimilarShows.current = true
-      return // Don't interfere with similar shows horizontal scroll
-    }
-    isTouchOnSimilarShows.current = false
-    
     // Cancel any ongoing momentum animation
     if (momentumRAF.current) {
       cancelAnimationFrame(momentumRAF.current)
@@ -173,8 +157,6 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
   }
 
   const handleBackTouchMove = (e: React.TouchEvent) => {
-    // If touch started on similar shows, don't interfere
-    if (isTouchOnSimilarShows.current) return
     if (!backScrollRef.current) return
     
     const now = Date.now()
@@ -196,12 +178,6 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
   }
 
   const handleBackTouchEnd = () => {
-    // If touch was on similar shows, skip our momentum
-    if (isTouchOnSimilarShows.current) {
-      isTouchOnSimilarShows.current = false
-      return
-    }
-    
     if (!backScrollRef.current) return
     
     // Use the tracked velocity (convert from px/ms to px/frame at 60fps)
@@ -1236,46 +1212,6 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
 
         /* Friends Ratings styles moved to globals.css */
 
-        .similar-shows {
-          display: flex;
-          gap: 12px;
-          overflow-x: auto;
-          -webkit-overflow-scrolling: touch;
-          touch-action: auto; /* Let native scroll handle this */
-          padding-bottom: 10px;
-        }
-
-        .similar-show {
-          flex-shrink: 0;
-          width: 100px;
-          height: 150px;
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 8px;
-          display: flex;
-          align-items: flex-end;
-          padding: 8px;
-          position: relative;
-          overflow: hidden;
-          cursor: pointer;
-        }
-
-        .similar-show::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-        }
-
-        .similar-show-title {
-          font-size: 11px;
-          font-weight: 600;
-          position: relative;
-          z-index: 1;
-        }
-
         .show-comments-list {
           display: flex;
           flex-direction: column;
@@ -1840,27 +1776,6 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                 </div>
               </div>
 
-              {/* Related Shows */}
-              <div className="back-section">
-                <h3 className="back-section-title">Related Shows</h3>
-                <div 
-                  className="similar-shows" 
-                  ref={similarShowsRef}
-                  onTouchStart={(e) => e.stopPropagation()}
-                  onTouchMove={(e) => e.stopPropagation()}
-                  onTouchEnd={(e) => e.stopPropagation()}
-                >
-                  {data.similarShows.map((show) => (
-                    <div
-                      key={show.id}
-                      className="similar-show"
-                      style={{ background: show.gradient }}
-                    >
-                      <div className="similar-show-title">{show.title}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
             </div>{/* end card-back-scroll-wrapper */}
           </div>
