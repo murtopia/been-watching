@@ -133,30 +133,35 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
   // Recalculate scroll bounds when comments are loaded
   useEffect(() => {
     if (backScrollRef.current && isFlipped) {
-      // Use requestAnimationFrame to ensure DOM has updated
+      // Use double RAF to ensure DOM has fully updated
       requestAnimationFrame(() => {
-        if (backScrollRef.current) {
-          // Force browser to recalculate layout multiple ways
-          void backScrollRef.current.offsetHeight
-          void backScrollRef.current.scrollHeight
-          
-          // Ensure scroll bounds are valid
-          const maxScroll = backScrollRef.current.scrollHeight - backScrollRef.current.clientHeight
-          
-          // If we're past the max, clamp it
-          if (backScrollRef.current.scrollTop > maxScroll) {
-            backScrollRef.current.scrollTop = maxScroll
+        requestAnimationFrame(() => {
+          if (backScrollRef.current) {
+            // Force browser to recalculate layout
+            void backScrollRef.current.offsetHeight
+            void backScrollRef.current.scrollHeight
+            
+            // Recalculate bounds
+            const scrollHeight = backScrollRef.current.scrollHeight
+            const clientHeight = backScrollRef.current.clientHeight
+            const maxScroll = Math.max(0, scrollHeight - clientHeight)
+            
+            // Don't clamp if user is scrolling - let them reach the bottom
+            // Only clamp if we're way past (which shouldn't happen)
+            if (backScrollRef.current.scrollTop > maxScroll + 100) {
+              backScrollRef.current.scrollTop = maxScroll
+            }
+            
+            // Debug: log scroll info
+            console.log('Scroll recalculation:', {
+              scrollHeight,
+              clientHeight,
+              scrollTop: backScrollRef.current.scrollTop,
+              maxScroll,
+              visibleComments: visibleShowComments
+            })
           }
-          
-          // Debug: log scroll info (commented out for production)
-          // console.log('Scroll recalculation:', {
-          //   scrollHeight: backScrollRef.current.scrollHeight,
-          //   clientHeight: backScrollRef.current.clientHeight,
-          //   scrollTop: backScrollRef.current.scrollTop,
-          //   maxScroll,
-          //   visibleComments: visibleShowComments
-          // })
-        }
+        })
       })
     }
   }, [visibleShowComments, isFlipped])
@@ -202,10 +207,17 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
       velocityY.current = 0.8 * velocityY.current + 0.2 * (dy / dt)
     }
     
-    // Clamp scrollTop to valid bounds
-    const maxScroll = backScrollRef.current.scrollHeight - backScrollRef.current.clientHeight
+    // Calculate new scroll position
     const newScrollTop = scrollStartY.current + deltaYFromStart
-    const clampedScrollTop = Math.max(0, Math.min(newScrollTop, maxScroll))
+    
+    // Get current scroll bounds (recalculate on every move in case content changed)
+    const scrollHeight = backScrollRef.current.scrollHeight
+    const clientHeight = backScrollRef.current.clientHeight
+    const maxScroll = Math.max(0, scrollHeight - clientHeight)
+    
+    // Allow slight over-scroll for better feel, but clamp to reasonable bounds
+    // Add 50px buffer to allow scrolling past calculated max (handles dynamic content)
+    const clampedScrollTop = Math.max(-50, Math.min(newScrollTop, maxScroll + 50))
     backScrollRef.current.scrollTop = clampedScrollTop
     
     lastTouchY.current = touchY
