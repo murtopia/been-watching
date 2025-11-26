@@ -3,7 +3,14 @@ import { Resend } from 'resend'
 import { createClient } from '@/utils/supabase/server'
 import { checkAdminAccess } from '@/utils/admin/permissions'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Initialize Resend lazily to avoid build-time errors when env var is not available
+let resend: Resend | null = null
+function getResend() {
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY)
+  }
+  return resend
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send email via Resend
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: 'Been Watching <hello@boxoffice.beenwatching.com>',
       to: Array.isArray(to) ? to : [to],
       subject,
