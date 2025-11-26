@@ -1580,6 +1580,9 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
             <div 
               className="card-back-content"
               ref={backScrollRef}
+              onTouchStart={handleBackTouchStart}
+              onTouchMove={handleBackTouchMove}
+              onTouchEnd={handleBackTouchEnd}
             >
               {/* Title Section */}
               <div className="back-title-section">
