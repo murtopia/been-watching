@@ -184,15 +184,22 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
     // Only apply momentum if the touch ended recently (not a long press)
     if (timeDelta < 100) {
       const touchEndY = e.changedTouches[0].clientY
-      const totalTime = now - touchStartTime.current
-      const totalDistance = touchStartY.current - touchEndY
       
-      // Calculate velocity (pixels per millisecond)
-      let velocity = totalDistance / totalTime
+      // Calculate velocity from recent movement (pixels per ms)
+      const recentTime = now - lastTouchTime.current || 16
+      const recentDistance = lastTouchY.current - touchEndY
       
-      // iOS-style deceleration rate (0.998 is close to iOS)
-      const deceleration = 0.998
-      const minVelocity = 0.1
+      // Use recent velocity, clamped to reasonable range
+      // Multiply by 16 to convert from px/ms to px/frame
+      let velocity = (recentDistance / recentTime) * 16
+      
+      // Clamp initial velocity to prevent crazy fast scrolling
+      const maxVelocity = 50 // max pixels per frame
+      velocity = Math.max(-maxVelocity, Math.min(maxVelocity, velocity))
+      
+      // Apple PastryKit uses 0.95 deceleration per frame (time constant ~325ms)
+      const deceleration = 0.95
+      const minVelocity = 0.5 // Stop when velocity is negligible
       
       const animateMomentum = () => {
         if (!backScrollRef.current || Math.abs(velocity) < minVelocity) {
@@ -200,15 +207,15 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           return
         }
         
-        backScrollRef.current.scrollTop += velocity * 16 // ~16ms per frame
+        backScrollRef.current.scrollTop += velocity
         velocity *= deceleration
         
-        // Reduce velocity faster as we approach edges (rubber band simulation)
+        // Stop at edges
         const scrollTop = backScrollRef.current.scrollTop
         const maxScroll = backScrollRef.current.scrollHeight - backScrollRef.current.clientHeight
         
         if (scrollTop <= 0 || scrollTop >= maxScroll) {
-          velocity *= 0.5 // Rapid deceleration at edges
+          velocity = 0 // Stop at edges
         }
         
         momentumRAF.current = requestAnimationFrame(animateMomentum)
