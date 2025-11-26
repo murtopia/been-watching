@@ -12,22 +12,25 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient()
 
     // Check authentication and admin status
-    const { hasAccess, user } = await checkAdminAccess()
+    const { hasAccess, userId } = await checkAdminAccess()
 
-    if (!hasAccess) {
+    if (!hasAccess || !userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    // Get user auth data for email
+    const { data: { user } } = await supabase.auth.getUser()
 
     // Get user profile info for the test email
     const { data: profile } = await supabase
       .from('profiles')
       .select('display_name, username')
-      .eq('id', user!.id)
+      .eq('id', userId)
       .single()
 
     // Generate sample email data
     const sampleData = {
-      userName: profile.display_name || profile.username || 'there',
+      userName: profile?.display_name || profile?.username || 'there',
       friendActivities: [
         {
           friendName: 'Taylor',

@@ -6,6 +6,7 @@
  */
 
 import { createClient } from '@/utils/supabase/server'
+import type { AdminRole } from '@/utils/admin/roles'
 
 // Re-export AdminRole type from roles.ts (client-safe)
 export type { AdminRole } from '@/utils/admin/roles'
