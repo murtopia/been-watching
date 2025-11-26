@@ -217,7 +217,7 @@ export default function Card1MobileTestPage() {
       `}</style>
       <div style={{
         height: '100vh',
-        background: '#0a0a0a',
+        background: '#f5f5f5',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -242,11 +242,11 @@ export default function Card1MobileTestPage() {
           color: '#3B82F6',
           margin: '0 0 8px 0'
         }}>
-          🧪 React Card 1 - Mobile Test v5
+          🧪 React Card 1 - Mobile Test v6
         </h1>
         <p style={{
           fontSize: '13px',
-          color: 'rgba(255,255,255,0.7)',
+          color: 'rgba(0,0,0,0.6)',
           margin: 0,
           lineHeight: '1.4'
         }}>
@@ -292,7 +292,7 @@ export default function Card1MobileTestPage() {
         maxWidth: '398px',
         marginTop: '16px',
         padding: '16px',
-        background: 'rgba(255, 255, 255, 0.05)',
+        background: 'rgba(0, 0, 0, 0.05)',
         borderRadius: '12px'
       }}>
         <h2 style={{
@@ -308,7 +308,7 @@ export default function Card1MobileTestPage() {
           padding: 0,
           margin: 0,
           fontSize: '13px',
-          color: 'rgba(255,255,255,0.8)',
+          color: 'rgba(0,0,0,0.7)',
           lineHeight: '2'
         }}>
           <li>→ Tap menu dots (top right) to flip card</li>
@@ -326,10 +326,10 @@ export default function Card1MobileTestPage() {
         style={{
           marginTop: '16px',
           padding: '8px 16px',
-          background: 'rgba(255,255,255,0.1)',
-          border: '1px solid rgba(255,255,255,0.2)',
+          background: 'rgba(0,0,0,0.1)',
+          border: '1px solid rgba(0,0,0,0.2)',
           borderRadius: '8px',
-          color: 'rgba(255,255,255,0.7)',
+          color: 'rgba(0,0,0,0.7)',
           fontSize: '12px',
           cursor: 'pointer'
         }}
@@ -365,7 +365,7 @@ export default function Card1MobileTestPage() {
         marginTop: '20px',
         textAlign: 'center',
         fontSize: '11px',
-        color: 'rgba(255,255,255,0.4)'
+        color: 'rgba(0,0,0,0.4)'
       }}>
         Card 1 of 8 | React Component Test | Been Watching
       </div>
