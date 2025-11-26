@@ -139,12 +139,26 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
   const commentInputRef = useRef<HTMLTextAreaElement>(null)
   const backScrollRef = useRef<HTMLDivElement>(null)
   const touchStartY = useRef<number>(0)
+  const touchStartTime = useRef<number>(0)
+  const lastTouchY = useRef<number>(0)
+  const lastTouchTime = useRef<number>(0)
   const scrollStartY = useRef<number>(0)
+  const momentumRAF = useRef<number | null>(null)
 
-  // JavaScript-based scroll for back card (iOS 3D transform workaround)
+  // iOS-style momentum scroll for back card (3D transform workaround)
   const handleBackTouchStart = (e: React.TouchEvent) => {
+    // Cancel any ongoing momentum animation
+    if (momentumRAF.current) {
+      cancelAnimationFrame(momentumRAF.current)
+      momentumRAF.current = null
+    }
+    
     if (backScrollRef.current) {
+      const now = Date.now()
       touchStartY.current = e.touches[0].clientY
+      touchStartTime.current = now
+      lastTouchY.current = e.touches[0].clientY
+      lastTouchTime.current = now
       scrollStartY.current = backScrollRef.current.scrollTop
     }
   }
@@ -154,6 +168,53 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
       const touchY = e.touches[0].clientY
       const deltaY = touchStartY.current - touchY
       backScrollRef.current.scrollTop = scrollStartY.current + deltaY
+      
+      // Track for velocity calculation
+      lastTouchY.current = touchY
+      lastTouchTime.current = Date.now()
+    }
+  }
+
+  const handleBackTouchEnd = (e: React.TouchEvent) => {
+    if (!backScrollRef.current) return
+    
+    const now = Date.now()
+    const timeDelta = now - lastTouchTime.current
+    
+    // Only apply momentum if the touch ended recently (not a long press)
+    if (timeDelta < 100) {
+      const touchEndY = e.changedTouches[0].clientY
+      const totalTime = now - touchStartTime.current
+      const totalDistance = touchStartY.current - touchEndY
+      
+      // Calculate velocity (pixels per millisecond)
+      let velocity = totalDistance / totalTime
+      
+      // iOS-style deceleration rate (0.998 is close to iOS)
+      const deceleration = 0.998
+      const minVelocity = 0.1
+      
+      const animateMomentum = () => {
+        if (!backScrollRef.current || Math.abs(velocity) < minVelocity) {
+          momentumRAF.current = null
+          return
+        }
+        
+        backScrollRef.current.scrollTop += velocity * 16 // ~16ms per frame
+        velocity *= deceleration
+        
+        // Reduce velocity faster as we approach edges (rubber band simulation)
+        const scrollTop = backScrollRef.current.scrollTop
+        const maxScroll = backScrollRef.current.scrollHeight - backScrollRef.current.clientHeight
+        
+        if (scrollTop <= 0 || scrollTop >= maxScroll) {
+          velocity *= 0.5 // Rapid deceleration at edges
+        }
+        
+        momentumRAF.current = requestAnimationFrame(animateMomentum)
+      }
+      
+      momentumRAF.current = requestAnimationFrame(animateMomentum)
     }
   }
 
@@ -1514,6 +1575,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
               ref={backScrollRef}
               onTouchStart={handleBackTouchStart}
               onTouchMove={handleBackTouchMove}
+              onTouchEnd={handleBackTouchEnd}
             >
               {/* Title Section */}
               <div className="back-title-section">
