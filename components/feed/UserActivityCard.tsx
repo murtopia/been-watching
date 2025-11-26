@@ -267,10 +267,11 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
         return
       }
       
-      // Recalculate maxScroll on every frame (content might have changed)
-      const scrollHeight = backScrollRef.current.scrollHeight
+      // Recalculate maxScroll on every frame using actual content height
+      const innerWrapper = backScrollRef.current.querySelector('.card-back-inner') as HTMLElement
+      const innerHeight = innerWrapper?.offsetHeight || backScrollRef.current.scrollHeight
       const clientHeight = backScrollRef.current.clientHeight
-      const maxScroll = Math.max(0, scrollHeight - clientHeight)
+      const maxScroll = Math.max(0, innerHeight - clientHeight)
       const currentScrollTop = backScrollRef.current.scrollTop
       
       // Clamp to valid bounds before applying velocity
@@ -290,15 +291,6 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
       const newScrollTop = currentScrollTop + velocity
       const clampedNewScroll = Math.max(0, Math.min(newScrollTop, maxScroll))
       backScrollRef.current.scrollTop = clampedNewScroll
-      
-      // If browser clamped it differently, adjust velocity
-      const actualScrollTop = backScrollRef.current.scrollTop
-      if (actualScrollTop !== clampedNewScroll) {
-        // Browser clamped it - stop momentum
-        velocity = 0
-        momentumRAF.current = null
-        return
-      }
       
       velocity *= decelerationPerFrame
       
