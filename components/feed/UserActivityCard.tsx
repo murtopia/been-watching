@@ -1001,12 +1001,10 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
         
         /* Back of card styles - scrollable container */
         .card-back-content {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
+          width: 100%;
+          height: 100%;
           padding: 0 16px 20px 16px;
+          box-sizing: border-box;
           overflow-y: scroll;
           overflow-x: hidden;
           -webkit-overflow-scrolling: touch;
@@ -1288,10 +1286,10 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           border-radius: 8px;
           background: rgba(255, 255, 255, 0.05);
           color: white;
-          font-size: 16px; /* 16px prevents iOS auto-zoom on focus */
+          font-size: 13px; /* Match comment text size */
           outline: none;
           resize: none;
-          min-height: 50px;
+          min-height: 44px;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
         }
 
