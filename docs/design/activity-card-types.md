@@ -195,6 +195,39 @@ Been Watching is a social media application for tracking and sharing TV shows an
 
 ---
 
+### 8. "You Might Like" Recommendation Card
+**Purpose**: Advanced algorithmic recommendation based on taste matching with similar users. Helps users discover shows they wouldn't find otherwise.
+**Content Structure**:
+- **Glassmorphic badge**: "✨ You Might Like This"
+  - Blue gradient background: `rgba(59, 130, 246, 0.25)`
+  - Sparkles icon (16px)
+  - 8px/14px padding, 13px font, 700 weight, border
+- **Match Score** (prominent feature):
+  - Large sparkles icon with percentage (e.g., "87% Match")
+  - Font: 18px, bold
+  - Builds confidence in recommendation
+- **Algorithm Explanation**:
+  - "Based on users like you"
+  - "Users with similar taste loved this"
+- Show title with season
+- Metadata: Year • Genre • Rating
+
+**Display Rules**:
+- User has rated 10+ shows (enough data for algorithm)
+- System finds users with 75%+ taste match score
+- Matched user loved a show current user hasn't seen
+- Show is not already in user's watchlist
+
+**Actions** (right side - simplified):
+- Add button (opens watchlist modal)
+- Share button
+
+**Template**: Template B (same as Cards 2, 3, 5)
+
+**Visual**: Show artwork background with prominent match score display
+
+---
+
 ## Technical Implementation Details
 
 ### Card Container Structure

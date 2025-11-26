@@ -10,6 +10,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { Icon } from '@/components/ui/Icon'
+import { ShareButton } from '@/components/sharing/ShareButton'
 
 // ============================================================================
 // TypeScript Interfaces
@@ -1514,8 +1515,8 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                 <button className="back-icon-btn" onClick={handleCommentIconClick}>
                   <Icon name="comment" size={22} color="white" />
                 </button>
-                <button className="back-icon-btn">
-                  <Icon name="share" size={20} color="white" />
+                <button className="back-icon-btn" onClick={onShare}>
+                  <Icon name="share" size={22} color="white" />
                 </button>
               </div>
 

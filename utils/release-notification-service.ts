@@ -161,7 +161,7 @@ async function checkUpcomingMovieReleases(
         // Save movie to database first
         await supabase
           .from('media')
-          .insert({
+          .upsert({
             id: mediaId,
             tmdb_id: movie.id,
             media_type: 'movie',
@@ -172,9 +172,7 @@ async function checkUpcomingMovieReleases(
             release_date: movie.release_date,
             vote_average: movie.vote_average,
             tmdb_data: movie
-          })
-          .onConflict('id')
-          .ignore()
+          }, { onConflict: 'id', ignoreDuplicates: true })
       }
 
       notifications.push({
@@ -327,9 +325,7 @@ export async function checkUserReleases(
     if (allNotifications.length > 0) {
       await supabase
         .from('release_notifications')
-        .insert(allNotifications)
-        .onConflict('id')
-        .ignore()
+        .upsert(allNotifications, { onConflict: 'user_id,media_id', ignoreDuplicates: true })
     }
   } catch (error) {
     console.error(`Error checking releases for user ${userId}:`, error)

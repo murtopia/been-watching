@@ -8,7 +8,7 @@
 
 ## Current Objective
 
-Building a feed mockup with 7 different card types based on the approved `single-card-interactive.html` template.
+Building a feed mockup with 8 different card types based on the approved `single-card-interactive.html` template.
 
 ## Session Progress
 
@@ -52,6 +52,7 @@ Strategy: Copy the working `single-card-interactive.html` file, update it for Ca
 5. **Now Streaming** - ⏳ TO DO
 6. **Top 3 Update** - ⏳ TO DO
 7. **Follow Suggestions** - ⏳ TO DO (unique structure, no flip)
+8. **"You Might Like"** - ⏳ TO DO (algorithmic recommendation)
 
 ---
 

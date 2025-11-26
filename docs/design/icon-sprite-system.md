@@ -758,7 +758,7 @@ Compare icon renders against baseline screenshots.
 
 ### File Size Comparison
 
-**Before (Inline SVGs in 7 cards):**
+**Before (Inline SVGs in 8 cards):**
 - Card 1: 83 inline SVG instances × ~150 bytes = 12.5 KB
 - Cards 2-7: Similar
 - **Total:** ~87.5 KB of SVG code
@@ -766,7 +766,7 @@ Compare icon renders against baseline screenshots.
 **After (Sprite Sheet):**
 - Sprite file: 28 icons × 120 bytes = ~3.4 KB (minified)
 - Reference per use: `<use xlinkHref=...>` = ~50 bytes
-- **Total:** 3.4 KB + (7 cards × 15 uses × 50 bytes) = ~8.6 KB
+- **Total:** 3.4 KB + (8 cards × 15 uses × 50 bytes) = ~9.4 KB
 
 **Savings:** ~78.9 KB (~90% reduction)
 
@@ -798,7 +798,8 @@ Compare icon renders against baseline screenshots.
 1. Update Card 1 template to use `<Icon>`
 2. Update Cards 2-6 templates
 3. Update Card 7 template
-4. Visual regression testing
+4. Update Card 8 template
+5. Visual regression testing
 5. Performance benchmarking
 
 ### Phase 4: Admin Integration (Week 5)

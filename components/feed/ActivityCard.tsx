@@ -12,6 +12,7 @@ interface ActivityCardProps {
   activity: {
     id: string
     user: {
+      id?: string
       username: string
       display_name: string
       avatar_url?: string

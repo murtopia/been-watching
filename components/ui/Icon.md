@@ -476,8 +476,8 @@ The icon system uses a sprite sheet which provides:
 - **No JavaScript bundle impact** (pure SVG)
 
 ### Before (Inline SVGs):
-- 7 cards × 15 icons × 150 bytes = ~15.7 KB per card
-- Total: ~110 KB across all cards
+- 8 cards × 15 icons × 150 bytes = ~15.7 KB per card
+- Total: ~126 KB across all cards
 
 ### After (Sprite Sheet):
 - Sprite file: ~3.4 KB (minified & gzipped)

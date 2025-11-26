@@ -186,7 +186,11 @@ export default function MediaCard({
               season={!seasonNumber && mediaType === 'tv' ? (media.tmdb_data?.number_of_seasons || media.number_of_seasons || 1) : undefined}
               networks={media.tmdb_data?.networks || media.networks || []}
               showTrailer={!!trailerKey}
-              onTrailerClick={handleTrailerClick}
+              onTrailerClick={() => {
+                if (trailerKey) {
+                  window.open(`https://www.youtube.com/watch?v=${trailerKey}`, '_blank')
+                }
+              }}
             />
           </div>
           {showOverview && media.overview && (
