@@ -139,11 +139,13 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
   const commentInputRef = useRef<HTMLTextAreaElement>(null)
   const backScrollRef = useRef<HTMLDivElement>(null)
   const touchStartY = useRef<number>(0)
+  const touchStartX = useRef<number>(0)
   const scrollStartY = useRef<number>(0)
   const velocityY = useRef<number>(0)
   const lastTouchY = useRef<number>(0)
   const lastMoveTime = useRef<number>(0)
   const momentumRAF = useRef<number | null>(null)
+  const isHorizontalScroll = useRef<boolean | null>(null) // null = not determined yet
 
   // iOS-style momentum scroll for back card (3D transform workaround)
   const handleBackTouchStart = (e: React.TouchEvent) => {
@@ -155,35 +157,57 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
     
     if (backScrollRef.current) {
       touchStartY.current = e.touches[0].clientY
+      touchStartX.current = e.touches[0].clientX
       lastTouchY.current = e.touches[0].clientY
       lastMoveTime.current = Date.now()
       scrollStartY.current = backScrollRef.current.scrollTop
       velocityY.current = 0
+      isHorizontalScroll.current = null // Reset scroll direction detection
     }
   }
 
   const handleBackTouchMove = (e: React.TouchEvent) => {
-    if (backScrollRef.current) {
-      const now = Date.now()
-      const touchY = e.touches[0].clientY
-      const deltaY = touchStartY.current - touchY
-      
-      // Calculate instantaneous velocity (pixels per ms)
-      const dt = now - lastMoveTime.current
-      if (dt > 0) {
-        const dy = lastTouchY.current - touchY
-        // Smooth velocity with previous value for stability
-        velocityY.current = 0.8 * velocityY.current + 0.2 * (dy / dt)
-      }
-      
-      backScrollRef.current.scrollTop = scrollStartY.current + deltaY
-      
-      lastTouchY.current = touchY
-      lastMoveTime.current = now
+    if (!backScrollRef.current) return
+    
+    const touchX = e.touches[0].clientX
+    const touchY = e.touches[0].clientY
+    const deltaX = Math.abs(touchX - touchStartX.current)
+    const deltaY = Math.abs(touchY - touchStartY.current)
+    
+    // Determine scroll direction on first significant movement
+    if (isHorizontalScroll.current === null && (deltaX > 10 || deltaY > 10)) {
+      isHorizontalScroll.current = deltaX > deltaY
     }
+    
+    // If horizontal scroll, let native scroll handle it (for similar shows)
+    if (isHorizontalScroll.current) {
+      return
+    }
+    
+    const now = Date.now()
+    const deltaYFromStart = touchStartY.current - touchY
+    
+    // Calculate instantaneous velocity (pixels per ms)
+    const dt = now - lastMoveTime.current
+    if (dt > 0) {
+      const dy = lastTouchY.current - touchY
+      // Smooth velocity with previous value for stability
+      velocityY.current = 0.8 * velocityY.current + 0.2 * (dy / dt)
+    }
+    
+    backScrollRef.current.scrollTop = scrollStartY.current + deltaYFromStart
+    
+    lastTouchY.current = touchY
+    lastMoveTime.current = now
   }
 
   const handleBackTouchEnd = () => {
+    // If it was a horizontal scroll, skip momentum
+    if (isHorizontalScroll.current) {
+      isHorizontalScroll.current = null
+      return
+    }
+    
     if (!backScrollRef.current) return
     
     // Use the tracked velocity (convert from px/ms to px/frame at 60fps)
@@ -1011,7 +1035,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           left: 0;
           right: 0;
           bottom: 0;
-          padding: 0 16px 20px 16px;
+          padding: 0 16px 60px 16px; /* Extra bottom padding for last comment */
           overflow-y: scroll;
           overflow-x: hidden;
           -webkit-overflow-scrolling: touch;
@@ -1222,6 +1246,8 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           display: flex;
           gap: 12px;
           overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          touch-action: pan-x; /* Allow horizontal scroll on mobile */
           padding-bottom: 10px;
         }
 
