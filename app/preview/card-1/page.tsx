@@ -211,15 +211,26 @@ export default function Card1MobileTestPage() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#0a0a0a',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      padding: '20px 10px',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-    }}>
+    <>
+      {/* Lock page scroll to isolate card scroll testing */}
+      <style>{`
+        html, body {
+          overflow: hidden !important;
+          height: 100% !important;
+          position: fixed !important;
+          width: 100% !important;
+        }
+      `}</style>
+      <div style={{
+        height: '100vh',
+        background: '#0a0a0a',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        padding: '20px 10px',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        overflow: 'hidden'
+      }}>
       {/* Test Header */}
       <div style={{
         width: '100%',
@@ -365,6 +376,7 @@ export default function Card1MobileTestPage() {
         Card 1 of 8 | React Component Test | Been Watching
       </div>
     </div>
+    </>
   )
 }
 
