@@ -130,6 +130,19 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
   const [activityCommentText, setActivityCommentText] = useState('') // Track activity comment input
   const [pressedIcon, setPressedIcon] = useState<string | null>(null) // Track which icon is being pressed for touch feedback
 
+  // Recalculate scroll bounds when comments are loaded
+  useEffect(() => {
+    if (backScrollRef.current && isFlipped) {
+      // Force browser to recalculate layout
+      void backScrollRef.current.offsetHeight
+      // Ensure scroll bounds are valid
+      const maxScroll = backScrollRef.current.scrollHeight - backScrollRef.current.clientHeight
+      if (backScrollRef.current.scrollTop > maxScroll) {
+        backScrollRef.current.scrollTop = maxScroll
+      }
+    }
+  }, [visibleShowComments, isFlipped])
+
   const cardRef = useRef<HTMLDivElement>(null)
   const commentInputRef = useRef<HTMLTextAreaElement>(null)
   const backScrollRef = useRef<HTMLDivElement>(null)
@@ -171,7 +184,11 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
       velocityY.current = 0.8 * velocityY.current + 0.2 * (dy / dt)
     }
     
-    backScrollRef.current.scrollTop = scrollStartY.current + deltaYFromStart
+    // Clamp scrollTop to valid bounds
+    const maxScroll = backScrollRef.current.scrollHeight - backScrollRef.current.clientHeight
+    const newScrollTop = scrollStartY.current + deltaYFromStart
+    const clampedScrollTop = Math.max(0, Math.min(newScrollTop, maxScroll))
+    backScrollRef.current.scrollTop = clampedScrollTop
     
     lastTouchY.current = touchY
     lastMoveTime.current = now
@@ -940,6 +957,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
 
         .activity-comment-input::placeholder {
           color: rgba(255, 255, 255, 0.5);
+          font-size: 13px; /* Match comment text size */
         }
 
         .activity-comment-actions {
@@ -1303,6 +1321,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
 
         .comment-input::placeholder {
           color: rgba(255, 255, 255, 0.5);
+          font-size: 13px; /* Match comment text size */
         }
 
         .comment-actions {
