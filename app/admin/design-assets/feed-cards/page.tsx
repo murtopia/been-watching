@@ -216,12 +216,6 @@ export default function FeedCardsPreviewPage() {
         likes: 28,
         userLiked: true
       }
-    ],
-    similarShows: [
-      { id: 's1', title: 'Better Call Saul', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
-      { id: 's2', title: 'Ozark', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
-      { id: 's3', title: 'The Sopranos', gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' },
-      { id: 's4', title: 'The Wire', gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' }
     ]
   }
 
