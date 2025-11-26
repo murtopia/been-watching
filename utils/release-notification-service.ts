@@ -342,7 +342,7 @@ export async function checkUserReleases(
  * Check releases for all users (background job)
  */
 export async function checkAllUsersReleases(
-  supabase: ReturnType<typeof createClient>
+  supabase: Awaited<ReturnType<typeof createClient>>
 ): Promise<void> {
   try {
     // Get all users

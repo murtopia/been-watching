@@ -21,6 +21,10 @@ export async function POST(request: NextRequest) {
     // Get user auth data for email
     const { data: { user } } = await supabase.auth.getUser()
 
+    if (!user?.email) {
+      return NextResponse.json({ error: 'User email not found' }, { status: 400 })
+    }
+
     // Get user profile info for the test email
     const { data: profile } = await supabase
       .from('profiles')
