@@ -148,14 +148,14 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
             backScrollRef.current.scrollTop = maxScroll
           }
           
-          // Debug: log scroll info
-          console.log('Scroll recalculation:', {
-            scrollHeight: backScrollRef.current.scrollHeight,
-            clientHeight: backScrollRef.current.clientHeight,
-            scrollTop: backScrollRef.current.scrollTop,
-            maxScroll,
-            visibleComments: visibleShowComments
-          })
+          // Debug: log scroll info (commented out for production)
+          // console.log('Scroll recalculation:', {
+          //   scrollHeight: backScrollRef.current.scrollHeight,
+          //   clientHeight: backScrollRef.current.clientHeight,
+          //   scrollTop: backScrollRef.current.scrollTop,
+          //   maxScroll,
+          //   visibleComments: visibleShowComments
+          // })
         }
       })
     }
@@ -237,16 +237,27 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
         return
       }
       
-      backScrollRef.current.scrollTop += velocity
-      velocity *= decelerationPerFrame
-      
-      // Stop at edges with a bit of bounce resistance
-      const scrollTop = backScrollRef.current.scrollTop
+      // Recalculate maxScroll on every frame (content might have changed)
       const maxScroll = backScrollRef.current.scrollHeight - backScrollRef.current.clientHeight
+      const currentScrollTop = backScrollRef.current.scrollTop
       
-      if (scrollTop <= 0 || scrollTop >= maxScroll) {
+      // Clamp to valid bounds before applying velocity
+      if (currentScrollTop <= 0) {
+        backScrollRef.current.scrollTop = 0
         velocity = 0
+        momentumRAF.current = null
+        return
+      } else if (currentScrollTop >= maxScroll) {
+        backScrollRef.current.scrollTop = maxScroll
+        velocity = 0
+        momentumRAF.current = null
+        return
       }
+      
+      // Apply velocity and clamp result
+      const newScrollTop = currentScrollTop + velocity
+      backScrollRef.current.scrollTop = Math.max(0, Math.min(newScrollTop, maxScroll))
+      velocity *= decelerationPerFrame
       
       momentumRAF.current = requestAnimationFrame(animateMomentum)
     }
