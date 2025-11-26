@@ -1295,6 +1295,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           padding: 10px;
           background: rgba(255, 255, 255, 0.03);
           border-radius: 8px;
+          flex-shrink: 0; /* Prevent comment from being compressed */
         }
 
         .comment-avatar {
@@ -1842,7 +1843,13 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
               {/* Related Shows */}
               <div className="back-section">
                 <h3 className="back-section-title">Related Shows</h3>
-                <div className="similar-shows" ref={similarShowsRef}>
+                <div 
+                  className="similar-shows" 
+                  ref={similarShowsRef}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onTouchMove={(e) => e.stopPropagation()}
+                  onTouchEnd={(e) => e.stopPropagation()}
+                >
                   {data.similarShows.map((show) => (
                     <div
                       key={show.id}
