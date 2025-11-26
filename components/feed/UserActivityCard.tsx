@@ -133,36 +133,42 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
   // Recalculate scroll bounds when comments are loaded
   useEffect(() => {
     if (backScrollRef.current && isFlipped) {
-      // Use setTimeout to ensure DOM has fully rendered after state update
-      setTimeout(() => {
-        if (backScrollRef.current) {
-          // Force browser to recalculate layout by accessing multiple properties
-          const offsetHeight = backScrollRef.current.offsetHeight
-          const scrollHeight = backScrollRef.current.scrollHeight
-          const clientHeight = backScrollRef.current.clientHeight
-          
-          // Also check the inner wrapper if it exists
-          const innerWrapper = backScrollRef.current.querySelector('.card-back-inner') as HTMLElement
-          const innerHeight = innerWrapper?.offsetHeight || 0
-          
-          const maxScroll = Math.max(0, scrollHeight - clientHeight)
-          
-          // Debug: log detailed scroll info
-          console.log('Scroll recalculation:', {
-            scrollHeight,
-            clientHeight,
-            offsetHeight,
-            innerHeight,
-            scrollTop: backScrollRef.current.scrollTop,
-            maxScroll,
-            calculatedMax: scrollHeight - clientHeight,
-            visibleComments: visibleShowComments
+      // Use multiple RAFs to ensure DOM has fully rendered and layout is calculated
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            if (backScrollRef.current) {
+              // Force browser to recalculate layout
+              void backScrollRef.current.offsetHeight
+              
+              // Get the inner wrapper and measure actual content height
+              const innerWrapper = backScrollRef.current.querySelector('.card-back-inner') as HTMLElement
+              const innerHeight = innerWrapper?.offsetHeight || backScrollRef.current.scrollHeight
+              const clientHeight = backScrollRef.current.clientHeight
+              const scrollHeight = backScrollRef.current.scrollHeight
+              
+              // Use innerHeight for maxScroll calculation (more accurate)
+              const maxScroll = Math.max(0, innerHeight - clientHeight)
+              
+              // Debug: log detailed scroll info
+              console.log('Scroll recalculation:', {
+                scrollHeight,
+                clientHeight,
+                innerHeight,
+                scrollTop: backScrollRef.current.scrollTop,
+                maxScroll,
+                calculatedMax: scrollHeight - clientHeight,
+                visibleComments: visibleShowComments
+              })
+              
+              // If we're currently scrolled past the new max, adjust
+              if (backScrollRef.current.scrollTop > maxScroll) {
+                backScrollRef.current.scrollTop = maxScroll
+              }
+            }
           })
-          
-          // Don't auto-clamp - let user scroll naturally
-          // The touch handlers will handle bounds
-        }
-      }, 100) // Small delay to ensure React has rendered
+        })
+      })
     }
   }, [visibleShowComments, isFlipped])
 
