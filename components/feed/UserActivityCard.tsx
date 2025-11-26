@@ -237,11 +237,6 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           transform: rotateY(180deg);
         }
 
-        /* Enable scrolling on back of flipped card */
-        .card.flipped .card-back-content {
-          touch-action: pan-y;
-        }
-
         /* Card faces */
         .card-face {
           position: absolute;
@@ -262,8 +257,6 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           background: linear-gradient(to bottom, #1a1a1a 0%, #0a0a0a 100%);
           overflow: hidden;
           z-index: 1;
-          display: flex;
-          flex-direction: column;
         }
 
         /* Front card styles */
@@ -593,9 +586,10 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           border-color: #FF3B5C !important;
         }
 
+        /* Selected/active state for icons */
         .action-modal-icon.active {
-          background: rgba(255, 59, 92, 0.15);
-          border-color: #FF3B5C;
+          background: rgba(255, 59, 92, 0.2) !important;
+          border-color: #FF3B5C !important;
         }
 
         .action-modal-label {
@@ -913,21 +907,26 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           fill: white;
         }
 
-        /* Back of card styles */
+        /* Back of card styles - scrollable container */
         .card-back-content {
-          padding: 20px 16px;
-          padding-top: 50px;
-          padding-bottom: 20px;
-          flex: 1;
-          width: 100%;
-          height: 100%;
-          overflow-y: auto;
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          padding: 50px 16px 20px 16px;
+          overflow-y: scroll;
           overflow-x: hidden;
           -webkit-overflow-scrolling: touch;
-          overscroll-behavior: contain;
-          touch-action: pan-y;
+          overscroll-behavior-y: contain;
           color: white;
           box-sizing: border-box;
+        }
+        
+        /* iOS-specific: ensure scroll works on transformed elements */
+        .card.flipped .card-back-content {
+          -webkit-transform: translateZ(0);
+          transform: translateZ(0);
         }
 
         .close-btn {
