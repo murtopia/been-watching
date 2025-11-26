@@ -77,7 +77,7 @@ function cosineSimilarity(user1Ratings: UserRating[], user2Ratings: UserRating[]
  * Find similar users based on rating overlap
  */
 async function findSimilarUsers(
-  supabase: ReturnType<typeof createClient>,
+  supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
   minSimilarity: number = 0.3
 ): Promise<Array<{ userId: string; similarity: number }>> {
@@ -127,7 +127,7 @@ async function findSimilarUsers(
  * Collaborative filtering: Recommend media liked by similar users
  */
 async function collaborativeFiltering(
-  supabase: ReturnType<typeof createClient>,
+  supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
   similarUsers: Array<{ userId: string; similarity: number }>,
   limit: number = 50
@@ -209,7 +209,7 @@ async function collaborativeFiltering(
  * Content-based filtering: Recommend media with similar attributes
  */
 async function contentBasedFiltering(
-  supabase: ReturnType<typeof createClient>,
+  supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
   limit: number = 50
 ): Promise<Recommendation[]> {
@@ -338,7 +338,7 @@ async function contentBasedFiltering(
  * Hybrid recommendation: Combine collaborative and content-based
  */
 export async function generateRecommendations(
-  supabase: ReturnType<typeof createClient>,
+  supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
   limit: number = 50
 ): Promise<Recommendation[]> {
@@ -405,7 +405,7 @@ export async function generateRecommendations(
  * Save recommendations to database
  */
 export async function saveRecommendations(
-  supabase: ReturnType<typeof createClient>,
+  supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
   recommendations: Recommendation[]
 ): Promise<void> {

@@ -25,7 +25,7 @@ interface ReleaseNotification {
  * Check for upcoming TV seasons
  */
 async function checkUpcomingTVSeasons(
-  supabase: ReturnType<typeof createClient>,
+  supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
   mediaId: string,
   tmdbId: number
@@ -105,7 +105,7 @@ async function checkUpcomingTVSeasons(
  * Check for new movie releases
  */
 async function checkUpcomingMovieReleases(
-  supabase: ReturnType<typeof createClient>,
+  supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
   daysAhead: number = 30
 ): Promise<ReleaseNotification[]> {
@@ -195,7 +195,7 @@ async function checkUpcomingMovieReleases(
  * Check for movies newly available on streaming
  */
 async function checkStreamingAvailability(
-  supabase: ReturnType<typeof createClient>,
+  supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
   mediaId: string,
   tmdbId: number
@@ -253,7 +253,7 @@ async function checkStreamingAvailability(
  * Check for upcoming releases for a specific user
  */
 export async function checkUserReleases(
-  supabase: ReturnType<typeof createClient>,
+  supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string
 ): Promise<ReleaseNotification[]> {
   const allNotifications: ReleaseNotification[] = []
