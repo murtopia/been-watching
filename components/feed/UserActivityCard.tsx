@@ -907,6 +907,16 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           fill: white;
         }
 
+        /* Back of card scroll wrapper - fixed position container */
+        .card-back-scroll-wrapper {
+          position: absolute;
+          top: 50px;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          overflow: hidden;
+        }
+        
         /* Back of card styles - scrollable container */
         .card-back-content {
           position: absolute;
@@ -914,19 +924,17 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           left: 0;
           right: 0;
           bottom: 0;
-          padding: 50px 16px 20px 16px;
+          padding: 0 16px 20px 16px;
           overflow-y: scroll;
           overflow-x: hidden;
           -webkit-overflow-scrolling: touch;
           overscroll-behavior-y: contain;
           color: white;
           box-sizing: border-box;
-        }
-        
-        /* iOS-specific: ensure scroll works on transformed elements */
-        .card.flipped .card-back-content {
-          -webkit-transform: translateZ(0);
-          transform: translateZ(0);
+          /* Force new compositing layer for iOS scroll */
+          -webkit-transform: translate3d(0, 0, 0);
+          transform: translate3d(0, 0, 0);
+          will-change: scroll-position;
         }
 
         .close-btn {
@@ -1481,6 +1489,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
               <Icon name="close" variant="circle" size={42} />
             </button>
 
+            <div className="card-back-scroll-wrapper">
             <div className="card-back-content">
               {/* Title Section */}
               <div className="back-title-section">
@@ -1726,6 +1735,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                 </div>
               </div>
             </div>
+            </div>{/* end card-back-scroll-wrapper */}
           </div>
 
           {/* Action Overlay Modal - Shared between front and back */}
