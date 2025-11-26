@@ -143,6 +143,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
     setCommentsVisible(false)
     setCommentsExpanded(false)
     setActionOverlayVisible(false)
+    setPressedIcon(null)
   }
 
   const handleCommentButtonClick = () => {
@@ -172,6 +173,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
     e.stopPropagation()
     // Toggle off if clicking the same rating, otherwise set new rating
     setUserRating(userRating === rating ? null : rating)
+    setPressedIcon(null) // Clear pressed state after selection
     onTrack?.('rating', { rating, mediaId: data.media.id })
   }
 
@@ -183,6 +185,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
     } else {
       setWatchlistStatus(new Set([status]))
     }
+    setPressedIcon(null) // Clear pressed state after selection
     onTrack?.('watchlist', { status, mediaId: data.media.id })
   }
 
@@ -227,11 +230,16 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           transform-style: preserve-3d;
           transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
           border-radius: 16px;
-          touch-action: none;
+          touch-action: manipulation; /* Allow touch but prevent double-tap zoom */
         }
 
         .card.flipped {
           transform: rotateY(180deg);
+        }
+
+        /* Enable scrolling on back of flipped card */
+        .card.flipped .card-back-content {
+          touch-action: pan-y;
         }
 
         /* Card faces */
@@ -1724,7 +1732,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           {/* Action Overlay Modal - Shared between front and back */}
           <div
             className={`action-overlay ${actionOverlayVisible ? 'visible' : ''}`}
-            onClick={() => setActionOverlayVisible(false)}
+            onClick={() => { setActionOverlayVisible(false); setPressedIcon(null); }}
           >
             <div className="action-modal" onClick={(e) => e.stopPropagation()}>
               <div className="action-modal-grid">
@@ -1733,7 +1741,6 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                   className="action-modal-item" 
                   onClick={(e) => handleRating('meh', e)}
                   onTouchStart={() => setPressedIcon('meh')}
-                  onTouchEnd={() => setPressedIcon(null)}
                 >
                   <div className={`action-modal-icon ${userRating === 'meh' ? 'active' : ''} ${pressedIcon === 'meh' ? 'pressed' : ''}`}>
                     <Icon
@@ -1750,7 +1757,6 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                   className="action-modal-item" 
                   onClick={(e) => handleRating('like', e)}
                   onTouchStart={() => setPressedIcon('like')}
-                  onTouchEnd={() => setPressedIcon(null)}
                 >
                   <div className={`action-modal-icon ${userRating === 'like' ? 'active' : ''} ${pressedIcon === 'like' ? 'pressed' : ''}`}>
                     <Icon
@@ -1767,7 +1773,6 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                   className="action-modal-item" 
                   onClick={(e) => handleRating('love', e)}
                   onTouchStart={() => setPressedIcon('love')}
-                  onTouchEnd={() => setPressedIcon(null)}
                 >
                   <div className={`action-modal-icon ${userRating === 'love' ? 'active' : ''} ${pressedIcon === 'love' ? 'pressed' : ''}`}>
                     <Icon
@@ -1788,7 +1793,6 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                   className="action-modal-item" 
                   onClick={(e) => handleWatchlist('want', e)}
                   onTouchStart={() => setPressedIcon('want')}
-                  onTouchEnd={() => setPressedIcon(null)}
                 >
                   <div className={`action-modal-icon ${watchlistStatus.has('want') ? 'active' : ''} ${pressedIcon === 'want' ? 'pressed' : ''}`}>
                     <Icon
@@ -1810,7 +1814,6 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                   className="action-modal-item" 
                   onClick={(e) => handleWatchlist('watching', e)}
                   onTouchStart={() => setPressedIcon('watching')}
-                  onTouchEnd={() => setPressedIcon(null)}
                 >
                   <div className={`action-modal-icon ${watchlistStatus.has('watching') ? 'active' : ''} ${pressedIcon === 'watching' ? 'pressed' : ''}`}>
                     <Icon
@@ -1832,7 +1835,6 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                   className="action-modal-item" 
                   onClick={(e) => handleWatchlist('watched', e)}
                   onTouchStart={() => setPressedIcon('watched')}
-                  onTouchEnd={() => setPressedIcon(null)}
                 >
                   <div className={`action-modal-icon ${watchlistStatus.has('watched') ? 'active' : ''} ${pressedIcon === 'watched' ? 'pressed' : ''}`}>
                     <Icon
