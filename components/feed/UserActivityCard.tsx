@@ -1001,16 +1001,24 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
         
         /* Back of card styles - scrollable container */
         .card-back-content {
-          width: 100%;
-          height: 100%;
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
           padding: 0 16px 20px 16px;
           box-sizing: border-box;
-          overflow-y: auto;
+          overflow-y: scroll;
           overflow-x: hidden;
           -webkit-overflow-scrolling: touch;
           overscroll-behavior-y: contain;
-          touch-action: pan-y; /* Allow native vertical scroll */
+          touch-action: none; /* JS handles scroll */
           color: white;
+        }
+        
+        /* Inner wrapper to ensure content height is calculated correctly */
+        .card-back-inner {
+          min-height: min-content;
         }
 
         .close-btn {
@@ -1544,7 +1552,11 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
             <div 
               className="card-back-content"
               ref={backScrollRef}
+              onTouchStart={handleBackTouchStart}
+              onTouchMove={handleBackTouchMove}
+              onTouchEnd={handleBackTouchEnd}
             >
+              <div className="card-back-inner">
               {/* Title Section */}
               <div className="back-title-section">
                 <h1 className="back-title">
@@ -1772,6 +1784,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                   )}
                 </div>
               </div>
+              </div>{/* end card-back-inner */}
 
             </div>
             </div>{/* end card-back-scroll-wrapper */}
