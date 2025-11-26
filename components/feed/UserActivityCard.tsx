@@ -215,9 +215,8 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
     const clientHeight = backScrollRef.current.clientHeight
     const maxScroll = Math.max(0, scrollHeight - clientHeight)
     
-    // Allow slight over-scroll for better feel, but clamp to reasonable bounds
-    // Add 50px buffer to allow scrolling past calculated max (handles dynamic content)
-    const clampedScrollTop = Math.max(-50, Math.min(newScrollTop, maxScroll + 50))
+    // Clamp to valid bounds (no over-scroll buffer to prevent bouncing)
+    const clampedScrollTop = Math.max(0, Math.min(newScrollTop, maxScroll))
     backScrollRef.current.scrollTop = clampedScrollTop
     
     lastTouchY.current = touchY
@@ -1075,10 +1074,10 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           color: white;
         }
         
-        /* Inner wrapper to ensure content height is calculated correctly */
+        /* Inner wrapper - must expand naturally to allow scrolling */
         .card-back-inner {
-          min-height: min-content;
           width: 100%;
+          display: block;
         }
 
         .close-btn {
