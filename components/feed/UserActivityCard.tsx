@@ -927,10 +927,10 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           border-radius: 8px;
           padding: 8px 12px;
           color: white;
-          font-size: 16px; /* 16px minimum prevents iOS auto-zoom on focus */
+          font-size: 13px; /* Match comment text size */
           outline: none;
           resize: none;
-          min-height: 40px;
+          min-height: 36px;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
         }
 
@@ -1006,7 +1006,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           left: 0;
           right: 0;
           bottom: 0;
-          padding: 0 16px 60px 16px; /* Extra bottom padding for last comment */
+          padding: 0 16px 20px 16px;
           overflow-y: scroll;
           overflow-x: hidden;
           -webkit-overflow-scrolling: touch;
@@ -1141,6 +1141,11 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           margin-bottom: 20px;
         }
 
+        .back-section:last-child,
+        .show-comments-section {
+          margin-bottom: 0;
+        }
+
         .back-section-title {
           font-size: 11px;
           text-transform: uppercase;
@@ -1223,7 +1228,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           display: flex;
           flex-direction: column;
           gap: 12px;
-          padding-bottom: 20px; /* Ensure last comment is visible */
+          padding-bottom: 0;
         }
 
         .comment-item {
@@ -1283,7 +1288,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           border-radius: 8px;
           background: rgba(255, 255, 255, 0.05);
           color: white;
-          font-size: 14px;
+          font-size: 16px; /* 16px prevents iOS auto-zoom on focus */
           outline: none;
           resize: none;
           min-height: 50px;
