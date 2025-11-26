@@ -133,36 +133,36 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
   // Recalculate scroll bounds when comments are loaded
   useEffect(() => {
     if (backScrollRef.current && isFlipped) {
-      // Use double RAF to ensure DOM has fully updated
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          if (backScrollRef.current) {
-            // Force browser to recalculate layout
-            void backScrollRef.current.offsetHeight
-            void backScrollRef.current.scrollHeight
-            
-            // Recalculate bounds
-            const scrollHeight = backScrollRef.current.scrollHeight
-            const clientHeight = backScrollRef.current.clientHeight
-            const maxScroll = Math.max(0, scrollHeight - clientHeight)
-            
-            // Don't clamp if user is scrolling - let them reach the bottom
-            // Only clamp if we're way past (which shouldn't happen)
-            if (backScrollRef.current.scrollTop > maxScroll + 100) {
-              backScrollRef.current.scrollTop = maxScroll
-            }
-            
-            // Debug: log scroll info
-            console.log('Scroll recalculation:', {
-              scrollHeight,
-              clientHeight,
-              scrollTop: backScrollRef.current.scrollTop,
-              maxScroll,
-              visibleComments: visibleShowComments
-            })
-          }
-        })
-      })
+      // Use setTimeout to ensure DOM has fully rendered after state update
+      setTimeout(() => {
+        if (backScrollRef.current) {
+          // Force browser to recalculate layout by accessing multiple properties
+          const offsetHeight = backScrollRef.current.offsetHeight
+          const scrollHeight = backScrollRef.current.scrollHeight
+          const clientHeight = backScrollRef.current.clientHeight
+          
+          // Also check the inner wrapper if it exists
+          const innerWrapper = backScrollRef.current.querySelector('.card-back-inner') as HTMLElement
+          const innerHeight = innerWrapper?.offsetHeight || 0
+          
+          const maxScroll = Math.max(0, scrollHeight - clientHeight)
+          
+          // Debug: log detailed scroll info
+          console.log('Scroll recalculation:', {
+            scrollHeight,
+            clientHeight,
+            offsetHeight,
+            innerHeight,
+            scrollTop: backScrollRef.current.scrollTop,
+            maxScroll,
+            calculatedMax: scrollHeight - clientHeight,
+            visibleComments: visibleShowComments
+          })
+          
+          // Don't auto-clamp - let user scroll naturally
+          // The touch handlers will handle bounds
+        }
+      }, 100) // Small delay to ensure React has rendered
     }
   }, [visibleShowComments, isFlipped])
 
@@ -215,9 +215,29 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
     const clientHeight = backScrollRef.current.clientHeight
     const maxScroll = Math.max(0, scrollHeight - clientHeight)
     
-    // Clamp to valid bounds (no over-scroll buffer to prevent bouncing)
-    const clampedScrollTop = Math.max(0, Math.min(newScrollTop, maxScroll))
+    // Apply scroll - allow slight over-scroll for natural feel
+    // But clamp aggressively at edges to prevent excessive bounce
+    let clampedScrollTop = newScrollTop
+    if (newScrollTop < 0) {
+      clampedScrollTop = 0
+    } else if (newScrollTop > maxScroll) {
+      // Allow up to 20px over-scroll for natural feel
+      clampedScrollTop = Math.min(newScrollTop, maxScroll + 20)
+    }
+    
     backScrollRef.current.scrollTop = clampedScrollTop
+    
+    // Debug on first move after load more
+    if (visibleShowComments >= 6 && Math.abs(deltaYFromStart) < 50) {
+      console.log('TouchMove scroll check:', {
+        newScrollTop,
+        maxScroll,
+        clampedScrollTop,
+        scrollHeight,
+        clientHeight,
+        deltaY: deltaYFromStart
+      })
+    }
     
     lastTouchY.current = touchY
     lastMoveTime.current = now
