@@ -53,10 +53,19 @@
   - [ ] Privacy controls for who can follow
   - [ ] Notifications for new followers
 
-- [ ] Activity Feed
-  - [ ] Show friend activity (new shows watched, ratings)
-  - [ ] Filter by friends vs all users
-  - [ ] Implement pagination
+- [ ] Activity Feed Cards (IN PROGRESS - Jan 2025)
+  - [x] Card 1: UserActivityCard - React component created
+  - [x] Card 1: Mobile test page at /preview/card-1
+  - [x] Card 1: iOS input zoom fix (16px fonts)
+  - [x] Card 1: Touch icon states working
+  - [x] Card 1: Back card scroll working (JS-based)
+  - [ ] Card 1: Fine-tune iOS momentum scroll physics
+  - [ ] Card 1: Friends list expansion feature
+  - [ ] Cards 2-8: Convert remaining HTML designs to React
+  - [ ] Feed: Implement vertical scroll with card snap
+  - [ ] Feed: Show friend activity (new shows watched, ratings)
+  - [ ] Feed: Filter by friends vs all users
+  - [ ] Feed: Implement pagination
 
 ### My Shows Page
 - [ ] Enhanced Filtering
