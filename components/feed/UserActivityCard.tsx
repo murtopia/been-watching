@@ -210,31 +210,30 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
     // Calculate new scroll position
     const newScrollTop = scrollStartY.current + deltaYFromStart
     
-    // Get current scroll bounds (recalculate on every move in case content changed)
-    const scrollHeight = backScrollRef.current.scrollHeight
+    // Get current scroll bounds - use actual content height, not scrollHeight
+    const innerWrapper = backScrollRef.current.querySelector('.card-back-inner') as HTMLElement
+    const innerHeight = innerWrapper?.offsetHeight || backScrollRef.current.scrollHeight
     const clientHeight = backScrollRef.current.clientHeight
-    const maxScroll = Math.max(0, scrollHeight - clientHeight)
     
-    // Clamp to valid bounds - don't allow over-scroll as browser will reject it
+    // Calculate maxScroll based on actual content height
+    const maxScroll = Math.max(0, innerHeight - clientHeight)
+    
+    // Clamp to valid bounds
     const clampedScrollTop = Math.max(0, Math.min(newScrollTop, maxScroll))
     
     // Set scroll position
     backScrollRef.current.scrollTop = clampedScrollTop
     
-    // Verify it actually set (browser might clamp differently)
-    const actualScrollTop = backScrollRef.current.scrollTop
-    
-    // Debug if we're near the bottom and trying to scroll further
-    if (visibleShowComments >= 6 && actualScrollTop >= maxScroll - 10 && deltaYFromStart < -5) {
-      console.log('TouchMove at bottom:', {
+    // Debug when near bottom
+    if (visibleShowComments >= 6 && clampedScrollTop >= maxScroll - 5) {
+      console.log('TouchMove near bottom:', {
         newScrollTop,
         maxScroll,
         clampedScrollTop,
-        actualScrollTop,
-        scrollHeight,
+        innerHeight,
         clientHeight,
-        deltaY: deltaYFromStart,
-        canScrollMore: actualScrollTop < maxScroll
+        scrollHeight: backScrollRef.current.scrollHeight,
+        deltaY: deltaYFromStart
       })
     }
     
