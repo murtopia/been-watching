@@ -927,7 +927,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           border-radius: 8px;
           padding: 8px 12px;
           color: white;
-          font-size: 13px; /* Match comment text size */
+          font-size: 16px; /* 16px required to prevent iOS auto-zoom */
           outline: none;
           resize: none;
           min-height: 36px;
@@ -1005,16 +1005,12 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           height: 100%;
           padding: 0 16px 20px 16px;
           box-sizing: border-box;
-          overflow-y: scroll;
+          overflow-y: auto;
           overflow-x: hidden;
           -webkit-overflow-scrolling: touch;
           overscroll-behavior-y: contain;
-          touch-action: none; /* JS handles vertical scroll */
+          touch-action: pan-y; /* Allow native vertical scroll */
           color: white;
-          box-sizing: border-box;
-          /* Force new compositing layer for iOS scroll */
-          -webkit-transform: translate3d(0, 0, 0);
-          transform: translate3d(0, 0, 0);
         }
 
         .close-btn {
@@ -1286,7 +1282,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           border-radius: 8px;
           background: rgba(255, 255, 255, 0.05);
           color: white;
-          font-size: 13px; /* Match comment text size */
+          font-size: 16px; /* 16px required to prevent iOS auto-zoom */
           outline: none;
           resize: none;
           min-height: 44px;
@@ -1548,9 +1544,6 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
             <div 
               className="card-back-content"
               ref={backScrollRef}
-              onTouchStart={handleBackTouchStart}
-              onTouchMove={handleBackTouchMove}
-              onTouchEnd={handleBackTouchEnd}
             >
               {/* Title Section */}
               <div className="back-title-section">
