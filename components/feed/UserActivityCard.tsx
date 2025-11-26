@@ -139,10 +139,10 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
   const commentInputRef = useRef<HTMLTextAreaElement>(null)
   const backScrollRef = useRef<HTMLDivElement>(null)
   const touchStartY = useRef<number>(0)
-  const touchStartTime = useRef<number>(0)
-  const lastTouchY = useRef<number>(0)
-  const lastTouchTime = useRef<number>(0)
   const scrollStartY = useRef<number>(0)
+  const velocityY = useRef<number>(0)
+  const lastTouchY = useRef<number>(0)
+  const lastMoveTime = useRef<number>(0)
   const momentumRAF = useRef<number | null>(null)
 
   // iOS-style momentum scroll for back card (3D transform workaround)
@@ -154,75 +154,73 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
     }
     
     if (backScrollRef.current) {
-      const now = Date.now()
       touchStartY.current = e.touches[0].clientY
-      touchStartTime.current = now
       lastTouchY.current = e.touches[0].clientY
-      lastTouchTime.current = now
+      lastMoveTime.current = Date.now()
       scrollStartY.current = backScrollRef.current.scrollTop
+      velocityY.current = 0
     }
   }
 
   const handleBackTouchMove = (e: React.TouchEvent) => {
     if (backScrollRef.current) {
+      const now = Date.now()
       const touchY = e.touches[0].clientY
       const deltaY = touchStartY.current - touchY
+      
+      // Calculate instantaneous velocity (pixels per ms)
+      const dt = now - lastMoveTime.current
+      if (dt > 0) {
+        const dy = lastTouchY.current - touchY
+        // Smooth velocity with previous value for stability
+        velocityY.current = 0.8 * velocityY.current + 0.2 * (dy / dt)
+      }
+      
       backScrollRef.current.scrollTop = scrollStartY.current + deltaY
       
-      // Track for velocity calculation
       lastTouchY.current = touchY
-      lastTouchTime.current = Date.now()
+      lastMoveTime.current = now
     }
   }
 
-  const handleBackTouchEnd = (e: React.TouchEvent) => {
+  const handleBackTouchEnd = () => {
     if (!backScrollRef.current) return
     
-    const now = Date.now()
-    const timeDelta = now - lastTouchTime.current
+    // Use the tracked velocity (convert from px/ms to px/frame at 60fps)
+    let velocity = velocityY.current * 16.67
     
-    // Only apply momentum if the touch ended recently (not a long press)
-    if (timeDelta < 100) {
-      const touchEndY = e.changedTouches[0].clientY
+    // Only apply momentum if there's meaningful velocity
+    if (Math.abs(velocity) < 0.5) return
+    
+    // Clamp initial velocity
+    const maxVelocity = 60
+    velocity = Math.max(-maxVelocity, Math.min(maxVelocity, velocity))
+    
+    // iOS UIScrollViewDecelerationRateNormal ≈ 0.998 per frame
+    const deceleration = 0.998
+    const minVelocity = 0.1
+    
+    const animateMomentum = () => {
+      if (!backScrollRef.current || Math.abs(velocity) < minVelocity) {
+        momentumRAF.current = null
+        return
+      }
       
-      // Calculate velocity from recent movement (pixels per ms)
-      const recentTime = now - lastTouchTime.current || 16
-      const recentDistance = lastTouchY.current - touchEndY
+      backScrollRef.current.scrollTop += velocity
+      velocity *= deceleration
       
-      // Use recent velocity, clamped to reasonable range
-      // Multiply by 16 to convert from px/ms to px/frame
-      let velocity = (recentDistance / recentTime) * 16
+      // Stop at edges
+      const scrollTop = backScrollRef.current.scrollTop
+      const maxScroll = backScrollRef.current.scrollHeight - backScrollRef.current.clientHeight
       
-      // Clamp initial velocity to prevent crazy fast scrolling
-      const maxVelocity = 50 // max pixels per frame
-      velocity = Math.max(-maxVelocity, Math.min(maxVelocity, velocity))
-      
-      // Apple PastryKit uses 0.95 deceleration per frame (time constant ~325ms)
-      const deceleration = 0.95
-      const minVelocity = 0.5 // Stop when velocity is negligible
-      
-      const animateMomentum = () => {
-        if (!backScrollRef.current || Math.abs(velocity) < minVelocity) {
-          momentumRAF.current = null
-          return
-        }
-        
-        backScrollRef.current.scrollTop += velocity
-        velocity *= deceleration
-        
-        // Stop at edges
-        const scrollTop = backScrollRef.current.scrollTop
-        const maxScroll = backScrollRef.current.scrollHeight - backScrollRef.current.clientHeight
-        
-        if (scrollTop <= 0 || scrollTop >= maxScroll) {
-          velocity = 0 // Stop at edges
-        }
-        
-        momentumRAF.current = requestAnimationFrame(animateMomentum)
+      if (scrollTop <= 0 || scrollTop >= maxScroll) {
+        velocity = 0
       }
       
       momentumRAF.current = requestAnimationFrame(animateMomentum)
     }
+    
+    momentumRAF.current = requestAnimationFrame(animateMomentum)
   }
 
   const flipCard = () => {
