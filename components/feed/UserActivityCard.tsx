@@ -192,13 +192,15 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
     // Only apply momentum if there's meaningful velocity
     if (Math.abs(velocity) < 0.5) return
     
-    // Clamp initial velocity
-    const maxVelocity = 60
+    // Clamp initial velocity to reasonable bounds
+    const maxVelocity = 50
     velocity = Math.max(-maxVelocity, Math.min(maxVelocity, velocity))
     
-    // iOS UIScrollViewDecelerationRateNormal ≈ 0.998 per frame
-    const deceleration = 0.998
-    const minVelocity = 0.1
+    // iOS UIScrollViewDecelerationRateNormal = 0.998 per MILLISECOND
+    // At 60fps, each frame is ~16.67ms, so per-frame deceleration is:
+    // 0.998^16.67 ≈ 0.967
+    const decelerationPerFrame = 0.967
+    const minVelocity = 0.5 // Stop when velocity is very small
     
     const animateMomentum = () => {
       if (!backScrollRef.current || Math.abs(velocity) < minVelocity) {
@@ -207,9 +209,9 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
       }
       
       backScrollRef.current.scrollTop += velocity
-      velocity *= deceleration
+      velocity *= decelerationPerFrame
       
-      // Stop at edges
+      // Stop at edges with a bit of bounce resistance
       const scrollTop = backScrollRef.current.scrollTop
       const maxScroll = backScrollRef.current.scrollHeight - backScrollRef.current.clientHeight
       
