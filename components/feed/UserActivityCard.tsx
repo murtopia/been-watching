@@ -138,17 +138,25 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
   const cardRef = useRef<HTMLDivElement>(null)
   const commentInputRef = useRef<HTMLTextAreaElement>(null)
   const backScrollRef = useRef<HTMLDivElement>(null)
+  const similarShowsRef = useRef<HTMLDivElement>(null)
   const touchStartY = useRef<number>(0)
-  const touchStartX = useRef<number>(0)
   const scrollStartY = useRef<number>(0)
   const velocityY = useRef<number>(0)
   const lastTouchY = useRef<number>(0)
   const lastMoveTime = useRef<number>(0)
   const momentumRAF = useRef<number | null>(null)
-  const isHorizontalScroll = useRef<boolean | null>(null) // null = not determined yet
+  const isTouchOnSimilarShows = useRef<boolean>(false)
 
   // iOS-style momentum scroll for back card (3D transform workaround)
   const handleBackTouchStart = (e: React.TouchEvent) => {
+    // Check if touch started on similar shows - if so, let native horizontal scroll handle it
+    const target = e.target as HTMLElement
+    if (similarShowsRef.current?.contains(target)) {
+      isTouchOnSimilarShows.current = true
+      return // Don't interfere with similar shows horizontal scroll
+    }
+    isTouchOnSimilarShows.current = false
+    
     // Cancel any ongoing momentum animation
     if (momentumRAF.current) {
       cancelAnimationFrame(momentumRAF.current)
@@ -157,34 +165,20 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
     
     if (backScrollRef.current) {
       touchStartY.current = e.touches[0].clientY
-      touchStartX.current = e.touches[0].clientX
       lastTouchY.current = e.touches[0].clientY
       lastMoveTime.current = Date.now()
       scrollStartY.current = backScrollRef.current.scrollTop
       velocityY.current = 0
-      isHorizontalScroll.current = null // Reset scroll direction detection
     }
   }
 
   const handleBackTouchMove = (e: React.TouchEvent) => {
+    // If touch started on similar shows, don't interfere
+    if (isTouchOnSimilarShows.current) return
     if (!backScrollRef.current) return
     
-    const touchX = e.touches[0].clientX
-    const touchY = e.touches[0].clientY
-    const deltaX = Math.abs(touchX - touchStartX.current)
-    const deltaY = Math.abs(touchY - touchStartY.current)
-    
-    // Determine scroll direction on first significant movement
-    if (isHorizontalScroll.current === null && (deltaX > 10 || deltaY > 10)) {
-      isHorizontalScroll.current = deltaX > deltaY
-    }
-    
-    // If horizontal scroll, let native scroll handle it (for similar shows)
-    if (isHorizontalScroll.current) {
-      return
-    }
-    
     const now = Date.now()
+    const touchY = e.touches[0].clientY
     const deltaYFromStart = touchStartY.current - touchY
     
     // Calculate instantaneous velocity (pixels per ms)
@@ -202,9 +196,9 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
   }
 
   const handleBackTouchEnd = () => {
-    // If it was a horizontal scroll, skip momentum
-    if (isHorizontalScroll.current) {
-      isHorizontalScroll.current = null
+    // If touch was on similar shows, skip our momentum
+    if (isTouchOnSimilarShows.current) {
+      isTouchOnSimilarShows.current = false
       return
     }
     
@@ -1040,7 +1034,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           overflow-x: hidden;
           -webkit-overflow-scrolling: touch;
           overscroll-behavior-y: contain;
-          touch-action: pan-y; /* Explicitly allow vertical scroll */
+          touch-action: none; /* JS handles vertical scroll */
           color: white;
           box-sizing: border-box;
           /* Force new compositing layer for iOS scroll */
@@ -1247,7 +1241,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           gap: 12px;
           overflow-x: auto;
           -webkit-overflow-scrolling: touch;
-          touch-action: pan-x; /* Allow horizontal scroll on mobile */
+          touch-action: auto; /* Let native scroll handle this */
           padding-bottom: 10px;
         }
 
@@ -1286,6 +1280,13 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           display: flex;
           flex-direction: column;
           gap: 12px;
+        }
+
+        .comments-list {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          padding-bottom: 20px; /* Ensure last comment is visible */
         }
 
         .comment-item {
@@ -1841,7 +1842,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
               {/* Related Shows */}
               <div className="back-section">
                 <h3 className="back-section-title">Related Shows</h3>
-                <div className="similar-shows">
+                <div className="similar-shows" ref={similarShowsRef}>
                   {data.similarShows.map((show) => (
                     <div
                       key={show.id}
