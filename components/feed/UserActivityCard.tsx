@@ -1098,6 +1098,9 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           will-change: transform;
           padding-top: 50px; /* Space for close button - keeps title in same position */
           padding-bottom: 20px; /* Extra space so Load More button is fully visible */
+          /* Force Safari to calculate full height */
+          min-height: fit-content;
+          height: auto !important;
           /* Transform applied via JS for smooth scroll */
         }
 
@@ -1311,6 +1314,9 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           flex-direction: column;
           gap: 12px;
           padding-bottom: 0;
+          /* Force Safari to render all children */
+          min-height: fit-content;
+          transform: translateZ(0); /* Create new stacking context */
         }
 
         .comment-item {
