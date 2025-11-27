@@ -225,46 +225,25 @@ export default function Card1MobileTestPage() {
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         overflow: 'hidden'
       }}>
-      {/* Test Header */}
+      {/* Test Header - Compact */}
       <div style={{
         width: '100%',
         maxWidth: '398px',
-        marginBottom: '16px',
-        padding: '16px',
+        marginBottom: '10px',
+        padding: '8px 16px',
         background: 'rgba(59, 130, 246, 0.1)',
         border: '1px solid rgba(59, 130, 246, 0.3)',
-        borderRadius: '12px',
+        borderRadius: '8px',
         textAlign: 'center'
       }}>
         <h1 style={{
-          fontSize: '16px',
+          fontSize: '14px',
           fontWeight: '600',
           color: '#3B82F6',
-          margin: '0 0 8px 0'
+          margin: 0
         }}>
-          🧪 React Card 1 - Mobile Test v1a (Transform Scroll)
+          🧪 React Card 1: v1a.1
         </h1>
-        <p style={{
-          fontSize: '13px',
-          color: 'rgba(0,0,0,0.6)',
-          margin: 0,
-          lineHeight: '1.4'
-        }}>
-          UserActivityCard Component
-        </p>
-        <div style={{
-          display: 'inline-block',
-          marginTop: '10px',
-          padding: '4px 12px',
-          background: 'rgba(34, 197, 94, 0.1)',
-          border: '1px solid rgba(34, 197, 94, 0.3)',
-          borderRadius: '6px',
-          fontSize: '11px',
-          color: '#22C55E',
-          fontWeight: '600'
-        }}>
-          ✓ 398×645px
-        </div>
       </div>
 
       {/* The Card */}
