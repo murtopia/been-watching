@@ -1320,6 +1320,8 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           background: rgba(255, 255, 255, 0.03);
           border-radius: 8px;
           flex-shrink: 0; /* Prevent comment from being compressed */
+          border-left: 3px solid rgba(59, 130, 246, 0.5); /* Debug: visible border to count comments */
+          margin-bottom: 8px;
         }
 
         .comment-avatar {
@@ -1867,17 +1869,19 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                 </div>
               </div>
               
-              {/* Debug marker - if you can see this, content is fully rendered */}
+              {/* Debug marker - shows state info */}
               <div style={{
                 background: 'rgba(0, 255, 0, 0.3)',
                 padding: '10px',
                 marginTop: '10px',
                 borderRadius: '8px',
                 textAlign: 'center',
-                fontSize: '12px',
+                fontSize: '11px',
                 color: 'white'
               }}>
-                ✓ END OF CONTENT - If visible, scroll is working!
+                ✓ END - Showing {visibleShowComments} of {data.showComments.length} comments
+                <br />
+                Last comment: {data.showComments[visibleShowComments - 1]?.user.name || 'none'}
               </div>
               </div>{/* end card-back-inner */}
 
