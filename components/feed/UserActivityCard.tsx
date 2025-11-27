@@ -157,7 +157,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
   const getMaxScroll = () => {
     if (!backScrollRef.current || !backInnerRef.current) return 0
     const containerHeight = backScrollRef.current.clientHeight
-    const contentHeight = backInnerRef.current.offsetHeight
+    const contentHeight = backInnerRef.current.scrollHeight // Use scrollHeight to include all content
     return Math.max(0, contentHeight - containerHeight)
   }
   
@@ -172,14 +172,20 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
   // Debug: log scroll bounds when comments change
   useEffect(() => {
     if (backInnerRef.current && isFlipped) {
+      // Use multiple RAFs to ensure DOM has updated
       requestAnimationFrame(() => {
-        const maxScroll = getMaxScroll()
-        console.log('Scroll bounds updated:', {
-          contentHeight: backInnerRef.current?.offsetHeight,
-          containerHeight: backScrollRef.current?.clientHeight,
-          maxScroll,
-          currentOffset: scrollOffsetRef.current,
-          visibleComments: visibleShowComments
+        requestAnimationFrame(() => {
+          const maxScroll = getMaxScroll()
+          console.log('Scroll bounds updated:', {
+            innerOffsetHeight: backInnerRef.current?.offsetHeight,
+            innerScrollHeight: backInnerRef.current?.scrollHeight,
+            containerClientHeight: backScrollRef.current?.clientHeight,
+            containerOffsetHeight: backScrollRef.current?.offsetHeight,
+            maxScroll,
+            currentOffset: scrollOffsetRef.current,
+            visibleComments: visibleShowComments,
+            commentElements: document.querySelectorAll('.comment-item').length
+          })
         })
       })
     }
@@ -277,6 +283,17 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
     }
     
     momentumRAF.current = requestAnimationFrame(animateMomentum)
+  }
+
+  // Desktop mouse wheel scroll support
+  const handleBackWheel = (e: React.WheelEvent) => {
+    e.preventDefault()
+    
+    const maxScroll = getMaxScroll()
+    const newOffset = scrollOffsetRef.current + e.deltaY
+    const clampedOffset = Math.max(0, Math.min(newOffset, maxScroll))
+    
+    applyScrollTransform(clampedOffset)
   }
 
   const flipCard = () => {
@@ -1079,6 +1096,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           width: 100%;
           display: block;
           will-change: transform;
+          padding-bottom: 40px; /* Extra space so Load More button is fully visible */
           /* Transform applied via JS for smooth scroll */
         }
 
@@ -1617,6 +1635,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
               onTouchStart={handleBackTouchStart}
               onTouchMove={handleBackTouchMove}
               onTouchEnd={handleBackTouchEnd}
+              onWheel={handleBackWheel}
             >
               <div className="card-back-inner" ref={backInnerRef}>
               {/* Title Section */}
