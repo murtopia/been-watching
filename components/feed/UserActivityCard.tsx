@@ -169,24 +169,16 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
     }
   }, [isFlipped])
   
-  // Debug: log scroll bounds when comments change
+  // Recalculate scroll bounds when comments change
   useEffect(() => {
     if (backInnerRef.current && isFlipped) {
-      // Use multiple RAFs to ensure DOM has updated
+      // Use RAF to ensure DOM has updated after state change
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          const maxScroll = getMaxScroll()
-          console.log('Scroll bounds updated:', {
-            innerOffsetHeight: backInnerRef.current?.offsetHeight,
-            innerScrollHeight: backInnerRef.current?.scrollHeight,
-            containerClientHeight: backScrollRef.current?.clientHeight,
-            containerOffsetHeight: backScrollRef.current?.offsetHeight,
-            maxScroll,
-            currentOffset: scrollOffsetRef.current,
-            visibleComments: visibleShowComments,
-            commentElements: document.querySelectorAll('.comment-item').length
-          })
-        })
+        // Clamp scroll position if needed after content changes
+        const maxScroll = getMaxScroll()
+        if (scrollOffsetRef.current > maxScroll) {
+          applyScrollTransform(maxScroll)
+        }
       })
     }
   }, [visibleShowComments, isFlipped])
@@ -1320,16 +1312,12 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
         }
 
         .comment-item {
-          position: relative; /* For number badge positioning */
           display: flex;
           gap: 10px;
           padding: 10px;
-          padding-left: 20px; /* Space for number badge */
           background: rgba(255, 255, 255, 0.03);
           border-radius: 8px;
           flex-shrink: 0; /* Prevent comment from being compressed */
-          border-left: 3px solid rgba(59, 130, 246, 0.5); /* Debug: visible border to count comments */
-          margin-bottom: 8px;
         }
 
         .comment-avatar {
@@ -1836,37 +1824,12 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                   </div>
                 </div>
 
-                {/* Comments List - TEST: show ALL 6 comments always (no Load More) */}
+                {/* Comments List */}
                 <div className="comments-list">
-                  {data.showComments.map((comment, index) => {
+                  {data.showComments.slice(0, visibleShowComments).map((comment) => {
                     const likeState = commentLikes[comment.id]
-                    // Debug: make comments 5 and 6 bright red background
-                    const isLateComment = index >= 4
                     return (
-                      <div 
-                        key={comment.id} 
-                        className="comment-item"
-                        style={isLateComment ? { background: 'rgba(255, 0, 0, 0.5)', border: '2px solid red' } : {}}
-                      >
-                        {/* Debug: comment number */}
-                        <div style={{ 
-                          position: 'absolute', 
-                          left: '-5px', 
-                          top: '50%', 
-                          transform: 'translateY(-50%)',
-                          background: '#3B82F6', 
-                          color: 'white', 
-                          borderRadius: '50%', 
-                          width: '20px', 
-                          height: '20px', 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'center',
-                          fontSize: '11px',
-                          fontWeight: 'bold'
-                        }}>
-                          {index + 1}
-                        </div>
+                      <div key={comment.id} className="comment-item">
                         <img src={comment.user.avatar} alt={comment.user.name} className="comment-avatar" />
                         <div className="comment-content">
                           <div className="comment-header">
@@ -1893,25 +1856,15 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                     )
                   })}
 
-                  {/* Load More Button - DISABLED FOR TEST */}
-                  {/* All 6 comments now show by default to test Safari rendering */}
+                  {/* Load More Button */}
+                  {visibleShowComments < data.showComments.length && (
+                    <button className="load-more-btn" onClick={handleLoadMoreComments}>
+                      Load More Comments ({data.showComments.length - visibleShowComments} more)
+                    </button>
+                  )}
                 </div>
               </div>
               
-              {/* Debug marker - shows state info */}
-              <div style={{
-                background: 'rgba(0, 255, 0, 0.3)',
-                padding: '10px',
-                marginTop: '10px',
-                borderRadius: '8px',
-                textAlign: 'center',
-                fontSize: '11px',
-                color: 'white'
-              }}>
-                ✓ END - Showing {visibleShowComments} of {data.showComments.length} comments
-                <br />
-                Last comment: {data.showComments[visibleShowComments - 1]?.user.name || 'none'}
-              </div>
               </div>{/* end card-back-inner */}
 
             </div>
