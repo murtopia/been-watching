@@ -1070,7 +1070,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
         /* Back of card scroll wrapper - fixed position container */
         .card-back-scroll-wrapper {
           position: absolute;
-          top: 50px;
+          top: 0;
           left: 0;
           right: 0;
           bottom: 0;
@@ -1096,7 +1096,8 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           width: 100%;
           display: block;
           will-change: transform;
-          padding-bottom: 40px; /* Extra space so Load More button is fully visible */
+          padding-top: 50px; /* Space for close button - keeps title in same position */
+          padding-bottom: 20px; /* Extra space so Load More button is fully visible */
           /* Transform applied via JS for smooth scroll */
         }
 
@@ -1864,6 +1865,19 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                     </button>
                   )}
                 </div>
+              </div>
+              
+              {/* Debug marker - if you can see this, content is fully rendered */}
+              <div style={{
+                background: 'rgba(0, 255, 0, 0.3)',
+                padding: '10px',
+                marginTop: '10px',
+                borderRadius: '8px',
+                textAlign: 'center',
+                fontSize: '12px',
+                color: 'white'
+              }}>
+                ✓ END OF CONTENT - If visible, scroll is working!
               </div>
               </div>{/* end card-back-inner */}
 
