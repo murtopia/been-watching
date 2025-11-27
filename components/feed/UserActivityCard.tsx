@@ -130,58 +130,62 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
   const [activityCommentText, setActivityCommentText] = useState('') // Track activity comment input
   const [pressedIcon, setPressedIcon] = useState<string | null>(null) // Track which icon is being pressed for touch feedback
 
-  // Recalculate scroll bounds when comments are loaded
-  useEffect(() => {
-    if (backScrollRef.current && isFlipped) {
-      // Use multiple RAFs to ensure DOM has fully rendered and layout is calculated
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            if (backScrollRef.current) {
-              // Force browser to recalculate layout
-              void backScrollRef.current.offsetHeight
-              
-              // Get the inner wrapper and measure actual content height
-              const innerWrapper = backScrollRef.current.querySelector('.card-back-inner') as HTMLElement
-              const innerHeight = innerWrapper?.offsetHeight || backScrollRef.current.scrollHeight
-              const clientHeight = backScrollRef.current.clientHeight
-              const scrollHeight = backScrollRef.current.scrollHeight
-              
-              // Use innerHeight for maxScroll calculation (more accurate)
-              const maxScroll = Math.max(0, innerHeight - clientHeight)
-              
-              // Debug: log detailed scroll info
-              console.log('Scroll recalculation:', {
-                scrollHeight,
-                clientHeight,
-                innerHeight,
-                scrollTop: backScrollRef.current.scrollTop,
-                maxScroll,
-                calculatedMax: scrollHeight - clientHeight,
-                visibleComments: visibleShowComments
-              })
-              
-              // If we're currently scrolled past the new max, adjust
-              if (backScrollRef.current.scrollTop > maxScroll) {
-                backScrollRef.current.scrollTop = maxScroll
-              }
-            }
-          })
-        })
-      })
-    }
-  }, [visibleShowComments, isFlipped])
-
+  // Refs for DOM elements
   const cardRef = useRef<HTMLDivElement>(null)
   const commentInputRef = useRef<HTMLTextAreaElement>(null)
   const backScrollRef = useRef<HTMLDivElement>(null)
+  const backInnerRef = useRef<HTMLDivElement>(null)
+  
+  // Refs for transform-based scroll (using refs instead of state to avoid re-renders during touch)
+  const scrollOffsetRef = useRef<number>(0)
   const touchStartY = useRef<number>(0)
   const scrollStartY = useRef<number>(0)
   const velocityY = useRef<number>(0)
   const lastTouchY = useRef<number>(0)
   const lastMoveTime = useRef<number>(0)
   const momentumRAF = useRef<number | null>(null)
-  // iOS-style momentum scroll for back card (3D transform workaround)
+  
+  // Helper to apply scroll transform directly to DOM (avoids React re-renders)
+  const applyScrollTransform = (offset: number) => {
+    if (backInnerRef.current) {
+      backInnerRef.current.style.transform = `translateY(-${offset}px)`
+    }
+    scrollOffsetRef.current = offset
+  }
+  
+  // Helper to calculate max scroll based on actual content height
+  const getMaxScroll = () => {
+    if (!backScrollRef.current || !backInnerRef.current) return 0
+    const containerHeight = backScrollRef.current.clientHeight
+    const contentHeight = backInnerRef.current.offsetHeight
+    return Math.max(0, contentHeight - containerHeight)
+  }
+  
+  // Reset scroll position when card flips back to front
+  useEffect(() => {
+    if (!isFlipped) {
+      scrollOffsetRef.current = 0
+      applyScrollTransform(0)
+    }
+  }, [isFlipped])
+  
+  // Debug: log scroll bounds when comments change
+  useEffect(() => {
+    if (backInnerRef.current && isFlipped) {
+      requestAnimationFrame(() => {
+        const maxScroll = getMaxScroll()
+        console.log('Scroll bounds updated:', {
+          contentHeight: backInnerRef.current?.offsetHeight,
+          containerHeight: backScrollRef.current?.clientHeight,
+          maxScroll,
+          currentOffset: scrollOffsetRef.current,
+          visibleComments: visibleShowComments
+        })
+      })
+    }
+  }, [visibleShowComments, isFlipped])
+  // iOS-style momentum scroll for back card using CSS transforms
+  // (3D transform breaks native scrollTop, so we use translateY instead)
   const handleBackTouchStart = (e: React.TouchEvent) => {
     // Cancel any ongoing momentum animation
     if (momentumRAF.current) {
@@ -189,17 +193,15 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
       momentumRAF.current = null
     }
     
-    if (backScrollRef.current) {
-      touchStartY.current = e.touches[0].clientY
-      lastTouchY.current = e.touches[0].clientY
-      lastMoveTime.current = Date.now()
-      scrollStartY.current = backScrollRef.current.scrollTop
-      velocityY.current = 0
-    }
+    touchStartY.current = e.touches[0].clientY
+    lastTouchY.current = e.touches[0].clientY
+    lastMoveTime.current = Date.now()
+    scrollStartY.current = scrollOffsetRef.current
+    velocityY.current = 0
   }
 
   const handleBackTouchMove = (e: React.TouchEvent) => {
-    if (!backScrollRef.current) return
+    if (!backScrollRef.current || !backInnerRef.current) return
     
     const now = Date.now()
     const touchY = e.touches[0].clientY
@@ -213,43 +215,21 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
       velocityY.current = 0.8 * velocityY.current + 0.2 * (dy / dt)
     }
     
-    // Calculate new scroll position
-    const newScrollTop = scrollStartY.current + deltaYFromStart
-    
-    // Get current scroll bounds - use actual content height, not scrollHeight
-    const innerWrapper = backScrollRef.current.querySelector('.card-back-inner') as HTMLElement
-    const innerHeight = innerWrapper?.offsetHeight || backScrollRef.current.scrollHeight
-    const clientHeight = backScrollRef.current.clientHeight
-    
-    // Calculate maxScroll based on actual content height
-    const maxScroll = Math.max(0, innerHeight - clientHeight)
+    // Calculate new scroll offset
+    const newOffset = scrollStartY.current + deltaYFromStart
+    const maxScroll = getMaxScroll()
     
     // Clamp to valid bounds
-    const clampedScrollTop = Math.max(0, Math.min(newScrollTop, maxScroll))
+    const clampedOffset = Math.max(0, Math.min(newOffset, maxScroll))
     
-    // Set scroll position
-    backScrollRef.current.scrollTop = clampedScrollTop
-    
-    // Debug when near bottom
-    if (visibleShowComments >= 6 && clampedScrollTop >= maxScroll - 5) {
-      console.log('TouchMove near bottom:', {
-        newScrollTop,
-        maxScroll,
-        clampedScrollTop,
-        innerHeight,
-        clientHeight,
-        scrollHeight: backScrollRef.current.scrollHeight,
-        deltaY: deltaYFromStart
-      })
-    }
+    // Apply transform directly to DOM (no React re-render)
+    applyScrollTransform(clampedOffset)
     
     lastTouchY.current = touchY
     lastMoveTime.current = now
   }
 
   const handleBackTouchEnd = () => {
-    if (!backScrollRef.current) return
-    
     // Use the tracked velocity (convert from px/ms to px/frame at 60fps)
     let velocity = velocityY.current * 16.67
     
@@ -267,35 +247,29 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
     const minVelocity = 0.5 // Stop when velocity is very small
     
     const animateMomentum = () => {
-      if (!backScrollRef.current || Math.abs(velocity) < minVelocity) {
+      if (Math.abs(velocity) < minVelocity) {
         momentumRAF.current = null
         return
       }
       
-      // Recalculate maxScroll on every frame using actual content height
-      const innerWrapper = backScrollRef.current.querySelector('.card-back-inner') as HTMLElement
-      const innerHeight = innerWrapper?.offsetHeight || backScrollRef.current.scrollHeight
-      const clientHeight = backScrollRef.current.clientHeight
-      const maxScroll = Math.max(0, innerHeight - clientHeight)
-      const currentScrollTop = backScrollRef.current.scrollTop
+      const maxScroll = getMaxScroll()
+      const currentOffset = scrollOffsetRef.current
       
-      // Clamp to valid bounds before applying velocity
-      if (currentScrollTop <= 0) {
-        backScrollRef.current.scrollTop = 0
-        velocity = 0
+      // Stop at bounds
+      if (currentOffset <= 0 && velocity < 0) {
+        applyScrollTransform(0)
         momentumRAF.current = null
         return
-      } else if (currentScrollTop >= maxScroll) {
-        backScrollRef.current.scrollTop = maxScroll
-        velocity = 0
+      } else if (currentOffset >= maxScroll && velocity > 0) {
+        applyScrollTransform(maxScroll)
         momentumRAF.current = null
         return
       }
       
       // Apply velocity and clamp result
-      const newScrollTop = currentScrollTop + velocity
-      const clampedNewScroll = Math.max(0, Math.min(newScrollTop, maxScroll))
-      backScrollRef.current.scrollTop = clampedNewScroll
+      const newOffset = currentOffset + velocity
+      const clampedOffset = Math.max(0, Math.min(newOffset, maxScroll))
+      applyScrollTransform(clampedOffset)
       
       velocity *= decelerationPerFrame
       
@@ -1086,7 +1060,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           overflow: hidden;
         }
         
-        /* Back of card styles - scrollable container */
+        /* Back of card styles - clip container for transform-based scroll */
         .card-back-content {
           position: absolute;
           top: 0;
@@ -1095,18 +1069,17 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           bottom: 0;
           padding: 0 16px 20px 16px;
           box-sizing: border-box;
-          overflow-y: scroll;
-          overflow-x: hidden;
-          -webkit-overflow-scrolling: touch;
-          overscroll-behavior-y: contain;
+          overflow: hidden; /* Clip content, JS handles scroll via transform */
           touch-action: none; /* JS handles scroll */
           color: white;
         }
         
-        /* Inner wrapper - must expand naturally to allow scrolling */
+        /* Inner wrapper - transformed for scroll effect */
         .card-back-inner {
           width: 100%;
           display: block;
+          will-change: transform;
+          /* Transform applied via JS for smooth scroll */
         }
 
         .close-btn {
@@ -1645,7 +1618,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
               onTouchMove={handleBackTouchMove}
               onTouchEnd={handleBackTouchEnd}
             >
-              <div className="card-back-inner">
+              <div className="card-back-inner" ref={backInnerRef}>
               {/* Title Section */}
               <div className="back-title-section">
                 <h1 className="back-title">
