@@ -1314,9 +1314,11 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
         }
 
         .comment-item {
+          position: relative; /* For number badge positioning */
           display: flex;
           gap: 10px;
           padding: 10px;
+          padding-left: 20px; /* Space for number badge */
           background: rgba(255, 255, 255, 0.03);
           border-radius: 8px;
           flex-shrink: 0; /* Prevent comment from being compressed */
@@ -1830,10 +1832,29 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
 
                 {/* Comments List */}
                 <div className="comments-list">
-                  {data.showComments.slice(0, visibleShowComments).map((comment) => {
+                  {data.showComments.slice(0, visibleShowComments).map((comment, index) => {
                     const likeState = commentLikes[comment.id]
                     return (
                       <div key={comment.id} className="comment-item">
+                        {/* Debug: comment number */}
+                        <div style={{ 
+                          position: 'absolute', 
+                          left: '-5px', 
+                          top: '50%', 
+                          transform: 'translateY(-50%)',
+                          background: '#3B82F6', 
+                          color: 'white', 
+                          borderRadius: '50%', 
+                          width: '20px', 
+                          height: '20px', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center',
+                          fontSize: '11px',
+                          fontWeight: 'bold'
+                        }}>
+                          {index + 1}
+                        </div>
                         <img src={comment.user.avatar} alt={comment.user.name} className="comment-avatar" />
                         <div className="comment-content">
                           <div className="comment-header">
