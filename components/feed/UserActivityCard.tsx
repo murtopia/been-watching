@@ -1830,9 +1830,9 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                   </div>
                 </div>
 
-                {/* Comments List */}
+                {/* Comments List - TEST: show ALL 6 comments always (no Load More) */}
                 <div className="comments-list">
-                  {data.showComments.slice(0, visibleShowComments).map((comment, index) => {
+                  {data.showComments.map((comment, index) => {
                     const likeState = commentLikes[comment.id]
                     // Debug: make comments 5 and 6 bright red background
                     const isLateComment = index >= 4
@@ -1887,12 +1887,8 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                     )
                   })}
 
-                  {/* Load More Button */}
-                  {visibleShowComments < data.showComments.length && (
-                    <button className="load-more-btn" onClick={handleLoadMoreComments}>
-                      Load More Comments ({data.showComments.length - visibleShowComments} more)
-                    </button>
-                  )}
+                  {/* Load More Button - DISABLED FOR TEST */}
+                  {/* All 6 comments now show by default to test Safari rendering */}
                 </div>
               </div>
               
