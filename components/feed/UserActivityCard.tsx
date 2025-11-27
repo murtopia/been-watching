@@ -1834,8 +1834,14 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                 <div className="comments-list">
                   {data.showComments.slice(0, visibleShowComments).map((comment, index) => {
                     const likeState = commentLikes[comment.id]
+                    // Debug: make comments 5 and 6 bright red background
+                    const isLateComment = index >= 4
                     return (
-                      <div key={comment.id} className="comment-item">
+                      <div 
+                        key={comment.id} 
+                        className="comment-item"
+                        style={isLateComment ? { background: 'rgba(255, 0, 0, 0.5)', border: '2px solid red' } : {}}
+                      >
                         {/* Debug: comment number */}
                         <div style={{ 
                           position: 'absolute', 
