@@ -307,8 +307,11 @@ export default function Card1MobileTestPage() {
         html, body {
           overflow: hidden !important;
           height: 100% !important;
-          position: fixed !important;
           width: 100% !important;
+          position: fixed !important;
+          touch-action: none !important;
+          overscroll-behavior: none !important;
+          -webkit-overflow-scrolling: auto !important;
         }
       `}</style>
       <div style={{
@@ -319,7 +322,9 @@ export default function Card1MobileTestPage() {
         alignItems: 'center',
         padding: '20px 10px',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        touchAction: 'none',
+        overscrollBehavior: 'none'
       }}>
       {/* Test Header - Compact */}
       <div style={{
@@ -338,7 +343,7 @@ export default function Card1MobileTestPage() {
           color: '#3B82F6',
           margin: 0
         }}>
-          🧪 React Card 1: v1a.13
+          🧪 React Card 1: v1a.14
         </h1>
       </div>
 
