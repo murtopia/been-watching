@@ -235,24 +235,16 @@ export const BADGE_PRESETS = {
     borderColor: 'rgba(255, 215, 0, 0.5)',
     textColor: '#FFD700',
   }),
-  
-  // Card 6 - Top 3
-  top3: (rank: 1 | 2 | 3): FeedCardBadge => ({
-    text: `Added to #${rank} Top Show!`,
-    icon: 'star',
-    color: 'rgba(255, 215, 0, 0.25)',
-    borderColor: 'rgba(255, 215, 0, 0.5)',
-    textColor: 'white',
-  }),
-  
-  // Card 8 - You Might Like
+
+  // Card 8: You Might Like - purple badge with thumbs up
   youMightLike: {
-    text: 'You Might Like This',
-    icon: 'sparkles',
-    color: 'rgba(59, 130, 246, 0.25)',
-    borderColor: 'rgba(59, 130, 246, 0.5)',
+    text: 'You Might Like',
+    icon: 'thumbs-up-outline',
+    color: 'rgba(139, 92, 246, 0.25)',
+    borderColor: 'rgba(139, 92, 246, 0.5)',
     textColor: 'white',
   } as FeedCardBadge,
+  
 }
 
 // ============================================================================
