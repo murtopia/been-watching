@@ -185,6 +185,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
   // iOS-style momentum scroll for back card using CSS transforms
   // (3D transform breaks native scrollTop, so we use translateY instead)
   const handleBackTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault() // Prevent page scroll
     // Cancel any ongoing momentum animation
     if (momentumRAF.current) {
       cancelAnimationFrame(momentumRAF.current)
@@ -199,6 +200,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
   }
 
   const handleBackTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault() // Prevent page scroll
     if (!backScrollRef.current || !backInnerRef.current) return
     
     const now = Date.now()
@@ -238,11 +240,9 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
     const maxVelocity = 50
     velocity = Math.max(-maxVelocity, Math.min(maxVelocity, velocity))
     
-    // Deceleration rate per frame (at 60fps)
-    // 0.95 = more friction, stops faster
-    // 0.967 = iOS default
-    // 0.98 = less friction, slides longer
-    const decelerationPerFrame = 0.95
+    // iOS UIScrollViewDecelerationRateNormal = 0.998 per ms
+    // At 60fps (16.67ms/frame): 0.998^16.67 ≈ 0.967
+    const decelerationPerFrame = 0.967
     const minVelocity = 0.5 // Stop when velocity is very small
     
     const animateMomentum = () => {
@@ -1114,7 +1114,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           padding: 0 16px 20px 16px;
           box-sizing: border-box;
           overflow: hidden;
-          touch-action: pan-y; /* Allow vertical touch */
+          touch-action: none; /* JS handles all touch */
           color: white;
           /* Force new compositing layer for Safari 3D transform fix */
           transform: translateZ(0);
