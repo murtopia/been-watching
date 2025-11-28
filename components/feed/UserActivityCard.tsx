@@ -227,10 +227,10 @@ export const BADGE_PRESETS = {
     textColor: 'white',
   }),
 
-  // Card 6: Top 3 Update - gold badge
+  // Card 6: Top 3 Update - gold badge with trophy
   top3Update: (rank: number): FeedCardBadge => ({
     text: `Added to #${rank} Top Show!`,
-    icon: 'star-featured',
+    icon: 'trophy',
     color: 'rgba(255, 215, 0, 0.25)',
     borderColor: 'rgba(255, 215, 0, 0.5)',
     textColor: '#FFD700',
