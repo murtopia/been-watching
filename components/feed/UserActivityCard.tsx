@@ -1,9 +1,14 @@
 /**
- * User Activity Card - Pixel-Perfect React Conversion
- * Converted from card-1-minimal.html
+ * Feed Card - Flexible React Component for Activity Feed
+ * Supports Template A (user activity) and Template B (recommendations)
+ * 
+ * Converted from card-1-standalone.html and card-2-standalone.html
  *
  * Dimensions: 398px × 645px
  * Features: Flip animation, comments, back face with full details
+ * 
+ * Template A (Cards 1, 6): Has user header + heart action
+ * Template B (Cards 2, 3, 4, 5, 8): No user header, no heart action
  */
 
 'use client'
@@ -16,36 +21,43 @@ import { ShareButton } from '@/components/sharing/ShareButton'
 // TypeScript Interfaces
 // ============================================================================
 
-export interface UserActivityCardData {
+/** Badge configuration for activity/recommendation badges */
+export interface FeedCardBadge {
+  text: string
+  icon?: string        // Icon name from sprite (e.g., 'heart', 'thumbs-up', 'clock')
+  color: string        // Background color (rgba)
+  borderColor: string  // Border color (rgba)
+  textColor?: string   // Default: white
+}
+
+/** User info for Template A cards */
+export interface FeedCardUser {
   id: string
-  user: {
-    id: string
-    name: string
-    username: string
-    avatar: string
-  }
-  timestamp: string
-  activityType: 'loved' | 'watching' | 'want-to-watch' | 'watched'
-  activityBadges: Array<{
-    text: string
-    color: string
-    borderColor: string
-    textColor: string
-  }>
-  media: {
-    id: string
-    title: string
-    year: number
-    genres: string[]
-    rating: number
-    posterUrl: string
-    synopsis: string
-    creator: string
-    cast: string[]
-    network: string
-    season?: number
-    mediaType: 'TV' | 'Movie'
-  }
+  name: string
+  username: string
+  avatar: string
+}
+
+/** Media/Show data */
+export interface FeedCardMedia {
+  id: string
+  title: string
+  year: number
+  genres: string[]
+  rating: number
+  posterUrl: string
+  synopsis: string
+  creator: string
+  cast: string[]
+  network: string
+  season?: number
+  mediaType: 'TV' | 'Movie'
+}
+
+/** Full card data structure */
+export interface FeedCardData {
+  id: string
+  media: FeedCardMedia
   friends: {
     avatars: Array<{ id: string; name: string; username: string; avatar: string }>
     count: number
@@ -85,6 +97,51 @@ export interface UserActivityCardData {
   }>
 }
 
+/** Legacy data format for backwards compatibility */
+export interface UserActivityCardData extends FeedCardData {
+  user: FeedCardUser
+  timestamp: string
+  activityType: 'loved' | 'watching' | 'want-to-watch' | 'watched'
+  activityBadges: Array<{
+    text: string
+    color: string
+    borderColor: string
+    textColor: string
+  }>
+}
+
+/** Props for the flexible FeedCard component */
+interface FeedCardProps {
+  /** Template variant: 'a' = user activity (has header + heart), 'b' = recommendation (no header/heart) */
+  variant?: 'a' | 'b'
+  
+  /** Back variant: 'standard' = full actions, 'unreleased' = Card 4 (no + icon, only bookmark) */
+  backVariant?: 'standard' | 'unreleased'
+  
+  /** Badge configurations to display */
+  badges?: FeedCardBadge[]
+  
+  /** User info (required for variant 'a', ignored for 'b') */
+  user?: FeedCardUser
+  
+  /** Timestamp for user activity (required for variant 'a') */
+  timestamp?: string
+  
+  /** Card data */
+  data: FeedCardData | UserActivityCardData
+  
+  /** Callbacks */
+  onLike?: () => void
+  onComment?: () => void
+  onShare?: () => void
+  onAddToWatchlist?: () => void
+  onRemindMe?: () => void  // For Card 4 (Coming Soon)
+  onUserClick?: (userId: string) => void
+  onMediaClick?: (mediaId: string) => void
+  onTrack?: (action: string, metadata?: any) => void
+}
+
+/** Legacy props interface for backwards compatibility */
 interface UserActivityCardProps {
   data: UserActivityCardData
   onLike?: () => void
@@ -97,19 +154,145 @@ interface UserActivityCardProps {
 }
 
 // ============================================================================
+// Badge Presets - Use these for consistent badge styling
+// ============================================================================
+
+export const BADGE_PRESETS = {
+  // Card 1 - Activity badges
+  loved: {
+    text: 'Loved',
+    icon: 'heart',
+    color: 'rgba(255, 59, 92, 0.25)',
+    borderColor: 'rgba(255, 59, 92, 0.5)',
+    textColor: 'white',
+  } as FeedCardBadge,
+  
+  watching: {
+    text: 'Currently Watching',
+    icon: 'play',
+    color: 'rgba(59, 130, 246, 0.25)',
+    borderColor: 'rgba(59, 130, 246, 0.5)',
+    textColor: 'white',
+  } as FeedCardBadge,
+  
+  wantToWatch: {
+    text: 'Want to Watch',
+    icon: 'bookmark',
+    color: 'rgba(168, 85, 247, 0.25)',
+    borderColor: 'rgba(168, 85, 247, 0.5)',
+    textColor: 'white',
+  } as FeedCardBadge,
+  
+  watched: {
+    text: 'Watched',
+    icon: 'check',
+    color: 'rgba(52, 211, 153, 0.25)',
+    borderColor: 'rgba(52, 211, 153, 0.5)',
+    textColor: 'white',
+  } as FeedCardBadge,
+  
+  // Card 2 - Because You Liked
+  becauseYouLiked: (showName: string): FeedCardBadge => ({
+    text: `Because you liked ${showName}`,
+    icon: 'thumbs-up',
+    color: 'rgba(139, 92, 246, 0.25)',
+    borderColor: 'rgba(139, 92, 246, 0.5)',
+    textColor: 'white',
+  }),
+  
+  // Card 3 - Friends Loved
+  friendsLoved: {
+    text: 'Your Friends Loved',
+    icon: 'heart',
+    color: 'rgba(236, 72, 153, 0.25)',
+    borderColor: 'rgba(236, 72, 153, 0.5)',
+    textColor: 'white',
+  } as FeedCardBadge,
+  
+  // Card 4 - Coming Soon
+  comingSoon: (date: string): FeedCardBadge => ({
+    text: `Coming Soon on ${date}`,
+    icon: 'clock',
+    color: 'rgba(168, 85, 247, 0.25)',
+    borderColor: 'rgba(168, 85, 247, 0.5)',
+    textColor: 'white',
+  }),
+  
+  // Card 5 - Now Streaming
+  nowStreaming: (platform: string): FeedCardBadge => ({
+    text: `Now Streaming on ${platform}`,
+    icon: 'tv',
+    color: 'rgba(139, 92, 246, 0.25)',
+    borderColor: 'rgba(139, 92, 246, 0.5)',
+    textColor: 'white',
+  }),
+  
+  // Card 6 - Top 3
+  top3: (rank: 1 | 2 | 3): FeedCardBadge => ({
+    text: `Added to #${rank} Top Show!`,
+    icon: 'star',
+    color: 'rgba(255, 215, 0, 0.25)',
+    borderColor: 'rgba(255, 215, 0, 0.5)',
+    textColor: 'white',
+  }),
+  
+  // Card 8 - You Might Like
+  youMightLike: {
+    text: 'You Might Like This',
+    icon: 'sparkles',
+    color: 'rgba(59, 130, 246, 0.25)',
+    borderColor: 'rgba(59, 130, 246, 0.5)',
+    textColor: 'white',
+  } as FeedCardBadge,
+}
+
+// ============================================================================
 // Main Component
 // ============================================================================
 
-export const UserActivityCard: React.FC<UserActivityCardProps> = ({
+/** 
+ * FeedCard - Flexible component for all feed card types
+ * Use variant='a' for user activity cards (1, 6)
+ * Use variant='b' for recommendation cards (2, 3, 4, 5, 8)
+ */
+export const FeedCard: React.FC<FeedCardProps> = ({
+  variant = 'a',
+  backVariant = 'standard',
+  badges,
+  user,
+  timestamp,
   data,
   onLike,
   onComment,
   onShare,
   onAddToWatchlist,
+  onRemindMe,
   onUserClick,
   onMediaClick,
   onTrack,
 }) => {
+  // Determine if this is legacy data format
+  const isLegacyData = 'user' in data && 'activityBadges' in data
+  const legacyData = isLegacyData ? (data as UserActivityCardData) : null
+  
+  // Extract user info from props or legacy data
+  const cardUser = user || legacyData?.user
+  const cardTimestamp = timestamp || legacyData?.timestamp
+  
+  // Extract badges from props or legacy data
+  const cardBadges = badges || legacyData?.activityBadges?.map(b => ({
+    text: b.text,
+    color: b.color,
+    borderColor: b.borderColor,
+    textColor: b.textColor,
+  })) || []
+  
+  // Determine variant behavior
+  const showUserHeader = variant === 'a' && cardUser
+  const showHeartAction = variant === 'a'
+  const showCommentAction = variant === 'a' // Template B cards don't have comment on front
+  const isUnreleased = backVariant === 'unreleased' // Card 4 special handling
+
   const [isFlipped, setIsFlipped] = useState(false)
   const [commentsVisible, setCommentsVisible] = useState(false)
   const [commentsExpanded, setCommentsExpanded] = useState(false)
@@ -1519,37 +1702,44 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
 
             {/* Card Content */}
             <div className="card-content">
-              {/* User Header */}
-              <div className="user-header">
-                <img
-                  src={data.user.avatar}
-                  alt={data.user.name}
-                  className="user-avatar"
-                  onClick={() => onUserClick?.(data.user.id)}
-                />
-                <div className="user-info">
-                  <div className="username">{data.user.name}</div>
-                  <div className="timestamp">{data.timestamp}</div>
+              {/* User Header - Only for Template A */}
+              {showUserHeader && cardUser && (
+                <div className="user-header">
+                  <img
+                    src={cardUser.avatar}
+                    alt={cardUser.name}
+                    className="user-avatar"
+                    onClick={() => onUserClick?.(cardUser.id)}
+                  />
+                  <div className="user-info">
+                    <div className="username">{cardUser.name}</div>
+                    <div className="timestamp">{cardTimestamp}</div>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {/* Activity Badges */}
+              {/* Activity/Recommendation Badges */}
               <div className="activity-badges">
-                {data.activityBadges.map((badge, idx) => (
+                {cardBadges.map((badge, idx) => (
                   <div
                     key={idx}
                     className="activity-badge"
                     style={{
                       background: badge.color,
                       border: `1px solid ${badge.borderColor}`,
-                      color: badge.textColor,
+                      color: badge.textColor || 'white',
                     }}
                   >
-                    {badge.text === 'Loved' && (
-                      <Icon name="heart" state="default" size={16} color={badge.textColor} />
+                    {/* Render icon if specified */}
+                    {badge.icon && (
+                      <Icon name={badge.icon} state="default" size={16} color={badge.textColor || 'white'} />
                     )}
-                    {badge.text === 'Currently Watching' && (
-                      <Icon name="play" state="default" size={16} color={badge.textColor} />
+                    {/* Legacy icon support for badges without icon prop */}
+                    {!badge.icon && badge.text === 'Loved' && (
+                      <Icon name="heart" state="default" size={16} color={badge.textColor || 'white'} />
+                    )}
+                    {!badge.icon && badge.text === 'Currently Watching' && (
+                      <Icon name="play" state="default" size={16} color={badge.textColor || 'white'} />
                     )}
                     {badge.text}
                   </div>
@@ -1580,35 +1770,65 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
 
             {/* Side Actions */}
             <div className="side-actions">
-              {/* Like Button */}
+              {/* Like Button - Only for Template A (user activity) */}
+              {showHeartAction && (
+                <div>
+                  <button
+                    className={`action-btn ${localLiked ? 'liked' : ''}`}
+                    onClick={handleLike}
+                  >
+                    <Icon
+                      name="heart-nav"
+                      state={localLiked ? 'active' : 'default'}
+                      size={24}
+                    />
+                  </button>
+                  <div className="action-count">{localLikeCount}</div>
+                </div>
+              )}
+
+              {/* Add Button - Shows + icon (or bookmark for unreleased) */}
               <div>
-                <button
-                  className={`action-btn ${localLiked ? 'liked' : ''}`}
-                  onClick={handleLike}
-                >
-                  <Icon
-                    name="heart-nav"
-                    state={localLiked ? 'active' : 'default'}
-                    size={24}
-                  />
-                </button>
-                <div className="action-count">{localLikeCount}</div>
+                {isUnreleased ? (
+                  // Card 4 (Coming Soon) - Direct bookmark action, no modal
+                  <button className="action-btn" onClick={onAddToWatchlist}>
+                    <Icon name="bookmark" state="default" size={24} />
+                  </button>
+                ) : (
+                  // Standard - Opens quick action modal
+                  <button className="action-btn" onClick={toggleActionOverlay}>
+                    <Icon name="plus" state="default" size={24} />
+                  </button>
+                )}
               </div>
 
-              {/* Add Button */}
-              <div>
-                <button className="action-btn" onClick={toggleActionOverlay}>
-                  <Icon name="plus" state="default" size={24} />
-                </button>
-              </div>
+              {/* Comment Button - Only for Template A */}
+              {showCommentAction && (
+                <div>
+                  <button className="action-btn" onClick={handleCommentButtonClick}>
+                    <Icon name="comment" state="default" size={24} />
+                  </button>
+                  <div className="action-count">{data.stats.commentCount}</div>
+                </div>
+              )}
 
-              {/* Comment Button */}
-              <div>
-                <button className="action-btn" onClick={handleCommentButtonClick}>
-                  <Icon name="comment" state="default" size={24} />
-                </button>
-                <div className="action-count">{data.stats.commentCount}</div>
-              </div>
+              {/* Share Button - For Template B and unreleased */}
+              {(!showCommentAction || isUnreleased) && (
+                <div>
+                  <button className="action-btn" onClick={onShare}>
+                    <Icon name="share" state="default" size={24} />
+                  </button>
+                </div>
+              )}
+
+              {/* Remind Me Button - Only for Card 4 (unreleased) */}
+              {isUnreleased && (
+                <div>
+                  <button className="action-btn" onClick={onRemindMe}>
+                    <Icon name="bell" state="default" size={24} />
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Comments Tab */}
@@ -1639,7 +1859,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
 
               <div className="comments-full">
                 <div className="activity-comment-input-container">
-                  <img src={data.user.avatar} alt="You" className="activity-comment-input-avatar" />
+                  <img src={cardUser?.avatar || '/default-avatar.png'} alt="You" className="activity-comment-input-avatar" />
                   <div className="activity-comment-input-wrapper">
                     <textarea
                       className="activity-comment-input"
@@ -1748,21 +1968,41 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
 
               {/* Action Icons */}
               <div className="back-action-icons">
-                <button
-                  className="back-icon-btn primary"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setActionOverlayVisible(true)
-                  }}
-                >
-                  <Icon name="plus" size={22} color="white" />
-                </button>
+                {isUnreleased ? (
+                  // Card 4 (Coming Soon) - Bookmark instead of + icon
+                  <button
+                    className="back-icon-btn primary"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onAddToWatchlist?.()
+                    }}
+                  >
+                    <Icon name="bookmark" size={22} color="white" />
+                  </button>
+                ) : (
+                  // Standard - + icon opens quick action modal
+                  <button
+                    className="back-icon-btn primary"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setActionOverlayVisible(true)
+                    }}
+                  >
+                    <Icon name="plus" size={22} color="white" />
+                  </button>
+                )}
                 <button className="back-icon-btn" onClick={handleCommentIconClick}>
                   <Icon name="comment" size={22} color="white" />
                 </button>
                 <button className="back-icon-btn" onClick={onShare}>
                   <Icon name="share" size={22} color="white" />
                 </button>
+                {/* Remind Me - Only for unreleased */}
+                {isUnreleased && (
+                  <button className="back-icon-btn" onClick={onRemindMe}>
+                    <Icon name="bell" size={22} color="white" />
+                  </button>
+                )}
               </div>
 
               {/* Info Grid */}
@@ -1789,21 +2029,28 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                 </div>
               </div>
 
-              {/* Friends Watching */}
+              {/* Friends Watching - Different for unreleased content */}
               <div className="back-section">
-                <h3 className="back-section-title">Friends Watching</h3>
+                <h3 className="back-section-title">
+                  {isUnreleased ? 'Friends Interested' : 'Friends Watching'}
+                </h3>
                 <div className="friends-categories">
-                  <div className="friends-category">
-                    <div className="friends-avatars-stack">
-                      {data.friendsActivity.watching.avatars.slice(0, 3).map((avatar, idx) => (
-                        <img key={idx} src={avatar} alt="Friend" />
-                      ))}
+                  {/* Watching - Only for released content */}
+                  {!isUnreleased && (
+                    <div className="friends-category">
+                      <div className="friends-avatars-stack">
+                        {data.friendsActivity.watching.avatars.slice(0, 3).map((avatar, idx) => (
+                          <img key={idx} src={avatar} alt="Friend" />
+                        ))}
+                      </div>
+                      <div className="friends-category-text">
+                        <span className="count">{data.friendsActivity.watching.count}</span> friends
+                        watching
+                      </div>
                     </div>
-                    <div className="friends-category-text">
-                      <span className="count">{data.friendsActivity.watching.count}</span> friends
-                      watching
-                    </div>
-                  </div>
+                  )}
+                  
+                  {/* Want to Watch - Always shown */}
                   <div className="friends-category">
                     <div className="friends-avatars-stack">
                       {data.friendsActivity.wantToWatch.avatars.slice(0, 3).map((avatar, idx) => (
@@ -1815,60 +2062,66 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                       friends want to watch
                     </div>
                   </div>
-                  <div className="friends-category">
-                    <div className="friends-avatars-stack">
-                      {data.friendsActivity.watched.avatars.slice(0, 3).map((avatar, idx) => (
-                        <img key={idx} src={avatar} alt="Friend" />
-                      ))}
+                  
+                  {/* Watched - Only for released content */}
+                  {!isUnreleased && (
+                    <div className="friends-category">
+                      <div className="friends-avatars-stack">
+                        {data.friendsActivity.watched.avatars.slice(0, 3).map((avatar, idx) => (
+                          <img key={idx} src={avatar} alt="Friend" />
+                        ))}
+                      </div>
+                      <div className="friends-category-text">
+                        <span className="count">{data.friendsActivity.watched.count}</span> friends
+                        watched
+                      </div>
                     </div>
-                    <div className="friends-category-text">
-                      <span className="count">{data.friendsActivity.watched.count}</span> friends
-                      watched
-                    </div>
-                  </div>
+                  )}
                 </div>
 
-                {/* Friends Ratings */}
-                <div className="friends-ratings-container">
-                  <div className="friends-ratings">
-                    <h3 className="friends-ratings-title">Friends Ratings</h3>
-                    <div className="friends-ratings-stats">
-                      <div className="rating-stat">
-                        <div className={`rating-icon-wrapper ${data.friendsActivity.ratings.userRating === 'meh' ? 'active-user-rating' : ''}`}>
-                          <Icon
-                            name="meh-face"
-                            state={data.friendsActivity.ratings.userRating === 'meh' ? 'active' : 'default'}
-                            size={20}
-                          />
-                          <div className="rating-count">{data.friendsActivity.ratings.meh}</div>
+                {/* Friends Ratings - Only for released content */}
+                {!isUnreleased && (
+                  <div className="friends-ratings-container">
+                    <div className="friends-ratings">
+                      <h3 className="friends-ratings-title">Friends Ratings</h3>
+                      <div className="friends-ratings-stats">
+                        <div className="rating-stat">
+                          <div className={`rating-icon-wrapper ${data.friendsActivity.ratings.userRating === 'meh' ? 'active-user-rating' : ''}`}>
+                            <Icon
+                              name="meh-face"
+                              state={data.friendsActivity.ratings.userRating === 'meh' ? 'active' : 'default'}
+                              size={20}
+                            />
+                            <div className="rating-count">{data.friendsActivity.ratings.meh}</div>
+                          </div>
+                          <div className="rating-label">Meh</div>
                         </div>
-                        <div className="rating-label">Meh</div>
-                      </div>
-                      <div className="rating-stat">
-                        <div className={`rating-icon-wrapper ${data.friendsActivity.ratings.userRating === 'like' ? 'active-user-rating' : ''}`}>
-                          <Icon
-                            name="thumbs-up"
-                            state={data.friendsActivity.ratings.userRating === 'like' ? 'active' : 'default'}
-                            size={20}
-                          />
-                          <div className="rating-count">{data.friendsActivity.ratings.like}</div>
+                        <div className="rating-stat">
+                          <div className={`rating-icon-wrapper ${data.friendsActivity.ratings.userRating === 'like' ? 'active-user-rating' : ''}`}>
+                            <Icon
+                              name="thumbs-up"
+                              state={data.friendsActivity.ratings.userRating === 'like' ? 'active' : 'default'}
+                              size={20}
+                            />
+                            <div className="rating-count">{data.friendsActivity.ratings.like}</div>
+                          </div>
+                          <div className="rating-label">Like</div>
                         </div>
-                        <div className="rating-label">Like</div>
-                      </div>
-                      <div className="rating-stat">
-                        <div className={`rating-icon-wrapper ${data.friendsActivity.ratings.userRating === 'love' ? 'active-user-rating' : ''}`}>
-                          <Icon
-                            name="heart"
-                            state={data.friendsActivity.ratings.userRating === 'love' ? 'active' : 'default'}
-                            size={20}
-                          />
-                          <div className="rating-count">{data.friendsActivity.ratings.love}</div>
+                        <div className="rating-stat">
+                          <div className={`rating-icon-wrapper ${data.friendsActivity.ratings.userRating === 'love' ? 'active-user-rating' : ''}`}>
+                            <Icon
+                              name="heart"
+                              state={data.friendsActivity.ratings.userRating === 'love' ? 'active' : 'default'}
+                              size={20}
+                            />
+                            <div className="rating-count">{data.friendsActivity.ratings.love}</div>
+                          </div>
+                          <div className="rating-label">Love</div>
                         </div>
-                        <div className="rating-label">Love</div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Show Comments */}
@@ -1877,7 +2130,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
 
                 {/* Comment Input */}
                 <div className="comment-input-container">
-                  <img src={data.user.avatar} alt="You" className="comment-input-avatar" />
+                  <img src={cardUser?.avatar || '/default-avatar.png'} alt="You" className="comment-input-avatar" />
                   <div className="comment-input-wrapper">
                     <textarea
                       ref={commentInputRef}
@@ -2078,4 +2331,32 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
   )
 }
 
-export default UserActivityCard
+// ============================================================================
+// Backwards-Compatible Wrapper
+// ============================================================================
+
+/**
+ * UserActivityCard - Legacy wrapper for backwards compatibility
+ * New code should use FeedCard directly with variant prop
+ */
+export const UserActivityCard: React.FC<UserActivityCardProps> = (props) => {
+  return (
+    <FeedCard
+      variant="a"
+      backVariant="standard"
+      user={props.data.user}
+      timestamp={props.data.timestamp}
+      badges={props.data.activityBadges}
+      data={props.data}
+      onLike={props.onLike}
+      onComment={props.onComment}
+      onShare={props.onShare}
+      onAddToWatchlist={props.onAddToWatchlist}
+      onUserClick={props.onUserClick}
+      onMediaClick={props.onMediaClick}
+      onTrack={props.onTrack}
+    />
+  )
+}
+
+export default FeedCard
