@@ -1,311 +1,526 @@
 /**
- * Follow Suggestions Card (Card 7)
- *
- * Horizontal carousel showing suggested users to follow
- * Features: Auto-rotate carousel, match percentage, mutual friends
+ * Follow Suggestions Card (Card 7 - Template C)
+ * 
+ * A unique card type that shows user follow suggestions in a carousel.
+ * Completely different from media cards - displays user profiles with:
+ * - Match percentage
+ * - Bio
+ * - Watchlist stats
+ * - Friends in common
+ * - Follow button
  */
 
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { FollowSuggestionsCard as FollowSuggestionsCardType } from '@/types/feed'
-import { Icon } from '@/components/ui/Icon'
-import { Avatar, AvatarStack, Badge } from './shared/CardElements'
+import React, { useState, useRef, useCallback } from 'react'
 
-interface Props {
-  data: FollowSuggestionsCardType
+// ============================================================================
+// Types
+// ============================================================================
+
+interface UserSuggestion {
+  id: string
+  name: string
+  username: string
+  avatar: string
+  matchPercentage: number
+  bio: string
+  stats: {
+    wantToWatch: number
+    watching: number
+    watched: number
+  }
+  friendsInCommon: {
+    count: number
+    avatars: string[]
+  }
+}
+
+interface FollowSuggestionsCardProps {
+  suggestions: UserSuggestion[]
   onFollow?: (userId: string) => void
   onUserClick?: (userId: string) => void
   onTrack?: (action: string, metadata?: any) => void
 }
 
-export const FollowSuggestionsCard: React.FC<Props> = ({
-  data,
+// ============================================================================
+// Icon Component (inline for this card)
+// ============================================================================
+
+const LinkIcon = () => (
+  <svg viewBox="0 0 24 24" style={{ width: 16, height: 16, fill: 'currentColor' }}>
+    <path d="M17.657 14.828l-1.414-1.414L17.657 12A4 4 0 1 0 12 6.343l-1.414 1.414-1.414-1.414 1.414-1.414a6 6 0 1 1 8.485 8.485l-1.414 1.414zm-2.829 2.829l-1.414 1.414a6 6 0 1 1-8.485-8.485l1.414-1.414 1.414 1.414L6.343 12A4 4 0 1 0 12 17.657l1.414-1.414 1.414 1.414zm0-9.9l1.415 1.415-7.071 7.07-1.415-1.414 7.071-7.07z"/>
+  </svg>
+)
+
+// ============================================================================
+// Main Component
+// ============================================================================
+
+export const FollowSuggestionsCard: React.FC<FollowSuggestionsCardProps> = ({
+  suggestions,
   onFollow,
   onUserClick,
-  onTrack
+  onTrack,
 }) => {
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [isPaused, setIsPaused] = useState(false)
-  const [followStates, setFollowStates] = useState<Record<string, boolean>>({})
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set())
+  const [touchStartX, setTouchStartX] = useState(0)
+  const [touchDeltaX, setTouchDeltaX] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const carouselRef = useRef<HTMLDivElement>(null)
 
-  // Auto-rotate carousel
-  useEffect(() => {
-    if (isPaused || data.suggestions.length <= 1) return
-
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % data.suggestions.length)
-    }, 6000)
-
-    return () => clearInterval(interval)
-  }, [isPaused, data.suggestions.length])
-
-  const handleFollow = (userId: string) => {
-    setFollowStates((prev) => ({ ...prev, [userId]: !prev[userId] }))
+  const handleFollow = useCallback((userId: string) => {
+    setFollowedUsers(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(userId)) {
+        newSet.delete(userId)
+        onTrack?.('unfollow', { userId })
+      } else {
+        newSet.add(userId)
+        onTrack?.('follow', { userId })
+      }
+      return newSet
+    })
     onFollow?.(userId)
-    onTrack?.('follow', { userId, cardId: data.id })
+  }, [onFollow, onTrack])
+
+  const goToSlide = useCallback((index: number) => {
+    if (index >= 0 && index < suggestions.length) {
+      setCurrentSlide(index)
+      onTrack?.('carousel_navigate', { slideIndex: index })
+    }
+  }, [suggestions.length, onTrack])
+
+  // Touch handlers for swipe
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX)
+    setIsDragging(true)
+    setTouchDeltaX(0)
   }
 
-  const goToSlide = (index: number) => {
-    setCurrentIndex(index)
-    onTrack?.('carousel-navigate', { cardId: data.id, slideIndex: index })
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return
+    const delta = e.touches[0].clientX - touchStartX
+    setTouchDeltaX(delta)
   }
 
-  const currentSuggestion = data.suggestions[currentIndex]
+  const handleTouchEnd = () => {
+    if (!isDragging) return
+    setIsDragging(false)
+    
+    // Swipe threshold
+    if (Math.abs(touchDeltaX) > 50) {
+      if (touchDeltaX < 0 && currentSlide < suggestions.length - 1) {
+        // Swipe left - next
+        goToSlide(currentSlide + 1)
+      } else if (touchDeltaX > 0 && currentSlide > 0) {
+        // Swipe right - previous
+        goToSlide(currentSlide - 1)
+      }
+    }
+    setTouchDeltaX(0)
+  }
 
   return (
-    <div
-      style={{
-        width: '398px',
-        height: '420px',
-        borderRadius: '16px',
-        background: 'linear-gradient(135deg, rgba(251,191,36,0.15) 0%, rgba(245,158,11,0.1) 100%)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        border: '1px solid rgba(251,191,36,0.3)',
-        padding: '24px',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-        color: 'white',
-        position: 'relative',
-        overflow: 'hidden'
-      }}
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-    >
-      {/* Badge */}
-      <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
-        <Badge
-          text="Find New Friends"
-          icon="link-chain"
-          color="#F59E0B"
-          variant="glass"
-        />
-      </div>
-
-      {/* Carousel Container */}
-      <div
-        style={{
-          position: 'relative',
-          width: '100%',
-          height: 'calc(100% - 80px)'
-        }}
-      >
-        {/* Profile Card */}
-        <div
-          key={currentSuggestion.user.id}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            textAlign: 'center',
-            animation: 'fadeIn 0.5s ease-in-out'
-          }}
-        >
-          {/* Avatar */}
-          <div
-            style={{
-              width: '90px',
-              height: '90px',
-              borderRadius: '50%',
-              overflow: 'hidden',
-              border: '3px solid rgba(251,191,36,0.5)',
-              marginBottom: '16px',
-              cursor: 'pointer'
-            }}
-            onClick={() => {
-              onUserClick?.(currentSuggestion.user.id)
-              onTrack?.('click-user', { userId: currentSuggestion.user.id })
-            }}
-          >
-            <img
-              src={currentSuggestion.user.avatar}
-              alt={currentSuggestion.user.name}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover'
-              }}
-            />
-          </div>
-
-          {/* Name & Username */}
-          <h3
-            style={{
-              fontSize: '18px',
-              fontWeight: 700,
-              margin: '0 0 4px 0',
-              cursor: 'pointer'
-            }}
-            onClick={() => {
-              onUserClick?.(currentSuggestion.user.id)
-              onTrack?.('click-user', { userId: currentSuggestion.user.id })
-            }}
-          >
-            {currentSuggestion.user.name}
-          </h3>
-          <div style={{
-            fontSize: '14px',
-            opacity: 0.7,
-            marginBottom: '16px'
-          }}>
-            @{currentSuggestion.user.username}
-          </div>
-
-          {/* Match Percentage */}
-          <div
-            style={{
-              fontSize: '36px',
-              fontWeight: 700,
-              color: '#FBB F24',
-              marginBottom: '8px'
-            }}
-          >
-            {currentSuggestion.matchPercentage}%
-          </div>
-          <div style={{
-            fontSize: '13px',
-            opacity: 0.8,
-            marginBottom: '20px'
-          }}>
-            Match
-          </div>
-
-          {/* Follow Button */}
-          <button
-            onClick={() => handleFollow(currentSuggestion.user.id)}
-            style={{
-              padding: '12px 32px',
-              background: followStates[currentSuggestion.user.id] || currentSuggestion.isFollowing
-                ? 'rgba(255,255,255,0.1)'
-                : '#F59E0B',
-              border: '1px solid rgba(251,191,36,0.5)',
-              borderRadius: '24px',
-              color: 'white',
-              fontSize: '15px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              marginBottom: '20px'
-            }}
-            onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.95)'}
-            onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-          >
-            {followStates[currentSuggestion.user.id] || currentSuggestion.isFollowing ? 'Following' : 'Follow'}
-          </button>
-
-          {/* Bio */}
-          <p style={{
-            fontSize: '13px',
-            lineHeight: 1.5,
-            opacity: 0.85,
-            margin: '0 0 16px 0',
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden'
-          }}>
-            {currentSuggestion.bio}
-          </p>
-
-          {/* Stats */}
-          <div style={{
-            display: 'flex',
-            gap: '16px',
-            justifyContent: 'center',
-            marginBottom: '16px',
-            fontSize: '12px'
-          }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontWeight: 700, fontSize: '16px' }}>
-                {currentSuggestion.stats.wantToWatch}
-              </div>
-              <div style={{ opacity: 0.7 }}>Want</div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontWeight: 700, fontSize: '16px' }}>
-                {currentSuggestion.stats.watching}
-              </div>
-              <div style={{ opacity: 0.7 }}>Watching</div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontWeight: 700, fontSize: '16px' }}>
-                {currentSuggestion.stats.watched}
-              </div>
-              <div style={{ opacity: 0.7 }}>Watched</div>
-            </div>
-          </div>
-
-          {/* Mutual Friends */}
-          {currentSuggestion.mutualFriends.count > 0 && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '8px 14px',
-              background: 'rgba(255,255,255,0.1)',
-              borderRadius: '20px',
-              fontSize: '12px',
-              fontWeight: 600
-            }}>
-              <AvatarStack
-                users={currentSuggestion.mutualFriends.avatars}
-                maxVisible={2}
-                size={20}
-              />
-              <span>
-                {currentSuggestion.mutualFriends.count} mutual {currentSuggestion.mutualFriends.count === 1 ? 'friend' : 'friends'}
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Carousel Dots */}
-      {data.suggestions.length > 1 && (
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '24px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            display: 'flex',
-            gap: '8px'
-          }}
-        >
-          {data.suggestions.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => goToSlide(index)}
-              style={{
-                width: currentIndex === index ? '24px' : '8px',
-                height: '8px',
-                borderRadius: '4px',
-                background: currentIndex === index
-                  ? '#FBB F24'
-                  : 'rgba(255,255,255,0.3)',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'all 0.3s'
-              }}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* CSS for fade animation */}
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+    <div className="follow-card-container">
+      <style>{`
+        .follow-card-container {
+          width: 398px;
+          max-width: 100%;
+        }
+        
+        .follow-card {
+          width: 100%;
+          height: 420px;
+          border-radius: 16px;
+          overflow: visible;
+          position: relative;
+          background: rgba(255, 215, 0, 0.2);
+          backdrop-filter: blur(25px);
+          -webkit-backdrop-filter: blur(25px);
+          border: 1px solid rgba(255, 215, 0, 0.4);
+          padding: 20px;
+        }
+        
+        .follow-card-content {
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          position: relative;
+        }
+        
+        .discover-badge {
+          background: rgba(20, 20, 20, 0.85);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          padding: 8px 14px;
+          border-radius: 12px;
+          font-size: 13px;
+          font-weight: 700;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          margin-bottom: 16px;
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          align-self: flex-start;
+          color: white;
+        }
+        
+        .carousel-container {
+          position: relative;
+          flex: 1;
+          overflow: hidden;
+          border-radius: 12px;
+        }
+        
+        .user-profile-card {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          background: rgba(20, 20, 20, 0.98);
+          backdrop-filter: blur(30px);
+          -webkit-backdrop-filter: blur(30px);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 12px;
+          padding: 16px;
+          transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
+          display: flex;
+          flex-direction: column;
+          color: #ffffff;
+        }
+        
+        .user-profile-card.active {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        
+        .user-profile-card.next {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        
+        .user-profile-card.prev {
+          transform: translateX(-100%);
+          opacity: 0;
+        }
+        
+        .user-profile {
+          display: flex;
+          gap: 14px;
+          align-items: center;
+          margin-bottom: 12px;
+        }
+        
+        .profile-photo {
+          width: 90px;
+          height: 90px;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 2px solid rgba(255, 255, 255, 0.5);
+          flex-shrink: 0;
+        }
+        
+        .profile-info {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        
+        .name-match-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 12px;
+        }
+        
+        .name-username {
+          flex: 1;
+        }
+        
+        .user-name {
+          font-size: 18px;
+          font-weight: 700;
+          line-height: 1.2;
+          margin-bottom: 2px;
+          cursor: pointer;
+        }
+        
+        .user-name:hover {
+          opacity: 0.8;
+        }
+        
+        .username {
+          font-size: 13px;
+          opacity: 0.7;
+          font-weight: 500;
+          cursor: pointer;
+        }
+        
+        .username:hover {
+          opacity: 0.9;
+        }
+        
+        .match-percentage {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          gap: 2px;
+        }
+        
+        .match-number {
+          font-size: 28px;
+          font-weight: 700;
+          line-height: 1;
+        }
+        
+        .match-label {
+          font-size: 10px;
+          opacity: 0.7;
+          font-weight: 500;
+        }
+        
+        .follow-btn {
+          background: #FF6B6B;
+          color: white;
+          border: none;
+          padding: 7px 18px;
+          border-radius: 20px;
+          font-size: 11px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s;
+          align-self: flex-start;
+          margin-top: 4px;
+        }
+        
+        .follow-btn:hover {
+          background: #FF5252;
+          transform: scale(1.05);
+        }
+        
+        .follow-btn:active {
+          transform: scale(0.98);
+        }
+        
+        .follow-btn.following {
+          background: rgba(255, 255, 255, 0.1);
+          color: white;
+          border: 1.5px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        .bio {
+          font-size: 13px;
+          line-height: 1.4;
+          opacity: 0.8;
+          margin-bottom: 12px;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        
+        .watchlist-stats {
+          display: flex;
+          justify-content: space-around;
+          width: 100%;
+          padding: 12px 0;
+          margin-bottom: 12px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        
+        .stat-item {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+        }
+        
+        .stat-number {
+          font-size: 24px;
+          font-weight: 700;
+          line-height: 1;
+        }
+        
+        .stat-label {
+          font-size: 12px;
+          opacity: 0.7;
+          font-weight: 500;
+          text-align: center;
+        }
+        
+        .friends-common {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 12px;
+          opacity: 0.8;
+          margin-top: auto;
+        }
+        
+        .friend-avatars-stack {
+          display: flex;
+          margin-right: 6px;
+        }
+        
+        .friend-avatars-stack img {
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          border: 1.5px solid rgba(255, 255, 255, 0.9);
+          margin-left: -8px;
+          background: #1a1a1a;
+        }
+        
+        .friend-avatars-stack img:first-child {
+          margin-left: 0;
+        }
+        
+        .carousel-dots {
+          display: flex;
+          gap: 8px;
+          justify-content: center;
+          margin-top: 16px;
+        }
+        
+        .dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: rgba(20, 20, 20, 0.5);
+          cursor: pointer;
+          transition: all 0.3s;
+          border: 1px solid rgba(20, 20, 20, 0.3);
+        }
+        
+        .dot.active {
+          background: rgba(20, 20, 20, 0.9);
+          width: 24px;
+          border-radius: 4px;
+          border: 1px solid rgba(20, 20, 20, 0.5);
+        }
+        
+        .dot:hover:not(.active) {
+          background: rgba(20, 20, 20, 0.7);
         }
       `}</style>
+
+      <div className="follow-card">
+        <div className="follow-card-content">
+          {/* Badge */}
+          <div className="discover-badge">
+            <LinkIcon />
+            Find New Friends
+          </div>
+
+          {/* Carousel */}
+          <div 
+            className="carousel-container"
+            ref={carouselRef}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {suggestions.map((user, index) => {
+              let cardClass = 'user-profile-card'
+              if (index === currentSlide) {
+                cardClass += ' active'
+              } else if (index > currentSlide) {
+                cardClass += ' next'
+              } else {
+                cardClass += ' prev'
+              }
+
+              const isFollowing = followedUsers.has(user.id)
+
+              return (
+                <div key={user.id} className={cardClass} data-user={index}>
+                  <div className="user-profile">
+                    <img 
+                      src={user.avatar} 
+                      alt={user.name} 
+                      className="profile-photo"
+                      onClick={() => onUserClick?.(user.id)}
+                    />
+                    <div className="profile-info">
+                      <div className="name-match-row">
+                        <div className="name-username">
+                          <div 
+                            className="user-name"
+                            onClick={() => onUserClick?.(user.id)}
+                          >
+                            {user.name}
+                          </div>
+                          <div 
+                            className="username"
+                            onClick={() => onUserClick?.(user.id)}
+                          >
+                            @{user.username}
+                          </div>
+                        </div>
+                        <div className="match-percentage">
+                          <div className="match-number">{user.matchPercentage}%</div>
+                          <div className="match-label">
+                            {user.matchPercentage >= 90 ? 'Great Match!' : 
+                             user.matchPercentage >= 80 ? 'Good Match!' : 'Match'}
+                          </div>
+                        </div>
+                      </div>
+                      <button 
+                        className={`follow-btn ${isFollowing ? 'following' : ''}`}
+                        onClick={() => handleFollow(user.id)}
+                      >
+                        {isFollowing ? 'FOLLOWING' : 'FOLLOW'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="bio">{user.bio}</div>
+
+                  <div className="watchlist-stats">
+                    <div className="stat-item">
+                      <div className="stat-number">{user.stats.wantToWatch}</div>
+                      <div className="stat-label">Want to Watch</div>
+                    </div>
+                    <div className="stat-item">
+                      <div className="stat-number">{user.stats.watching}</div>
+                      <div className="stat-label">Watching</div>
+                    </div>
+                    <div className="stat-item">
+                      <div className="stat-number">{user.stats.watched}</div>
+                      <div className="stat-label">Watched</div>
+                    </div>
+                  </div>
+
+                  <div className="friends-common">
+                    <div className="friend-avatars-stack">
+                      {user.friendsInCommon.avatars.slice(0, 3).map((avatar, i) => (
+                        <img key={i} src={avatar} alt="Friend" />
+                      ))}
+                    </div>
+                    <span>{user.friendsInCommon.count} friends in common</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Carousel dots */}
+          <div className="carousel-dots">
+            {suggestions.map((_, index) => (
+              <div 
+                key={index}
+                className={`dot ${index === currentSlide ? 'active' : ''}`}
+                onClick={() => goToSlide(index)}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
+
+export default FollowSuggestionsCard
