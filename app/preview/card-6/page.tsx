@@ -49,7 +49,7 @@ export default function Card6MobileTestPage() {
     },
     stats: {
       likeCount: 47,
-      commentCount: 12,
+      commentCount: 10,
       userLiked: false
     },
     friendsActivity: {
@@ -100,6 +100,70 @@ export default function Card6MobileTestPage() {
         timestamp: '3h ago',
         likes: 8,
         userLiked: false
+      },
+      {
+        id: 'c3',
+        user: { name: 'Marcus Johnson', avatar: 'https://i.pravatar.cc/150?img=11' },
+        text: 'About time! This show is a masterpiece.',
+        timestamp: '4h ago',
+        likes: 15,
+        userLiked: false
+      },
+      {
+        id: 'c4',
+        user: { name: 'Emma Williams', avatar: 'https://i.pravatar.cc/150?img=15' },
+        text: 'Richie\'s character development 😭',
+        timestamp: '5h ago',
+        likes: 22,
+        userLiked: true
+      },
+      {
+        id: 'c5',
+        user: { name: 'David Park', avatar: 'https://i.pravatar.cc/150?img=19' },
+        text: 'Best show on TV right now, no contest.',
+        timestamp: '6h ago',
+        likes: 19,
+        userLiked: false
+      },
+      {
+        id: 'c6',
+        user: { name: 'Olivia Martinez', avatar: 'https://i.pravatar.cc/150?img=23' },
+        text: 'The anxiety I feel watching this show is unmatched 😅',
+        timestamp: '7h ago',
+        likes: 27,
+        userLiked: true
+      },
+      {
+        id: 'c7',
+        user: { name: 'James Wilson', avatar: 'https://i.pravatar.cc/150?img=27' },
+        text: 'Sydney is the GOAT. That\'s it. That\'s the comment.',
+        timestamp: '8h ago',
+        likes: 31,
+        userLiked: false
+      },
+      {
+        id: 'c8',
+        user: { name: 'Ava Thompson', avatar: 'https://i.pravatar.cc/150?img=31' },
+        text: 'Convinced everyone at work to watch. You\'re welcome.',
+        timestamp: '9h ago',
+        likes: 14,
+        userLiked: true
+      },
+      {
+        id: 'c9',
+        user: { name: 'Noah Garcia', avatar: 'https://i.pravatar.cc/150?img=35' },
+        text: 'The soundtrack alone deserves its own award.',
+        timestamp: '10h ago',
+        likes: 18,
+        userLiked: false
+      },
+      {
+        id: 'c10',
+        user: { name: 'Isabella Brown', avatar: 'https://i.pravatar.cc/150?img=39' },
+        text: 'This show made me want to quit my job and become a chef.',
+        timestamp: '11h ago',
+        likes: 25,
+        userLiked: true
       }
     ],
     showComments: [
