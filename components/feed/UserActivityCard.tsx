@@ -185,7 +185,6 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
   // iOS-style momentum scroll for back card using CSS transforms
   // (3D transform breaks native scrollTop, so we use translateY instead)
   const handleBackTouchStart = (e: React.TouchEvent) => {
-    e.preventDefault() // Prevent page scroll
     // Cancel any ongoing momentum animation
     if (momentumRAF.current) {
       cancelAnimationFrame(momentumRAF.current)
@@ -200,7 +199,6 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
   }
 
   const handleBackTouchMove = (e: React.TouchEvent) => {
-    e.preventDefault() // Prevent page scroll
     if (!backScrollRef.current || !backInnerRef.current) return
     
     const now = Date.now()
@@ -1113,11 +1111,9 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           bottom: 0;
           padding: 0 16px 20px 16px;
           box-sizing: border-box;
-          overflow: hidden;
-          touch-action: none; /* JS handles all touch */
+          overflow: hidden; /* Clip content, JS handles scroll via transform */
+          touch-action: none; /* JS handles scroll */
           color: white;
-          /* Force new compositing layer for Safari 3D transform fix */
-          transform: translateZ(0);
         }
         
         /* Inner wrapper - uses transform for smooth scroll */
@@ -1678,6 +1674,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
               onTouchStart={handleBackTouchStart}
               onTouchMove={handleBackTouchMove}
               onTouchEnd={handleBackTouchEnd}
+              onWheel={handleBackWheel}
             >
               <div className="card-back-inner" ref={backInnerRef}>
               {/* Title Section */}
