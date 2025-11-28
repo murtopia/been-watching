@@ -146,9 +146,10 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
   const momentumRAF = useRef<number | null>(null)
   
   // Helper to apply scroll transform directly to DOM (avoids React re-renders)
+  // Using translate3d for GPU acceleration (smoother than translateY)
   const applyScrollTransform = (offset: number) => {
     if (backInnerRef.current) {
-      backInnerRef.current.style.transform = `translateY(-${offset}px)`
+      backInnerRef.current.style.transform = `translate3d(0, -${offset}px, 0)`
     }
     scrollOffsetRef.current = offset
   }
@@ -213,35 +214,54 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
       velocityY.current = 0.8 * velocityY.current + 0.2 * (dy / dt)
     }
     
-    // Calculate new scroll offset
+    // Calculate new scroll offset with rubber band effect at edges
     const newOffset = scrollStartY.current + deltaYFromStart
     const maxScroll = getMaxScroll()
     
-    // Clamp to valid bounds
-    const clampedOffset = Math.max(0, Math.min(newOffset, maxScroll))
+    // Allow over-scroll with resistance (rubber band effect)
+    let finalOffset: number
+    if (newOffset < 0) {
+      // Over-scroll at top - apply resistance
+      finalOffset = newOffset * 0.3
+    } else if (newOffset > maxScroll) {
+      // Over-scroll at bottom - apply resistance  
+      finalOffset = maxScroll + (newOffset - maxScroll) * 0.3
+    } else {
+      finalOffset = newOffset
+    }
     
     // Apply transform directly to DOM (no React re-render)
-    applyScrollTransform(clampedOffset)
+    applyScrollTransform(finalOffset)
     
     lastTouchY.current = touchY
     lastMoveTime.current = now
   }
 
   const handleBackTouchEnd = () => {
+    const maxScroll = getMaxScroll()
+    const currentOffset = scrollOffsetRef.current
+    
+    // Check if we're over-scrolled and need to bounce back
+    if (currentOffset < 0 || currentOffset > maxScroll) {
+      // Animate bounce back to valid bounds
+      const targetOffset = currentOffset < 0 ? 0 : maxScroll
+      animateBounceBack(targetOffset)
+      return
+    }
+    
     // Use the tracked velocity (convert from px/ms to px/frame at 60fps)
     let velocity = velocityY.current * 16.67
     
     // Only apply momentum if there's meaningful velocity
     if (Math.abs(velocity) < 0.5) return
     
-    // Clamp initial velocity to reasonable bounds
-    const maxVelocity = 50
+    // Clamp initial velocity to reasonable bounds (lower = less wild scrolling)
+    const maxVelocity = 30
     velocity = Math.max(-maxVelocity, Math.min(maxVelocity, velocity))
     
-    // iOS UIScrollViewDecelerationRateNormal = 0.998 per ms
-    // At 60fps (16.67ms/frame): 0.998^16.67 ≈ 0.967
-    const decelerationPerFrame = 0.967
-    const minVelocity = 0.5 // Stop when velocity is very small
+    // More friction = stops faster (0.92 vs iOS default 0.967)
+    const decelerationPerFrame = 0.92
+    const minVelocity = 0.3
     
     const animateMomentum = () => {
       if (Math.abs(velocity) < minVelocity) {
@@ -252,21 +272,18 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
       const maxScroll = getMaxScroll()
       const currentOffset = scrollOffsetRef.current
       
-      // Stop at bounds
+      // If we hit bounds, bounce back
       if (currentOffset <= 0 && velocity < 0) {
-        applyScrollTransform(0)
-        momentumRAF.current = null
+        animateBounceBack(0)
         return
       } else if (currentOffset >= maxScroll && velocity > 0) {
-        applyScrollTransform(maxScroll)
-        momentumRAF.current = null
+        animateBounceBack(maxScroll)
         return
       }
       
-      // Apply velocity and clamp result
+      // Apply velocity
       const newOffset = currentOffset + velocity
-      const clampedOffset = Math.max(0, Math.min(newOffset, maxScroll))
-      applyScrollTransform(clampedOffset)
+      applyScrollTransform(newOffset)
       
       velocity *= decelerationPerFrame
       
@@ -274,6 +291,22 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
     }
     
     momentumRAF.current = requestAnimationFrame(animateMomentum)
+  }
+  
+  // Smooth bounce-back animation using CSS transition
+  const animateBounceBack = (targetOffset: number) => {
+    if (!backInnerRef.current) return
+    
+    // Use CSS transition for smooth bounce
+    backInnerRef.current.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+    applyScrollTransform(targetOffset)
+    
+    // Remove transition after animation completes
+    setTimeout(() => {
+      if (backInnerRef.current) {
+        backInnerRef.current.style.transition = ''
+      }
+    }, 300)
   }
 
   // Desktop mouse wheel scroll support
@@ -1125,8 +1158,11 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           /* Force Safari to calculate full height */
           min-height: fit-content;
           height: auto !important;
-          /* Smooth transform animation */
+          /* GPU compositing for smooth scroll */
           will-change: transform;
+          transform: translate3d(0, 0, 0);
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
         }
 
         .close-btn {
