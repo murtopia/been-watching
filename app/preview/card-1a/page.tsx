@@ -343,7 +343,7 @@ export default function Card1MobileTestPage() {
           color: '#3B82F6',
           margin: 0
         }}>
-          🧪 React Card 1: v1a.16
+          🧪 React Card 1: v1a.17
         </h1>
       </div>
 
