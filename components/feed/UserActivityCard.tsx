@@ -305,47 +305,32 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
     setCommentsExpanded(!commentsExpanded)
   }
 
-  // Swipe gesture for front comments modal with smooth drag
+  // Swipe gesture for front comments modal
   const commentSwipeStartY = useRef<number>(0)
-  const commentDragOffset = useRef<number>(0)
   const commentsTabRef = useRef<HTMLDivElement>(null)
-  const commentSwipeThreshold = 50 // pixels to trigger expand/collapse
+  const commentSwipeThreshold = 40 // pixels to trigger expand/collapse
 
   const handleCommentSwipeStart = (e: React.TouchEvent) => {
     commentSwipeStartY.current = e.touches[0].clientY
-    commentDragOffset.current = 0
-    // Disable CSS transition during drag
-    if (commentsTabRef.current) {
-      commentsTabRef.current.style.transition = 'none'
-    }
   }
 
   const handleCommentSwipeMove = (e: React.TouchEvent) => {
-    const deltaY = e.touches[0].clientY - commentSwipeStartY.current
-    commentDragOffset.current = deltaY
+    const deltaY = commentSwipeStartY.current - e.touches[0].clientY
     
-    // Apply drag offset (negative = dragging up, positive = dragging down)
-    if (commentsTabRef.current) {
-      // Clamp the drag to reasonable bounds
-      const clampedDelta = Math.max(-200, Math.min(100, deltaY))
-      commentsTabRef.current.style.transform = `translateY(${13 + clampedDelta}px)`
+    // If dragging up and not expanded, expand immediately so content slides with gesture
+    if (deltaY > 20 && !commentsExpanded) {
+      setCommentsExpanded(true)
     }
   }
 
-  const handleCommentSwipeEnd = () => {
-    const deltaY = -commentDragOffset.current // Invert for intuitive direction
-    
-    // Re-enable CSS transition for snap animation
-    if (commentsTabRef.current) {
-      commentsTabRef.current.style.transition = ''
-      commentsTabRef.current.style.transform = ''
-    }
+  const handleCommentSwipeEnd = (e: React.TouchEvent) => {
+    const deltaY = commentSwipeStartY.current - e.changedTouches[0].clientY
     
     if (deltaY > commentSwipeThreshold) {
-      // Swiped up - expand
+      // Swiped up - ensure expanded
       setCommentsExpanded(true)
     } else if (deltaY < -commentSwipeThreshold) {
-      // Swiped down - collapse (or close if already collapsed)
+      // Swiped down - collapse or close
       if (commentsExpanded) {
         setCommentsExpanded(false)
       } else {
@@ -1119,7 +1104,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           overflow: hidden;
         }
         
-        /* Back of card styles - native scroll container */
+        /* Back of card styles - scroll container */
         .card-back-content {
           position: absolute;
           top: 0;
@@ -1128,16 +1113,14 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           bottom: 0;
           padding: 0 16px 20px 16px;
           box-sizing: border-box;
-          overflow-y: auto; /* Native scroll */
-          overflow-x: hidden;
-          -webkit-overflow-scrolling: touch; /* iOS native momentum */
-          overscroll-behavior-y: contain;
+          overflow: hidden;
+          touch-action: pan-y; /* Allow vertical touch */
           color: white;
           /* Force new compositing layer for Safari 3D transform fix */
           transform: translateZ(0);
         }
         
-        /* Inner wrapper */
+        /* Inner wrapper - uses transform for smooth scroll */
         .card-back-inner {
           width: 100%;
           display: block;
@@ -1146,6 +1129,8 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           /* Force Safari to calculate full height */
           min-height: fit-content;
           height: auto !important;
+          /* Smooth transform animation */
+          will-change: transform;
         }
 
         .close-btn {
@@ -1690,8 +1675,11 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
             <div 
               className="card-back-content"
               ref={backScrollRef}
+              onTouchStart={handleBackTouchStart}
+              onTouchMove={handleBackTouchMove}
+              onTouchEnd={handleBackTouchEnd}
             >
-              <div className="card-back-inner">
+              <div className="card-back-inner" ref={backInnerRef}>
               {/* Title Section */}
               <div className="back-title-section">
                 <h1 className="back-title">
