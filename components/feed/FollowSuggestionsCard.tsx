@@ -12,7 +12,7 @@
 
 'use client'
 
-import React, { useState, useRef, useCallback } from 'react'
+import React, { useState, useRef, useCallback, useEffect } from 'react'
 
 // ============================================================================
 // Types
@@ -36,8 +36,22 @@ interface UserSuggestion {
   }
 }
 
+// Color theme presets for the container
+export type CardColorTheme = 'gold' | 'purple' | 'pink' | 'blue' | 'green' | 'coral'
+
+const COLOR_THEMES: Record<CardColorTheme, { bg: string; border: string }> = {
+  gold: { bg: 'rgba(255, 215, 0, 0.2)', border: 'rgba(255, 215, 0, 0.4)' },
+  purple: { bg: 'rgba(139, 92, 246, 0.2)', border: 'rgba(139, 92, 246, 0.4)' },
+  pink: { bg: 'rgba(255, 0, 110, 0.2)', border: 'rgba(255, 0, 110, 0.4)' },
+  blue: { bg: 'rgba(59, 130, 246, 0.2)', border: 'rgba(59, 130, 246, 0.4)' },
+  green: { bg: 'rgba(34, 197, 94, 0.2)', border: 'rgba(34, 197, 94, 0.4)' },
+  coral: { bg: 'rgba(255, 107, 107, 0.2)', border: 'rgba(255, 107, 107, 0.4)' },
+}
+
 interface FollowSuggestionsCardProps {
   suggestions: UserSuggestion[]
+  colorTheme?: CardColorTheme
+  autoRotateInterval?: number // milliseconds, 0 to disable
   onFollow?: (userId: string) => void
   onUserClick?: (userId: string) => void
   onTrack?: (action: string, metadata?: any) => void
@@ -59,6 +73,8 @@ const LinkIcon = () => (
 
 export const FollowSuggestionsCard: React.FC<FollowSuggestionsCardProps> = ({
   suggestions,
+  colorTheme = 'gold',
+  autoRotateInterval = 6000, // 6 seconds default, like HTML template
   onFollow,
   onUserClick,
   onTrack,
@@ -68,7 +84,32 @@ export const FollowSuggestionsCard: React.FC<FollowSuggestionsCardProps> = ({
   const [touchStartX, setTouchStartX] = useState(0)
   const [touchDeltaX, setTouchDeltaX] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
   const carouselRef = useRef<HTMLDivElement>(null)
+  const autoRotateRef = useRef<NodeJS.Timeout | null>(null)
+  
+  const themeColors = COLOR_THEMES[colorTheme]
+
+  // Auto-rotate effect
+  useEffect(() => {
+    if (autoRotateInterval <= 0 || isPaused) {
+      if (autoRotateRef.current) {
+        clearInterval(autoRotateRef.current)
+        autoRotateRef.current = null
+      }
+      return
+    }
+
+    autoRotateRef.current = setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % suggestions.length)
+    }, autoRotateInterval)
+
+    return () => {
+      if (autoRotateRef.current) {
+        clearInterval(autoRotateRef.current)
+      }
+    }
+  }, [autoRotateInterval, isPaused, suggestions.length])
 
   const handleFollow = useCallback((userId: string) => {
     setFollowedUsers(prev => {
@@ -89,14 +130,22 @@ export const FollowSuggestionsCard: React.FC<FollowSuggestionsCardProps> = ({
     if (index >= 0 && index < suggestions.length) {
       setCurrentSlide(index)
       onTrack?.('carousel_navigate', { slideIndex: index })
+      // Reset auto-rotate timer
+      if (autoRotateRef.current) {
+        clearInterval(autoRotateRef.current)
+        autoRotateRef.current = setInterval(() => {
+          setCurrentSlide(prev => (prev + 1) % suggestions.length)
+        }, autoRotateInterval)
+      }
     }
-  }, [suggestions.length, onTrack])
+  }, [suggestions.length, onTrack, autoRotateInterval])
 
   // Touch handlers for swipe
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStartX(e.touches[0].clientX)
     setIsDragging(true)
     setTouchDeltaX(0)
+    setIsPaused(true) // Pause auto-rotate on touch
   }
 
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -108,6 +157,7 @@ export const FollowSuggestionsCard: React.FC<FollowSuggestionsCardProps> = ({
   const handleTouchEnd = () => {
     if (!isDragging) return
     setIsDragging(false)
+    setIsPaused(false) // Resume auto-rotate
     
     // Swipe threshold
     if (Math.abs(touchDeltaX) > 50) {
@@ -121,6 +171,10 @@ export const FollowSuggestionsCard: React.FC<FollowSuggestionsCardProps> = ({
     }
     setTouchDeltaX(0)
   }
+
+  // Mouse hover handlers to pause/resume auto-rotate
+  const handleMouseEnter = () => setIsPaused(true)
+  const handleMouseLeave = () => setIsPaused(false)
 
   return (
     <div className="follow-card-container">
@@ -136,10 +190,10 @@ export const FollowSuggestionsCard: React.FC<FollowSuggestionsCardProps> = ({
           border-radius: 16px;
           overflow: visible;
           position: relative;
-          background: rgba(255, 215, 0, 0.2);
+          background: ${themeColors.bg};
           backdrop-filter: blur(25px);
           -webkit-backdrop-filter: blur(25px);
-          border: 1px solid rgba(255, 215, 0, 0.4);
+          border: 1px solid ${themeColors.border};
           padding: 20px;
         }
         
@@ -407,7 +461,11 @@ export const FollowSuggestionsCard: React.FC<FollowSuggestionsCardProps> = ({
         }
       `}</style>
 
-      <div className="follow-card">
+      <div 
+        className="follow-card"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
         <div className="follow-card-content">
           {/* Badge */}
           <div className="discover-badge">

@@ -16,11 +16,21 @@
 'use client'
 
 import { useState } from 'react'
-import { FollowSuggestionsCard } from '@/components/feed/FollowSuggestionsCard'
+import { FollowSuggestionsCard, CardColorTheme } from '@/components/feed/FollowSuggestionsCard'
+
+const COLOR_OPTIONS: { value: CardColorTheme; label: string; color: string }[] = [
+  { value: 'gold', label: 'Gold', color: '#FFD700' },
+  { value: 'purple', label: 'Purple', color: '#8B5CF6' },
+  { value: 'pink', label: 'Pink', color: '#FF006E' },
+  { value: 'blue', label: 'Blue', color: '#3B82F6' },
+  { value: 'green', label: 'Green', color: '#22C55E' },
+  { value: 'coral', label: 'Coral', color: '#FF6B6B' },
+]
 
 export default function Card7MobileTestPage() {
   const [trackingLog, setTrackingLog] = useState<string[]>([])
   const [showLog, setShowLog] = useState(false)
+  const [colorTheme, setColorTheme] = useState<CardColorTheme>('gold')
 
   // Sample data for Card 7 - User suggestions
   const suggestions = [
@@ -142,17 +152,17 @@ export default function Card7MobileTestPage() {
         <div style={{
           width: '100%',
           maxWidth: '398px',
-          marginBottom: '16px',
+          marginBottom: '12px',
           padding: '12px 16px',
-          background: 'rgba(255, 215, 0, 0.15)',
-          border: '1px solid rgba(255, 215, 0, 0.4)',
+          background: 'rgba(255, 255, 255, 0.05)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
           borderRadius: '12px',
           textAlign: 'center'
         }}>
           <h1 style={{
             fontSize: '16px',
             fontWeight: '600',
-            color: '#FFD700',
+            color: 'white',
             margin: '0'
           }}>
             React Card 7: Find New Friends
@@ -162,8 +172,39 @@ export default function Card7MobileTestPage() {
             color: 'rgba(255,255,255,0.5)',
             margin: '4px 0 0 0'
           }}>
-            Template C (User suggestions carousel)
+            Auto-rotates every 6s • Swipe or tap dots
           </p>
+        </div>
+
+        {/* Color Theme Switcher */}
+        <div style={{
+          width: '100%',
+          maxWidth: '398px',
+          marginBottom: '16px',
+          display: 'flex',
+          gap: '8px',
+          justifyContent: 'center',
+          flexWrap: 'wrap'
+        }}>
+          {COLOR_OPTIONS.map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => setColorTheme(opt.value)}
+              style={{
+                padding: '6px 12px',
+                background: colorTheme === opt.value ? opt.color : 'rgba(255,255,255,0.1)',
+                border: `2px solid ${opt.color}`,
+                borderRadius: '20px',
+                color: colorTheme === opt.value ? (opt.value === 'gold' ? '#000' : '#fff') : opt.color,
+                fontSize: '11px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              {opt.label}
+            </button>
+          ))}
         </div>
 
         {/* The Card */}
@@ -175,6 +216,8 @@ export default function Card7MobileTestPage() {
         }}>
           <FollowSuggestionsCard
             suggestions={suggestions}
+            colorTheme={colorTheme}
+            autoRotateInterval={6000}
             onFollow={(userId) => handleTrack('follow_toggle', { userId })}
             onUserClick={(userId) => handleTrack('user_click', { userId })}
             onTrack={handleTrack}
