@@ -1720,30 +1720,35 @@ export const FeedCard: React.FC<FeedCardProps> = ({
 
               {/* Activity/Recommendation Badges */}
               <div className="activity-badges">
-                {cardBadges.map((badge, idx) => (
-                  <div
-                    key={idx}
-                    className="activity-badge"
-                    style={{
-                      background: badge.color,
-                      border: `1px solid ${badge.borderColor}`,
-                      color: badge.textColor || 'white',
-                    }}
-                  >
-                    {/* Render icon if specified */}
-                    {badge.icon && (
-                      <Icon name={badge.icon} state="default" size={16} color={badge.textColor || 'white'} />
-                    )}
-                    {/* Legacy icon support for badges without icon prop */}
-                    {!badge.icon && badge.text === 'Loved' && (
-                      <Icon name="heart" state="default" size={16} color={badge.textColor || 'white'} />
-                    )}
-                    {!badge.icon && badge.text === 'Currently Watching' && (
-                      <Icon name="play" state="default" size={16} color={badge.textColor || 'white'} />
-                    )}
-                    {badge.text}
-                  </div>
-                ))}
+                {cardBadges.map((badge, idx) => {
+                  // Check if badge has icon property (FeedCardBadge type)
+                  const badgeIcon = 'icon' in badge ? badge.icon : undefined
+                  
+                  return (
+                    <div
+                      key={idx}
+                      className="activity-badge"
+                      style={{
+                        background: badge.color,
+                        border: `1px solid ${badge.borderColor}`,
+                        color: badge.textColor || 'white',
+                      }}
+                    >
+                      {/* Render icon if specified */}
+                      {badgeIcon && (
+                        <Icon name={badgeIcon} state="default" size={16} color={badge.textColor || 'white'} />
+                      )}
+                      {/* Legacy icon support for badges without icon prop */}
+                      {!badgeIcon && badge.text === 'Loved' && (
+                        <Icon name="heart" state="default" size={16} color={badge.textColor || 'white'} />
+                      )}
+                      {!badgeIcon && badge.text === 'Currently Watching' && (
+                        <Icon name="play" state="default" size={16} color={badge.textColor || 'white'} />
+                      )}
+                      {badge.text}
+                    </div>
+                  )
+                })}
               </div>
 
               {/* Show Info */}
