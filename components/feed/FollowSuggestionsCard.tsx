@@ -336,9 +336,9 @@ export const FollowSuggestionsCard: React.FC<FollowSuggestionsCardProps> = ({
         }
         
         .follow-btn {
-          background: #FF6B6B;
+          background: rgba(139, 30, 63, 0.6);
           color: white;
-          border: 1.5px solid transparent;
+          border: 1.5px solid rgba(180, 60, 90, 0.8);
           padding: 7px 18px;
           border-radius: 20px;
           font-size: 11px;
@@ -353,7 +353,8 @@ export const FollowSuggestionsCard: React.FC<FollowSuggestionsCardProps> = ({
         }
         
         .follow-btn:hover {
-          background: #FF5252;
+          background: rgba(139, 30, 63, 0.8);
+          border-color: rgba(200, 70, 100, 0.9);
           transform: scale(1.05);
         }
         
