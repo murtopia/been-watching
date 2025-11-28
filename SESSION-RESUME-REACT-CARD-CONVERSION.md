@@ -1,70 +1,116 @@
 # Session Resume: React Card Conversion
 
-**Date:** January 15, 2025 (Updated: January 2025)
-**Status:** ✅ CARD 1 APPROVED - Ready for Card 2
+**Date:** January 15, 2025 (Updated: January 28, 2025)
+**Status:** ✅ CARDS 1-6 APPROVED - Card 7 Next
 
 ---
 
 ## Current State
 
-### ✅ CARD 1 COMPLETE & APPROVED
-The User Activity Card React component has been fully implemented and tested on mobile:
-- **Component:** `/components/feed/UserActivityCard.tsx`
-- **Test Pages:** `/preview/card-1` and `/preview/card-1a`
-- **Full Documentation:** `/docs/design/CARD-1-REACT-IMPLEMENTATION.md`
+### ✅ CARDS 1-6 COMPLETE & APPROVED
 
-### Next Up: Card 2
-"Because You Liked" recommendation card - uses Template B (different from Card 1's Template A).
+We successfully refactored `UserActivityCard` into a flexible `FeedCard` component that supports all card variants through props. All 6 cards have been built and tested on mobile.
+
+**Component:** `/components/feed/UserActivityCard.tsx` (exports both `FeedCard` and `UserActivityCard`)
+
+**Architecture Documentation:** `/docs/design/FEED-CARD-ARCHITECTURE.md`
+
+### Preview Pages Created
+| Card | URL | Status |
+|------|-----|--------|
+| Card 1 | `/preview/card-1` | ✅ Approved |
+| Card 2 | `/preview/card-2` | ✅ Approved |
+| Card 3 | `/preview/card-3` | ✅ Approved |
+| Card 4 | `/preview/card-4` | ✅ Approved |
+| Card 5 | `/preview/card-5` | ✅ Approved |
+| Card 6 | `/preview/card-6` | ✅ Approved |
+
+---
+
+## FeedCard Component Architecture
+
+### Templates
+- **Template A:** User activity cards (header with avatar, heart button, comments)
+- **Template B:** System notifications (no header, no heart)
+
+### Back Variants
+- **standard:** Full features (+ icon, comments, friends activity)
+- **unreleased:** For "Coming Soon" (bookmark-plus icon, Remind Me, no comments)
+
+### Badge Presets (BADGE_PRESETS)
+```typescript
+BADGE_PRESETS.loved                    // Card 1 - Red "Loved"
+BADGE_PRESETS.currentlyWatching        // Card 1 - Green "Currently Watching"
+BADGE_PRESETS.becauseYouLiked('Show')  // Card 2 - Pink
+BADGE_PRESETS.yourFriendsLoved         // Card 3 - Pink hearts
+BADGE_PRESETS.comingSoon('Date')       // Card 4 - Cyan calendar
+BADGE_PRESETS.nowStreaming('Platform') // Card 5 - Purple TV
+BADGE_PRESETS.top3Update(rank)         // Card 6 - Gold trophy
+```
+
+### Usage Example
+```tsx
+<FeedCard
+  variant="a"           // or "b"
+  backVariant="standard" // or "unreleased"
+  badges={[BADGE_PRESETS.loved]}
+  data={mediaData}
+  user={userData}       // Required for variant="a"
+  timestamp="2h ago"    // Required for variant="a"
+  onLike={() => {}}
+  onShare={() => {}}
+  // ... other handlers
+/>
+```
+
+---
+
+## Next Up: Card 7
+
+**Find New Friends / Follow Suggestions** - This is Template C (completely different layout, not a media card).
+
+Will need to review the HTML template to understand the unique structure.
 
 ---
 
 ## HTML Templates Reference
 
-All 8 standalone HTML cards exist and can be previewed at `/admin/design-assets/cards`:
-
-| Card | Type | Template | HTML File |
-|------|------|----------|-----------|
-| 1 | User Activity | A | `/public/card-1-standalone.html` |
-| 2 | Because You Liked | B | `/public/card-2-standalone.html` |
-| 3 | Your Friends Loved | B | `/public/card-3-standalone.html` |
-| 4 | New Season Alert | B | `/public/card-4-standalone.html` |
-| 5 | Now Streaming | B | `/public/card-5-standalone.html` |
-| 6 | Top 3 Update | A | `/public/card-6-standalone.html` |
-| 7 | Follow Suggestions | C | `/public/card-7-standalone.html` |
-| 8 | You Might Like | B | `/public/card-8-standalone.html` |
+| Card | Type | Template | React Status |
+|------|------|----------|--------------|
+| 1 | User Activity (Loved) | A | ✅ Done |
+| 2 | Because You Liked | B | ✅ Done |
+| 3 | Your Friends Loved | B | ✅ Done |
+| 4 | Coming Soon | B + unreleased | ✅ Done |
+| 5 | Now Streaming | B | ✅ Done |
+| 6 | Top 3 Update | A | ✅ Done |
+| 7 | Follow Suggestions | C (special) | ⏳ Pending |
+| 8 | You Might Like | B | ⏳ Pending |
 
 ---
 
-## React Components Status
+## Key Fixes Applied Today
 
-| Component | Status | Notes |
-|-----------|--------|-------|
-| `UserActivityCard.tsx` | ✅ APPROVED | Template A foundation |
-| `RecommendationCard.tsx` | ⏳ Pending | Cards 2, 3, 5, 8 |
-| `ReleaseNotificationCard.tsx` | ⏳ Pending | Card 4 |
-| `TopThreeCard.tsx` | ⏳ Pending | Card 6 (Template A variant) |
-| `FollowSuggestionsCard.tsx` | ⏳ Pending | Card 7 (Template C - unique) |
-
----
-
-## Key Learnings from Card 1
-
-1. **iOS 3D Transforms Break Scroll:** Use JavaScript touch handlers, not native CSS scroll
-2. **Safari Compositing Bug:** Add `translateZ(0)` to fix collapsed content inside 3D transforms
-3. **iOS Input Zoom:** Keep input font-size at 16px minimum
-4. **GPU Acceleration:** Use `will-change: transform` and `backface-visibility: hidden` for smooth scroll
-5. **Always Test on Real iOS:** Simulators don't catch all issues
-
-See full details in `/docs/design/CARD-1-REACT-IMPLEMENTATION.md`
+1. **Card 4:** Changed `bookmark` → `bookmark-plus` icon for "Want to Watch"
+2. **Card 5:** Changed `tv` → `tv-screen` icon (TV with play button)
+3. **Card 6:** Changed `star-featured` → `trophy` icon for Top 3 badge
+4. **Card 6:** Added 10 comments to front comments section
 
 ---
 
 ## Server Info
 
-- Dev server: `npm run dev`
+- Dev server: `npm run dev` (currently on port 3007)
 - Using: Next.js 15.5.4 with Turbopack
-- Card Gallery: `http://localhost:3000/admin/design-assets/cards`
+- Production: https://been-watching-v2.vercel.app
 
 ---
 
-*Last Updated: January 2025*
+## Pending Items
+
+- [ ] Card 7 - Follow Suggestions (Template C - unique layout)
+- [ ] Card 8 - You Might Like (Template B)
+- [ ] Friends list expansion feature (show who's in each category)
+
+---
+
+*Last Updated: January 28, 2025*
