@@ -1,130 +1,70 @@
 # Session Resume: React Card Conversion
 
-**Date:** January 15, 2025 (Updated: November 25, 2025)
-**Status:** ✅ CARD 1 COMPLETE - Mobile testing in progress
+**Date:** January 15, 2025 (Updated: January 2025)
+**Status:** ✅ CARD 1 APPROVED - Ready for Card 2
 
-## The Problem
+---
 
-We have been trying to convert the approved HTML feed card to a React component, but keep failing to get a pixel-perfect match.
+## Current State
 
-## What Works
+### ✅ CARD 1 COMPLETE & APPROVED
+The User Activity Card React component has been fully implemented and tested on mobile:
+- **Component:** `/components/feed/UserActivityCard.tsx`
+- **Test Pages:** `/preview/card-1` and `/preview/card-1a`
+- **Full Documentation:** `/docs/design/CARD-1-REACT-IMPLEMENTATION.md`
 
-✅ **HTML Version (APPROVED & PERFECT):**
-- Location: `http://localhost:3000/admin/design-assets/cards`
-- File: `/public/card-1-standalone.html`
-- This is the GOLDEN SOURCE - perfect design, perfect interactions
-- Dimensions: 398×645px
-- Has all features working: flip animation, comments, badges, etc.
+### Next Up: Card 2
+"Because You Liked" recommendation card - uses Template B (different from Card 1's Template A).
 
-✅ **Preview Gallery:**
-- Shows all 8 card types in iframes
-- Works perfectly
-- Can flip between cards with Previous/Next buttons
+---
 
-## What Doesn't Work
+## HTML Templates Reference
 
-❌ **React Component Version:**
-- Location: `http://localhost:3000/admin/design-assets/feed-cards`
-- File: `/components/feed/UserActivityCard.tsx`
-- **DOES NOT MATCH THE HTML VERSION**
-- Wrong aspect ratio
-- Different styling
-- Different badge design
+All 8 standalone HTML cards exist and can be previewed at `/admin/design-assets/cards`:
 
-## The Core Issue
+| Card | Type | Template | HTML File |
+|------|------|----------|-----------|
+| 1 | User Activity | A | `/public/card-1-standalone.html` |
+| 2 | Because You Liked | B | `/public/card-2-standalone.html` |
+| 3 | Your Friends Loved | B | `/public/card-3-standalone.html` |
+| 4 | New Season Alert | B | `/public/card-4-standalone.html` |
+| 5 | Now Streaming | B | `/public/card-5-standalone.html` |
+| 6 | Top 3 Update | A | `/public/card-6-standalone.html` |
+| 7 | Follow Suggestions | C | `/public/card-7-standalone.html` |
+| 8 | You Might Like | B | `/public/card-8-standalone.html` |
 
-**The HTML file is 32,241 tokens** - too large to read directly. When we used a Task agent to analyze it, the agent appears to have read a different or incomplete version, resulting in a React component that doesn't match the approved design.
+---
 
-## What We've Tried (Multiple Times)
+## React Components Status
 
-1. ❌ Reading the HTML file directly - file too large
-2. ❌ Using Task agent to analyze HTML - resulted in wrong design
-3. ❌ Creating React component from agent analysis - doesn't match
-4. ❌ Updating sample data - card still wrong
-5. ❌ Cache clearing and server restarts - no effect
-6. ❌ Hard refreshes - no change
+| Component | Status | Notes |
+|-----------|--------|-------|
+| `UserActivityCard.tsx` | ✅ APPROVED | Template A foundation |
+| `RecommendationCard.tsx` | ⏳ Pending | Cards 2, 3, 5, 8 |
+| `ReleaseNotificationCard.tsx` | ⏳ Pending | Card 4 |
+| `TopThreeCard.tsx` | ⏳ Pending | Card 6 (Template A variant) |
+| `FollowSuggestionsCard.tsx` | ⏳ Pending | Card 7 (Template C - unique) |
 
-## The Solution Needed
+---
 
-We need to somehow get the EXACT styling from `card-1-standalone.html` into the React component.
+## Key Learnings from Card 1
 
-### Possible Approaches for Next Session:
+1. **iOS 3D Transforms Break Scroll:** Use JavaScript touch handlers, not native CSS scroll
+2. **Safari Compositing Bug:** Add `translateZ(0)` to fix collapsed content inside 3D transforms
+3. **iOS Input Zoom:** Keep input font-size at 16px minimum
+4. **GPU Acceleration:** Use `will-change: transform` and `backface-visibility: hidden` for smooth scroll
+5. **Always Test on Real iOS:** Simulators don't catch all issues
 
-**Option 1: Read HTML in Chunks**
-- Read the HTML file in sections using offset/limit
-- Manually extract the CSS and structure
-- Build React component piece by piece
+See full details in `/docs/design/CARD-1-REACT-IMPLEMENTATION.md`
 
-**Option 2: Use the Working HTML in iframes**
-- Instead of converting to React, just use iframes to display the HTML cards
-- Pass data via postMessage or query params
-- Simpler, guaranteed to work
-
-**Option 3: Simplify the HTML First**
-- Extract just the core card structure from the HTML
-- Remove all the navigation and extra stuff
-- Create a minimal HTML that's small enough to read
-- Convert THAT to React
-
-**Option 4: Side-by-side Comparison**
-- Open both versions
-- Screenshot them
-- Manually identify every difference
-- Fix one difference at a time
-
-## Files Involved
-
-### HTML Cards (Working/Approved)
-- `/public/card-1-standalone.html` - Card 1: User Activity ✅ APPROVED
-- `/public/card-2-standalone.html` - Card 2: Because You Liked
-- `/public/card-3-standalone.html` - Card 3: Your Friends Loved
-- `/public/card-4-standalone.html` - Card 4: New Season Alert
-- `/public/card-5-standalone.html` - Card 5: Now Streaming
-- `/public/card-6-standalone.html` - Card 6: Top 3 Update
-- `/public/card-7-standalone.html` - Card 7: Follow Suggestions
-- `/public/card-8-standalone.html` - Card 8: You Might Like
-
-### React Components
-- `/components/feed/UserActivityCard.tsx` - ✅ PIXEL PERFECT - Ready for mobile testing
-- `/components/feed/FollowSuggestionsCard.tsx` - ⏳ Pending
-- `/components/feed/RecommendationCard.tsx` - ⏳ Pending
-- `/components/feed/ReleaseNotificationCard.tsx` - ⏳ Pending
-
-### Preview Pages
-- `/app/admin/design-assets/cards/page.tsx` - HTML Preview Gallery (WORKS)
-- `/app/admin/design-assets/feed-cards/page.tsx` - React Preview (DOESN'T MATCH)
+---
 
 ## Server Info
 
-- Dev server running on: `http://localhost:3000`
-- Started with: `npm run dev`
+- Dev server: `npm run dev`
 - Using: Next.js 15.5.4 with Turbopack
+- Card Gallery: `http://localhost:3000/admin/design-assets/cards`
 
-## Key Context
+---
 
-The user has spent significant time perfecting the HTML card designs. They are pixel-perfect and approved. The React conversion is ONLY to make them dynamic (accept different data), not to change the design in any way.
-
-**The React version must be 100% visually identical to the HTML version.**
-
-## Recommendation for Next Session
-
-**Start fresh with Option 1** - Read the HTML file in sections:
-1. Read the `<style>` section first (get all CSS)
-2. Read the HTML structure in chunks
-3. Build the React component methodically, section by section
-4. Test after each section to ensure it matches
-
-**OR**
-
-**Go with Option 2** - Skip React conversion entirely:
-1. Keep using the perfect HTML cards
-2. Create a system to pass dynamic data to them
-3. Use iframes or web components
-4. This guarantees pixel-perfect results
-
-## Don't Forget
-
-- The user is NOT a developer
-- They need clear explanations
-- They've been frustrated by this taking "days"
-- Simple, working solutions are better than complex perfect ones
+*Last Updated: January 2025*
