@@ -40,7 +40,7 @@ interface UserSuggestion {
 export type CardColorTheme = 'gold' | 'purple' | 'pink' | 'blue' | 'green' | 'coral'
 
 const COLOR_THEMES: Record<CardColorTheme, { bg: string; border: string }> = {
-  gold: { bg: 'rgba(255, 215, 0, 0.2)', border: 'rgba(255, 215, 0, 0.4)' },
+  gold: { bg: 'rgba(255, 215, 0, 0.25)', border: 'rgba(255, 215, 0, 0.5)' },
   purple: { bg: 'rgba(139, 92, 246, 0.2)', border: 'rgba(139, 92, 246, 0.4)' },
   pink: { bg: 'rgba(255, 0, 110, 0.2)', border: 'rgba(255, 0, 110, 0.4)' },
   blue: { bg: 'rgba(59, 130, 246, 0.2)', border: 'rgba(59, 130, 246, 0.4)' },
