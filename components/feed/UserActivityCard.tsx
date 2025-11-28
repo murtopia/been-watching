@@ -255,8 +255,8 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
     // Only apply momentum if there's meaningful velocity
     if (Math.abs(velocity) < 0.5) return
     
-    // Clamp initial velocity to reasonable bounds (lower = less wild scrolling)
-    const maxVelocity = 40
+    // Clamp initial velocity to reasonable bounds
+    const maxVelocity = 50
     velocity = Math.max(-maxVelocity, Math.min(maxVelocity, velocity))
     
     // More friction = stops faster (0.92 vs iOS default 0.967)
