@@ -125,7 +125,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
       [comment.id]: { liked: comment.userLiked, count: comment.likes }
     }), {})
   )
-  const [visibleShowComments, setVisibleShowComments] = useState(3) // Show 3 comments initially
+  const [visibleShowComments, setVisibleShowComments] = useState(10) // Show 10 comments initially
   const [showCommentText, setShowCommentText] = useState('') // Track show comment input
   const [activityCommentText, setActivityCommentText] = useState('') // Track activity comment input
   const [pressedIcon, setPressedIcon] = useState<string | null>(null) // Track which icon is being pressed for touch feedback
@@ -238,10 +238,11 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
     const maxVelocity = 50
     velocity = Math.max(-maxVelocity, Math.min(maxVelocity, velocity))
     
-    // iOS UIScrollViewDecelerationRateNormal = 0.998 per MILLISECOND
-    // At 60fps, each frame is ~16.67ms, so per-frame deceleration is:
-    // 0.998^16.67 ≈ 0.967
-    const decelerationPerFrame = 0.967
+    // Deceleration rate per frame (at 60fps)
+    // 0.95 = more friction, stops faster
+    // 0.967 = iOS default
+    // 0.98 = less friction, slides longer
+    const decelerationPerFrame = 0.95
     const minVelocity = 0.5 // Stop when velocity is very small
     
     const animateMomentum = () => {
@@ -304,6 +305,30 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
     setCommentsExpanded(!commentsExpanded)
   }
 
+  // Swipe gesture for front comments modal
+  const commentSwipeStartY = useRef<number>(0)
+  const commentSwipeThreshold = 50 // pixels to trigger expand/collapse
+
+  const handleCommentSwipeStart = (e: React.TouchEvent) => {
+    commentSwipeStartY.current = e.touches[0].clientY
+  }
+
+  const handleCommentSwipeEnd = (e: React.TouchEvent) => {
+    const deltaY = commentSwipeStartY.current - e.changedTouches[0].clientY
+    
+    if (deltaY > commentSwipeThreshold) {
+      // Swiped up - expand
+      setCommentsExpanded(true)
+    } else if (deltaY < -commentSwipeThreshold) {
+      // Swiped down - collapse (or close if already collapsed)
+      if (commentsExpanded) {
+        setCommentsExpanded(false)
+      } else {
+        closeCommentsTab()
+      }
+    }
+  }
+
   const closeCommentsTab = () => {
     setCommentsVisible(false)
     setCommentsExpanded(false)
@@ -358,7 +383,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
   }
 
   const handleLoadMoreComments = () => {
-    setVisibleShowComments(prev => Math.min(prev + 3, data.showComments.length))
+    setVisibleShowComments(prev => Math.min(prev + 10, data.showComments.length))
   }
 
   return (
@@ -799,6 +824,15 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
           transform: translateY(13px);
           opacity: 1;
           pointer-events: auto;
+        }
+
+        /* Drag handle - visual affordance for swipe */
+        .drag-handle {
+          width: 36px;
+          height: 4px;
+          background: rgba(255, 255, 255, 0.3);
+          border-radius: 2px;
+          margin: 0 auto 8px auto;
         }
 
         .comments-preview {
@@ -1548,7 +1582,14 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = ({
                 commentsExpanded ? 'expanded' : ''
               }`}
             >
-              <div className="comments-preview" onClick={toggleComments}>
+              <div 
+                className="comments-preview" 
+                onClick={toggleComments}
+                onTouchStart={handleCommentSwipeStart}
+                onTouchEnd={handleCommentSwipeEnd}
+              >
+                {/* Drag handle indicator */}
+                <div className="drag-handle" />
                 <div className="comments-preview-content">
                   <Icon name="comment" size={16} color="white" />
                   <span>View {data.stats.commentCount} comments...</span>
