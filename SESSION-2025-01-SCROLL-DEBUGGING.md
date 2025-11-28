@@ -2,8 +2,21 @@
 **Date:** January 2025
 **Focus:** Fixing scroll bounds calculation so all comments are reachable after "Load More"
 
-## Summary
-Spent significant time debugging why scroll stops at James Patterson's comment (5th) instead of reaching Lisa Wang (6th) after loading more comments. Made progress on placeholder text sizing, but scroll bounds issue persists despite multiple approaches.
+## ✅ SOLVED!
+
+**The Fix:** Add `translateZ(0)` to `.comments-list` CSS. This forces Safari to create a new compositing layer and properly calculate heights inside 3D transformed containers.
+
+```css
+.comments-list {
+  transform: translateZ(0); /* Safari 3D transform fix */
+  min-height: fit-content;
+}
+```
+
+**Root Cause:** Safari has a rendering bug where it doesn't properly calculate the height of content (especially dynamically loaded content) inside `rotateY(180deg)` transformed containers. The content exists in the DOM but Safari collapses it visually.
+
+## Previous Summary (for reference)
+Spent significant time debugging why scroll stops at James Patterson's comment (5th) instead of reaching Lisa Wang (6th) after loading more comments. Made progress on placeholder text sizing, but scroll bounds issue persisted despite multiple approaches until we found the translateZ(0) fix.
 
 ## What Was Accomplished ✅
 
