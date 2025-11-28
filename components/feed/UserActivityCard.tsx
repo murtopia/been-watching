@@ -1792,12 +1792,12 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                 </div>
               )}
 
-              {/* Add Button - Shows + icon (or bookmark for unreleased) */}
+                {/* Add Button - Shows + icon (or bookmark-plus for unreleased) */}
               <div>
                 {isUnreleased ? (
                   // Card 4 (Coming Soon) - Direct bookmark action, no modal
                   <button className="action-btn" onClick={onAddToWatchlist}>
-                    <Icon name="bookmark" state="default" size={24} />
+                    <Icon name="bookmark-plus" state="default" size={24} />
                   </button>
                 ) : (
                   // Standard - Opens quick action modal
@@ -1974,7 +1974,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
               {/* Action Icons */}
               <div className="back-action-icons">
                 {isUnreleased ? (
-                  // Card 4 (Coming Soon) - Bookmark instead of + icon
+                  // Card 4 (Coming Soon) - Bookmark-plus instead of + icon
                   <button
                     className="back-icon-btn primary"
                     onClick={(e) => {
@@ -1982,7 +1982,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                       onAddToWatchlist?.()
                     }}
                   >
-                    <Icon name="bookmark" size={22} color="white" />
+                    <Icon name="bookmark-plus" size={22} color="white" />
                   </button>
                 ) : (
                   // Standard - + icon opens quick action modal
