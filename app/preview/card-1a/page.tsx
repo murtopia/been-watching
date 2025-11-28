@@ -194,6 +194,102 @@ export default function Card1MobileTestPage() {
         timestamp: '4h ago',
         likes: 28,
         userLiked: true
+      },
+      {
+        id: 'sc7',
+        user: { name: 'Marcus Thompson', avatar: 'https://i.pravatar.cc/150?img=51' },
+        text: 'Just rewatched for the third time. Still discovering new details!',
+        timestamp: '5h ago',
+        likes: 9,
+        userLiked: false
+      },
+      {
+        id: 'sc8',
+        user: { name: 'Anna Kim', avatar: 'https://i.pravatar.cc/150?img=44' },
+        text: 'The tension in every scene is unmatched. Pure genius.',
+        timestamp: '6h ago',
+        likes: 17,
+        userLiked: true
+      },
+      {
+        id: 'sc9',
+        user: { name: 'Robert Garcia', avatar: 'https://i.pravatar.cc/150?img=52' },
+        text: 'Heisenberg is the most complex antihero ever created.',
+        timestamp: '7h ago',
+        likes: 31,
+        userLiked: false
+      },
+      {
+        id: 'sc10',
+        user: { name: 'Sophie Martinez', avatar: 'https://i.pravatar.cc/150?img=47' },
+        text: 'The cinematography is absolutely stunning. Every frame is art.',
+        timestamp: '8h ago',
+        likes: 14,
+        userLiked: true
+      },
+      {
+        id: 'sc11',
+        user: { name: 'Kevin Lee', avatar: 'https://i.pravatar.cc/150?img=53' },
+        text: 'No other show comes close. This is peak TV.',
+        timestamp: '9h ago',
+        likes: 22,
+        userLiked: false
+      },
+      {
+        id: 'sc12',
+        user: { name: 'Rachel Brown', avatar: 'https://i.pravatar.cc/150?img=48' },
+        text: 'The final season is a masterclass in storytelling.',
+        timestamp: '10h ago',
+        likes: 26,
+        userLiked: true
+      },
+      {
+        id: 'sc13',
+        user: { name: 'Daniel White', avatar: 'https://i.pravatar.cc/150?img=54' },
+        text: 'Started watching because of this post. Already hooked!',
+        timestamp: '11h ago',
+        likes: 8,
+        userLiked: false
+      },
+      {
+        id: 'sc14',
+        user: { name: 'Jessica Taylor', avatar: 'https://i.pravatar.cc/150?img=49' },
+        text: 'The music choices are perfect. That ending song... chills.',
+        timestamp: '12h ago',
+        likes: 19,
+        userLiked: true
+      },
+      {
+        id: 'sc15',
+        user: { name: 'Chris Anderson', avatar: 'https://i.pravatar.cc/150?img=55' },
+        text: 'Better Call Saul is great but this is the original masterpiece.',
+        timestamp: '13h ago',
+        likes: 33,
+        userLiked: false
+      },
+      {
+        id: 'sc16',
+        user: { name: 'Michelle Davis', avatar: 'https://i.pravatar.cc/150?img=43' },
+        text: 'The desert scenes are iconic. New Mexico never looked so good.',
+        timestamp: '14h ago',
+        likes: 11,
+        userLiked: true
+      },
+      {
+        id: 'sc17',
+        user: { name: 'Brandon Scott', avatar: 'https://i.pravatar.cc/150?img=56' },
+        text: 'Ozymandias is the greatest episode of television ever made.',
+        timestamp: '15h ago',
+        likes: 45,
+        userLiked: false
+      },
+      {
+        id: 'sc18',
+        user: { name: 'Amanda Clark', avatar: 'https://i.pravatar.cc/150?img=41' },
+        text: 'The way they handle Jessies character arc is heartbreaking and beautiful.',
+        timestamp: '16h ago',
+        likes: 24,
+        userLiked: true
       }
     ],
   }
@@ -242,7 +338,7 @@ export default function Card1MobileTestPage() {
           color: '#3B82F6',
           margin: 0
         }}>
-          🧪 React Card 1: v1a.10
+          🧪 React Card 1: v1a.11
         </h1>
       </div>
 
