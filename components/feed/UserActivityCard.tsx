@@ -221,7 +221,7 @@ export const BADGE_PRESETS = {
   // Card 5 - Now Streaming
   nowStreaming: (platform: string): FeedCardBadge => ({
     text: `Now Streaming on ${platform}`,
-    icon: 'tv',
+    icon: 'tv-screen',
     color: 'rgba(139, 92, 246, 0.25)',
     borderColor: 'rgba(139, 92, 246, 0.5)',
     textColor: 'white',
