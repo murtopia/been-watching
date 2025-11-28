@@ -70,7 +70,7 @@ const card2Data: FeedCardData = {
     year: 2017,
     genres: ['Crime', 'Drama', 'Thriller'],
     rating: 8.5,
-    posterUrl: 'https://image.tmdb.org/t/p/original/pCGyPVrI9Fpm3rLlJtMf7CzVwC.jpg',
+    posterUrl: 'https://image.tmdb.org/t/p/original/pPSimniU3cGIaUvPQlcV1HJGqLk.jpg',
     synopsis: 'A financial advisor drags his family from Chicago to the Missouri Ozarks, where he must launder money to appease a drug boss.',
     creator: 'Bill Dubuque',
     cast: ['Jason Bateman', 'Laura Linney', 'Julia Garner'],
