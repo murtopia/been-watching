@@ -725,12 +725,13 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           font-size: 14px;
           font-weight: 600;
           margin-bottom: 1px;
+          color: white;
         }
 
         .timestamp {
           font-size: 11px;
           font-weight: 400;
-          opacity: 0.7;
+          color: rgba(255, 255, 255, 0.7);
         }
 
         /* Activity Badges */
