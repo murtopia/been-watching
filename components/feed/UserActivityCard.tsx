@@ -1714,8 +1714,8 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                     onClick={() => onUserClick?.(cardUser.id)}
                   />
                   <div className="user-info">
-                    <div className="username">{cardUser.name}</div>
-                    <div className="timestamp">{cardTimestamp}</div>
+                    <div className="username" style={{ color: 'white' }}>{cardUser.name}</div>
+                    <div className="timestamp" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>{cardTimestamp}</div>
                   </div>
                 </div>
               )}
