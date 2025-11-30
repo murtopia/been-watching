@@ -113,7 +113,7 @@ export default function PreviewFeedV2Page() {
       {
         id: 'c1',
         user: { name: 'Mike Johnson', avatar: 'https://i.pravatar.cc/150?img=5' },
-        text: 'This finale was absolutely incredible!',
+        text: 'This finale was absolutely incredible! Best TV I\'ve seen all year.',
         timestamp: '1h ago',
         likes: 8,
         userLiked: true
@@ -125,6 +125,30 @@ export default function PreviewFeedV2Page() {
         timestamp: '45m ago',
         likes: 3,
         userLiked: false
+      },
+      {
+        id: 'c3',
+        user: { name: 'Alex Chen', avatar: 'https://i.pravatar.cc/150?img=7' },
+        text: 'The character development throughout this season was masterful.',
+        timestamp: '2h ago',
+        likes: 15,
+        userLiked: true
+      },
+      {
+        id: 'c4',
+        user: { name: 'Jordan Martinez', avatar: 'https://i.pravatar.cc/150?img=8' },
+        text: 'Just finished binging the whole season. Mind = blown 🤯',
+        timestamp: '3h ago',
+        likes: 7,
+        userLiked: false
+      },
+      {
+        id: 'c5',
+        user: { name: 'Sam Taylor', avatar: 'https://i.pravatar.cc/150?img=9' },
+        text: 'This is peak television. Nothing comes close!',
+        timestamp: '4h ago',
+        likes: 22,
+        userLiked: true
       }
     ],
     showComments: [
@@ -142,6 +166,38 @@ export default function PreviewFeedV2Page() {
         text: 'The character development is phenomenal.',
         timestamp: '15 min ago',
         likes: 7,
+        userLiked: true
+      },
+      {
+        id: 'sc3',
+        user: { name: 'David Chen', avatar: 'https://i.pravatar.cc/150?img=15' },
+        text: 'Walter White is one of the greatest TV characters ever written.',
+        timestamp: '1h ago',
+        likes: 23,
+        userLiked: false
+      },
+      {
+        id: 'sc4',
+        user: { name: 'Emily Rodriguez', avatar: 'https://i.pravatar.cc/150?img=25' },
+        text: 'The chemistry between Bryan Cranston and Aaron Paul is incredible.',
+        timestamp: '2h ago',
+        likes: 19,
+        userLiked: true
+      },
+      {
+        id: 'sc5',
+        user: { name: 'James Patterson', avatar: 'https://i.pravatar.cc/150?img=30' },
+        text: 'Every episode is perfectly crafted. The writing is top tier.',
+        timestamp: '3h ago',
+        likes: 12,
+        userLiked: false
+      },
+      {
+        id: 'sc6',
+        user: { name: 'Lisa Wang', avatar: 'https://i.pravatar.cc/150?img=35' },
+        text: 'This show changed television forever. A true masterpiece.',
+        timestamp: '4h ago',
+        likes: 28,
         userLiked: true
       }
     ],
