@@ -253,8 +253,7 @@ export default function PreviewFeedV2Page() {
           scroll-snap-stop: normal;
           display: flex;
           justify-content: center;
-          align-items: center;
-          min-height: 100vh;
+          align-items: flex-start;
           padding: 20px 0;
         }
         
@@ -267,8 +266,8 @@ export default function PreviewFeedV2Page() {
       `}</style>
 
       <div className="feed-scroll-container">
-        {/* Header - also snaps */}
-        <div className="card-snap-wrapper" style={{ minHeight: 'auto', padding: '20px' }}>
+        {/* Header */}
+        <div style={{ padding: '20px 20px 0 20px' }}>
           <div style={{
             textAlign: 'center',
             padding: '16px 20px',
@@ -307,7 +306,7 @@ export default function PreviewFeedV2Page() {
         </div>
 
         {/* Card 1 */}
-        <div className="card-snap-wrapper">
+        <div className="card-snap-wrapper" style={{ paddingTop: '20px' }}>
           <div className="card-inner-wrapper">
             <UserActivityCard
               data={card1Data}
