@@ -2368,6 +2368,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = (props) => {
       onUserClick={props.onUserClick}
       onMediaClick={props.onMediaClick}
       onTrack={props.onTrack}
+      onFlip={props.onFlip}
     />
   )
 }
