@@ -12,37 +12,15 @@
 
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { UserActivityCard, UserActivityCardData } from '@/components/feed/UserActivityCard'
 
 export default function PreviewFeedV2Page() {
   const [trackingLog, setTrackingLog] = useState<string[]>([])
   const [isAnyCardFlipped, setIsAnyCardFlipped] = useState(false)
 
-  // Lock/unlock body scroll when a card is flipped
-  useEffect(() => {
-    if (isAnyCardFlipped) {
-      // Lock scroll
-      document.body.style.overflow = 'hidden'
-      document.body.style.position = 'fixed'
-      document.body.style.width = '100%'
-      document.body.style.height = '100%'
-    } else {
-      // Unlock scroll
-      document.body.style.overflow = ''
-      document.body.style.position = ''
-      document.body.style.width = ''
-      document.body.style.height = ''
-    }
-    
-    // Cleanup on unmount
-    return () => {
-      document.body.style.overflow = ''
-      document.body.style.position = ''
-      document.body.style.width = ''
-      document.body.style.height = ''
-    }
-  }, [isAnyCardFlipped])
+  // Scroll lock is now handled via CSS class on the container
+  // The className includes 'scroll-locked' when isAnyCardFlipped is true
 
   const handleTrack = (action: string, metadata?: any) => {
     const log = `[${new Date().toLocaleTimeString()}] ${action}: ${JSON.stringify(metadata || {})}`
@@ -248,6 +226,10 @@ export default function PreviewFeedV2Page() {
           background: #1a1a1a;
         }
         
+        .feed-scroll-container.scroll-locked {
+          overflow: hidden !important;
+        }
+        
         .card-snap-wrapper {
           scroll-snap-align: center;
           scroll-snap-stop: normal;
@@ -263,11 +245,17 @@ export default function PreviewFeedV2Page() {
           display: flex;
           justify-content: center;
         }
+        
+        .feed-header {
+          padding: 20px 20px 0 20px;
+          display: flex;
+          justify-content: center;
+        }
       `}</style>
 
-      <div className="feed-scroll-container">
+      <div className={`feed-scroll-container ${isAnyCardFlipped ? 'scroll-locked' : ''}`}>
         {/* Header */}
-        <div style={{ padding: '20px 20px 0 20px' }}>
+        <div className="feed-header">
           <div style={{
             textAlign: 'center',
             padding: '16px 20px',
@@ -309,11 +297,45 @@ export default function PreviewFeedV2Page() {
         <div className="card-snap-wrapper" style={{ paddingTop: '20px' }}>
           <div className="card-inner-wrapper">
             <UserActivityCard
-              data={card1Data}
+              data={{...card1Data, id: '1'}}
               onLike={() => handleTrack('like', { card: 1 })}
               onComment={() => handleTrack('comment', { card: 1 })}
               onShare={() => handleTrack('share', { card: 1 })}
               onAddToWatchlist={() => handleTrack('add_to_watchlist', { card: 1 })}
+              onUserClick={(userId) => handleTrack('user_click', { userId })}
+              onMediaClick={(mediaId) => handleTrack('media_click', { mediaId })}
+              onTrack={handleTrack}
+              onFlip={handleCardFlip}
+            />
+          </div>
+        </div>
+
+        {/* Card 2 (duplicate for scroll testing) */}
+        <div className="card-snap-wrapper">
+          <div className="card-inner-wrapper">
+            <UserActivityCard
+              data={{...card1Data, id: '2'}}
+              onLike={() => handleTrack('like', { card: 2 })}
+              onComment={() => handleTrack('comment', { card: 2 })}
+              onShare={() => handleTrack('share', { card: 2 })}
+              onAddToWatchlist={() => handleTrack('add_to_watchlist', { card: 2 })}
+              onUserClick={(userId) => handleTrack('user_click', { userId })}
+              onMediaClick={(mediaId) => handleTrack('media_click', { mediaId })}
+              onTrack={handleTrack}
+              onFlip={handleCardFlip}
+            />
+          </div>
+        </div>
+
+        {/* Card 3 (duplicate for scroll testing) */}
+        <div className="card-snap-wrapper">
+          <div className="card-inner-wrapper">
+            <UserActivityCard
+              data={{...card1Data, id: '3'}}
+              onLike={() => handleTrack('like', { card: 3 })}
+              onComment={() => handleTrack('comment', { card: 3 })}
+              onShare={() => handleTrack('share', { card: 3 })}
+              onAddToWatchlist={() => handleTrack('add_to_watchlist', { card: 3 })}
               onUserClick={(userId) => handleTrack('user_click', { userId })}
               onMediaClick={(mediaId) => handleTrack('media_click', { mediaId })}
               onTrack={handleTrack}
