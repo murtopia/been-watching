@@ -139,6 +139,7 @@ interface FeedCardProps {
   onUserClick?: (userId: string) => void
   onMediaClick?: (mediaId: string) => void
   onTrack?: (action: string, metadata?: any) => void
+  onFlip?: (isFlipped: boolean) => void  // Notify parent when card flips
 }
 
 /** Legacy props interface for backwards compatibility */
@@ -151,6 +152,7 @@ interface UserActivityCardProps {
   onUserClick?: (userId: string) => void
   onMediaClick?: (mediaId: string) => void
   onTrack?: (action: string, metadata?: any) => void
+  onFlip?: (isFlipped: boolean) => void
 }
 
 // ============================================================================
@@ -271,6 +273,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   onUserClick,
   onMediaClick,
   onTrack,
+  onFlip,
 }) => {
   // Determine if this is legacy data format
   const isLegacyData = 'user' in data && 'activityBadges' in data
@@ -505,11 +508,14 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   }
 
   const flipCard = () => {
-    setIsFlipped(!isFlipped)
+    const newFlippedState = !isFlipped
+    setIsFlipped(newFlippedState)
     setCommentsVisible(false)
     setCommentsExpanded(false)
     setActionOverlayVisible(false)
     setPressedIcon(null)
+    // Notify parent of flip state change
+    onFlip?.(newFlippedState)
   }
 
   const handleCommentButtonClick = () => {

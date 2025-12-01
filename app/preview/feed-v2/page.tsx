@@ -1,26 +1,59 @@
 /**
- * Preview Feed V2 - Fresh Start
+ * Preview Feed V2 - Hybrid Scroll Implementation
  * 
- * Purpose: Rebuild the feed page from scratch, preserving pixel-perfect cards
+ * Purpose: Test feed with scroll-snap + scroll lock on flip
  * URL: /preview/feed-v2
  * 
- * Approach: Add cards one at a time, using the EXACT same imports and data
- * structures as the approved individual preview pages.
+ * Features:
+ * 1. CSS scroll-snap: Cards lightly snap to center when scrolling
+ * 2. Scroll lock on flip: When card is flipped, page scroll is locked
+ *    (This fixes iOS Safari 3D rendering issues on the back of card)
  */
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { UserActivityCard, UserActivityCardData } from '@/components/feed/UserActivityCard'
 
 export default function PreviewFeedV2Page() {
   const [trackingLog, setTrackingLog] = useState<string[]>([])
+  const [isAnyCardFlipped, setIsAnyCardFlipped] = useState(false)
+
+  // Lock/unlock body scroll when a card is flipped
+  useEffect(() => {
+    if (isAnyCardFlipped) {
+      // Lock scroll
+      document.body.style.overflow = 'hidden'
+      document.body.style.position = 'fixed'
+      document.body.style.width = '100%'
+      document.body.style.height = '100%'
+    } else {
+      // Unlock scroll
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.width = ''
+      document.body.style.height = ''
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.width = ''
+      document.body.style.height = ''
+    }
+  }, [isAnyCardFlipped])
 
   const handleTrack = (action: string, metadata?: any) => {
     const log = `[${new Date().toLocaleTimeString()}] ${action}: ${JSON.stringify(metadata || {})}`
     setTrackingLog((prev) => [log, ...prev].slice(0, 50))
     console.log('Track:', action, metadata)
   }
+
+  const handleCardFlip = useCallback((isFlipped: boolean) => {
+    setIsAnyCardFlipped(isFlipped)
+    console.log('Card flip:', isFlipped ? 'showing back' : 'showing front')
+  }, [])
 
   // ============================================================================
   // Card 1 Data - EXACT copy from /preview/card-1/page.tsx
@@ -204,70 +237,95 @@ export default function PreviewFeedV2Page() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#1a1a1a',
-      paddingTop: '20px',
-      paddingBottom: '100px'
-    }}>
-      {/* Header */}
-      <div style={{
-        textAlign: 'center',
-        marginBottom: '20px',
-        padding: '0 20px'
-      }}>
-        <h1 style={{
-          fontSize: '18px',
-          fontWeight: '700',
-          color: 'white',
-          margin: '0 0 8px 0',
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-        }}>
-          Feed V2 Test
-        </h1>
-        <p style={{
-          fontSize: '13px',
-          color: 'rgba(255,255,255,0.5)',
-          margin: 0,
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-        }}>
-          Step 1: Card 1 only (using UserActivityCard)
-        </p>
-      </div>
+    <>
+      {/* Global styles for scroll-snap */}
+      <style>{`
+        .feed-scroll-container {
+          height: 100vh;
+          overflow-y: scroll;
+          scroll-snap-type: y proximity;
+          -webkit-overflow-scrolling: touch;
+          background: #1a1a1a;
+        }
+        
+        .card-snap-wrapper {
+          scroll-snap-align: center;
+          scroll-snap-stop: normal;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 100vh;
+          padding: 20px 0;
+        }
+        
+        .card-inner-wrapper {
+          width: 100%;
+          max-width: 398px;
+          display: flex;
+          justify-content: center;
+        }
+      `}</style>
 
-      {/* Card Container - EXACT match to /preview/card-1 structure */}
-      <div style={{
-        width: '100%',
-        maxWidth: '398px',
-        margin: '0 auto',
-        display: 'flex',
-        justifyContent: 'center'
-      }}>
-        <UserActivityCard
-          data={card1Data}
-          onLike={() => handleTrack('like', { card: 1 })}
-          onComment={() => handleTrack('comment', { card: 1 })}
-          onShare={() => handleTrack('share', { card: 1 })}
-          onAddToWatchlist={() => handleTrack('add_to_watchlist', { card: 1 })}
-          onUserClick={(userId) => handleTrack('user_click', { userId })}
-          onMediaClick={(mediaId) => handleTrack('media_click', { mediaId })}
-          onTrack={handleTrack}
-        />
-      </div>
+      <div className="feed-scroll-container">
+        {/* Header - also snaps */}
+        <div className="card-snap-wrapper" style={{ minHeight: 'auto', padding: '20px' }}>
+          <div style={{
+            textAlign: 'center',
+            padding: '16px 20px',
+            background: 'rgba(59, 130, 246, 0.1)',
+            border: '1px solid rgba(59, 130, 246, 0.3)',
+            borderRadius: '12px',
+            maxWidth: '398px',
+            width: '100%'
+          }}>
+            <h1 style={{
+              fontSize: '16px',
+              fontWeight: '700',
+              color: 'white',
+              margin: '0 0 8px 0',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            }}>
+              Feed V2 - Hybrid Scroll Test
+            </h1>
+            <p style={{
+              fontSize: '13px',
+              color: 'rgba(255,255,255,0.6)',
+              margin: 0,
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            }}>
+              Scroll-snap + scroll lock on flip
+            </p>
+            <div style={{
+              marginTop: '8px',
+              fontSize: '11px',
+              color: isAnyCardFlipped ? '#FF3B5C' : '#22C55E',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            }}>
+              {isAnyCardFlipped ? '🔒 Scroll locked (card flipped)' : '✓ Scroll enabled'}
+            </div>
+          </div>
+        </div>
 
-      {/* Status */}
-      <div style={{
-        textAlign: 'center',
-        marginTop: '24px',
-        padding: '16px',
-        fontSize: '12px',
-        color: 'rgba(255,255,255,0.4)',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-      }}>
-        ✓ Card 1 added using UserActivityCard wrapper<br/>
-        → Compare to /preview/card-1 to verify match
+        {/* Card 1 */}
+        <div className="card-snap-wrapper">
+          <div className="card-inner-wrapper">
+            <UserActivityCard
+              data={card1Data}
+              onLike={() => handleTrack('like', { card: 1 })}
+              onComment={() => handleTrack('comment', { card: 1 })}
+              onShare={() => handleTrack('share', { card: 1 })}
+              onAddToWatchlist={() => handleTrack('add_to_watchlist', { card: 1 })}
+              onUserClick={(userId) => handleTrack('user_click', { userId })}
+              onMediaClick={(mediaId) => handleTrack('media_click', { mediaId })}
+              onTrack={handleTrack}
+              onFlip={handleCardFlip}
+            />
+          </div>
+        </div>
+
+        {/* Footer spacer for scroll */}
+        <div style={{ height: '50vh' }} />
       </div>
-    </div>
+    </>
   )
 }
-
