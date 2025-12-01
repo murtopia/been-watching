@@ -221,7 +221,7 @@ export default function PreviewFeedV2Page() {
         .feed-scroll-container {
           height: 100vh;
           overflow-y: scroll;
-          scroll-snap-type: y proximity;
+          scroll-snap-type: y mandatory;
           -webkit-overflow-scrolling: touch;
           background: #1a1a1a;
         }
@@ -231,12 +231,13 @@ export default function PreviewFeedV2Page() {
         }
         
         .card-snap-wrapper {
-          scroll-snap-align: center;
-          scroll-snap-stop: normal;
+          scroll-snap-align: start;
+          scroll-snap-stop: always;
           display: flex;
           justify-content: center;
           align-items: flex-start;
-          padding: 20px 0;
+          padding-top: 20px;
+          padding-bottom: 20px;
         }
         
         .card-inner-wrapper {
@@ -247,6 +248,7 @@ export default function PreviewFeedV2Page() {
         }
         
         .feed-header {
+          scroll-snap-align: start;
           padding: 20px 20px 0 20px;
           display: flex;
           justify-content: center;
