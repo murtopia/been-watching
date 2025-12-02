@@ -1,9 +1,10 @@
 # Card 1: User Activity Card - React Implementation
 
-**Status:** APPROVED  
+**Status:** ✅ APPROVED  
 **Last Updated:** January 2025  
 **Component:** `components/feed/UserActivityCard.tsx`  
-**Test Page:** `/preview/card-1` and `/preview/card-1a`
+**Individual Test:** `/preview/card-1`  
+**Full Feed Test:** `/preview/feed-v2` (all 8 cards with 15 front + 23 back comments for scroll testing)
 
 ---
 
@@ -206,10 +207,23 @@ The component includes sample data with:
 
 ## Next Steps
 
-1. Implement friends list expansion feature (clicking friend avatars)
-2. Connect to real data/API
-3. Add analytics tracking for interactions
-4. Build Cards 2-8 using this as foundation
+1. ~~Build Cards 2-8 using this as foundation~~ ✅ COMPLETE
+2. Implement friends list expansion feature (clicking friend avatars) - PENDING
+3. Connect to real data/API - NEXT PRIORITY
+4. Add analytics tracking for interactions - PENDING
+
+---
+
+## Test Feed: /preview/feed-v2
+
+All 8 approved cards are now integrated in a scrollable test feed:
+
+- **Scroll-snap:** Cards snap to center with `scroll-snap-type: y mandatory`
+- **Card 1 Comments:** 15 front + 23 back comments for scroll/load-more testing
+- **Mobile tested:** All cards verified on iOS Safari
+- **Scroll lock:** Page scroll locks when viewing back of flipped card
+
+**Known Issue:** Grey bars at top/bottom of page (iOS safe areas) - will be addressed when integrating into real feed with actual header/footer.
 
 ---
 
