@@ -382,12 +382,13 @@ export default function PreviewFeedV2Page() {
           scroll-snap-type: y mandatory;
           -webkit-overflow-scrolling: touch;
           background: #1a1a1a;
+          padding: calc((100vh - 645px) / 2) 0;
         }
         
         .card-snap-wrapper {
           scroll-snap-align: center;
           scroll-snap-stop: always;
-          min-height: 100vh;
+          padding: 10px 0;
           display: flex;
           justify-content: center;
           align-items: center;
@@ -530,8 +531,6 @@ export default function PreviewFeedV2Page() {
           </div>
         </div>
 
-        {/* Footer spacer */}
-        <div style={{ height: '50vh' }} />
       </div>
     </>
   )
