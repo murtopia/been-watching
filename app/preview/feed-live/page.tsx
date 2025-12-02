@@ -13,6 +13,9 @@ import React, { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { UserActivityCard, FeedCard, BADGE_PRESETS } from '@/components/feed/UserActivityCard'
 import { FollowSuggestionsCard } from '@/components/feed/FollowSuggestionsCard'
+import BottomNav from '@/components/navigation/BottomNav'
+import AppHeader from '@/components/navigation/AppHeader'
+import SearchModal from '@/components/search/SearchModal'
 import { 
   activityToUserActivityCardData, 
   recommendationToFeedCardData,
@@ -35,11 +38,20 @@ interface DebugInfo {
   apiResponse: any
 }
 
+interface Profile {
+  id: string
+  username: string
+  display_name: string
+  avatar_url: string | null
+}
+
 export default function PreviewFeedLivePage() {
   const [feedItems, setFeedItems] = useState<FeedItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [searchOpen, setSearchOpen] = useState(false)
   const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null)
   
   const supabase = createClient()
@@ -62,6 +74,17 @@ export default function PreviewFeedLivePage() {
       return
     }
     setUser(user)
+    
+    // Load user profile for header
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('id, username, display_name, avatar_url')
+      .eq('id', user.id)
+      .single()
+    
+    if (profileData) {
+      setProfile(profileData)
+    }
   }
 
   const loadFeed = async () => {
@@ -384,6 +407,12 @@ export default function PreviewFeedLivePage() {
     // TODO: Implement like toggle
   }
 
+  const handleMediaSelect = (media: any, rating?: string, status?: string) => {
+    console.log('Media selected:', media, rating, status)
+    setSearchOpen(false)
+    // TODO: Navigate to media detail or add to watchlist
+  }
+
   if (loading) {
     return (
       <div style={{ 
@@ -490,14 +519,16 @@ export default function PreviewFeedLivePage() {
   }
 
   return (
-    <>
+    <div style={{ background: '#1a1a1a', minHeight: '100vh' }}>
       <style>{`
         .feed-scroll-container {
-          height: 100vh;
+          height: calc(100vh - 120px); /* Account for header and bottom nav */
           overflow-y: scroll;
           scroll-snap-type: y mandatory;
           -webkit-overflow-scrolling: touch;
           background: #1a1a1a;
+          padding-top: 60px; /* Header height */
+          padding-bottom: 80px; /* Bottom nav height */
         }
         
         .card-snap-wrapper {
@@ -518,20 +549,23 @@ export default function PreviewFeedLivePage() {
         
         .debug-info {
           position: fixed;
-          top: 10px;
+          top: 70px;
           left: 10px;
           background: rgba(0,0,0,0.8);
           color: white;
           padding: 10px;
           font-size: 12px;
           border-radius: 8px;
-          z-index: 1000;
+          z-index: 100;
         }
       `}</style>
 
+      {/* Header */}
+      <AppHeader profile={profile} />
+
       <div className="debug-info">
         <div>Feed Items: {feedItems.length}</div>
-        <div>User: {user?.email}</div>
+        <div>Mode: TEST (Direct DB)</div>
       </div>
 
       <div className="feed-scroll-container">
@@ -565,7 +599,18 @@ export default function PreviewFeedLivePage() {
           return null
         })}
       </div>
-    </>
+
+      {/* Bottom Navigation */}
+      <BottomNav onSearchOpen={() => setSearchOpen(true)} />
+
+      {/* Search Modal */}
+      <SearchModal 
+        isOpen={searchOpen} 
+        onClose={() => setSearchOpen(false)}
+        onSelectMedia={handleMediaSelect}
+        user={user}
+      />
+    </div>
   )
 }
 
