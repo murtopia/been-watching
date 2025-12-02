@@ -766,13 +766,20 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           font-size: 14px;
           font-weight: 600;
           margin-bottom: 1px;
-          color: white;
+          color: white !important;
+          opacity: 1 !important;
         }
 
         .timestamp {
           font-size: 11px;
           font-weight: 400;
-          color: rgba(255, 255, 255, 0.7);
+          color: rgba(255, 255, 255, 0.7) !important;
+          opacity: 1 !important;
+        }
+        
+        .user-header:active .username,
+        .user-header:active .timestamp {
+          opacity: 0.7 !important;
         }
 
         /* Activity Badges */
