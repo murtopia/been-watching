@@ -89,11 +89,28 @@ export default function PreviewFeedLivePage() {
         // Let's also check if there are ANY activities in the database
         const { data: allActivities, error: actError } = await supabase
           .from('activities')
-          .select('id, user_id, activity_type, created_at')
+          .select(`
+            id, 
+            user_id, 
+            activity_type, 
+            created_at,
+            profiles:user_id (display_name, username)
+          `)
           .order('created_at', { ascending: false })
           .limit(5)
         
         console.log('Sample activities in DB:', allActivities, actError)
+        console.log('Current user ID:', user?.id)
+        
+        // Check if any activities are from followed users
+        const followedUserIds = follows?.filter(f => f.status === 'accepted').map(f => f.following_id) || []
+        console.log('Followed user IDs:', followedUserIds)
+        
+        const activitiesFromFollowed = allActivities?.filter(a => followedUserIds.includes(a.user_id)) || []
+        console.log('Activities from followed users:', activitiesFromFollowed.length)
+        
+        const myActivities = allActivities?.filter(a => a.user_id === user?.id) || []
+        console.log('My own activities:', myActivities.length)
         
         // Check follows
         const { data: follows, error: followError } = await supabase
@@ -117,8 +134,16 @@ export default function PreviewFeedLivePage() {
           totalActivitiesInDB: allActivities?.length || 0,
           followsCount: follows?.filter(f => f.status === 'accepted').length || 0,
           adminShowAll: adminSetting?.setting_value === 'true',
-          apiResponse: data
-        })
+          apiResponse: data,
+          activitiesFromFollowed: activitiesFromFollowed.length,
+          myActivities: myActivities.length,
+          sampleActivities: allActivities?.map(a => ({
+            user: (a.profiles as any)?.display_name || (a.profiles as any)?.username || a.user_id,
+            type: a.activity_type,
+            isMe: a.user_id === user?.id,
+            isFollowed: followedUserIds.includes(a.user_id)
+          }))
+        } as any)
         
         setFeedItems([])
         setLoading(false)
@@ -357,7 +382,7 @@ export default function PreviewFeedLivePage() {
             padding: '16px', 
             borderRadius: '8px',
             fontSize: '13px',
-            maxWidth: '350px'
+            maxWidth: '400px'
           }}>
             <div style={{ fontWeight: 'bold', marginBottom: '10px', color: '#3b82f6' }}>
               Debug Info:
@@ -365,12 +390,32 @@ export default function PreviewFeedLivePage() {
             <div>Activities in DB: {debugInfo.totalActivitiesInDB}</div>
             <div>Your accepted follows: {debugInfo.followsCount}</div>
             <div>Admin "show all users": {debugInfo.adminShowAll ? 'Yes' : 'No'}</div>
+            <div>Activities from people you follow: {(debugInfo as any).activitiesFromFollowed || 0}</div>
+            <div>Your own activities: {(debugInfo as any).myActivities || 0}</div>
+            
+            {(debugInfo as any).sampleActivities && (
+              <div style={{ marginTop: '10px', borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: '10px' }}>
+                <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>Sample Activities:</div>
+                {(debugInfo as any).sampleActivities.map((a: any, i: number) => (
+                  <div key={i} style={{ 
+                    fontSize: '11px', 
+                    color: a.isMe ? '#f87171' : a.isFollowed ? '#4ade80' : 'rgba(255,255,255,0.5)',
+                    marginBottom: '2px'
+                  }}>
+                    {a.user}: {a.type} 
+                    {a.isMe && ' (YOU)'}
+                    {a.isFollowed && ' (FOLLOWED)'}
+                  </div>
+                ))}
+              </div>
+            )}
+            
             <div style={{ marginTop: '10px', color: 'rgba(255,255,255,0.6)' }}>
               {debugInfo.totalActivitiesInDB === 0 && "No activities exist in the database."}
-              {debugInfo.totalActivitiesInDB > 0 && debugInfo.followsCount === 0 && !debugInfo.adminShowAll && 
-                "You need to follow someone OR enable 'show all users' in admin."}
-              {debugInfo.totalActivitiesInDB > 0 && (debugInfo.followsCount > 0 || debugInfo.adminShowAll) &&
-                "Activities exist but may be filtered out (e.g., your own activities)."}
+              {(debugInfo as any).myActivities === debugInfo.totalActivitiesInDB && debugInfo.totalActivitiesInDB > 0 &&
+                "All activities are yours (excluded from feed)."}
+              {(debugInfo as any).activitiesFromFollowed === 0 && (debugInfo as any).myActivities < debugInfo.totalActivitiesInDB && !debugInfo.adminShowAll &&
+                "Activities exist from users you don't follow. Enable 'show all users' in admin."}
             </div>
           </div>
         )}
