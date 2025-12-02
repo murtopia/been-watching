@@ -420,33 +420,29 @@ export const FeedCard: React.FC<FeedCardProps> = ({
       velocityY.current = 0.8 * velocityY.current + 0.2 * (dy / dt)
     }
     
-    // While undecided, prevent page scroll (we'll decide soon)
-    if (gestureMode.current === 'undecided') {
-      e.preventDefault()
-    }
-    
-    // Early gesture detection - decide in first 30px of movement
-    if (gestureMode.current === 'undecided' && Math.abs(deltaYFromStart) > 30) {
-      const atTop = gestureStartOffset.current <= 5
-      const atBottom = gestureStartOffset.current >= maxScroll - 5
-      const swipingUp = deltaYFromStart < 0 // Finger moving down = scrolling up = going to previous card
-      const swipingDown = deltaYFromStart > 0 // Finger moving up = scrolling down = going to next card
-      const fastSwipe = Math.abs(velocityY.current) > 0.8 // Fast velocity threshold
+    // Early gesture detection - decide in first 20px of movement
+    if (gestureMode.current === 'undecided' && Math.abs(deltaYFromStart) > 20) {
+      const atTop = gestureStartOffset.current <= 10
+      const atBottom = gestureStartOffset.current >= maxScroll - 10
+      const swipingUp = deltaYFromStart < 0 // Finger moving down = trying to go to previous card
+      const swipingDown = deltaYFromStart > 0 // Finger moving up = trying to go to next card
+      const fastSwipe = Math.abs(velocityY.current) > 0.5 // Lower threshold for easier passthrough
       
-      // If at boundary and swiping past it with decent velocity, let page scroll
+      // If at boundary and swiping past it, let page scroll (navigate cards)
       if ((atTop && swipingUp && fastSwipe) || (atBottom && swipingDown && fastSwipe)) {
         gestureMode.current = 'passthrough'
+        return // Let this and all future moves pass through to page scroll
       } else {
         gestureMode.current = 'internal'
       }
     }
     
-    // If passing through to page scroll, don't intercept
-    if (gestureMode.current === 'passthrough') {
-      return // Let native scroll handle it
+    // If still undecided or passthrough, don't intercept - let page scroll naturally
+    if (gestureMode.current !== 'internal') {
+      return
     }
     
-    // IMPORTANT: Prevent page scroll when handling internal card scroll
+    // IMPORTANT: Only prevent page scroll when we've committed to internal scroll
     e.preventDefault()
     e.stopPropagation()
     
