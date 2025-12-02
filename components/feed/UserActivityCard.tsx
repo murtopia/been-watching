@@ -384,9 +384,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   
   // iOS-style momentum scroll for back card using CSS transforms
   // (3D transform breaks native scrollTop, so we use translateY instead)
-  // Track if we've decided to let page scroll vs handle internally
-  const gestureMode = useRef<'undecided' | 'internal' | 'passthrough'>('undecided')
-  const gestureStartOffset = useRef(0)
+  // Page scroll is locked when viewing back of card - user must flip back to navigate
   
   // Native touch handlers (need { passive: false } to allow preventDefault)
   const handleBackTouchStartNative = useCallback((e: TouchEvent) => {
@@ -400,13 +398,15 @@ export const FeedCard: React.FC<FeedCardProps> = ({
     lastTouchY.current = e.touches[0].clientY
     lastMoveTime.current = Date.now()
     scrollStartY.current = scrollOffsetRef.current
-    gestureStartOffset.current = scrollOffsetRef.current
     velocityY.current = 0
-    gestureMode.current = 'undecided'
   }, [])
 
   const handleBackTouchMoveNative = useCallback((e: TouchEvent) => {
     if (!backScrollRef.current || !backInnerRef.current) return
+    
+    // Always prevent page scroll when viewing back of card
+    e.preventDefault()
+    e.stopPropagation()
     
     const now = Date.now()
     const touchY = e.touches[0].clientY
@@ -419,32 +419,6 @@ export const FeedCard: React.FC<FeedCardProps> = ({
       const dy = lastTouchY.current - touchY
       velocityY.current = 0.8 * velocityY.current + 0.2 * (dy / dt)
     }
-    
-    // Early gesture detection - decide in first 20px of movement
-    if (gestureMode.current === 'undecided' && Math.abs(deltaYFromStart) > 20) {
-      const atTop = gestureStartOffset.current <= 10
-      const atBottom = gestureStartOffset.current >= maxScroll - 10
-      const swipingUp = deltaYFromStart < 0 // Finger moving down = trying to go to previous card
-      const swipingDown = deltaYFromStart > 0 // Finger moving up = trying to go to next card
-      const fastSwipe = Math.abs(velocityY.current) > 0.5 // Lower threshold for easier passthrough
-      
-      // If at boundary and swiping past it, let page scroll (navigate cards)
-      if ((atTop && swipingUp && fastSwipe) || (atBottom && swipingDown && fastSwipe)) {
-        gestureMode.current = 'passthrough'
-        return // Let this and all future moves pass through to page scroll
-      } else {
-        gestureMode.current = 'internal'
-      }
-    }
-    
-    // If still undecided or passthrough, don't intercept - let page scroll naturally
-    if (gestureMode.current !== 'internal') {
-      return
-    }
-    
-    // IMPORTANT: Only prevent page scroll when we've committed to internal scroll
-    e.preventDefault()
-    e.stopPropagation()
     
     // Handle internal scroll
     const newOffset = scrollStartY.current + deltaYFromStart
