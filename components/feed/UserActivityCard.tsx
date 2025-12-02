@@ -301,6 +301,8 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   const [commentsVisible, setCommentsVisible] = useState(false)
   const [commentsExpanded, setCommentsExpanded] = useState(false)
   const [synopsisExpanded, setSynopsisExpanded] = useState(false)
+  const [needsTruncation, setNeedsTruncation] = useState(false)
+  const synopsisRef = useRef<HTMLParagraphElement>(null)
   const [actionOverlayVisible, setActionOverlayVisible] = useState(false)
   const [localLiked, setLocalLiked] = useState(data.stats.userLiked)
   const [localLikeCount, setLocalLikeCount] = useState(data.stats.likeCount)
@@ -356,6 +358,15 @@ export const FeedCard: React.FC<FeedCardProps> = ({
       applyScrollTransform(0)
     }
   }, [isFlipped])
+
+  // Check if synopsis needs truncation (only show Read More if text is actually clipped)
+  useEffect(() => {
+    if (synopsisRef.current) {
+      // Compare scrollHeight (full content) vs clientHeight (visible area)
+      const isTruncated = synopsisRef.current.scrollHeight > synopsisRef.current.clientHeight
+      setNeedsTruncation(isTruncated)
+    }
+  }, [data.media.synopsis, isFlipped])
   
   // Recalculate scroll bounds when comments change
   useEffect(() => {
@@ -1977,12 +1988,17 @@ export const FeedCard: React.FC<FeedCardProps> = ({
               </div>
 
               {/* Synopsis */}
-              <p className={`back-synopsis ${synopsisExpanded ? '' : 'collapsed'}`}>
+              <p 
+                ref={synopsisRef}
+                className={`back-synopsis ${synopsisExpanded ? '' : 'collapsed'}`}
+              >
                 {data.media.synopsis}
               </p>
-              <span className="read-more" onClick={() => setSynopsisExpanded(!synopsisExpanded)}>
-                {synopsisExpanded ? 'Show less' : 'Read more'}
-              </span>
+              {needsTruncation && (
+                <span className="read-more" onClick={() => setSynopsisExpanded(!synopsisExpanded)}>
+                  {synopsisExpanded ? 'Show less' : 'Read more'}
+                </span>
+              )}
 
               {/* Action Icons */}
               <div className="back-action-icons">
