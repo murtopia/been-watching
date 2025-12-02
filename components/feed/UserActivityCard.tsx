@@ -381,13 +381,15 @@ export const FeedCard: React.FC<FeedCardProps> = ({
       })
     }
   }, [visibleShowComments, isFlipped])
+  
   // iOS-style momentum scroll for back card using CSS transforms
   // (3D transform breaks native scrollTop, so we use translateY instead)
   // Track if we've decided to let page scroll vs handle internally
   const gestureMode = useRef<'undecided' | 'internal' | 'passthrough'>('undecided')
   const gestureStartOffset = useRef(0)
   
-  const handleBackTouchStart = (e: React.TouchEvent) => {
+  // Native touch handlers (need { passive: false } to allow preventDefault)
+  const handleBackTouchStartNative = useCallback((e: TouchEvent) => {
     // Cancel any ongoing momentum animation
     if (momentumRAF.current) {
       cancelAnimationFrame(momentumRAF.current)
@@ -401,9 +403,9 @@ export const FeedCard: React.FC<FeedCardProps> = ({
     gestureStartOffset.current = scrollOffsetRef.current
     velocityY.current = 0
     gestureMode.current = 'undecided'
-  }
+  }, [])
 
-  const handleBackTouchMove = (e: React.TouchEvent) => {
+  const handleBackTouchMoveNative = useCallback((e: TouchEvent) => {
     if (!backScrollRef.current || !backInnerRef.current) return
     
     const now = Date.now()
@@ -466,9 +468,9 @@ export const FeedCard: React.FC<FeedCardProps> = ({
     
     lastTouchY.current = touchY
     lastMoveTime.current = now
-  }
+  }, [])
 
-  const handleBackTouchEnd = () => {
+  const handleBackTouchEndNative = useCallback(() => {
     const maxScroll = getMaxScroll()
     const currentOffset = scrollOffsetRef.current
     
@@ -522,7 +524,23 @@ export const FeedCard: React.FC<FeedCardProps> = ({
     }
     
     momentumRAF.current = requestAnimationFrame(animateMomentum)
-  }
+  }, [])
+  
+  // Attach native touch event listeners with { passive: false } to allow preventDefault
+  useEffect(() => {
+    const element = backScrollRef.current
+    if (!element) return
+    
+    element.addEventListener('touchstart', handleBackTouchStartNative, { passive: true })
+    element.addEventListener('touchmove', handleBackTouchMoveNative, { passive: false })
+    element.addEventListener('touchend', handleBackTouchEndNative, { passive: true })
+    
+    return () => {
+      element.removeEventListener('touchstart', handleBackTouchStartNative)
+      element.removeEventListener('touchmove', handleBackTouchMoveNative)
+      element.removeEventListener('touchend', handleBackTouchEndNative)
+    }
+  }, [handleBackTouchStartNative, handleBackTouchMoveNative, handleBackTouchEndNative])
   
   // Smooth bounce-back animation using CSS transition
   const animateBounceBack = (targetOffset: number) => {
@@ -1996,9 +2014,6 @@ export const FeedCard: React.FC<FeedCardProps> = ({
             <div 
               className="card-back-content"
               ref={backScrollRef}
-              onTouchStart={handleBackTouchStart}
-              onTouchMove={handleBackTouchMove}
-              onTouchEnd={handleBackTouchEnd}
               onWheel={handleBackWheel}
             >
               <div className="card-back-inner" ref={backInnerRef}>
