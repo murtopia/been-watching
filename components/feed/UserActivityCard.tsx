@@ -13,7 +13,7 @@
 
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { Icon } from '@/components/ui/Icon'
 import { ShareButton } from '@/components/sharing/ShareButton'
 
