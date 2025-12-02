@@ -129,63 +129,21 @@ export default function PreviewFeedLivePage() {
       console.log('Feed API Response:', data)
 
       if (!data.items || data.items.length === 0) {
-        console.log('No items in feed - checking why...')
-        // Let's also check if there are ANY activities in the database
-        const { data: allActivities, error: actError } = await supabase
-          .from('activities')
-          .select(`
-            id, 
-            user_id, 
-            activity_type, 
-            created_at,
-            profiles:user_id (display_name, username)
-          `)
-          .order('created_at', { ascending: false })
-          .limit(5)
-        
-        console.log('Sample activities in DB:', allActivities, actError)
-        console.log('Current user ID:', user?.id)
-        
-        // Check if any activities are from followed users
-        const followedUserIds = follows?.filter(f => f.status === 'accepted').map(f => f.following_id) || []
-        console.log('Followed user IDs:', followedUserIds)
-        
-        const activitiesFromFollowed = allActivities?.filter(a => followedUserIds.includes(a.user_id)) || []
-        console.log('Activities from followed users:', activitiesFromFollowed.length)
-        
-        const myActivities = allActivities?.filter(a => a.user_id === user?.id) || []
-        console.log('My own activities:', myActivities.length)
-        
-        // Check follows
-        const { data: follows, error: followError } = await supabase
-          .from('follows')
-          .select('following_id, status')
-          .eq('follower_id', user?.id)
-        
-        console.log('User follows:', follows, followError)
-        
-        // Check admin setting
-        const { data: adminSetting } = await supabase
-          .from('admin_settings')
-          .select('setting_value')
-          .eq('setting_key', 'feed_show_all_users')
-          .single()
-        
-        console.log('Admin setting feed_show_all_users:', adminSetting)
-        
-        // Store debug info for display
+        console.log('API returned no items')
+        // Use the direct query results we already have
         setDebugInfo({
-          totalActivitiesInDB: allActivities?.length || 0,
-          followsCount: follows?.filter(f => f.status === 'accepted').length || 0,
-          adminShowAll: adminSetting?.setting_value === 'true',
+          totalActivitiesInDB: directActivities?.length || 0,
+          followsCount: 0,
+          adminShowAll: true,
           apiResponse: data,
-          activitiesFromFollowed: activitiesFromFollowed.length,
-          myActivities: myActivities.length,
-          sampleActivities: allActivities?.map(a => ({
-            user: (a.profiles as any)?.display_name || (a.profiles as any)?.username || a.user_id,
+          activitiesFromFollowed: 0,
+          myActivities: directActivities?.filter(a => a.user_id === user?.id).length || 0,
+          sampleActivities: directActivities?.map(a => ({
+            user: (a.profiles as any)?.display_name || (a.profiles as any)?.username || 'Unknown',
             type: a.activity_type,
+            media: (a.media as any)?.title || 'Unknown',
             isMe: a.user_id === user?.id,
-            isFollowed: followedUserIds.includes(a.user_id)
+            isFollowed: false
           }))
         } as any)
         
