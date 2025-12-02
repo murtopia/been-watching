@@ -1405,6 +1405,10 @@ export const FeedCard: React.FC<FeedCardProps> = ({
         }
 
         .back-badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
           padding: 8px 14px;
           background: rgba(255, 255, 255, 0.1);
           border: 1px solid rgba(255, 255, 255, 0.2);
@@ -1413,6 +1417,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           font-weight: 600;
           text-align: center;
           min-width: 36px;
+          line-height: 1;
         }
 
         .back-badge.trailer {
@@ -1967,7 +1972,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                   {data.media.season && <div className="back-badge season">S{data.media.season}</div>}
                   <div className="back-badge type">{data.media.mediaType}</div>
                   <div className="back-badge network">{data.media.network}</div>
-                  <div className="back-badge trailer">▶ Trailer</div>
+                  <div className="back-badge trailer"><Icon name="play" size={10} /> Trailer</div>
                 </div>
               </div>
 
