@@ -91,6 +91,64 @@ export default function PreviewFeedLivePage() {
       const otherUsersActivities = directActivities?.filter(a => a.user_id !== user?.id) || []
       console.log('Activities from OTHER users:', otherUsersActivities.length)
       
+      // TEST MODE: Bypass API and render directly from DB
+      // This helps us verify the cards work before fixing the API
+      const useTestMode = true // Set to true to bypass API
+      
+      if (useTestMode && otherUsersActivities.length > 0) {
+        console.log('TEST MODE: Rendering directly from DB, bypassing API')
+        
+        // Get full activity data for rendering
+        const { data: fullActivities } = await supabase
+          .from('activities')
+          .select(`
+            id,
+            user_id,
+            media_id,
+            activity_type,
+            activity_data,
+            created_at,
+            profiles:user_id (
+              id,
+              username,
+              display_name,
+              avatar_url
+            ),
+            media:media_id (
+              id,
+              title,
+              poster_path,
+              backdrop_path,
+              overview,
+              release_date,
+              vote_average,
+              media_type,
+              tmdb_data
+            )
+          `)
+          .neq('user_id', user?.id)
+          .order('created_at', { ascending: false })
+          .limit(10)
+        
+        console.log('Full activities for rendering:', fullActivities)
+        
+        if (fullActivities && fullActivities.length > 0) {
+          const transformedItems: FeedItem[] = fullActivities.map(activity => ({
+            type: 'activity' as const,
+            id: activity.id,
+            data: {
+              activity,
+              friendsActivity: undefined,
+              showComments: []
+            }
+          }))
+          
+          setFeedItems(transformedItems)
+          setLoading(false)
+          return
+        }
+      }
+      
       if (otherUsersActivities.length === 0 && directActivities && directActivities.length > 0) {
         // All activities are from current user
         setDebugInfo({
