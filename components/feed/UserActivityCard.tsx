@@ -418,6 +418,11 @@ export const FeedCard: React.FC<FeedCardProps> = ({
       velocityY.current = 0.8 * velocityY.current + 0.2 * (dy / dt)
     }
     
+    // While undecided, prevent page scroll (we'll decide soon)
+    if (gestureMode.current === 'undecided') {
+      e.preventDefault()
+    }
+    
     // Early gesture detection - decide in first 30px of movement
     if (gestureMode.current === 'undecided' && Math.abs(deltaYFromStart) > 30) {
       const atTop = gestureStartOffset.current <= 5
@@ -438,6 +443,10 @@ export const FeedCard: React.FC<FeedCardProps> = ({
     if (gestureMode.current === 'passthrough') {
       return // Let native scroll handle it
     }
+    
+    // IMPORTANT: Prevent page scroll when handling internal card scroll
+    e.preventDefault()
+    e.stopPropagation()
     
     // Handle internal scroll
     const newOffset = scrollStartY.current + deltaYFromStart
