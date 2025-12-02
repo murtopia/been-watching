@@ -69,8 +69,52 @@ export default function PreviewFeedLivePage() {
       setLoading(true)
       setError(null)
       
+      // FIRST: Direct database query to see all activities
+      console.log('Direct DB query - all activities...')
+      const { data: directActivities, error: directError } = await supabase
+        .from('activities')
+        .select(`
+          id,
+          user_id,
+          activity_type,
+          created_at,
+          profiles:user_id (display_name, username),
+          media:media_id (title)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(10)
+      
+      console.log('Direct DB activities:', directActivities, directError)
+      console.log('Current user ID:', user?.id)
+      
+      // Check how many are NOT from current user
+      const otherUsersActivities = directActivities?.filter(a => a.user_id !== user?.id) || []
+      console.log('Activities from OTHER users:', otherUsersActivities.length)
+      
+      if (otherUsersActivities.length === 0 && directActivities && directActivities.length > 0) {
+        // All activities are from current user
+        setDebugInfo({
+          totalActivitiesInDB: directActivities.length,
+          followsCount: 0,
+          adminShowAll: true,
+          apiResponse: { message: 'All activities are yours - excluded from feed' },
+          activitiesFromFollowed: 0,
+          myActivities: directActivities.length,
+          sampleActivities: directActivities.map(a => ({
+            user: (a.profiles as any)?.display_name || (a.profiles as any)?.username || 'Unknown',
+            type: a.activity_type,
+            media: (a.media as any)?.title || 'Unknown',
+            isMe: a.user_id === user?.id,
+            isFollowed: false
+          }))
+        } as any)
+        setFeedItems([])
+        setLoading(false)
+        return
+      }
+      
       // Fetch feed from API
-      console.log('Fetching feed...')
+      console.log('Fetching feed from API...')
       const response = await fetch('/api/feed?limit=10&offset=0')
       
       console.log('Response status:', response.status)
@@ -400,11 +444,12 @@ export default function PreviewFeedLivePage() {
                   <div key={i} style={{ 
                     fontSize: '11px', 
                     color: a.isMe ? '#f87171' : a.isFollowed ? '#4ade80' : 'rgba(255,255,255,0.5)',
-                    marginBottom: '2px'
+                    marginBottom: '4px'
                   }}>
-                    {a.user}: {a.type} 
-                    {a.isMe && ' (YOU)'}
-                    {a.isFollowed && ' (FOLLOWED)'}
+                    <strong>{a.user}</strong>: {a.type}
+                    {a.media && <span style={{ opacity: 0.7 }}> - {a.media}</span>}
+                    {a.isMe && <span style={{ color: '#f87171' }}> (YOU)</span>}
+                    {a.isFollowed && <span style={{ color: '#4ade80' }}> (FOLLOWED)</span>}
                   </div>
                 ))}
               </div>
