@@ -383,6 +383,10 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   }, [visibleShowComments, isFlipped])
   // iOS-style momentum scroll for back card using CSS transforms
   // (3D transform breaks native scrollTop, so we use translateY instead)
+  // Track if we've decided to let page scroll vs handle internally
+  const gestureMode = useRef<'undecided' | 'internal' | 'passthrough'>('undecided')
+  const gestureStartOffset = useRef(0)
+  
   const handleBackTouchStart = (e: React.TouchEvent) => {
     // Cancel any ongoing momentum animation
     if (momentumRAF.current) {
@@ -394,7 +398,9 @@ export const FeedCard: React.FC<FeedCardProps> = ({
     lastTouchY.current = e.touches[0].clientY
     lastMoveTime.current = Date.now()
     scrollStartY.current = scrollOffsetRef.current
+    gestureStartOffset.current = scrollOffsetRef.current
     velocityY.current = 0
+    gestureMode.current = 'undecided'
   }
 
   const handleBackTouchMove = (e: React.TouchEvent) => {
@@ -403,26 +409,44 @@ export const FeedCard: React.FC<FeedCardProps> = ({
     const now = Date.now()
     const touchY = e.touches[0].clientY
     const deltaYFromStart = touchStartY.current - touchY
+    const maxScroll = getMaxScroll()
     
     // Calculate instantaneous velocity (pixels per ms)
     const dt = now - lastMoveTime.current
     if (dt > 0) {
       const dy = lastTouchY.current - touchY
-      // Smooth velocity with previous value for stability
       velocityY.current = 0.8 * velocityY.current + 0.2 * (dy / dt)
     }
     
-    // Calculate new scroll offset with rubber band effect at edges
+    // Early gesture detection - decide in first 30px of movement
+    if (gestureMode.current === 'undecided' && Math.abs(deltaYFromStart) > 30) {
+      const atTop = gestureStartOffset.current <= 5
+      const atBottom = gestureStartOffset.current >= maxScroll - 5
+      const swipingUp = deltaYFromStart < 0 // Finger moving down = scrolling up = going to previous card
+      const swipingDown = deltaYFromStart > 0 // Finger moving up = scrolling down = going to next card
+      const fastSwipe = Math.abs(velocityY.current) > 0.8 // Fast velocity threshold
+      
+      // If at boundary and swiping past it with decent velocity, let page scroll
+      if ((atTop && swipingUp && fastSwipe) || (atBottom && swipingDown && fastSwipe)) {
+        gestureMode.current = 'passthrough'
+      } else {
+        gestureMode.current = 'internal'
+      }
+    }
+    
+    // If passing through to page scroll, don't intercept
+    if (gestureMode.current === 'passthrough') {
+      return // Let native scroll handle it
+    }
+    
+    // Handle internal scroll
     const newOffset = scrollStartY.current + deltaYFromStart
-    const maxScroll = getMaxScroll()
     
     // Allow over-scroll with resistance (rubber band effect)
     let finalOffset: number
     if (newOffset < 0) {
-      // Over-scroll at top - apply resistance
       finalOffset = newOffset * 0.3
     } else if (newOffset > maxScroll) {
-      // Over-scroll at bottom - apply resistance  
       finalOffset = maxScroll + (newOffset - maxScroll) * 0.3
     } else {
       finalOffset = newOffset

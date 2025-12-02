@@ -17,20 +17,14 @@
 
 'use client'
 
-import { useState, useCallback } from 'react'
+import React from 'react'
 import { UserActivityCard, UserActivityCardData, FeedCard, FeedCardData, BADGE_PRESETS } from '@/components/feed/UserActivityCard'
 import { FollowSuggestionsCard } from '@/components/feed/FollowSuggestionsCard'
 
 export default function PreviewFeedV2Page() {
-  const [isAnyCardFlipped, setIsAnyCardFlipped] = useState(false)
-
   const handleTrack = (action: string, metadata?: any) => {
     console.log('Track:', action, metadata)
   }
-
-  const handleCardFlip = useCallback((isFlipped: boolean) => {
-    setIsAnyCardFlipped(isFlipped)
-  }, [])
 
   // ============================================================================
   // CARD 1: User Activity (Template A) - Breaking Bad
@@ -390,18 +384,13 @@ export default function PreviewFeedV2Page() {
           background: #1a1a1a;
         }
         
-        .feed-scroll-container.scroll-locked {
-          overflow: hidden !important;
-        }
-        
         .card-snap-wrapper {
-          scroll-snap-align: start;
+          scroll-snap-align: center;
           scroll-snap-stop: always;
+          min-height: 100vh;
           display: flex;
           justify-content: center;
-          align-items: flex-start;
-          padding-top: 20px;
-          padding-bottom: 20px;
+          align-items: center;
         }
         
         .card-inner-wrapper {
@@ -410,55 +399,9 @@ export default function PreviewFeedV2Page() {
           display: flex;
           justify-content: center;
         }
-        
-        .feed-header {
-          scroll-snap-align: start;
-          padding: 20px 20px 0 20px;
-          display: flex;
-          justify-content: center;
-        }
       `}</style>
 
-      <div className={`feed-scroll-container ${isAnyCardFlipped ? 'scroll-locked' : ''}`}>
-        {/* Header */}
-        <div className="feed-header">
-          <div style={{
-            textAlign: 'center',
-            padding: '16px 20px',
-            background: 'rgba(59, 130, 246, 0.1)',
-            border: '1px solid rgba(59, 130, 246, 0.3)',
-            borderRadius: '12px',
-            maxWidth: '398px',
-            width: '100%'
-          }}>
-            <h1 style={{
-              fontSize: '16px',
-              fontWeight: '700',
-              color: 'white',
-              margin: '0 0 8px 0',
-              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-            }}>
-              Feed V2 - All 8 Cards
-            </h1>
-            <p style={{
-              fontSize: '13px',
-              color: 'rgba(255,255,255,0.6)',
-              margin: 0,
-              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-            }}>
-              Scroll-snap + scroll lock on flip
-            </p>
-            <div style={{
-              marginTop: '8px',
-              fontSize: '11px',
-              color: isAnyCardFlipped ? '#FF3B5C' : '#22C55E',
-              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-            }}>
-              {isAnyCardFlipped ? '🔒 Scroll locked (card flipped)' : '✓ Scroll enabled'}
-            </div>
-          </div>
-        </div>
-
+      <div className="feed-scroll-container">
         {/* Card 1: User Activity */}
         <div className="card-snap-wrapper">
           <div className="card-inner-wrapper">
@@ -469,7 +412,6 @@ export default function PreviewFeedV2Page() {
               onShare={() => handleTrack('share', { card: 1 })}
               onAddToWatchlist={() => handleTrack('add_to_watchlist', { card: 1 })}
               onTrack={handleTrack}
-              onFlip={handleCardFlip}
             />
           </div>
         </div>
@@ -485,7 +427,6 @@ export default function PreviewFeedV2Page() {
               onShare={() => handleTrack('share', { card: 2 })}
               onAddToWatchlist={() => handleTrack('add_to_watchlist', { card: 2 })}
               onTrack={handleTrack}
-              onFlip={handleCardFlip}
             />
           </div>
         </div>
@@ -501,7 +442,6 @@ export default function PreviewFeedV2Page() {
               onShare={() => handleTrack('share', { card: 3 })}
               onAddToWatchlist={() => handleTrack('add_to_watchlist', { card: 3 })}
               onTrack={handleTrack}
-              onFlip={handleCardFlip}
             />
           </div>
         </div>
@@ -518,7 +458,6 @@ export default function PreviewFeedV2Page() {
               onAddToWatchlist={() => handleTrack('add_to_watchlist', { card: 4 })}
               onRemindMe={() => handleTrack('remind_me', { card: 4 })}
               onTrack={handleTrack}
-              onFlip={handleCardFlip}
             />
           </div>
         </div>
@@ -534,7 +473,6 @@ export default function PreviewFeedV2Page() {
               onShare={() => handleTrack('share', { card: 5 })}
               onAddToWatchlist={() => handleTrack('add_to_watchlist', { card: 5 })}
               onTrack={handleTrack}
-              onFlip={handleCardFlip}
             />
           </div>
         </div>
@@ -559,7 +497,6 @@ export default function PreviewFeedV2Page() {
               onShare={() => handleTrack('share', { card: 6 })}
               onAddToWatchlist={() => handleTrack('add_to_watchlist', { card: 6 })}
               onTrack={handleTrack}
-              onFlip={handleCardFlip}
             />
           </div>
         </div>
@@ -589,7 +526,6 @@ export default function PreviewFeedV2Page() {
               onShare={() => handleTrack('share', { card: 8 })}
               onAddToWatchlist={() => handleTrack('add_to_watchlist', { card: 8 })}
               onTrack={handleTrack}
-              onFlip={handleCardFlip}
             />
           </div>
         </div>
