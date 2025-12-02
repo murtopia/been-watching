@@ -696,7 +696,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
 
         .card-back {
           transform: rotateY(180deg);
-          background: linear-gradient(to bottom, #1a1a1a 0%, #0a0a0a 100%);
+          background: #0a0a0a;
           overflow: hidden;
           z-index: 1;
         }
