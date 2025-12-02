@@ -388,7 +388,7 @@ export default function PreviewFeedV2Page() {
         .card-snap-wrapper {
           scroll-snap-align: center;
           scroll-snap-stop: always;
-          padding: 10px 0;
+          padding: 15px 0;
           display: flex;
           justify-content: center;
           align-items: center;
