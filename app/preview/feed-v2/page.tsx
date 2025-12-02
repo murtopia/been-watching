@@ -75,13 +75,45 @@ export default function PreviewFeedV2Page() {
     },
     comments: [
       { id: 'c1', user: { name: 'Mike Johnson', avatar: 'https://i.pravatar.cc/150?img=5' }, text: 'This finale was absolutely incredible!', timestamp: '1h ago', likes: 8, userLiked: true },
-      { id: 'c2', user: { name: 'Emma Davis', avatar: 'https://i.pravatar.cc/150?img=6' }, text: 'Can\'t believe it\'s over. What a ride! 🎬', timestamp: '45m ago', likes: 3, userLiked: false }
+      { id: 'c2', user: { name: 'Emma Davis', avatar: 'https://i.pravatar.cc/150?img=6' }, text: 'Can\'t believe it\'s over. What a ride! 🎬', timestamp: '45m ago', likes: 3, userLiked: false },
+      { id: 'c3', user: { name: 'Alex Chen', avatar: 'https://i.pravatar.cc/150?img=7' }, text: 'Best show ever made. Period.', timestamp: '2h ago', likes: 12, userLiked: true },
+      { id: 'c4', user: { name: 'Jordan Martinez', avatar: 'https://i.pravatar.cc/150?img=8' }, text: 'The cinematography is unreal 📷', timestamp: '2h ago', likes: 5, userLiked: false },
+      { id: 'c5', user: { name: 'Sam Taylor', avatar: 'https://i.pravatar.cc/150?img=9' }, text: 'Rewatching for the 5th time!', timestamp: '3h ago', likes: 7, userLiked: true },
+      { id: 'c6', user: { name: 'Casey Brown', avatar: 'https://i.pravatar.cc/150?img=10' }, text: 'The tension in every episode is perfect', timestamp: '3h ago', likes: 9, userLiked: false },
+      { id: 'c7', user: { name: 'Morgan Lee', avatar: 'https://i.pravatar.cc/150?img=11' }, text: 'Vince Gilligan is a genius', timestamp: '4h ago', likes: 15, userLiked: true },
+      { id: 'c8', user: { name: 'Riley Kim', avatar: 'https://i.pravatar.cc/150?img=12' }, text: 'Started watching because of this post!', timestamp: '4h ago', likes: 4, userLiked: false },
+      { id: 'c9', user: { name: 'Drew Anderson', avatar: 'https://i.pravatar.cc/150?img=13' }, text: 'The character arcs are incredible', timestamp: '5h ago', likes: 11, userLiked: true },
+      { id: 'c10', user: { name: 'Quinn Roberts', avatar: 'https://i.pravatar.cc/150?img=14' }, text: 'Still holds up after all these years', timestamp: '5h ago', likes: 6, userLiked: false },
+      { id: 'c11', user: { name: 'Avery Wilson', avatar: 'https://i.pravatar.cc/150?img=15' }, text: 'Ozymandias is the best episode of TV ever', timestamp: '6h ago', likes: 22, userLiked: true },
+      { id: 'c12', user: { name: 'Blake Thompson', avatar: 'https://i.pravatar.cc/150?img=16' }, text: 'Jesse\'s transformation 😢', timestamp: '6h ago', likes: 8, userLiked: false },
+      { id: 'c13', user: { name: 'Charlie Davis', avatar: 'https://i.pravatar.cc/150?img=17' }, text: 'The desert scenes are haunting', timestamp: '7h ago', likes: 10, userLiked: true },
+      { id: 'c14', user: { name: 'Dakota Miller', avatar: 'https://i.pravatar.cc/150?img=18' }, text: 'I am the one who knocks!', timestamp: '7h ago', likes: 18, userLiked: false },
+      { id: 'c15', user: { name: 'Elliot Garcia', avatar: 'https://i.pravatar.cc/150?img=19' }, text: 'This show changed television forever', timestamp: '8h ago', likes: 25, userLiked: true }
     ],
     showComments: [
       { id: 'sc1', user: { name: 'Mike Wilson', avatar: 'https://i.pravatar.cc/150?img=33' }, text: 'I can\'t stop thinking about this show. Masterpiece!', timestamp: '30 min ago', likes: 15, userLiked: false },
       { id: 'sc2', user: { name: 'Sarah Johnson', avatar: 'https://i.pravatar.cc/150?img=40' }, text: 'The character development is phenomenal.', timestamp: '15 min ago', likes: 7, userLiked: true },
       { id: 'sc3', user: { name: 'David Chen', avatar: 'https://i.pravatar.cc/150?img=15' }, text: 'Walter White is one of the greatest TV characters ever written.', timestamp: '1h ago', likes: 23, userLiked: false },
-      { id: 'sc4', user: { name: 'Emily Rodriguez', avatar: 'https://i.pravatar.cc/150?img=25' }, text: 'The chemistry between Bryan Cranston and Aaron Paul is incredible.', timestamp: '2h ago', likes: 19, userLiked: true }
+      { id: 'sc4', user: { name: 'Emily Rodriguez', avatar: 'https://i.pravatar.cc/150?img=25' }, text: 'The chemistry between Bryan Cranston and Aaron Paul is incredible.', timestamp: '2h ago', likes: 19, userLiked: true },
+      { id: 'sc5', user: { name: 'James Patterson', avatar: 'https://i.pravatar.cc/150?img=30' }, text: 'Every episode is perfectly crafted.', timestamp: '3h ago', likes: 12, userLiked: false },
+      { id: 'sc6', user: { name: 'Lisa Wang', avatar: 'https://i.pravatar.cc/150?img=35' }, text: 'This show changed television forever.', timestamp: '4h ago', likes: 28, userLiked: true },
+      { id: 'sc7', user: { name: 'Marcus Brown', avatar: 'https://i.pravatar.cc/150?img=41' }, text: 'The writing is absolutely flawless.', timestamp: '5h ago', likes: 16, userLiked: false },
+      { id: 'sc8', user: { name: 'Nina Patel', avatar: 'https://i.pravatar.cc/150?img=42' }, text: 'Ozymandias still gives me chills.', timestamp: '6h ago', likes: 34, userLiked: true },
+      { id: 'sc9', user: { name: 'Oscar Martinez', avatar: 'https://i.pravatar.cc/150?img=43' }, text: 'The transformation of Walter White is unmatched.', timestamp: '7h ago', likes: 21, userLiked: false },
+      { id: 'sc10', user: { name: 'Paula Kim', avatar: 'https://i.pravatar.cc/150?img=44' }, text: 'Rewatching for the third time and still finding new details.', timestamp: '8h ago', likes: 9, userLiked: true },
+      { id: 'sc11', user: { name: 'Quinn Taylor', avatar: 'https://i.pravatar.cc/150?img=45' }, text: 'The desert cinematography is breathtaking.', timestamp: '9h ago', likes: 17, userLiked: false },
+      { id: 'sc12', user: { name: 'Rachel Green', avatar: 'https://i.pravatar.cc/150?img=46' }, text: 'Jesse deserved better but what a journey.', timestamp: '10h ago', likes: 26, userLiked: true },
+      { id: 'sc13', user: { name: 'Steven Lee', avatar: 'https://i.pravatar.cc/150?img=47' }, text: 'The music choices are always perfect.', timestamp: '11h ago', likes: 11, userLiked: false },
+      { id: 'sc14', user: { name: 'Tina Morrison', avatar: 'https://i.pravatar.cc/150?img=48' }, text: 'Gus Fring is the greatest villain ever.', timestamp: '12h ago', likes: 38, userLiked: true },
+      { id: 'sc15', user: { name: 'Uma Patel', avatar: 'https://i.pravatar.cc/150?img=49' }, text: 'The tension never lets up for a second.', timestamp: '1 day ago', likes: 14, userLiked: false },
+      { id: 'sc16', user: { name: 'Victor Chen', avatar: 'https://i.pravatar.cc/150?img=50' }, text: 'I wish I could watch it again for the first time.', timestamp: '1 day ago', likes: 42, userLiked: true },
+      { id: 'sc17', user: { name: 'Wendy Adams', avatar: 'https://i.pravatar.cc/150?img=51' }, text: 'The finale was absolutely perfect.', timestamp: '1 day ago', likes: 31, userLiked: false },
+      { id: 'sc18', user: { name: 'Xavier Jones', avatar: 'https://i.pravatar.cc/150?img=52' }, text: 'Bryan Cranston should have won more awards.', timestamp: '2 days ago', likes: 19, userLiked: true },
+      { id: 'sc19', user: { name: 'Yolanda Smith', avatar: 'https://i.pravatar.cc/150?img=53' }, text: 'The symbolism throughout is incredible.', timestamp: '2 days ago', likes: 8, userLiked: false },
+      { id: 'sc20', user: { name: 'Zack Williams', avatar: 'https://i.pravatar.cc/150?img=54' }, text: 'Skyler gets too much hate, she was right!', timestamp: '2 days ago', likes: 45, userLiked: true },
+      { id: 'sc21', user: { name: 'Amy Roberts', avatar: 'https://i.pravatar.cc/150?img=55' }, text: 'The cold opens are legendary.', timestamp: '3 days ago', likes: 13, userLiked: false },
+      { id: 'sc22', user: { name: 'Brian Wilson', avatar: 'https://i.pravatar.cc/150?img=56' }, text: 'Hank was my favorite character. RIP.', timestamp: '3 days ago', likes: 29, userLiked: true },
+      { id: 'sc23', user: { name: 'Carla Davis', avatar: 'https://i.pravatar.cc/150?img=57' }, text: 'This show made me appreciate good television.', timestamp: '3 days ago', likes: 16, userLiked: false }
     ],
   }
 
