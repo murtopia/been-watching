@@ -602,7 +602,8 @@ export default function PreviewFeedLivePage() {
         } else {
           alert(`Comment failed: ${error.message}`)
         }
-        throw error
+        // Don't throw - return early to prevent React crash
+        return
       }
       
       console.log('Activity comment submitted successfully:', data)
@@ -646,7 +647,8 @@ export default function PreviewFeedLivePage() {
         } else {
           alert(`Comment failed: ${error.message}`)
         }
-        throw error
+        // Don't throw - return early to prevent React crash
+        return
       }
       
       console.log('Show comment submitted successfully:', data)
