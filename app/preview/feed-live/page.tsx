@@ -190,6 +190,10 @@ export default function PreviewFeedLivePage() {
               const showComments = await fetchShowComments(activity.media_id)
               const friendsActivity = await fetchFriendsActivity(activity.media_id)
               
+              // Fetch watch providers (streaming platforms)
+              const mediaType = (activity.media as any)?.media_type || (activity.media_id?.startsWith('movie-') ? 'movie' : 'tv')
+              const streamingPlatforms = await fetchWatchProviders(activity.media_id, mediaType)
+              
               // Fetch activity likes
               const { data: activityLikes } = await supabase
                 .from('activity_likes')
@@ -242,7 +246,8 @@ export default function PreviewFeedLivePage() {
                   userLiked,
                   likeCount,
                   userRating,
-                  userStatus
+                  userStatus,
+                  streamingPlatforms
                 }
               }
             })
@@ -324,6 +329,10 @@ export default function PreviewFeedLivePage() {
           const friendsActivity = await fetchFriendsActivity(item.media?.id)
           const showComments = await fetchShowComments(item.media?.id)
           
+          // Fetch watch providers (streaming platforms)
+          const mediaType = item.media?.media_type || 'tv'
+          const streamingPlatforms = await fetchWatchProviders(item.media?.id, mediaType)
+          
           // Fetch activity likes
           const { data: activityLikes } = await supabase
             .from('activity_likes')
@@ -376,7 +385,8 @@ export default function PreviewFeedLivePage() {
               userLiked,
               likeCount,
               userRating,
-              userStatus
+              userStatus,
+              streamingPlatforms
             }
           })
         }
@@ -524,6 +534,60 @@ export default function PreviewFeedLivePage() {
       }))
     } catch (err) {
       console.error('Error fetching activity comments:', err)
+      return []
+    }
+  }
+
+  const fetchWatchProviders = async (mediaId: string, mediaType: 'tv' | 'movie'): Promise<string[]> => {
+    if (!mediaId) {
+      console.log('fetchWatchProviders: mediaId is empty')
+      return []
+    }
+
+    try {
+      // Extract TMDB ID from media_id format
+      // TV: tv-12345-s1 -> 12345, Movie: movie-12345 -> 12345
+      let tmdbId: number | null = null
+      if (mediaType === 'tv') {
+        const match = mediaId.match(/^tv-(\d+)/)
+        if (match) tmdbId = parseInt(match[1])
+      } else {
+        const match = mediaId.match(/^movie-(\d+)/)
+        if (match) tmdbId = parseInt(match[1])
+      }
+
+      if (!tmdbId) {
+        console.log('fetchWatchProviders: Could not extract TMDB ID from', mediaId)
+        return []
+      }
+
+      console.log(`fetchWatchProviders: Fetching providers for ${mediaType} ${tmdbId}`)
+
+      // Fetch watch providers from TMDB via our proxy API
+      const response = await fetch(`/api/tmdb/${mediaType}/${tmdbId}/watch/providers`)
+      
+      if (!response.ok) {
+        console.error('Error fetching watch providers:', response.status)
+        return []
+      }
+
+      const data = await response.json()
+      const providers = data.results?.US || {}
+      
+      // Get streaming services (flatrate), not rent/buy
+      const streamingServices = providers.flatrate || []
+      
+      if (streamingServices.length === 0) {
+        console.log(`fetchWatchProviders: No streaming providers found for ${mediaId}`)
+        return []
+      }
+
+      const platformNames = streamingServices.map((p: any) => p.provider_name || p.name).filter(Boolean)
+      console.log(`fetchWatchProviders: Found ${platformNames.length} platforms for ${mediaId}:`, platformNames)
+      
+      return platformNames
+    } catch (err) {
+      console.error('Exception fetching watch providers:', err)
       return []
     }
   }
@@ -975,7 +1039,8 @@ export default function PreviewFeedLivePage() {
               item.data.userRating as 'meh' | 'like' | 'love' | null,
               item.data.userStatus as 'want' | 'watching' | 'watched' | null,
               item.data.userLiked,
-              item.data.likeCount
+              item.data.likeCount,
+              item.data.streamingPlatforms
             )
 
             return (

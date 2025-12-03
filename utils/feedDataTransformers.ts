@@ -143,13 +143,13 @@ export function getTMDBImageUrl(path: string | null, size: 'w500' | 'original' =
 /**
  * Transform API media to FeedCardMedia format
  */
-export function transformMedia(media: APIMedia): FeedCardMedia {
+export function transformMedia(media: APIMedia, streamingPlatforms?: string[]): FeedCardMedia {
   const tmdb = media.tmdb_data || {}
   const genres = tmdb.genres?.map(g => g.name) || []
   const creator = tmdb.created_by?.[0]?.name || ''
   const cast = tmdb.credits?.cast?.slice(0, 4).map(c => c.name) || []
   
-  // For TV shows: use networks, for movies: use production_companies
+  // For TV shows: use networks, for movies: use production_companies (fallback if no streaming platforms)
   const isTV = media.media_type === 'tv'
   const network = isTV 
     ? (tmdb.networks?.[0]?.name || '')
@@ -174,7 +174,8 @@ export function transformMedia(media: APIMedia): FeedCardMedia {
     synopsis: media.overview || '',
     creator,
     cast,
-    network,
+    network, // Keep for backward compatibility
+    streamingPlatforms: streamingPlatforms || [],
     season,
     mediaType: media.media_type === 'tv' ? 'TV' : 'Movie'
   }
@@ -387,7 +388,8 @@ export function activityToUserActivityCardData(
   userRating?: 'meh' | 'like' | 'love' | null,
   userStatus?: 'want' | 'watching' | 'watched' | null,
   userLiked?: boolean,
-  likeCount?: number
+  likeCount?: number,
+  streamingPlatforms?: string[]
 ): UserActivityCardData {
   const badges = getActivityBadges(activity)
   const friendsActivity = transformFriendsActivity(friendsData, userRating, userStatus)
@@ -416,7 +418,7 @@ export function activityToUserActivityCardData(
       borderColor: b.borderColor,
       textColor: b.textColor || 'white'
     })),
-    media: transformMedia(activity.media),
+    media: transformMedia(activity.media, streamingPlatforms),
     friends: {
       avatars: allFriends.map(f => ({
         id: f.user_id,
