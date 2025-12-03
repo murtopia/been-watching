@@ -30,13 +30,16 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') || '0')
 
     // Get admin setting for feed visibility
-    const { data: feedSetting } = await supabase
+    const { data: feedSetting, error: settingError } = await supabase
       .from('admin_settings')
       .select('setting_value')
       .eq('setting_key', 'feed_show_all_users')
       .single()
 
+    console.log('Feed API - Admin setting query:', { feedSetting, settingError })
+
     const showAllUsers = feedSetting?.setting_value === 'true'
+    console.log('Feed API - showAllUsers:', showAllUsers)
 
     // Get activities based on admin setting
     let activitiesQuery = supabase
@@ -94,6 +97,12 @@ export async function GET(request: NextRequest) {
 
     const { data: activities, error: activitiesError } = await activitiesQuery
       .range(offset, offset + limit - 1)
+
+    console.log('Feed API - Activities query result:', { 
+      count: activities?.length || 0, 
+      error: activitiesError,
+      firstActivity: activities?.[0]?.id 
+    })
 
     if (activitiesError) {
       console.error('Error fetching activities:', activitiesError)

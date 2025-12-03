@@ -53,8 +53,21 @@ export default function PreviewFeedLivePage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
   const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null)
+  const [apiTestResult, setApiTestResult] = useState<string | null>(null)
   
   const supabase = createClient()
+  
+  // Test API directly
+  const testApi = async () => {
+    setApiTestResult('Testing...')
+    try {
+      const response = await fetch('/api/feed?limit=10&offset=0')
+      const data = await response.json()
+      setApiTestResult(JSON.stringify(data, null, 2))
+    } catch (err) {
+      setApiTestResult(`Error: ${err}`)
+    }
+  }
 
   // Scroll to top on page load (prevents scroll restoration putting content behind header)
   useEffect(() => {
@@ -590,6 +603,27 @@ export default function PreviewFeedLivePage() {
       <div className="debug-info">
         <div>Feed Items: {feedItems.length}</div>
         <div>Mode: TEST (Direct DB)</div>
+        <button 
+          onClick={testApi}
+          style={{ marginTop: '8px', padding: '4px 8px', fontSize: '11px', cursor: 'pointer' }}
+        >
+          Test API
+        </button>
+        {apiTestResult && (
+          <pre style={{ 
+            marginTop: '8px', 
+            fontSize: '9px', 
+            maxHeight: '200px', 
+            overflow: 'auto',
+            background: 'rgba(0,0,0,0.5)',
+            padding: '4px',
+            borderRadius: '4px',
+            maxWidth: '300px',
+            whiteSpace: 'pre-wrap'
+          }}>
+            {apiTestResult}
+          </pre>
+        )}
       </div>
 
       <div>
