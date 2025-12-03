@@ -90,7 +90,14 @@ export async function GET(request: NextRequest) {
           items: [],
           hasMore: false,
           limit,
-          offset
+          offset,
+          // DEBUG INFO - this is why it's empty!
+          _debug: {
+            reason: 'NO_FOLLOWED_USERS',
+            showAllUsers,
+            adminSettingValue: feedSetting?.setting_value,
+            followedUserIds: []
+          }
         })
       }
     }
@@ -321,7 +328,16 @@ export async function GET(request: NextRequest) {
       limit,
       offset,
       hasMore: feedItems.length > offset + limit,
-      total: feedItems.length
+      total: feedItems.length,
+      // DEBUG INFO - remove after fixing
+      _debug: {
+        showAllUsers,
+        adminSettingValue: feedSetting?.setting_value,
+        adminSettingError: settingError?.message,
+        activitiesCount: activities?.length || 0,
+        activitiesError: activitiesError?.message,
+        userId: user.id
+      }
     })
   } catch (error) {
     console.error('Error in feed API:', error)
