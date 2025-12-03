@@ -2011,7 +2011,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
 
               <div className="comments-full">
                 <div className="activity-comment-input-container">
-                  <img src={cardUser?.avatar || 'https://i.pravatar.cc/150?img=1'} alt="You" className="activity-comment-input-avatar" />
+                  <img src={currentUser?.avatar || cardUser?.avatar || 'https://i.pravatar.cc/150?img=1'} alt="You" className="activity-comment-input-avatar" />
                   <div className="activity-comment-input-wrapper">
                     <textarea
                       className="activity-comment-input"
@@ -2289,7 +2289,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
 
                 {/* Comment Input */}
                 <div className="comment-input-container">
-                  <img src={cardUser?.avatar || 'https://i.pravatar.cc/150?img=1'} alt="You" className="comment-input-avatar" />
+                  <img src={currentUser?.avatar || cardUser?.avatar || 'https://i.pravatar.cc/150?img=1'} alt="You" className="comment-input-avatar" />
                   <div className="comment-input-wrapper">
                     <textarea
                       ref={commentInputRef}

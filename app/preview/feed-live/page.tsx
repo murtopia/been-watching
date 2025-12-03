@@ -22,7 +22,8 @@ import {
   getRecommendationBadge,
   APIActivity,
   APIFriendsActivity,
-  APIShowComment
+  APIShowComment,
+  APIComment
 } from '@/utils/feedDataTransformers'
 
 interface FeedItem {
@@ -182,15 +183,25 @@ export default function PreviewFeedLivePage() {
         console.log('Full activities for rendering:', fullActivities)
         
         if (fullActivities && fullActivities.length > 0) {
-          const transformedItems: FeedItem[] = fullActivities.map((activity) => ({
-            type: 'activity' as const,
-            id: activity.id,
-            data: {
-              activity,
-              friendsActivity: undefined,
-              showComments: []
-            }
-          }))
+          // Fetch comments for each activity
+          const transformedItems: FeedItem[] = await Promise.all(
+            fullActivities.map(async (activity) => {
+              const activityComments = await fetchActivityComments(activity.id)
+              const showComments = await fetchShowComments(activity.media_id)
+              const friendsActivity = await fetchFriendsActivity(activity.media_id)
+              
+              return {
+                type: 'activity' as const,
+                id: activity.id,
+                data: {
+                  activity,
+                  friendsActivity,
+                  showComments,
+                  activityComments
+                }
+              }
+            })
+          )
           
           setFeedItems(transformedItems)
           setLoading(false)
@@ -385,6 +396,44 @@ export default function PreviewFeedLivePage() {
     } catch (err) {
       console.error('Error fetching friends activity:', err)
       return undefined
+    }
+  }
+
+  const fetchActivityComments = async (activityId: string): Promise<APIComment[]> => {
+    if (!activityId) return []
+
+    try {
+      const { data: comments } = await supabase
+        .from('comments')
+        .select(`
+          id,
+          user_id,
+          comment_text,
+          created_at,
+          profiles!comments_user_id_fkey (
+            display_name,
+            username,
+            avatar_url
+          )
+        `)
+        .eq('activity_id', activityId)
+        .order('created_at', { ascending: false })
+        .limit(15)
+
+      return (comments || []).map((c: any) => ({
+        id: c.id,
+        user_id: c.user_id,
+        comment_text: c.comment_text,
+        created_at: c.created_at,
+        user: {
+          id: c.profiles?.id || c.user_id,
+          display_name: c.profiles?.display_name || c.profiles?.username || 'Unknown',
+          avatar_url: c.profiles?.avatar_url || null
+        }
+      }))
+    } catch (err) {
+      console.error('Error fetching activity comments:', err)
+      return []
     }
   }
 
@@ -741,11 +790,17 @@ export default function PreviewFeedLivePage() {
       <div>
         {feedItems.map((item) => {
           if (item.type === 'activity') {
-            const { activity, friendsActivity, showComments } = item.data
+            const { activity, friendsActivity, showComments, activityComments } = item.data
+            
+            // Attach activity comments to the activity object (transformer expects activity.comments)
+            const activityWithComments = {
+              ...activity,
+              comments: activityComments || []
+            }
             
             // Transform to card data
             const cardData = activityToUserActivityCardData(
-              activity as APIActivity,
+              activityWithComments as APIActivity,
               friendsActivity,
               showComments
             )
