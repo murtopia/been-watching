@@ -146,6 +146,8 @@ interface FeedCardProps {
   onSubmitActivityComment?: (activityId: string, text: string) => Promise<void>
   /** Called when user submits a comment on a show */
   onSubmitShowComment?: (mediaId: string, text: string) => Promise<void>
+  /** Current logged-in user (for showing their info on new comments) */
+  currentUser?: { name: string; avatar: string }
   onTrack?: (action: string, metadata?: any) => void
   onFlip?: (isFlipped: boolean) => void  // Notify parent when card flips
 }
@@ -164,6 +166,7 @@ interface UserActivityCardProps {
   onSetStatus?: (mediaId: string, status: 'want' | 'watching' | 'watched' | null) => void
   onSubmitActivityComment?: (activityId: string, text: string) => Promise<void>
   onSubmitShowComment?: (mediaId: string, text: string) => Promise<void>
+  currentUser?: { name: string; avatar: string }
   onFlip?: (isFlipped: boolean) => void
 }
 
@@ -288,6 +291,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   onSetStatus,
   onSubmitActivityComment,
   onSubmitShowComment,
+  currentUser,
   onTrack,
   onFlip,
 }) => {
@@ -661,8 +665,8 @@ export const FeedCard: React.FC<FeedCardProps> = ({
     const newComment = {
       id: `temp-${Date.now()}`,
       user: {
-        name: cardUser?.name || 'You',
-        avatar: cardUser?.avatar || 'https://i.pravatar.cc/150?img=1'
+        name: currentUser?.name || 'You',
+        avatar: currentUser?.avatar || 'https://i.pravatar.cc/150?img=1'
       },
       text: commentText,
       timestamp: 'Just now',
@@ -694,8 +698,8 @@ export const FeedCard: React.FC<FeedCardProps> = ({
     const newComment = {
       id: `temp-${Date.now()}`,
       user: {
-        name: cardUser?.name || 'You',
-        avatar: cardUser?.avatar || 'https://i.pravatar.cc/150?img=1'
+        name: currentUser?.name || 'You',
+        avatar: currentUser?.avatar || 'https://i.pravatar.cc/150?img=1'
       },
       text: commentText,
       timestamp: 'Just now',
@@ -2521,6 +2525,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = (props) => {
       onSetStatus={props.onSetStatus}
       onSubmitActivityComment={props.onSubmitActivityComment}
       onSubmitShowComment={props.onSubmitShowComment}
+      currentUser={props.currentUser}
       onFlip={props.onFlip}
     />
   )

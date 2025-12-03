@@ -756,6 +756,7 @@ export default function PreviewFeedLivePage() {
                     onSetStatus={handleSetStatus}
                     onSubmitActivityComment={handleSubmitActivityComment}
                     onSubmitShowComment={handleSubmitShowComment}
+                    currentUser={profile ? { name: profile.display_name || profile.username, avatar: profile.avatar_url || '' } : undefined}
                     onTrack={handleTrack}
                   />
                 </div>
