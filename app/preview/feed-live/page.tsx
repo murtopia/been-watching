@@ -521,17 +521,57 @@ export default function PreviewFeedLivePage() {
         .order('created_at', { ascending: false })
         .limit(15)
 
-      return (comments || []).map((c: any) => ({
-        id: c.id,
-        user_id: c.user_id,
-        comment_text: c.comment_text,
-        created_at: c.created_at,
-        user: {
-          id: c.profiles?.id || c.user_id,
-          display_name: c.profiles?.display_name || c.profiles?.username || 'Unknown',
-          avatar_url: c.profiles?.avatar_url || null
+      if (!comments || comments.length === 0) return []
+
+      // Fetch like counts and user_liked status for each comment
+      const commentIds = comments.map(c => c.id)
+      let commentLikes: Record<string, { count: number; userLiked: boolean }> = {}
+      
+      if (user && commentIds.length > 0) {
+        try {
+          // Get all likes for these comments
+          const { data: likes } = await supabase
+            .from('activity_comment_likes')
+            .select('comment_id, user_id')
+            .in('comment_id', commentIds)
+
+          // Count likes per comment and check if current user liked
+          commentLikes = commentIds.reduce((acc, commentId) => {
+            const commentLikesList = likes?.filter(l => l.comment_id === commentId) || []
+            acc[commentId] = {
+              count: commentLikesList.length,
+              userLiked: commentLikesList.some(l => l.user_id === user.id)
+            }
+            return acc
+          }, {} as Record<string, { count: number; userLiked: boolean }>)
+        } catch (likeErr) {
+          // If activity_comment_likes table doesn't exist, just continue without like data
+          console.warn('Could not fetch activity comment likes:', likeErr)
         }
-      }))
+      } else {
+        // No user or no comments, initialize with zeros
+        commentLikes = commentIds.reduce((acc, commentId) => {
+          acc[commentId] = { count: 0, userLiked: false }
+          return acc
+        }, {} as Record<string, { count: number; userLiked: boolean }>)
+      }
+
+      return comments.map((c: any) => {
+        const likeData = commentLikes[c.id] || { count: 0, userLiked: false }
+        return {
+          id: c.id,
+          user_id: c.user_id,
+          comment_text: c.comment_text,
+          created_at: c.created_at,
+          like_count: likeData.count,
+          user_liked: likeData.userLiked,
+          user: {
+            id: c.profiles?.id || c.user_id,
+            display_name: c.profiles?.display_name || c.profiles?.username || 'Unknown',
+            avatar_url: c.profiles?.avatar_url || null
+          }
+        }
+      })
     } catch (err) {
       console.error('Error fetching activity comments:', err)
       return []
