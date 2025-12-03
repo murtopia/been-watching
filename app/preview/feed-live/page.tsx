@@ -56,6 +56,11 @@ export default function PreviewFeedLivePage() {
   
   const supabase = createClient()
 
+  // Scroll to top on page load (prevents scroll restoration putting content behind header)
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
+
   useEffect(() => {
     loadUser()
   }, [])
