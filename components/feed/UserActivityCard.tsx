@@ -659,7 +659,14 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   // Submit activity comment
   const handleSubmitActivityComment = async () => {
     if (!activityCommentText.trim()) return
+    if (!data.id) {
+      console.error('Cannot submit activity comment: activity.id is missing')
+      alert('Error: Activity information is missing. Please try again.')
+      return
+    }
+    
     const commentText = activityCommentText.trim()
+    const activityId = data.id
     
     // Optimistically add the comment to local state
     const newComment = {
@@ -679,12 +686,14 @@ export const FeedCard: React.FC<FeedCardProps> = ({
     // Persist to database if callback provided
     if (onSubmitActivityComment) {
       try {
-        await onSubmitActivityComment(data.id, commentText)
-        onTrack?.('activity_comment', { activityId: data.id })
+        await onSubmitActivityComment(activityId, commentText)
+        onTrack?.('activity_comment', { activityId })
       } catch (err) {
         console.error('Error submitting activity comment:', err)
         // Remove optimistic comment on error
         setLocalActivityComments(prev => prev.filter(c => c.id !== newComment.id))
+        // Show error to user
+        alert('Failed to save comment. Please try again.')
       }
     }
   }
@@ -692,7 +701,14 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   // Submit show comment
   const handleSubmitShowComment = async () => {
     if (!showCommentText.trim()) return
+    if (!data.media?.id) {
+      console.error('Cannot submit show comment: media.id is missing')
+      alert('Error: Show information is missing. Please try again.')
+      return
+    }
+    
     const commentText = showCommentText.trim()
+    const mediaId = data.media.id
     
     // Optimistically add the comment to local state
     const newComment = {
@@ -712,12 +728,14 @@ export const FeedCard: React.FC<FeedCardProps> = ({
     // Persist to database if callback provided
     if (onSubmitShowComment) {
       try {
-        await onSubmitShowComment(data.media.id, commentText)
-        onTrack?.('show_comment', { mediaId: data.media.id })
+        await onSubmitShowComment(mediaId, commentText)
+        onTrack?.('show_comment', { mediaId })
       } catch (err) {
         console.error('Error submitting show comment:', err)
         // Remove optimistic comment on error
         setLocalShowComments(prev => prev.filter(c => c.id !== newComment.id))
+        // Show error to user
+        alert('Failed to save comment. Please try again.')
       }
     }
   }

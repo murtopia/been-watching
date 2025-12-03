@@ -571,48 +571,92 @@ export default function PreviewFeedLivePage() {
   }
 
   const handleSubmitActivityComment = async (activityId: string, text: string) => {
-    if (!user) return
-    console.log('Submit activity comment:', activityId, text)
-    
-    // Try 'comments' table first (existing table), then 'activity_comments'
-    const { data, error } = await supabase
-      .from('comments')
-      .insert({
-        activity_id: activityId,
-        user_id: user.id,
-        comment_text: text
-      })
-      .select()
-    
-    if (error) {
-      console.error('Error submitting activity comment:', error)
-      alert(`Comment failed: ${error.message}`)
-      throw error
+    if (!user) {
+      console.error('Cannot submit comment: user not logged in')
+      return
     }
     
-    console.log('Activity comment submitted successfully:', data)
+    if (!activityId) {
+      console.error('Cannot submit comment: activityId is missing')
+      return
+    }
+    
+    console.log('Submit activity comment:', activityId, text)
+    
+    try {
+      // Try 'comments' table first (existing table), then 'activity_comments'
+      const { data, error } = await supabase
+        .from('comments')
+        .insert({
+          activity_id: activityId,
+          user_id: user.id,
+          comment_text: text
+        })
+        .select()
+      
+      if (error) {
+        console.error('Error submitting activity comment:', error)
+        // Check if table doesn't exist
+        if (error.message?.includes('relation') || error.message?.includes('does not exist')) {
+          alert(`Comment feature not available: Database table 'comments' does not exist. Please create it first.`)
+        } else {
+          alert(`Comment failed: ${error.message}`)
+        }
+        throw error
+      }
+      
+      console.log('Activity comment submitted successfully:', data)
+    } catch (err: any) {
+      console.error('Exception submitting activity comment:', err)
+      // Don't re-throw - let the component handle it gracefully
+      if (!err.message?.includes('relation')) {
+        alert(`Failed to submit comment: ${err.message || 'Unknown error'}`)
+      }
+    }
   }
 
   const handleSubmitShowComment = async (mediaId: string, text: string) => {
-    if (!user) return
-    console.log('Submit show comment:', mediaId, text)
-    
-    const { data, error } = await supabase
-      .from('show_comments')
-      .insert({
-        media_id: mediaId,
-        user_id: user.id,
-        comment_text: text
-      })
-      .select()
-    
-    if (error) {
-      console.error('Error submitting show comment:', error)
-      alert(`Comment failed: ${error.message}`)
-      throw error
+    if (!user) {
+      console.error('Cannot submit comment: user not logged in')
+      return
     }
     
-    console.log('Show comment submitted successfully:', data)
+    if (!mediaId) {
+      console.error('Cannot submit comment: mediaId is missing')
+      return
+    }
+    
+    console.log('Submit show comment:', mediaId, text)
+    
+    try {
+      const { data, error } = await supabase
+        .from('show_comments')
+        .insert({
+          media_id: mediaId,
+          user_id: user.id,
+          comment_text: text
+        })
+        .select()
+      
+      if (error) {
+        console.error('Error submitting show comment:', error)
+        // Check if table doesn't exist
+        if (error.message?.includes('relation') || error.message?.includes('does not exist')) {
+          alert(`Comment feature not available: Database table 'show_comments' does not exist. Please create it first.`)
+        } else {
+          alert(`Comment failed: ${error.message}`)
+        }
+        throw error
+      }
+      
+      console.log('Show comment submitted successfully:', data)
+    } catch (err: any) {
+      console.error('Exception submitting show comment:', err)
+      // Don't re-throw - let the component handle it gracefully
+      if (!err.message?.includes('relation')) {
+        alert(`Failed to submit comment: ${err.message || 'Unknown error'}`)
+      }
+    }
   }
 
   const handleMediaSelect = (media: any, rating?: string, status?: string) => {
