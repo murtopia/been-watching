@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
-import { Settings, Users, UserCheck } from 'lucide-react'
+import { Settings, Users, UserCheck, Tv } from 'lucide-react'
+import Link from 'next/link'
 
 export default function AdminSettingsPage() {
   const [feedShowAllUsers, setFeedShowAllUsers] = useState<boolean>(true)
@@ -209,6 +210,61 @@ export default function AdminSettingsPage() {
               boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
             }}></div>
           </button>
+        </div>
+      </div>
+
+      {/* Streaming Platforms Settings */}
+      <div style={{
+        background: 'var(--card-bg)',
+        border: '1px solid var(--border)',
+        borderRadius: '12px',
+        padding: '1.5rem',
+        marginBottom: '1.5rem'
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1rem',
+          marginBottom: '1rem'
+        }}>
+          <div style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '8px',
+            background: '#ec489920',
+            color: '#ec4899',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <Tv size={20} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.25rem' }}>
+              Streaming Platforms
+            </h2>
+            <p style={{ color: '#888', fontSize: '0.875rem' }}>
+              Control which streaming platforms appear on feed cards
+            </p>
+          </div>
+          <Link
+            href="/admin/settings/streaming-platforms"
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '8px',
+              border: '1px solid var(--border)',
+              background: 'var(--bg)',
+              color: 'var(--text)',
+              textDecoration: 'none',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}
+          >
+            Manage Platforms
+          </Link>
         </div>
       </div>
     </div>

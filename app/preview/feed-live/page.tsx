@@ -624,9 +624,38 @@ export default function PreviewFeedLivePage() {
       const platformNames = streamingServices.map((p: any) => p.provider_name || p.name).filter(Boolean)
       const filteredPlatforms = filterPrimaryPlatforms(platformNames)
       
-      console.log(`fetchWatchProviders: Found ${filteredPlatforms.length} primary platforms for ${mediaId}:`, filteredPlatforms)
+      // Check admin allowlist
+      let allowedPlatforms = filteredPlatforms
+      try {
+        const { data: allowlistSetting } = await supabase
+          .from('admin_settings')
+          .select('setting_value')
+          .eq('setting_key', 'streaming_platforms_allowlist')
+          .single()
+
+        if (allowlistSetting?.setting_value) {
+          try {
+            const allowlist: string[] = JSON.parse(allowlistSetting.setting_value)
+            if (allowlist.length > 0) {
+              // Only show platforms in the allowlist (case-insensitive matching)
+              const allowlistLower = new Set(allowlist.map(p => p.toLowerCase()))
+              allowedPlatforms = filteredPlatforms.filter(p => 
+                allowlistLower.has(p.toLowerCase())
+              )
+              console.log(`fetchWatchProviders: Filtered to ${allowedPlatforms.length} allowed platforms`)
+            }
+          } catch (e) {
+            console.error('Error parsing allowlist:', e)
+          }
+        }
+      } catch (err) {
+        // If allowlist doesn't exist or error, show all platforms (backward compatible)
+        console.log('No allowlist found, showing all platforms')
+      }
       
-      return filteredPlatforms
+      console.log(`fetchWatchProviders: Found ${allowedPlatforms.length} platforms for ${mediaId}:`, allowedPlatforms)
+      
+      return allowedPlatforms
     } catch (err) {
       console.error('Exception fetching watch providers:', err)
       return []
