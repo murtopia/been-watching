@@ -138,6 +138,10 @@ interface FeedCardProps {
   onRemindMe?: () => void  // For Card 4 (Coming Soon)
   onUserClick?: (userId: string) => void
   onMediaClick?: (mediaId: string) => void
+  /** Called when user rates the show - should persist to database */
+  onRate?: (mediaId: string, rating: 'meh' | 'like' | 'love' | null) => void
+  /** Called when user changes watch status - should persist to database */
+  onSetStatus?: (mediaId: string, status: 'want' | 'watching' | 'watched' | null) => void
   onTrack?: (action: string, metadata?: any) => void
   onFlip?: (isFlipped: boolean) => void  // Notify parent when card flips
 }
@@ -152,6 +156,8 @@ interface UserActivityCardProps {
   onUserClick?: (userId: string) => void
   onMediaClick?: (mediaId: string) => void
   onTrack?: (action: string, metadata?: any) => void
+  onRate?: (mediaId: string, rating: 'meh' | 'like' | 'love' | null) => void
+  onSetStatus?: (mediaId: string, status: 'want' | 'watching' | 'watched' | null) => void
   onFlip?: (isFlipped: boolean) => void
 }
 
@@ -272,6 +278,8 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   onRemindMe,
   onUserClick,
   onMediaClick,
+  onRate,
+  onSetStatus,
   onTrack,
   onFlip,
 }) => {
@@ -610,21 +618,27 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   const handleRating = (rating: 'meh' | 'like' | 'love', e: React.MouseEvent) => {
     e.stopPropagation()
     // Toggle off if clicking the same rating, otherwise set new rating
-    setUserRating(userRating === rating ? null : rating)
+    const newRating = userRating === rating ? null : rating
+    setUserRating(newRating)
     setPressedIcon(null) // Clear pressed state after selection
-    onTrack?.('rating', { rating, mediaId: data.media.id })
+    onTrack?.('rating', { rating: newRating, mediaId: data.media.id })
+    // Call external callback to persist to database
+    onRate?.(data.media.id, newRating)
   }
 
   const handleWatchlist = (status: 'want' | 'watching' | 'watched', e: React.MouseEvent) => {
     e.stopPropagation()
     // Toggle off if clicking the same status, otherwise set new status (single-select)
-    if (watchlistStatus.has(status)) {
-      setWatchlistStatus(new Set())
+    const newStatus = watchlistStatus.has(status) ? null : status
+    if (newStatus) {
+      setWatchlistStatus(new Set([newStatus]))
     } else {
-      setWatchlistStatus(new Set([status]))
+      setWatchlistStatus(new Set())
     }
     setPressedIcon(null) // Clear pressed state after selection
-    onTrack?.('watchlist', { status, mediaId: data.media.id })
+    onTrack?.('watchlist', { status: newStatus, mediaId: data.media.id })
+    // Call external callback to persist to database
+    onSetStatus?.(data.media.id, newStatus)
   }
 
   const handleCommentLike = (commentId: string, e: React.MouseEvent) => {
@@ -2414,6 +2428,8 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = (props) => {
       onUserClick={props.onUserClick}
       onMediaClick={props.onMediaClick}
       onTrack={props.onTrack}
+      onRate={props.onRate}
+      onSetStatus={props.onSetStatus}
       onFlip={props.onFlip}
     />
   )

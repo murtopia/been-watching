@@ -450,8 +450,96 @@ export default function PreviewFeedLivePage() {
   }
 
   const handleLike = async (activityId: string) => {
+    if (!user) return
     console.log('Like activity:', activityId)
-    // TODO: Implement like toggle
+    
+    try {
+      // Check if already liked
+      const { data: existingLike } = await supabase
+        .from('activity_likes')
+        .select('id')
+        .eq('activity_id', activityId)
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      if (existingLike) {
+        // Unlike
+        await supabase
+          .from('activity_likes')
+          .delete()
+          .eq('id', existingLike.id)
+        console.log('Unliked activity')
+      } else {
+        // Like
+        await supabase
+          .from('activity_likes')
+          .insert({
+            activity_id: activityId,
+            user_id: user.id
+          })
+        console.log('Liked activity')
+      }
+    } catch (err) {
+      console.error('Error toggling like:', err)
+    }
+  }
+
+  const handleRate = async (mediaId: string, rating: 'meh' | 'like' | 'love' | null) => {
+    if (!user) return
+    console.log('Rate media:', mediaId, rating)
+    
+    try {
+      if (rating === null) {
+        // Remove rating
+        await supabase
+          .from('ratings')
+          .delete()
+          .eq('media_id', mediaId)
+          .eq('user_id', user.id)
+        console.log('Removed rating')
+      } else {
+        // Upsert rating
+        await supabase
+          .from('ratings')
+          .upsert({
+            media_id: mediaId,
+            user_id: user.id,
+            rating: rating
+          }, { onConflict: 'user_id,media_id' })
+        console.log('Set rating to:', rating)
+      }
+    } catch (err) {
+      console.error('Error setting rating:', err)
+    }
+  }
+
+  const handleSetStatus = async (mediaId: string, status: 'want' | 'watching' | 'watched' | null) => {
+    if (!user) return
+    console.log('Set watch status:', mediaId, status)
+    
+    try {
+      if (status === null) {
+        // Remove status
+        await supabase
+          .from('watch_status')
+          .delete()
+          .eq('media_id', mediaId)
+          .eq('user_id', user.id)
+        console.log('Removed watch status')
+      } else {
+        // Upsert status
+        await supabase
+          .from('watch_status')
+          .upsert({
+            media_id: mediaId,
+            user_id: user.id,
+            status: status
+          }, { onConflict: 'user_id,media_id' })
+        console.log('Set status to:', status)
+      }
+    } catch (err) {
+      console.error('Error setting watch status:', err)
+    }
   }
 
   const handleMediaSelect = (media: any, rating?: string, status?: string) => {
@@ -652,6 +740,8 @@ export default function PreviewFeedLivePage() {
                     onComment={() => console.log('Comment')}
                     onShare={() => console.log('Share')}
                     onAddToWatchlist={() => console.log('Add to watchlist')}
+                    onRate={handleRate}
+                    onSetStatus={handleSetStatus}
                     onTrack={handleTrack}
                   />
                 </div>
