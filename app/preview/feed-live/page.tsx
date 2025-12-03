@@ -446,32 +446,47 @@ export default function PreviewFeedLivePage() {
     console.log('fetchShowComments: Fetching comments for mediaId:', mediaId)
 
     try {
-      const { data: comments, error } = await supabase
+      // First, fetch the comments
+      const { data: comments, error: commentsError } = await supabase
         .from('show_comments')
-        .select(`
-          id,
-          user_id,
-          comment_text,
-          created_at,
-          profiles (
-            display_name,
-            avatar_url
-          )
-        `)
+        .select('id, user_id, comment_text, created_at')
         .eq('media_id', mediaId)
         .order('created_at', { ascending: false })
         .limit(20)
 
-      if (error) {
-        console.error('Error fetching show comments:', error)
+      if (commentsError) {
+        console.error('Error fetching show comments:', commentsError)
         return []
       }
 
-      console.log(`fetchShowComments: Found ${comments?.length || 0} comments for ${mediaId}`, comments)
+      if (!comments || comments.length === 0) {
+        console.log(`fetchShowComments: No comments found for ${mediaId}`)
+        return []
+      }
 
-      return (comments || []).map((c: any) => {
-        // Handle both relationship formats (profiles object or array)
-        const profile = Array.isArray(c.profiles) ? c.profiles[0] : c.profiles
+      // Get unique user IDs
+      const userIds = [...new Set(comments.map(c => c.user_id))]
+      
+      // Fetch profiles separately
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url')
+        .in('id', userIds)
+
+      if (profilesError) {
+        console.error('Error fetching profiles for show comments:', profilesError)
+        // Continue anyway, just use defaults
+      }
+
+      // Create a map of user_id -> profile
+      const profileMap = new Map(
+        (profiles || []).map(p => [p.id, p])
+      )
+
+      console.log(`fetchShowComments: Found ${comments.length} comments for ${mediaId}`)
+
+      return comments.map((c: any) => {
+        const profile = profileMap.get(c.user_id)
         
         return {
           id: c.id,
