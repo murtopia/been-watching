@@ -538,6 +538,45 @@ export default function PreviewFeedLivePage() {
     }
   }
 
+  // Normalize and filter streaming platform names
+  const normalizePlatformName = (name: string): string | null => {
+    if (!name) return null
+    
+    // Filter out channel variations (Apple TV Channel, Amazon Channel, Roku Channel, etc.)
+    if (name.toLowerCase().includes('channel')) {
+      return null
+    }
+    
+    // Normalize common platform name variations
+    const normalized = name
+      .replace(/\s*Plus\s*$/i, '+')  // "Paramount Plus" -> "Paramount+"
+      .replace(/\s*plus\s*$/i, '+')  // lowercase variant
+      .replace(/\s+/g, ' ')           // Normalize whitespace
+      .trim()
+    
+    return normalized
+  }
+
+  // Deduplicate and normalize platform names
+  const filterPrimaryPlatforms = (platforms: string[]): string[] => {
+    const seen = new Set<string>()
+    const normalized: string[] = []
+    
+    for (const platform of platforms) {
+      const normalizedName = normalizePlatformName(platform)
+      if (!normalizedName) continue // Skip channel variations
+      
+      // Check if we've already seen this platform (case-insensitive)
+      const lower = normalizedName.toLowerCase()
+      if (seen.has(lower)) continue
+      
+      seen.add(lower)
+      normalized.push(normalizedName)
+    }
+    
+    return normalized
+  }
+
   const fetchWatchProviders = async (mediaId: string, mediaType: 'tv' | 'movie'): Promise<string[]> => {
     if (!mediaId) {
       console.log('fetchWatchProviders: mediaId is empty')
@@ -583,9 +622,11 @@ export default function PreviewFeedLivePage() {
       }
 
       const platformNames = streamingServices.map((p: any) => p.provider_name || p.name).filter(Boolean)
-      console.log(`fetchWatchProviders: Found ${platformNames.length} platforms for ${mediaId}:`, platformNames)
+      const filteredPlatforms = filterPrimaryPlatforms(platformNames)
       
-      return platformNames
+      console.log(`fetchWatchProviders: Found ${filteredPlatforms.length} primary platforms for ${mediaId}:`, filteredPlatforms)
+      
+      return filteredPlatforms
     } catch (err) {
       console.error('Exception fetching watch providers:', err)
       return []
