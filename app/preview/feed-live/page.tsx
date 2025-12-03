@@ -525,38 +525,45 @@ export default function PreviewFeedLivePage() {
     if (!user) return
     console.log('Submit activity comment:', activityId, text)
     
-    try {
-      await supabase
-        .from('activity_comments')
-        .insert({
-          activity_id: activityId,
-          user_id: user.id,
-          comment_text: text
-        })
-      console.log('Activity comment submitted successfully')
-    } catch (err) {
-      console.error('Error submitting activity comment:', err)
-      throw err
+    // Try 'comments' table first (existing table), then 'activity_comments'
+    const { data, error } = await supabase
+      .from('comments')
+      .insert({
+        activity_id: activityId,
+        user_id: user.id,
+        comment_text: text
+      })
+      .select()
+    
+    if (error) {
+      console.error('Error submitting activity comment:', error)
+      alert(`Comment failed: ${error.message}`)
+      throw error
     }
+    
+    console.log('Activity comment submitted successfully:', data)
   }
 
   const handleSubmitShowComment = async (mediaId: string, text: string) => {
     if (!user) return
     console.log('Submit show comment:', mediaId, text)
     
-    try {
-      await supabase
-        .from('show_comments')
-        .insert({
-          media_id: mediaId,
-          user_id: user.id,
-          comment_text: text
-        })
-      console.log('Show comment submitted successfully')
-    } catch (err) {
-      console.error('Error submitting show comment:', err)
-      throw err
+    const { data, error } = await supabase
+      .from('show_comments')
+      .insert({
+        media_id: mediaId,
+        user_id: user.id,
+        comment_text: text
+      })
+      .select()
+    
+    if (error) {
+      console.error('Error submitting show comment:', error)
+      alert(`Comment failed: ${error.message}`)
+      throw error
     }
+    
+    console.log('Show comment submitted successfully:', data)
   }
 
   const handleMediaSelect = (media: any, rating?: string, status?: string) => {
