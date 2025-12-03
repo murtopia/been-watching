@@ -438,17 +438,22 @@ export default function PreviewFeedLivePage() {
   }
 
   const fetchShowComments = async (mediaId: string): Promise<APIShowComment[]> => {
-    if (!mediaId) return []
+    if (!mediaId) {
+      console.log('fetchShowComments: mediaId is empty')
+      return []
+    }
+
+    console.log('fetchShowComments: Fetching comments for mediaId:', mediaId)
 
     try {
-      const { data: comments } = await supabase
+      const { data: comments, error } = await supabase
         .from('show_comments')
         .select(`
           id,
           user_id,
           comment_text,
           created_at,
-          profiles!show_comments_user_id_fkey (
+          profiles (
             display_name,
             avatar_url
           )
@@ -457,18 +462,30 @@ export default function PreviewFeedLivePage() {
         .order('created_at', { ascending: false })
         .limit(20)
 
-      return (comments || []).map((c: any) => ({
-        id: c.id,
-        user_id: c.user_id,
-        comment_text: c.comment_text,
-        created_at: c.created_at,
-        user: {
-          display_name: c.profiles?.display_name || 'Unknown',
-          avatar_url: c.profiles?.avatar_url
+      if (error) {
+        console.error('Error fetching show comments:', error)
+        return []
+      }
+
+      console.log(`fetchShowComments: Found ${comments?.length || 0} comments for ${mediaId}`, comments)
+
+      return (comments || []).map((c: any) => {
+        // Handle both relationship formats (profiles object or array)
+        const profile = Array.isArray(c.profiles) ? c.profiles[0] : c.profiles
+        
+        return {
+          id: c.id,
+          user_id: c.user_id,
+          comment_text: c.comment_text,
+          created_at: c.created_at,
+          user: {
+            display_name: profile?.display_name || 'Unknown',
+            avatar_url: profile?.avatar_url || null
+          }
         }
-      }))
+      })
     } catch (err) {
-      console.error('Error fetching show comments:', err)
+      console.error('Exception fetching show comments:', err)
       return []
     }
   }
