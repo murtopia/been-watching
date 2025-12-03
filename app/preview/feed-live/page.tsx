@@ -519,7 +519,7 @@ export default function PreviewFeedLivePage() {
   }
 
   return (
-    <div style={{ background: '#1a1a1a', minHeight: '100vh', paddingBottom: '120px' }}>
+    <div style={{ background: '#1a1a1a', minHeight: '100vh', paddingTop: '80px', paddingBottom: '120px' }}>
       <style>{`
         .card-snap-wrapper {
           scroll-snap-align: center;
@@ -550,8 +550,8 @@ export default function PreviewFeedLivePage() {
         }
       `}</style>
 
-      {/* Header */}
-      <AppHeader profile={profile} />
+      {/* Header - Instagram style: hides on scroll down, shows on scroll up */}
+      <AppHeader profile={profile} hideOnScroll />
 
       <div className="debug-info">
         <div>Feed Items: {feedItems.length}</div>

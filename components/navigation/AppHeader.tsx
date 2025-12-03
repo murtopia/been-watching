@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useTheme } from '@/contexts/ThemeContext'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import ThemeToggle from '@/components/theme/ThemeToggle'
 import NotificationDropdown from '@/components/notifications/NotificationDropdown'
 
@@ -12,6 +12,8 @@ interface AppHeaderProps {
   showLogout?: boolean
   showNotifications?: boolean
   onLogout?: () => void
+  /** Instagram-style: hide on scroll down, show on scroll up */
+  hideOnScroll?: boolean
 }
 
 export default function AppHeader({
@@ -19,12 +21,52 @@ export default function AppHeader({
   showThemeToggle = false,
   showLogout = false,
   showNotifications = true,
-  onLogout
+  onLogout,
+  hideOnScroll = false
 }: AppHeaderProps) {
   const router = useRouter()
   const { resolvedTheme } = useTheme()
   const [notificationCount, setNotificationCount] = useState(0)
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false)
+  const [headerVisible, setHeaderVisible] = useState(true)
+  const lastScrollY = useRef(0)
+  const ticking = useRef(false)
+
+  // Instagram-style scroll behavior
+  const handleScroll = useCallback(() => {
+    if (!hideOnScroll) return
+    
+    const currentScrollY = window.scrollY
+    const scrollDelta = currentScrollY - lastScrollY.current
+    
+    // Only trigger if scrolled more than 5px (debounce small movements)
+    if (Math.abs(scrollDelta) > 5) {
+      if (scrollDelta > 0 && currentScrollY > 60) {
+        // Scrolling down & past header height - hide
+        setHeaderVisible(false)
+      } else if (scrollDelta < 0) {
+        // Scrolling up - show
+        setHeaderVisible(true)
+      }
+      lastScrollY.current = currentScrollY
+    }
+    
+    ticking.current = false
+  }, [hideOnScroll])
+
+  useEffect(() => {
+    if (!hideOnScroll) return
+    
+    const onScroll = () => {
+      if (!ticking.current) {
+        window.requestAnimationFrame(handleScroll)
+        ticking.current = true
+      }
+    }
+    
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [hideOnScroll, handleScroll])
 
   // Load unread notification count
   useEffect(() => {
@@ -73,9 +115,16 @@ export default function AppHeader({
       maxWidth: '600px',
       margin: '0 auto 0.5rem',
       backdropFilter: backdropBlur,
-      position: 'sticky',
+      WebkitBackdropFilter: backdropBlur,
+      position: hideOnScroll ? 'fixed' : 'sticky',
       top: 0,
-      zIndex: 100
+      left: hideOnScroll ? '50%' : undefined,
+      transform: hideOnScroll 
+        ? `translateX(-50%) translateY(${headerVisible ? '0' : '-100%'})`
+        : undefined,
+      transition: hideOnScroll ? 'transform 0.3s ease-out' : undefined,
+      zIndex: 100,
+      width: hideOnScroll ? 'calc(100% - 3rem)' : undefined
     }}>
       <div style={{
         display: 'flex',
