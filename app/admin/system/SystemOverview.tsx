@@ -434,6 +434,28 @@ export default function SystemOverview({ stats }: { stats: SystemStats }) {
               Manage which platforms appear on feed cards
             </div>
           </button>
+
+          <button
+            onClick={() => router.push('/admin/setup/migrations')}
+            style={{
+              background: colors.buttonBg,
+              border: colors.buttonBorder,
+              borderRadius: '8px',
+              padding: '1rem',
+              cursor: 'pointer',
+              textAlign: 'left',
+              transition: 'all 0.2s ease'
+            }}
+            className="admin-button"
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+              <Database size={20} color={colors.textPrimary} />
+              <span style={{ fontWeight: '600', color: colors.textPrimary }}>Database Migrations</span>
+            </div>
+            <div style={{ fontSize: '0.875rem', color: colors.textSecondary }}>
+              Run database migrations and setup scripts
+            </div>
+          </button>
         </div>
       </div>
 
