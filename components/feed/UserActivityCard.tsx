@@ -2154,7 +2154,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                 <div className="back-badges">
                   {data.media.season && <div className="back-badge season">S{data.media.season}</div>}
                   <div className="back-badge type">{data.media.mediaType}</div>
-                  <div className="back-badge network">{data.media.network}</div>
+                  {data.media.network && <div className="back-badge network">{data.media.network}</div>}
                   <div className="back-badge trailer"><Icon name="play" size={10} /> Trailer</div>
                 </div>
               </div>

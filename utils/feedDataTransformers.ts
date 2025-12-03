@@ -69,6 +69,7 @@ export interface APIMedia {
       cast?: Array<{ name: string; character: string; profile_path: string | null }>
     }
     networks?: Array<{ id: number; name: string; logo_path: string }>
+    production_companies?: Array<{ id: number; name: string; logo_path: string | null }>
     number_of_seasons?: number
     seasons?: Array<{ season_number: number; name: string }>
     videos?: { results: Array<{ key: string; type: string; site: string }> }
@@ -147,7 +148,13 @@ export function transformMedia(media: APIMedia): FeedCardMedia {
   const genres = tmdb.genres?.map(g => g.name) || []
   const creator = tmdb.created_by?.[0]?.name || ''
   const cast = tmdb.credits?.cast?.slice(0, 4).map(c => c.name) || []
-  const network = tmdb.networks?.[0]?.name || ''
+  
+  // For TV shows: use networks, for movies: use production_companies
+  const isTV = media.media_type === 'tv'
+  const network = isTV 
+    ? (tmdb.networks?.[0]?.name || '')
+    : (tmdb.production_companies?.[0]?.name || '')
+  
   const year = media.release_date ? new Date(media.release_date).getFullYear() : 0
   
   // Extract season number from media ID if present (format: tv-{id}-s{season})
