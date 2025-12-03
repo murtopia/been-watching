@@ -306,14 +306,16 @@ export function formatTimeAgo(dateString: string): string {
  * Transform friends activity data
  */
 export function transformFriendsActivity(
-  friendsData: APIFriendsActivity | undefined
+  friendsData: APIFriendsActivity | undefined,
+  userRating?: 'meh' | 'like' | 'love' | null,
+  userStatus?: 'want' | 'watching' | 'watched' | null
 ): FeedCardData['friendsActivity'] {
   if (!friendsData) {
     return {
       watching: { count: 0, avatars: [] },
       wantToWatch: { count: 0, avatars: [] },
       watched: { count: 0, avatars: [] },
-      ratings: { meh: 0, like: 0, love: 0, userRating: undefined }
+      ratings: { meh: 0, like: 0, love: 0, userRating: userRating || undefined }
     }
   }
   
@@ -334,7 +336,7 @@ export function transformFriendsActivity(
       meh: friendsData.ratings.meh,
       like: friendsData.ratings.like,
       love: friendsData.ratings.love,
-      userRating: friendsData.userRating
+      userRating: userRating || friendsData.userRating || undefined
     }
   }
 }
@@ -374,10 +376,14 @@ export function getFriendsText(activity: APIActivity, friendsData?: APIFriendsAc
 export function activityToUserActivityCardData(
   activity: APIActivity,
   friendsData?: APIFriendsActivity,
-  showComments?: APIShowComment[]
+  showComments?: APIShowComment[],
+  userRating?: 'meh' | 'like' | 'love' | null,
+  userStatus?: 'want' | 'watching' | 'watched' | null,
+  userLiked?: boolean,
+  likeCount?: number
 ): UserActivityCardData {
   const badges = getActivityBadges(activity)
-  const friendsActivity = transformFriendsActivity(friendsData)
+  const friendsActivity = transformFriendsActivity(friendsData, userRating, userStatus)
   
   // Get activity type for legacy format
   let activityType: UserActivityCardData['activityType'] = 'watched'
@@ -415,9 +421,9 @@ export function activityToUserActivityCardData(
       text: getFriendsText(activity, friendsData)
     },
     stats: {
-      likeCount: activity.like_count || 0,
+      likeCount: likeCount !== undefined ? likeCount : (activity.like_count || 0),
       commentCount: activity.comment_count || 0,
-      userLiked: activity.user_liked || false
+      userLiked: userLiked !== undefined ? userLiked : (activity.user_liked || false)
     },
     friendsActivity,
     comments: transformComments(activity.comments),

@@ -148,6 +148,8 @@ interface FeedCardProps {
   onSubmitShowComment?: (mediaId: string, text: string) => Promise<void>
   /** Current logged-in user (for showing their info on new comments) */
   currentUser?: { name: string; avatar: string }
+  /** Initial watch status for this media (to show selected state in modal) */
+  initialUserStatus?: 'want' | 'watching' | 'watched' | null
   onTrack?: (action: string, metadata?: any) => void
   onFlip?: (isFlipped: boolean) => void  // Notify parent when card flips
 }
@@ -167,6 +169,7 @@ interface UserActivityCardProps {
   onSubmitActivityComment?: (activityId: string, text: string) => Promise<void>
   onSubmitShowComment?: (mediaId: string, text: string) => Promise<void>
   currentUser?: { name: string; avatar: string }
+  initialUserStatus?: 'want' | 'watching' | 'watched' | null
   onFlip?: (isFlipped: boolean) => void
 }
 
@@ -292,6 +295,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   onSubmitActivityComment,
   onSubmitShowComment,
   currentUser,
+  initialUserStatus,
   onTrack,
   onFlip,
 }) => {
@@ -327,7 +331,9 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   const [localLiked, setLocalLiked] = useState(data.stats.userLiked)
   const [localLikeCount, setLocalLikeCount] = useState(data.stats.likeCount)
   const [userRating, setUserRating] = useState<'meh' | 'like' | 'love' | null>(data.friendsActivity.ratings.userRating || null)
-  const [watchlistStatus, setWatchlistStatus] = useState<Set<'want' | 'watching' | 'watched'>>(new Set())
+  const [watchlistStatus, setWatchlistStatus] = useState<Set<'want' | 'watching' | 'watched'>>(
+    initialUserStatus ? new Set([initialUserStatus]) : new Set()
+  )
   const [commentLikes, setCommentLikes] = useState<Record<string, { liked: boolean; count: number }>>(
     data.showComments.reduce((acc, comment) => ({
       ...acc,
@@ -2132,7 +2138,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
               <div className="back-title-section">
                 <h1 className="back-title">
                   {data.media.title}
-                  {data.media.season && ` - Season ${data.media.season}`}
+                  {data.media.season && !data.media.title.includes(`Season ${data.media.season}`) && ` - Season ${data.media.season}`}
                 </h1>
                 <div className="back-meta">
                   <span className="back-year">{data.media.year}</span>
@@ -2573,6 +2579,7 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = (props) => {
       onSubmitActivityComment={props.onSubmitActivityComment}
       onSubmitShowComment={props.onSubmitShowComment}
       currentUser={props.currentUser}
+      initialUserStatus={props.initialUserStatus}
       onFlip={props.onFlip}
     />
   )

@@ -190,14 +190,59 @@ export default function PreviewFeedLivePage() {
               const showComments = await fetchShowComments(activity.media_id)
               const friendsActivity = await fetchFriendsActivity(activity.media_id)
               
+              // Fetch activity likes
+              const { data: activityLikes } = await supabase
+                .from('activity_likes')
+                .select('user_id')
+                .eq('activity_id', activity.id)
+              
+              const userLiked = user ? activityLikes?.some(like => like.user_id === user.id) : false
+              const likeCount = activityLikes?.length || 0
+              
+              // Fetch user's rating and watch status for this media
+              let userRating: string | null = null
+              let userStatus: string | null = null
+              
+              if (user && activity.media_id) {
+                const { data: ratingData } = await supabase
+                  .from('ratings')
+                  .select('rating')
+                  .eq('user_id', user.id)
+                  .eq('media_id', activity.media_id)
+                  .maybeSingle()
+                
+                userRating = ratingData?.rating || null
+                
+                const { data: statusData } = await supabase
+                  .from('watch_status')
+                  .select('status')
+                  .eq('user_id', user.id)
+                  .eq('media_id', activity.media_id)
+                  .maybeSingle()
+                
+                userStatus = statusData?.status || null
+              }
+              
+              // Add like_count, comment_count, and user_liked to activity object for transformer
+              const activityWithLikes = {
+                ...activity,
+                like_count: likeCount,
+                comment_count: activityComments?.length || 0,
+                user_liked: userLiked
+              }
+              
               return {
                 type: 'activity' as const,
                 id: activity.id,
                 data: {
-                  activity,
+                  activity: activityWithLikes,
                   friendsActivity,
                   showComments,
-                  activityComments
+                  activityComments,
+                  userLiked,
+                  likeCount,
+                  userRating,
+                  userStatus
                 }
               }
             })
@@ -279,13 +324,59 @@ export default function PreviewFeedLivePage() {
           const friendsActivity = await fetchFriendsActivity(item.media?.id)
           const showComments = await fetchShowComments(item.media?.id)
           
+          // Fetch activity likes
+          const { data: activityLikes } = await supabase
+            .from('activity_likes')
+            .select('user_id')
+            .eq('activity_id', item.id)
+          
+          const userLiked = user ? activityLikes?.some(like => like.user_id === user.id) : false
+          const likeCount = activityLikes?.length || 0
+          
+          // Fetch user's rating and watch status for this media
+          let userRating: string | null = null
+          let userStatus: string | null = null
+          
+          if (user && item.media?.id) {
+            const { data: ratingData } = await supabase
+              .from('ratings')
+              .select('rating')
+              .eq('user_id', user.id)
+              .eq('media_id', item.media.id)
+              .maybeSingle()
+            
+            userRating = ratingData?.rating || null
+            
+            const { data: statusData } = await supabase
+              .from('watch_status')
+              .select('status')
+              .eq('user_id', user.id)
+              .eq('media_id', item.media.id)
+              .maybeSingle()
+            
+            userStatus = statusData?.status || null
+          }
+          
+          // Add like_count, comment_count, and user_liked to activity object for transformer
+          const activityWithLikes = {
+            ...item,
+            like_count: likeCount,
+            comment_count: item.comments?.length || 0,
+            user_liked: userLiked
+          }
+          
           transformedItems.push({
             type: 'activity',
             id: item.id,
             data: {
-              activity: item,
+              activity: activityWithLikes,
               friendsActivity,
-              showComments
+              showComments,
+              activityComments: item.comments || [],
+              userLiked,
+              likeCount,
+              userRating,
+              userStatus
             }
           })
         }
@@ -880,7 +971,11 @@ export default function PreviewFeedLivePage() {
             const cardData = activityToUserActivityCardData(
               activityWithComments as APIActivity,
               friendsActivity,
-              showComments
+              showComments,
+              item.data.userRating as 'meh' | 'like' | 'love' | null,
+              item.data.userStatus as 'want' | 'watching' | 'watched' | null,
+              item.data.userLiked,
+              item.data.likeCount
             )
 
             return (
@@ -897,6 +992,7 @@ export default function PreviewFeedLivePage() {
                     onSubmitActivityComment={handleSubmitActivityComment}
                     onSubmitShowComment={handleSubmitShowComment}
                     currentUser={profile ? { name: profile.display_name || profile.username, avatar: profile.avatar_url || '' } : undefined}
+                    initialUserStatus={item.data.userStatus as 'want' | 'watching' | 'watched' | null}
                     onTrack={handleTrack}
                   />
                 </div>
