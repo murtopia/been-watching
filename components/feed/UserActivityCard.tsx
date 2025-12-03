@@ -658,85 +658,97 @@ export const FeedCard: React.FC<FeedCardProps> = ({
 
   // Submit activity comment
   const handleSubmitActivityComment = async () => {
-    if (!activityCommentText.trim()) return
-    if (!data.id) {
-      console.error('Cannot submit activity comment: activity.id is missing')
-      alert('Error: Activity information is missing. Please try again.')
-      return
-    }
-    
-    const commentText = activityCommentText.trim()
-    const activityId = data.id
-    
-    // Optimistically add the comment to local state
-    const newComment = {
-      id: `temp-${Date.now()}`,
-      user: {
-        name: currentUser?.name || 'You',
-        avatar: currentUser?.avatar || 'https://i.pravatar.cc/150?img=1'
-      },
-      text: commentText,
-      timestamp: 'Just now',
-      likes: 0,
-      userLiked: false
-    }
-    setLocalActivityComments(prev => [newComment, ...prev])
-    setActivityCommentText('') // Clear input immediately
-    
-    // Persist to database if callback provided
-    if (onSubmitActivityComment) {
-      try {
-        await onSubmitActivityComment(activityId, commentText)
-        onTrack?.('activity_comment', { activityId })
-      } catch (err) {
-        console.error('Error submitting activity comment:', err)
-        // Remove optimistic comment on error
-        setLocalActivityComments(prev => prev.filter(c => c.id !== newComment.id))
-        // Show error to user
-        alert('Failed to save comment. Please try again.')
+    try {
+      if (!activityCommentText.trim()) return
+      if (!data || !data.id) {
+        console.error('Cannot submit activity comment: data structure is invalid', { data })
+        alert('Error: Activity information is missing. Please try again.')
+        return
       }
+      
+      const commentText = activityCommentText.trim()
+      const activityId = data.id
+      
+      // Optimistically add the comment to local state
+      const newComment = {
+        id: `temp-${Date.now()}`,
+        user: {
+          name: currentUser?.name || 'You',
+          avatar: currentUser?.avatar || 'https://i.pravatar.cc/150?img=1'
+        },
+        text: commentText,
+        timestamp: 'Just now',
+        likes: 0,
+        userLiked: false
+      }
+      setLocalActivityComments(prev => [newComment, ...prev])
+      setActivityCommentText('') // Clear input immediately
+      
+      // Persist to database if callback provided
+      if (onSubmitActivityComment) {
+        try {
+          await onSubmitActivityComment(activityId, commentText)
+          onTrack?.('activity_comment', { activityId })
+        } catch (err) {
+          console.error('Error submitting activity comment:', err)
+          // Remove optimistic comment on error
+          setLocalActivityComments(prev => prev.filter(c => c.id !== newComment.id))
+          // Show error to user
+          alert('Failed to save comment. Please try again.')
+        }
+      }
+    } catch (err) {
+      // Catch any synchronous errors
+      console.error('Unexpected error in handleSubmitActivityComment:', err)
+      alert('An unexpected error occurred. Please try again.')
     }
   }
 
   // Submit show comment
   const handleSubmitShowComment = async () => {
-    if (!showCommentText.trim()) return
-    if (!data.media?.id) {
-      console.error('Cannot submit show comment: media.id is missing')
-      alert('Error: Show information is missing. Please try again.')
-      return
-    }
-    
-    const commentText = showCommentText.trim()
-    const mediaId = data.media.id
-    
-    // Optimistically add the comment to local state
-    const newComment = {
-      id: `temp-${Date.now()}`,
-      user: {
-        name: currentUser?.name || 'You',
-        avatar: currentUser?.avatar || 'https://i.pravatar.cc/150?img=1'
-      },
-      text: commentText,
-      timestamp: 'Just now',
-      likes: 0,
-      userLiked: false
-    }
-    setLocalShowComments(prev => [newComment, ...prev])
-    setShowCommentText('') // Clear input immediately
-    
-    // Persist to database if callback provided
-    if (onSubmitShowComment) {
-      try {
-        await onSubmitShowComment(mediaId, commentText)
-        onTrack?.('show_comment', { mediaId })
-      } catch (err) {
-        console.error('Error submitting show comment:', err)
-        // Remove optimistic comment on error
-        setLocalShowComments(prev => prev.filter(c => c.id !== newComment.id))
-        // Show error to user
-        alert('Failed to save comment. Please try again.')
+    try {
+      if (!showCommentText.trim()) return
+      if (!data || !data.media || !data.media.id) {
+        console.error('Cannot submit show comment: data structure is invalid', { data })
+        alert('Error: Show information is missing. Please try again.')
+        return
       }
+      
+      const commentText = showCommentText.trim()
+      const mediaId = data.media.id
+      
+      // Optimistically add the comment to local state
+      const newComment = {
+        id: `temp-${Date.now()}`,
+        user: {
+          name: currentUser?.name || 'You',
+          avatar: currentUser?.avatar || 'https://i.pravatar.cc/150?img=1'
+        },
+        text: commentText,
+        timestamp: 'Just now',
+        likes: 0,
+        userLiked: false
+      }
+      setLocalShowComments(prev => [newComment, ...prev])
+      setShowCommentText('') // Clear input immediately
+      
+      // Persist to database if callback provided
+      if (onSubmitShowComment) {
+        try {
+          await onSubmitShowComment(mediaId, commentText)
+          onTrack?.('show_comment', { mediaId })
+        } catch (err) {
+          console.error('Error submitting show comment:', err)
+          // Remove optimistic comment on error
+          setLocalShowComments(prev => prev.filter(c => c.id !== newComment.id))
+          // Show error to user
+          alert('Failed to save comment. Please try again.')
+        }
+      }
+    } catch (err) {
+      // Catch any synchronous errors
+      console.error('Unexpected error in handleSubmitShowComment:', err)
+      alert('An unexpected error occurred. Please try again.')
     }
   }
 
@@ -2050,7 +2062,13 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                     </div>
                     <button 
                       className="activity-comment-send-btn"
-                      onClick={handleSubmitActivityComment}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        handleSubmitActivityComment().catch(err => {
+                          console.error('Unhandled error in activity comment submission:', err)
+                        })
+                      }}
                       disabled={!activityCommentText.trim()}
                       style={{ opacity: activityCommentText.trim() ? 1 : 0.5 }}
                     >
@@ -2327,7 +2345,13 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                       </div>
                       <button 
                         className="comment-submit-btn"
-                        onClick={handleSubmitShowComment}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          handleSubmitShowComment().catch(err => {
+                            console.error('Unhandled error in show comment submission:', err)
+                          })
+                        }}
                         disabled={!showCommentText.trim()}
                         style={{ opacity: showCommentText.trim() ? 1 : 0.5 }}
                       >
