@@ -58,7 +58,15 @@ export default function PreviewFeedLivePage() {
 
   // Scroll to top on page load (prevents scroll restoration putting content behind header)
   useEffect(() => {
+    // Disable browser's automatic scroll restoration
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual'
+    }
     window.scrollTo(0, 0)
+    
+    // Also scroll after a tiny delay to catch any late restoration attempts
+    const timeout = setTimeout(() => window.scrollTo(0, 0), 50)
+    return () => clearTimeout(timeout)
   }, [])
 
   useEffect(() => {
