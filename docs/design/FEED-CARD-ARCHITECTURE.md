@@ -56,6 +56,11 @@ The `/preview/feed-live` page demonstrates the new cards with real database data
 - Debug API to work with "show all users" setting
 - Replace old feed components in `/feed` page
 
+**Known Behavior to Track:**
+- When quick action modal opens on card back, page scroll becomes unlocked
+- May be intentional (focus shifts to modal) or may need fixing
+- Revisit during full integration testing
+
 ---
 
 ## Overview
