@@ -519,18 +519,8 @@ export default function PreviewFeedLivePage() {
   }
 
   return (
-    <div style={{ background: '#1a1a1a', minHeight: '100vh' }}>
+    <div style={{ background: '#1a1a1a', minHeight: '100vh', paddingBottom: '120px' }}>
       <style>{`
-        .feed-scroll-container {
-          height: calc(100vh - 120px); /* Account for header and bottom nav */
-          overflow-y: scroll;
-          scroll-snap-type: y mandatory;
-          -webkit-overflow-scrolling: touch;
-          background: #1a1a1a;
-          padding-top: 60px; /* Header height */
-          padding-bottom: 80px; /* Bottom nav height */
-        }
-        
         .card-snap-wrapper {
           scroll-snap-align: center;
           scroll-snap-stop: always;
@@ -556,7 +546,7 @@ export default function PreviewFeedLivePage() {
           padding: 10px;
           font-size: 12px;
           border-radius: 8px;
-          z-index: 100;
+          z-index: 50;
         }
       `}</style>
 
@@ -568,7 +558,7 @@ export default function PreviewFeedLivePage() {
         <div>Mode: TEST (Direct DB)</div>
       </div>
 
-      <div className="feed-scroll-container">
+      <div>
         {feedItems.map((item) => {
           if (item.type === 'activity') {
             const { activity, friendsActivity, showComments } = item.data
@@ -599,6 +589,9 @@ export default function PreviewFeedLivePage() {
           return null
         })}
       </div>
+
+      {/* Spacer to ensure content doesn't get hidden behind fixed nav */}
+      <div style={{ height: '20px' }} />
 
       {/* Bottom Navigation */}
       <BottomNav onSearchOpen={() => setSearchOpen(true)} />
