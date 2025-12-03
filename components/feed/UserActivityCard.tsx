@@ -730,6 +730,11 @@ export const FeedCard: React.FC<FeedCardProps> = ({
         userLiked: false
       }
       setLocalShowComments(prev => [newComment, ...prev])
+      // Initialize like state for the new comment
+      setCommentLikes(prev => ({
+        ...prev,
+        [newComment.id]: { liked: false, count: 0 }
+      }))
       setShowCommentText('') // Clear input immediately
       
       // Persist to database if callback provided
@@ -754,7 +759,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
 
   const handleCommentLike = (commentId: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    const current = commentLikes[commentId]
+    const current = commentLikes[commentId] || { liked: false, count: 0 }
     setCommentLikes({
       ...commentLikes,
       [commentId]: {
@@ -2364,7 +2369,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                 {/* Comments List */}
                 <div className="comments-list">
                   {localShowComments.slice(0, visibleShowComments).map((comment) => {
-                    const likeState = commentLikes[comment.id]
+                    const likeState = commentLikes[comment.id] || { liked: false, count: 0 }
                     return (
                       <div key={comment.id} className="comment-item">
                         <img src={comment.user.avatar} alt={comment.user.name} className="comment-avatar" />
