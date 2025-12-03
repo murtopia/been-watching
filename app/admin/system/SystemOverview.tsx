@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import { Activity, AlertTriangle, Database, Zap, Clock, TrendingUp } from 'lucide-react'
+import { Activity, AlertTriangle, Database, Zap, Clock, TrendingUp, Tv } from 'lucide-react'
 import SystemNav from './SystemNav'
 
 interface SystemStats {
@@ -410,6 +410,28 @@ export default function SystemOverview({ stats }: { stats: SystemStats }) {
             </div>
             <div style={{ fontSize: '0.875rem', color: colors.textSecondary }}>
               Database performance and usage
+            </div>
+          </button>
+
+          <button
+            onClick={() => router.push('/admin/settings/streaming-platforms')}
+            style={{
+              background: colors.buttonBg,
+              border: colors.buttonBorder,
+              borderRadius: '8px',
+              padding: '1rem',
+              cursor: 'pointer',
+              textAlign: 'left',
+              transition: 'all 0.2s ease'
+            }}
+            className="admin-button"
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+              <Tv size={20} color={colors.textPrimary} />
+              <span style={{ fontWeight: '600', color: colors.textPrimary }}>Streaming Platforms</span>
+            </div>
+            <div style={{ fontSize: '0.875rem', color: colors.textSecondary }}>
+              Manage which platforms appear on feed cards
             </div>
           </button>
         </div>

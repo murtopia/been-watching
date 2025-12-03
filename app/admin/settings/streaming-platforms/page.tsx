@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
-import { Tv, CheckCircle2, Circle } from 'lucide-react'
+import { Tv } from 'lucide-react'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface Platform {
   name: string
@@ -14,8 +15,10 @@ export default function StreamingPlatformsPage() {
   const [platforms, setPlatforms] = useState<Platform[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const supabase = createClient()
   const router = useRouter()
+  const colors = useThemeColors()
 
   useEffect(() => {
     checkAdminAndLoadSettings()
@@ -40,6 +43,8 @@ export default function StreamingPlatformsPage() {
         router.push('/')
         return
       }
+
+      setCurrentUserId(user.id)
 
       // Load streaming platforms allowlist
       const { data: setting } = await supabase
@@ -134,14 +139,15 @@ export default function StreamingPlatformsPage() {
         .upsert({
           setting_key: 'streaming_platforms_allowlist',
           setting_value: JSON.stringify(enabledPlatforms),
-          description: 'List of streaming platforms to display on feed cards (JSON array of platform names)'
+          description: 'List of streaming platforms to display on feed cards (JSON array of platform names)',
+          updated_by: currentUserId
         }, {
           onConflict: 'setting_key'
         })
 
       if (error) {
         console.error('Error updating setting:', error)
-        alert('Failed to update setting')
+        alert(`Failed to update setting: ${error.message}`)
         // Revert on error
         checkAdminAndLoadSettings()
       }
@@ -170,14 +176,15 @@ export default function StreamingPlatformsPage() {
         .upsert({
           setting_key: 'streaming_platforms_allowlist',
           setting_value: JSON.stringify(enabledPlatforms),
-          description: 'List of streaming platforms to display on feed cards (JSON array of platform names)'
+          description: 'List of streaming platforms to display on feed cards (JSON array of platform names)',
+          updated_by: currentUserId
         }, {
           onConflict: 'setting_key'
         })
 
       if (error) {
         console.error('Error updating setting:', error)
-        alert('Failed to update setting')
+        alert(`Failed to update setting: ${error.message}`)
         checkAdminAndLoadSettings()
       }
     } catch (error) {
@@ -313,49 +320,77 @@ export default function StreamingPlatformsPage() {
 
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-          gap: '0.75rem'
+          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+          gap: '1rem'
         }}>
           {platforms.map((platform) => (
-            <button
+            <div
               key={platform.name}
-              onClick={() => handleTogglePlatform(platform.name)}
-              disabled={saving}
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.75rem',
+                justifyContent: 'space-between',
                 padding: '0.75rem 1rem',
                 borderRadius: '8px',
-                border: `1px solid ${platform.enabled ? '#10b981' : 'var(--border)'}`,
-                background: platform.enabled ? '#10b98110' : 'var(--bg)',
-                cursor: saving ? 'not-allowed' : 'pointer',
-                opacity: saving ? 0.6 : 1,
-                transition: 'all 0.2s',
-                textAlign: 'left',
-                width: '100%'
-              }}
-              onMouseEnter={(e) => {
-                if (!saving) {
-                  e.currentTarget.style.background = platform.enabled ? '#10b98120' : 'var(--card-bg)'
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = platform.enabled ? '#10b98110' : 'var(--bg)'
+                border: colors.cardBorder,
+                background: colors.cardBg,
+                gap: '1rem'
               }}
             >
-              {platform.enabled ? (
-                <CheckCircle2 size={20} color="#10b981" />
-              ) : (
-                <Circle size={20} color="#888" />
-              )}
               <span style={{
-                fontWeight: platform.enabled ? '600' : '400',
-                color: platform.enabled ? 'var(--text)' : '#888'
+                fontWeight: '500',
+                color: colors.textPrimary,
+                flex: 1
               }}>
                 {platform.name}
               </span>
-            </button>
+              <div style={{
+                background: colors.cardBg,
+                border: colors.cardBorder,
+                borderRadius: '8px',
+                padding: '0.25rem',
+                display: 'flex',
+                gap: '0.25rem',
+                boxShadow: colors.isDark ? '0 4px 12px rgba(0,0,0,0.3)' : '0 4px 12px rgba(0,0,0,0.1)'
+              }}>
+                <button
+                  onClick={() => !platform.enabled && handleTogglePlatform(platform.name)}
+                  disabled={saving || platform.enabled}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: !platform.enabled ? colors.brandPink : 'transparent',
+                    color: !platform.enabled ? 'white' : colors.textSecondary,
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    cursor: (saving || platform.enabled) ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.2s',
+                    opacity: (saving || platform.enabled) ? 0.6 : 1
+                  }}
+                >
+                  ON
+                </button>
+                <button
+                  onClick={() => platform.enabled && handleTogglePlatform(platform.name)}
+                  disabled={saving || !platform.enabled}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: platform.enabled ? colors.brandPink : 'transparent',
+                    color: platform.enabled ? 'white' : colors.textSecondary,
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    cursor: (saving || !platform.enabled) ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.2s',
+                    opacity: (saving || !platform.enabled) ? 0.6 : 1
+                  }}
+                >
+                  OFF
+                </button>
+              </div>
+            </div>
           ))}
         </div>
       </div>
