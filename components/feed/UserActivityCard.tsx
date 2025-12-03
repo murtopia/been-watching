@@ -333,6 +333,9 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   const [visibleShowComments, setVisibleShowComments] = useState(10) // Show 10 comments initially
   const [showCommentText, setShowCommentText] = useState('') // Track show comment input
   const [activityCommentText, setActivityCommentText] = useState('') // Track activity comment input
+  // Local state for comments (so we can add new ones optimistically)
+  const [localActivityComments, setLocalActivityComments] = useState(data.comments)
+  const [localShowComments, setLocalShowComments] = useState(data.showComments)
   const [pressedIcon, setPressedIcon] = useState<string | null>(null) // Track which icon is being pressed for touch feedback
 
   // Refs for DOM elements
@@ -651,25 +654,67 @@ export const FeedCard: React.FC<FeedCardProps> = ({
 
   // Submit activity comment
   const handleSubmitActivityComment = async () => {
-    if (!activityCommentText.trim() || !onSubmitActivityComment) return
-    try {
-      await onSubmitActivityComment(data.id, activityCommentText.trim())
-      setActivityCommentText('') // Clear input on success
-      onTrack?.('activity_comment', { activityId: data.id })
-    } catch (err) {
-      console.error('Error submitting activity comment:', err)
+    if (!activityCommentText.trim()) return
+    const commentText = activityCommentText.trim()
+    
+    // Optimistically add the comment to local state
+    const newComment = {
+      id: `temp-${Date.now()}`,
+      user: {
+        name: cardUser?.name || 'You',
+        avatar: cardUser?.avatar || 'https://i.pravatar.cc/150?img=1'
+      },
+      text: commentText,
+      timestamp: 'Just now',
+      likes: 0,
+      userLiked: false
+    }
+    setLocalActivityComments(prev => [newComment, ...prev])
+    setActivityCommentText('') // Clear input immediately
+    
+    // Persist to database if callback provided
+    if (onSubmitActivityComment) {
+      try {
+        await onSubmitActivityComment(data.id, commentText)
+        onTrack?.('activity_comment', { activityId: data.id })
+      } catch (err) {
+        console.error('Error submitting activity comment:', err)
+        // Remove optimistic comment on error
+        setLocalActivityComments(prev => prev.filter(c => c.id !== newComment.id))
+      }
     }
   }
 
   // Submit show comment
   const handleSubmitShowComment = async () => {
-    if (!showCommentText.trim() || !onSubmitShowComment) return
-    try {
-      await onSubmitShowComment(data.media.id, showCommentText.trim())
-      setShowCommentText('') // Clear input on success
-      onTrack?.('show_comment', { mediaId: data.media.id })
-    } catch (err) {
-      console.error('Error submitting show comment:', err)
+    if (!showCommentText.trim()) return
+    const commentText = showCommentText.trim()
+    
+    // Optimistically add the comment to local state
+    const newComment = {
+      id: `temp-${Date.now()}`,
+      user: {
+        name: cardUser?.name || 'You',
+        avatar: cardUser?.avatar || 'https://i.pravatar.cc/150?img=1'
+      },
+      text: commentText,
+      timestamp: 'Just now',
+      likes: 0,
+      userLiked: false
+    }
+    setLocalShowComments(prev => [newComment, ...prev])
+    setShowCommentText('') // Clear input immediately
+    
+    // Persist to database if callback provided
+    if (onSubmitShowComment) {
+      try {
+        await onSubmitShowComment(data.media.id, commentText)
+        onTrack?.('show_comment', { mediaId: data.media.id })
+      } catch (err) {
+        console.error('Error submitting show comment:', err)
+        // Remove optimistic comment on error
+        setLocalShowComments(prev => prev.filter(c => c.id !== newComment.id))
+      }
     }
   }
 
@@ -692,7 +737,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   }
 
   const handleLoadMoreComments = () => {
-    setVisibleShowComments(prev => Math.min(prev + 10, data.showComments.length))
+    setVisibleShowComments(prev => Math.min(prev + 10, localShowComments.length))
   }
 
   return (
@@ -1911,7 +1956,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                   <button className="action-btn" onClick={handleCommentButtonClick}>
                     <Icon name="comment" state="default" size={24} />
                   </button>
-                  <div className="action-count">{data.stats.commentCount}</div>
+                  <div className="action-count">{localActivityComments.length}</div>
                 </div>
               )}
 
@@ -1950,7 +1995,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
               >
                 <div className="comments-preview-content">
                   <Icon name="comment" size={16} color="white" />
-                  <span>View {data.stats.commentCount} comments...</span>
+                  <span>View {localActivityComments.length} comments...</span>
                 </div>
                 <button className="comments-close-btn" onClick={(e) => {
                   e.stopPropagation()
@@ -1992,7 +2037,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                   </div>
                 </div>
                 <div className="activity-comment-divider"></div>
-                {data.comments.map((comment) => (
+                {localActivityComments.map((comment) => (
                   <div key={comment.id} className="activity-comment-item">
                     <div className="activity-comment-header">
                       <div className="activity-comment-header-left">
@@ -2272,7 +2317,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
 
                 {/* Comments List */}
                 <div className="comments-list">
-                  {data.showComments.slice(0, visibleShowComments).map((comment) => {
+                  {localShowComments.slice(0, visibleShowComments).map((comment) => {
                     const likeState = commentLikes[comment.id]
                     return (
                       <div key={comment.id} className="comment-item">
@@ -2303,9 +2348,9 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                   })}
 
                   {/* Load More Button */}
-                  {visibleShowComments < data.showComments.length && (
+                  {visibleShowComments < localShowComments.length && (
                     <button className="load-more-btn" onClick={handleLoadMoreComments}>
-                      Load More Comments ({data.showComments.length - visibleShowComments} more)
+                      Load More Comments ({localShowComments.length - visibleShowComments} more)
                     </button>
                   )}
                 </div>

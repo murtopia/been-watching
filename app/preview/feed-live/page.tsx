@@ -182,34 +182,13 @@ export default function PreviewFeedLivePage() {
         console.log('Full activities for rendering:', fullActivities)
         
         if (fullActivities && fullActivities.length > 0) {
-          // Mock comments for testing front card comment scrolling
-          const mockComments = [
-            { id: 'mock-1', user: { name: 'Sarah Chen', avatar: 'https://i.pravatar.cc/150?img=1' }, text: 'This show is absolutely incredible! The writing is top-notch.', timestamp: '2h ago', likes: 24, userLiked: false },
-            { id: 'mock-2', user: { name: 'Mike Johnson', avatar: 'https://i.pravatar.cc/150?img=2' }, text: 'Best thing I\'ve watched all year. Can\'t stop thinking about it.', timestamp: '3h ago', likes: 18, userLiked: true },
-            { id: 'mock-3', user: { name: 'Emma Wilson', avatar: 'https://i.pravatar.cc/150?img=3' }, text: 'The cinematography in episode 4 was breathtaking 🎬', timestamp: '5h ago', likes: 31, userLiked: false },
-            { id: 'mock-4', user: { name: 'David Park', avatar: 'https://i.pravatar.cc/150?img=4' }, text: 'I stayed up way too late binging this. No regrets!', timestamp: '6h ago', likes: 12, userLiked: false },
-            { id: 'mock-5', user: { name: 'Lisa Wang', avatar: 'https://i.pravatar.cc/150?img=5' }, text: 'The character development is so well done. Every scene matters.', timestamp: '8h ago', likes: 45, userLiked: true },
-            { id: 'mock-6', user: { name: 'James Miller', avatar: 'https://i.pravatar.cc/150?img=6' }, text: 'Finally a show that respects its audience. Smart writing!', timestamp: '10h ago', likes: 22, userLiked: false },
-            { id: 'mock-7', user: { name: 'Olivia Brown', avatar: 'https://i.pravatar.cc/150?img=7' }, text: 'Episode 6 had me in tears. So emotional 😭', timestamp: '12h ago', likes: 56, userLiked: true },
-            { id: 'mock-8', user: { name: 'Ryan Garcia', avatar: 'https://i.pravatar.cc/150?img=8' }, text: 'The soundtrack is amazing. Added it to my playlist!', timestamp: '1d ago', likes: 19, userLiked: false },
-            { id: 'mock-9', user: { name: 'Sophie Taylor', avatar: 'https://i.pravatar.cc/150?img=9' }, text: 'Can we talk about that plot twist?! Mind = blown 🤯', timestamp: '1d ago', likes: 67, userLiked: true },
-            { id: 'mock-10', user: { name: 'Chris Lee', avatar: 'https://i.pravatar.cc/150?img=10' }, text: 'Recommended this to all my friends. They loved it too!', timestamp: '2d ago', likes: 14, userLiked: false },
-            { id: 'mock-11', user: { name: 'Amanda Ross', avatar: 'https://i.pravatar.cc/150?img=11' }, text: 'The acting is phenomenal. Every cast member delivers.', timestamp: '2d ago', likes: 38, userLiked: false },
-            { id: 'mock-12', user: { name: 'Kevin Zhang', avatar: 'https://i.pravatar.cc/150?img=12' }, text: 'I need season 2 immediately. That ending! 🔥', timestamp: '3d ago', likes: 82, userLiked: true },
-            { id: 'mock-13', user: { name: 'Rachel Adams', avatar: 'https://i.pravatar.cc/150?img=13' }, text: 'This is what peak television looks like.', timestamp: '3d ago', likes: 29, userLiked: false },
-            { id: 'mock-14', user: { name: 'Tom Harris', avatar: 'https://i.pravatar.cc/150?img=14' }, text: 'The attention to detail is insane. Noticed something new on rewatch.', timestamp: '4d ago', likes: 41, userLiked: true },
-            { id: 'mock-15', user: { name: 'Nina Patel', avatar: 'https://i.pravatar.cc/150?img=15' }, text: 'Perfect blend of drama and humor. Masterfully done!', timestamp: '5d ago', likes: 33, userLiked: false },
-          ]
-          
-          const transformedItems: FeedItem[] = fullActivities.map((activity, index) => ({
+          const transformedItems: FeedItem[] = fullActivities.map((activity) => ({
             type: 'activity' as const,
             id: activity.id,
             data: {
               activity,
               friendsActivity: undefined,
-              showComments: [],
-              // Add mock comments to the FIRST card only for testing
-              mockComments: index === 0 ? mockComments : undefined
+              showComments: []
             }
           }))
           
@@ -755,7 +734,7 @@ export default function PreviewFeedLivePage() {
       <div>
         {feedItems.map((item) => {
           if (item.type === 'activity') {
-            const { activity, friendsActivity, showComments, mockComments } = item.data
+            const { activity, friendsActivity, showComments } = item.data
             
             // Transform to card data
             const cardData = activityToUserActivityCardData(
@@ -763,11 +742,6 @@ export default function PreviewFeedLivePage() {
               friendsActivity,
               showComments
             )
-            
-            // If we have mock comments (for testing), override the comments
-            if (mockComments) {
-              cardData.comments = mockComments
-            }
 
             return (
               <div key={item.id} className="card-snap-wrapper">
