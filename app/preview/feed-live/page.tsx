@@ -625,7 +625,7 @@ export default function PreviewFeedLivePage() {
       const filteredPlatforms = filterPrimaryPlatforms(platformNames)
       
       // Check admin allowlist
-      let allowedPlatforms = filteredPlatforms
+      let allowedPlatforms: string[] = []
       try {
         const { data: allowlistSetting } = await supabase
           .from('admin_settings')
@@ -636,21 +636,38 @@ export default function PreviewFeedLivePage() {
         if (allowlistSetting?.setting_value) {
           try {
             const allowlist: string[] = JSON.parse(allowlistSetting.setting_value)
-            if (allowlist.length > 0) {
-              // Only show platforms in the allowlist (case-insensitive matching)
-              const allowlistLower = new Set(allowlist.map(p => p.toLowerCase()))
-              allowedPlatforms = filteredPlatforms.filter(p => 
-                allowlistLower.has(p.toLowerCase())
-              )
-              console.log(`fetchWatchProviders: Filtered to ${allowedPlatforms.length} allowed platforms`)
-            }
+            console.log(`fetchWatchProviders: Allowlist from DB:`, allowlist)
+            console.log(`fetchWatchProviders: Filtered platforms from TMDB:`, filteredPlatforms)
+            
+            // Normalize allowlist names to match normalized platform names
+            const normalizedAllowlist = allowlist.map(p => normalizePlatformName(p)).filter(Boolean) as string[]
+            const allowlistLower = new Set(normalizedAllowlist.map(p => p.toLowerCase()))
+            
+            // Only show platforms that are in the allowlist (case-insensitive matching)
+            allowedPlatforms = filteredPlatforms.filter(p => {
+              const isAllowed = allowlistLower.has(p.toLowerCase())
+              if (!isAllowed) {
+                console.log(`fetchWatchProviders: Filtered out "${p}" (not in allowlist)`)
+              }
+              return isAllowed
+            })
+            
+            console.log(`fetchWatchProviders: Filtered to ${allowedPlatforms.length} allowed platforms (from ${filteredPlatforms.length} total)`)
+            console.log(`fetchWatchProviders: Allowed platforms:`, allowedPlatforms)
           } catch (e) {
             console.error('Error parsing allowlist:', e)
+            // If parsing fails, show all platforms as fallback
+            allowedPlatforms = filteredPlatforms
           }
+        } else {
+          // If no allowlist setting exists, show all platforms (backward compatible)
+          console.log('No allowlist found, showing all platforms')
+          allowedPlatforms = filteredPlatforms
         }
       } catch (err) {
         // If allowlist doesn't exist or error, show all platforms (backward compatible)
-        console.log('No allowlist found, showing all platforms')
+        console.log('Error checking allowlist, showing all platforms:', err)
+        allowedPlatforms = filteredPlatforms
       }
       
       console.log(`fetchWatchProviders: Found ${allowedPlatforms.length} platforms for ${mediaId}:`, allowedPlatforms)
