@@ -358,8 +358,8 @@ export default function StreamingPlatformsPage() {
                   disabled={saving || platform.enabled}
                   style={{
                     padding: '0.5rem 1rem',
-                    background: !platform.enabled ? colors.brandPink : 'transparent',
-                    color: !platform.enabled ? 'white' : colors.textSecondary,
+                    background: platform.enabled ? colors.brandPink : 'transparent',
+                    color: platform.enabled ? 'white' : colors.textSecondary,
                     border: 'none',
                     borderRadius: '6px',
                     fontSize: '0.875rem',
@@ -376,8 +376,8 @@ export default function StreamingPlatformsPage() {
                   disabled={saving || !platform.enabled}
                   style={{
                     padding: '0.5rem 1rem',
-                    background: platform.enabled ? colors.brandPink : 'transparent',
-                    color: platform.enabled ? 'white' : colors.textSecondary,
+                    background: !platform.enabled ? colors.brandPink : 'transparent',
+                    color: !platform.enabled ? 'white' : colors.textSecondary,
                     border: 'none',
                     borderRadius: '6px',
                     fontSize: '0.875rem',
