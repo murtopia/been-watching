@@ -30,18 +30,33 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') || '0')
 
     // Get admin setting for feed visibility
-    const { data: feedSetting, error: settingError } = await supabase
-      .from('admin_settings')
-      .select('setting_value')
-      .eq('setting_key', 'feed_show_all_users')
-      .single()
+    // NOTE: If admin_settings table doesn't exist, default to showing all users
+    let showAllUsers = true // Default to true if table doesn't exist
+    let settingError: any = null
+    let feedSetting: any = null
+    
+    try {
+      const result = await supabase
+        .from('admin_settings')
+        .select('setting_value')
+        .eq('setting_key', 'feed_show_all_users')
+        .single()
+      
+      feedSetting = result.data
+      settingError = result.error
+      
+      if (!result.error && result.data) {
+        showAllUsers = result.data.setting_value === 'true'
+      }
+    } catch (e) {
+      // Table doesn't exist, use default
+      console.log('admin_settings table not found, defaulting to showAllUsers=true')
+    }
 
-    console.log('Feed API - Admin setting query:', { feedSetting, settingError })
-
-    const showAllUsers = feedSetting?.setting_value === 'true'
-    console.log('Feed API - showAllUsers:', showAllUsers)
+    console.log('Feed API - Admin setting query:', { feedSetting, settingError, showAllUsers })
 
     // Get activities based on admin setting
+    // NOTE: activity_group_id column may not exist yet, so we don't query it
     let activitiesQuery = supabase
       .from('activities')
       .select(`
@@ -50,7 +65,6 @@ export async function GET(request: NextRequest) {
         media_id,
         activity_type,
         activity_data,
-        activity_group_id,
         created_at,
         profiles!activities_user_id_fkey (
           id,
@@ -115,96 +129,54 @@ export async function GET(request: NextRequest) {
       console.error('Error fetching activities:', activitiesError)
     }
 
-    // Group activities by activity_group_id
-    const groupedActivities = new Map<string, any[]>()
-    const standaloneActivities: any[] = []
-
-    activities?.forEach((activity: any) => {
-      if (activity.activity_group_id) {
-        if (!groupedActivities.has(activity.activity_group_id)) {
-          groupedActivities.set(activity.activity_group_id, [])
-        }
-        groupedActivities.get(activity.activity_group_id)!.push(activity)
-      } else {
-        standaloneActivities.push(activity)
-      }
-    })
-
-    // Convert grouped activities to feed items
+    // Convert activities to feed items (no grouping for now - activity_group_id column may not exist)
     const feedItems: any[] = []
 
-    // Add grouped activities
-    for (const [groupId, groupActivities] of groupedActivities.entries()) {
-      if (groupActivities.length === 0) continue
+    for (const activity of (activities || [])) {
+      // Try to get like/comment counts, but don't fail if tables don't exist
+      let likeCount = 0
+      let commentCount = 0
+      let userLiked = false
 
-      const firstActivity = groupActivities[0]
-      const activityTypes = groupActivities.map(a => a.activity_type)
-      const activityDataArray = groupActivities.map(a => a.activity_data)
+      try {
+        const { count } = await supabase
+          .from('activity_likes')
+          .select('*', { count: 'exact', head: true })
+          .eq('activity_id', activity.id)
+        likeCount = count || 0
 
-      // Get like/comment counts for the group (use first activity's ID)
-      const { count: likeCount } = await supabase
-        .from('activity_likes')
-        .select('*', { count: 'exact', head: true })
-        .eq('activity_id', firstActivity.id)
+        const { data: userLike } = await supabase
+          .from('activity_likes')
+          .select('id')
+          .eq('activity_id', activity.id)
+          .eq('user_id', user.id)
+          .maybeSingle()
+        userLiked = !!userLike
+      } catch (e) {
+        // activity_likes table may not exist
+      }
 
-      const { count: commentCount } = await supabase
-        .from('comments')
-        .select('*', { count: 'exact', head: true })
-        .eq('activity_id', firstActivity.id)
-
-      const { data: userLike } = await supabase
-        .from('activity_likes')
-        .select('id')
-        .eq('activity_id', firstActivity.id)
-        .eq('user_id', user.id)
-        .maybeSingle()
-
-      feedItems.push({
-        type: 'activity',
-        id: groupId,
-        groupKey: groupId,
-        activityTypes,
-        activityData: activityDataArray,
-        user: firstActivity.profiles,
-        media: firstActivity.media,
-        created_at: firstActivity.created_at,
-        like_count: likeCount || 0,
-        comment_count: commentCount || 0,
-        user_liked: !!userLike
-      })
-    }
-
-    // Add standalone activities
-    for (const activity of standaloneActivities) {
-      const { count: likeCount } = await supabase
-        .from('activity_likes')
-        .select('*', { count: 'exact', head: true })
-        .eq('activity_id', activity.id)
-
-      const { count: commentCount } = await supabase
-        .from('comments')
-        .select('*', { count: 'exact', head: true })
-        .eq('activity_id', activity.id)
-
-      const { data: userLike } = await supabase
-        .from('activity_likes')
-        .select('id')
-        .eq('activity_id', activity.id)
-        .eq('user_id', user.id)
-        .maybeSingle()
+      try {
+        const { count } = await supabase
+          .from('comments')
+          .select('*', { count: 'exact', head: true })
+          .eq('activity_id', activity.id)
+        commentCount = count || 0
+      } catch (e) {
+        // comments table may not exist
+      }
 
       feedItems.push({
         type: 'activity',
         id: activity.id,
-        groupKey: activity.id,
         activityTypes: [activity.activity_type],
         activityData: [activity.activity_data],
         user: activity.profiles,
         media: activity.media,
         created_at: activity.created_at,
-        like_count: likeCount || 0,
-        comment_count: commentCount || 0,
-        user_liked: !!userLike
+        like_count: likeCount,
+        comment_count: commentCount,
+        user_liked: userLiked
       })
     }
 
