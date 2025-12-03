@@ -844,6 +844,82 @@ export default function PreviewFeedLivePage() {
     }
   }
 
+  const handleLikeShowComment = async (commentId: string) => {
+    if (!user) return
+    console.log('Like show comment:', commentId)
+    
+    try {
+      // Check if already liked
+      const { data: existingLike } = await supabase
+        .from('comment_likes')
+        .select('id')
+        .eq('comment_id', commentId)
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      if (existingLike) {
+        // Unlike
+        await supabase
+          .from('comment_likes')
+          .delete()
+          .eq('id', existingLike.id)
+        console.log('Unliked show comment')
+      } else {
+        // Like
+        await supabase
+          .from('comment_likes')
+          .insert({
+            comment_id: commentId,
+            user_id: user.id
+          })
+        console.log('Liked show comment')
+      }
+    } catch (err) {
+      console.error('Error toggling show comment like:', err)
+      throw err // Re-throw so component can handle error
+    }
+  }
+
+  const handleLikeActivityComment = async (commentId: string) => {
+    if (!user) return
+    console.log('Like activity comment:', commentId)
+    
+    try {
+      // Check if already liked
+      const { data: existingLike } = await supabase
+        .from('activity_comment_likes')
+        .select('id')
+        .eq('comment_id', commentId)
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      if (existingLike) {
+        // Unlike
+        await supabase
+          .from('activity_comment_likes')
+          .delete()
+          .eq('id', existingLike.id)
+        console.log('Unliked activity comment')
+      } else {
+        // Like
+        await supabase
+          .from('activity_comment_likes')
+          .insert({
+            comment_id: commentId,
+            user_id: user.id
+          })
+        console.log('Liked activity comment')
+      }
+    } catch (err) {
+      console.error('Error toggling activity comment like:', err)
+      // If table doesn't exist, log warning but don't crash
+      if (err instanceof Error && err.message.includes('relation') && err.message.includes('does not exist')) {
+        console.warn('activity_comment_likes table does not exist. Please run migration to create it.')
+      }
+      throw err // Re-throw so component can handle error
+    }
+  }
+
   const handleSubmitActivityComment = async (activityId: string, text: string) => {
     if (!user) {
       console.error('Cannot submit comment: user not logged in')
@@ -1143,6 +1219,8 @@ export default function PreviewFeedLivePage() {
                     onSetStatus={handleSetStatus}
                     onSubmitActivityComment={handleSubmitActivityComment}
                     onSubmitShowComment={handleSubmitShowComment}
+                    onLikeShowComment={handleLikeShowComment}
+                    onLikeActivityComment={handleLikeActivityComment}
                     currentUser={profile ? { name: profile.display_name || profile.username, avatar: profile.avatar_url || '' } : undefined}
                     initialUserStatus={item.data.userStatus as 'want' | 'watching' | 'watched' | null}
                     onTrack={handleTrack}

@@ -147,6 +147,10 @@ interface FeedCardProps {
   onSubmitActivityComment?: (activityId: string, text: string) => Promise<void>
   /** Called when user submits a comment on a show */
   onSubmitShowComment?: (mediaId: string, text: string) => Promise<void>
+  /** Called when user likes a show comment (back of card) */
+  onLikeShowComment?: (commentId: string) => Promise<void>
+  /** Called when user likes an activity comment (front of card) */
+  onLikeActivityComment?: (commentId: string) => Promise<void>
   /** Current logged-in user (for showing their info on new comments) */
   currentUser?: { name: string; avatar: string }
   /** Initial watch status for this media (to show selected state in modal) */
@@ -169,6 +173,8 @@ interface UserActivityCardProps {
   onSetStatus?: (mediaId: string, status: 'want' | 'watching' | 'watched' | null) => void
   onSubmitActivityComment?: (activityId: string, text: string) => Promise<void>
   onSubmitShowComment?: (mediaId: string, text: string) => Promise<void>
+  onLikeShowComment?: (commentId: string) => Promise<void>
+  onLikeActivityComment?: (commentId: string) => Promise<void>
   currentUser?: { name: string; avatar: string }
   initialUserStatus?: 'want' | 'watching' | 'watched' | null
   onFlip?: (isFlipped: boolean) => void
@@ -295,6 +301,8 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   onSetStatus,
   onSubmitActivityComment,
   onSubmitShowComment,
+  onLikeShowComment,
+  onLikeActivityComment,
   currentUser,
   initialUserStatus,
   onTrack,
@@ -341,6 +349,13 @@ export const FeedCard: React.FC<FeedCardProps> = ({
       [comment.id]: { liked: comment.userLiked, count: comment.likes }
     }), {})
   )
+  // Track activity comment likes separately
+  const [activityCommentLikes, setActivityCommentLikes] = useState<Record<string, { liked: boolean; count: number }>>(
+    data.comments.reduce((acc, comment) => ({
+      ...acc,
+      [comment.id]: { liked: comment.userLiked, count: comment.likes }
+    }), {})
+  )
   const [visibleShowComments, setVisibleShowComments] = useState(10) // Show 10 comments initially
   const [showCommentText, setShowCommentText] = useState('') // Track show comment input
   const [activityCommentText, setActivityCommentText] = useState('') // Track activity comment input
@@ -348,6 +363,8 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   const [localActivityComments, setLocalActivityComments] = useState(data.comments)
   const [localShowComments, setLocalShowComments] = useState(data.showComments)
   const [pressedIcon, setPressedIcon] = useState<string | null>(null) // Track which icon is being pressed for touch feedback
+  const [trailerKey, setTrailerKey] = useState<string | null>(null) // YouTube trailer key
+  const [trailerLoading, setTrailerLoading] = useState(true) // Track trailer fetch status
 
   // Refs for DOM elements
   const cardRef = useRef<HTMLDivElement>(null)
@@ -411,6 +428,66 @@ export const FeedCard: React.FC<FeedCardProps> = ({
       })
     }
   }, [visibleShowComments, isFlipped])
+
+  // Fetch trailer on mount
+  useEffect(() => {
+    const fetchTrailer = async () => {
+      setTrailerLoading(true)
+      try {
+        // Extract TMDB ID from media ID (format: tv-12345-s1 or movie-12345)
+        const mediaId = data.media.id
+        let tmdbId: number | null = null
+        const mediaType = data.media.mediaType.toLowerCase()
+        
+        if (mediaType === 'tv') {
+          const match = mediaId.match(/^tv-(\d+)/)
+          if (match) tmdbId = parseInt(match[1])
+        } else {
+          const match = mediaId.match(/^movie-(\d+)/)
+          if (match) tmdbId = parseInt(match[1])
+        }
+
+        if (!tmdbId) {
+          console.log('Could not extract TMDB ID from', mediaId)
+          setTrailerKey(null)
+          setTrailerLoading(false)
+          return
+        }
+
+        const response = await fetch(`/api/tmdb/${mediaType}/${tmdbId}/videos`)
+        if (!response.ok) {
+          setTrailerKey(null)
+          setTrailerLoading(false)
+          return
+        }
+
+        const videoData = await response.json()
+        const trailer = videoData.results?.find((v: any) => 
+          v.type === 'Trailer' && v.site === 'YouTube'
+        )
+        
+        if (trailer) {
+          setTrailerKey(trailer.key)
+        } else {
+          setTrailerKey(null)
+        }
+      } catch (error) {
+        console.error('Error fetching trailer:', error)
+        setTrailerKey(null)
+      } finally {
+        setTrailerLoading(false)
+      }
+    }
+
+    fetchTrailer()
+  }, [data.media.id, data.media.mediaType])
+
+  const handleTrailerClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (trailerKey) {
+      window.open(`https://www.youtube.com/watch?v=${trailerKey}`, '_blank')
+    }
+  }
   
   // iOS-style momentum scroll for back card using CSS transforms
   // (3D transform breaks native scrollTop, so we use translateY instead)
@@ -764,17 +841,39 @@ export const FeedCard: React.FC<FeedCardProps> = ({
     }
   }
 
-  const handleCommentLike = (commentId: string, e: React.MouseEvent) => {
+  const handleCommentLike = async (commentId: string, e: React.MouseEvent) => {
     e.stopPropagation()
     const current = commentLikes[commentId] || { liked: false, count: 0 }
+    const newLiked = !current.liked
+    
+    // Optimistic update
     setCommentLikes({
       ...commentLikes,
       [commentId]: {
-        liked: !current.liked,
-        count: current.liked ? current.count - 1 : current.count + 1
+        liked: newLiked,
+        count: newLiked ? current.count + 1 : current.count - 1
       }
     })
-    onTrack?.('comment_like', { commentId, mediaId: data.media.id })
+    
+    // Call the appropriate handler based on which comment type
+    // Check if it's a show comment (back of card) or activity comment (front of card)
+    const isShowComment = localShowComments.some(c => c.id === commentId)
+    
+    try {
+      if (isShowComment && onLikeShowComment) {
+        await onLikeShowComment(commentId)
+      } else if (!isShowComment && onLikeActivityComment) {
+        await onLikeActivityComment(commentId)
+      }
+      onTrack?.('comment_like', { commentId, mediaId: data.media.id })
+    } catch (error) {
+      console.error('Error liking comment:', error)
+      // Revert optimistic update on error
+      setCommentLikes({
+        ...commentLikes,
+        [commentId]: current
+      })
+    }
   }
 
   const handleCommentIconClick = (e: React.MouseEvent) => {
@@ -2104,15 +2203,41 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                         <span className="activity-comment-time">{comment.timestamp}</span>
                       </div>
                       <button
-                        className={`comment-like-btn ${comment.userLiked ? 'liked' : ''}`}
+                        className={`comment-like-btn ${(activityCommentLikes[comment.id] || { liked: comment.userLiked }).liked ? 'liked' : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          const current = activityCommentLikes[comment.id] || { liked: comment.userLiked, count: comment.likes }
+                          const newLiked = !current.liked
+                          
+                          // Optimistic update
+                          setActivityCommentLikes({
+                            ...activityCommentLikes,
+                            [comment.id]: {
+                              liked: newLiked,
+                              count: newLiked ? current.count + 1 : current.count - 1
+                            }
+                          })
+                          
+                          // Call handler
+                          if (onLikeActivityComment) {
+                            onLikeActivityComment(comment.id).catch((error) => {
+                              console.error('Error liking activity comment:', error)
+                              // Revert on error
+                              setActivityCommentLikes({
+                                ...activityCommentLikes,
+                                [comment.id]: current
+                              })
+                            })
+                          }
+                        }}
                       >
                         <Icon
                           name="heart"
-                          state={comment.userLiked ? 'active' : 'default'}
+                          state={(activityCommentLikes[comment.id] || { liked: comment.userLiked }).liked ? 'active' : 'default'}
                           size={14}
-                          color={comment.userLiked ? '#FF3B5C' : 'rgba(255, 255, 255, 0.6)'}
+                          color={(activityCommentLikes[comment.id] || { liked: comment.userLiked }).liked ? '#FF3B5C' : 'rgba(255, 255, 255, 0.6)'}
                         />
-                        {comment.likes}
+                        {(activityCommentLikes[comment.id] || { count: comment.likes }).count}
                       </button>
                     </div>
                     <div className="activity-comment-text">{comment.text}</div>
@@ -2162,7 +2287,22 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                   ) : (
                     data.media.network && <div className="back-badge network">{data.media.network}</div>
                   )}
-                  <div className="back-badge trailer"><Icon name="play" size={10} /> Trailer</div>
+                  <button
+                    className={`back-badge trailer ${!trailerKey ? 'disabled' : ''}`}
+                    onClick={handleTrailerClick}
+                    disabled={!trailerKey || trailerLoading}
+                    style={{
+                      opacity: (!trailerKey || trailerLoading) ? 0.4 : 1,
+                      cursor: trailerKey ? 'pointer' : 'not-allowed',
+                      border: 'none',
+                      background: 'transparent',
+                      padding: 0,
+                      font: 'inherit',
+                      color: 'inherit'
+                    }}
+                  >
+                    <Icon name="play" size={10} /> Trailer
+                  </button>
                 </div>
               </div>
 
