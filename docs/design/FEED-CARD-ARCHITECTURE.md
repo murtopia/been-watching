@@ -20,7 +20,41 @@ All 8 React card components have been built, tested on mobile, and approved:
 | 7 | Find New Friends | ✅ Approved | `/preview/card-7` |
 | 8 | You Might Like | ✅ Approved | `/preview/card-8` |
 
-**Test Feed:** `/preview/feed-v2` - All 8 cards with scroll-snap behavior
+**Test Feeds:**
+- `/preview/feed-v2` - All 8 cards with mock data and scroll-snap behavior
+- `/preview/feed-live` - **NEW** Live data integration test with real API data
+
+---
+
+## Live Feed Integration (In Progress)
+
+### Current Status
+The `/preview/feed-live` page demonstrates the new cards with real database data:
+
+**Features Implemented:**
+- ✅ Real activities from database (bypassing API in TEST MODE)
+- ✅ AppHeader with Instagram-style hide-on-scroll behavior
+- ✅ BottomNav with search functionality  
+- ✅ Natural page scroll (no scroll-snap)
+- ✅ Data transformation layer (`utils/feedDataTransformers.ts`)
+- ✅ Scroll-to-top on page load
+- ✅ Mock comments on first card for scroll testing
+
+**Header Behavior:**
+- Visible on page load
+- Hides when scrolling down (past 60px)
+- Shows when scrolling back up
+- Uses `hideOnScroll` prop on AppHeader component
+
+**Activity Grouping:**
+- Database trigger groups rating + status activities within 1 minute
+- API handles `activity_group_id` for merged display
+- Cards show multiple badges for grouped activities
+
+**Next Steps:**
+- Wire up like/comment/rating actions
+- Debug API to work with "show all users" setting
+- Replace old feed components in `/feed` page
 
 ---
 
@@ -290,14 +324,17 @@ components/feed/
 
 ## Implementation Status
 
-All phases complete:
+All card phases complete, now in integration phase:
 
 1. ✅ **Phase 1:** Refactored UserActivityCard → FeedCard with variant prop
 2. ✅ **Phase 2:** Extracted badge presets (BADGE_PRESETS object)
 3. ✅ **Phase 3:** Added backVariant support for Card 4 (unreleased)
 4. ✅ **Phase 4:** Built Card 7 (FollowSuggestionsCard) separately
-
-**Next Phase:** Integrate into real activity feed with API/database data
+5. ✅ **Phase 5:** Created data transformation layer (`feedDataTransformers.ts`)
+6. ✅ **Phase 6:** Built `/preview/feed-live` with real data
+7. ✅ **Phase 7:** Added Instagram-style hideOnScroll header
+8. 🚧 **Phase 8:** Wire up interactions (like, comment, rate, watchlist)
+9. ⏳ **Phase 9:** Replace old feed components in `/feed` page
 
 ---
 
