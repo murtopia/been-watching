@@ -142,6 +142,10 @@ interface FeedCardProps {
   onRate?: (mediaId: string, rating: 'meh' | 'like' | 'love' | null) => void
   /** Called when user changes watch status - should persist to database */
   onSetStatus?: (mediaId: string, status: 'want' | 'watching' | 'watched' | null) => void
+  /** Called when user submits a comment on an activity */
+  onSubmitActivityComment?: (activityId: string, text: string) => Promise<void>
+  /** Called when user submits a comment on a show */
+  onSubmitShowComment?: (mediaId: string, text: string) => Promise<void>
   onTrack?: (action: string, metadata?: any) => void
   onFlip?: (isFlipped: boolean) => void  // Notify parent when card flips
 }
@@ -158,6 +162,8 @@ interface UserActivityCardProps {
   onTrack?: (action: string, metadata?: any) => void
   onRate?: (mediaId: string, rating: 'meh' | 'like' | 'love' | null) => void
   onSetStatus?: (mediaId: string, status: 'want' | 'watching' | 'watched' | null) => void
+  onSubmitActivityComment?: (activityId: string, text: string) => Promise<void>
+  onSubmitShowComment?: (mediaId: string, text: string) => Promise<void>
   onFlip?: (isFlipped: boolean) => void
 }
 
@@ -280,6 +286,8 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   onMediaClick,
   onRate,
   onSetStatus,
+  onSubmitActivityComment,
+  onSubmitShowComment,
   onTrack,
   onFlip,
 }) => {
@@ -639,6 +647,30 @@ export const FeedCard: React.FC<FeedCardProps> = ({
     onTrack?.('watchlist', { status: newStatus, mediaId: data.media.id })
     // Call external callback to persist to database
     onSetStatus?.(data.media.id, newStatus)
+  }
+
+  // Submit activity comment
+  const handleSubmitActivityComment = async () => {
+    if (!activityCommentText.trim() || !onSubmitActivityComment) return
+    try {
+      await onSubmitActivityComment(data.id, activityCommentText.trim())
+      setActivityCommentText('') // Clear input on success
+      onTrack?.('activity_comment', { activityId: data.id })
+    } catch (err) {
+      console.error('Error submitting activity comment:', err)
+    }
+  }
+
+  // Submit show comment
+  const handleSubmitShowComment = async () => {
+    if (!showCommentText.trim() || !onSubmitShowComment) return
+    try {
+      await onSubmitShowComment(data.media.id, showCommentText.trim())
+      setShowCommentText('') // Clear input on success
+      onTrack?.('show_comment', { mediaId: data.media.id })
+    } catch (err) {
+      console.error('Error submitting show comment:', err)
+    }
   }
 
   const handleCommentLike = (commentId: string, e: React.MouseEvent) => {
@@ -1886,7 +1918,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
               {/* Share Button - For Template B and unreleased */}
               {(!showCommentAction || isUnreleased) && (
                 <div>
-                  <button className="action-btn" onClick={onShare}>
+                  <button className="action-btn" disabled style={{ opacity: 0.4, cursor: 'not-allowed' }}>
                     <Icon name="share" state="default" size={24} />
                   </button>
                 </div>
@@ -1949,7 +1981,12 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                     <div className="activity-comment-char-count">
                       {activityCommentText.length}/280
                     </div>
-                    <button className="activity-comment-send-btn">
+                    <button 
+                      className="activity-comment-send-btn"
+                      onClick={handleSubmitActivityComment}
+                      disabled={!activityCommentText.trim()}
+                      style={{ opacity: activityCommentText.trim() ? 1 : 0.5 }}
+                    >
                       <Icon name="send" size={16} color="white" />
                     </button>
                   </div>
@@ -2067,7 +2104,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                 <button className="back-icon-btn" onClick={handleCommentIconClick}>
                   <Icon name="comment" size={22} color="white" />
                 </button>
-                <button className="back-icon-btn" onClick={onShare}>
+                <button className="back-icon-btn" disabled style={{ opacity: 0.4, cursor: 'not-allowed' }}>
                   <Icon name="share" size={22} color="white" />
                 </button>
                 {/* Remind Me - Only for unreleased */}
@@ -2221,7 +2258,14 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                       <div className="comment-char-count">
                         {showCommentText.length}/280
                       </div>
-                      <button className="comment-submit-btn">Post Comment</button>
+                      <button 
+                        className="comment-submit-btn"
+                        onClick={handleSubmitShowComment}
+                        disabled={!showCommentText.trim()}
+                        style={{ opacity: showCommentText.trim() ? 1 : 0.5 }}
+                      >
+                        Post Comment
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -2430,6 +2474,8 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = (props) => {
       onTrack={props.onTrack}
       onRate={props.onRate}
       onSetStatus={props.onSetStatus}
+      onSubmitActivityComment={props.onSubmitActivityComment}
+      onSubmitShowComment={props.onSubmitShowComment}
       onFlip={props.onFlip}
     />
   )

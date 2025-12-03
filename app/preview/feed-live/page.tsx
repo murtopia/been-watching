@@ -542,6 +542,44 @@ export default function PreviewFeedLivePage() {
     }
   }
 
+  const handleSubmitActivityComment = async (activityId: string, text: string) => {
+    if (!user) return
+    console.log('Submit activity comment:', activityId, text)
+    
+    try {
+      await supabase
+        .from('activity_comments')
+        .insert({
+          activity_id: activityId,
+          user_id: user.id,
+          comment_text: text
+        })
+      console.log('Activity comment submitted successfully')
+    } catch (err) {
+      console.error('Error submitting activity comment:', err)
+      throw err
+    }
+  }
+
+  const handleSubmitShowComment = async (mediaId: string, text: string) => {
+    if (!user) return
+    console.log('Submit show comment:', mediaId, text)
+    
+    try {
+      await supabase
+        .from('show_comments')
+        .insert({
+          media_id: mediaId,
+          user_id: user.id,
+          comment_text: text
+        })
+      console.log('Show comment submitted successfully')
+    } catch (err) {
+      console.error('Error submitting show comment:', err)
+      throw err
+    }
+  }
+
   const handleMediaSelect = (media: any, rating?: string, status?: string) => {
     console.log('Media selected:', media, rating, status)
     setSearchOpen(false)
@@ -742,6 +780,8 @@ export default function PreviewFeedLivePage() {
                     onAddToWatchlist={() => console.log('Add to watchlist')}
                     onRate={handleRate}
                     onSetStatus={handleSetStatus}
+                    onSubmitActivityComment={handleSubmitActivityComment}
+                    onSubmitShowComment={handleSubmitShowComment}
                     onTrack={handleTrack}
                   />
                 </div>
