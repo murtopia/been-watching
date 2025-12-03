@@ -921,42 +921,65 @@ export default function PreviewFeedLivePage() {
   }
 
   const handleLikeActivityComment = async (commentId: string) => {
-    if (!user) return
+    if (!user) {
+      console.error('Cannot like comment: user not logged in')
+      return
+    }
+    
     console.log('Like activity comment:', commentId)
     
     try {
       // Check if already liked
-      const { data: existingLike } = await supabase
+      const { data: existingLike, error: checkError } = await supabase
         .from('activity_comment_likes')
         .select('id')
         .eq('comment_id', commentId)
         .eq('user_id', user.id)
         .maybeSingle()
 
+      if (checkError) {
+        console.error('Error checking existing like:', checkError)
+        // If table doesn't exist, show helpful error
+        if (checkError.message?.includes('relation') && checkError.message?.includes('does not exist')) {
+          console.error('❌ activity_comment_likes table does not exist!')
+          console.error('Please run the migration: supabase/migrations/create-activity-comment-likes-table.sql')
+          alert('Activity comment likes feature requires a database migration. Please run the migration first.')
+          throw new Error('Table does not exist')
+        }
+        throw checkError
+      }
+
       if (existingLike) {
         // Unlike
-        await supabase
+        const { error: deleteError } = await supabase
           .from('activity_comment_likes')
           .delete()
           .eq('id', existingLike.id)
-        console.log('Unliked activity comment')
+        
+        if (deleteError) {
+          console.error('Error unliking comment:', deleteError)
+          throw deleteError
+        }
+        console.log('✅ Unliked activity comment')
       } else {
         // Like
-        await supabase
+        const { error: insertError } = await supabase
           .from('activity_comment_likes')
           .insert({
             comment_id: commentId,
             user_id: user.id
           })
-        console.log('Liked activity comment')
+        
+        if (insertError) {
+          console.error('Error liking comment:', insertError)
+          throw insertError
+        }
+        console.log('✅ Liked activity comment')
       }
-    } catch (err) {
-      console.error('Error toggling activity comment like:', err)
-      // If table doesn't exist, log warning but don't crash
-      if (err instanceof Error && err.message.includes('relation') && err.message.includes('does not exist')) {
-        console.warn('activity_comment_likes table does not exist. Please run migration to create it.')
-      }
-      throw err // Re-throw so component can handle error
+    } catch (err: any) {
+      console.error('❌ Error toggling activity comment like:', err)
+      // Re-throw so component can handle error and revert optimistic update
+      throw err
     }
   }
 

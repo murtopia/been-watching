@@ -1699,6 +1699,12 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           cursor: pointer;
         }
 
+        .back-badge.trailer.disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+          pointer-events: none;
+        }
+
         /* Synopsis and Read More styles in globals.css */
 
         .back-action-icons {
@@ -2288,17 +2294,19 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                     data.media.network && <div className="back-badge network">{data.media.network}</div>
                   )}
                   <button
-                    className={`back-badge trailer ${!trailerKey ? 'disabled' : ''}`}
+                    className={`back-badge trailer ${!trailerKey || trailerLoading ? 'disabled' : ''}`}
                     onClick={handleTrailerClick}
                     disabled={!trailerKey || trailerLoading}
                     style={{
-                      opacity: (!trailerKey || trailerLoading) ? 0.4 : 1,
-                      cursor: trailerKey ? 'pointer' : 'not-allowed',
                       border: 'none',
                       background: 'transparent',
                       padding: 0,
                       font: 'inherit',
-                      color: 'inherit'
+                      color: 'inherit',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '4px'
                     }}
                   >
                     <Icon name="play" size={10} /> Trailer
