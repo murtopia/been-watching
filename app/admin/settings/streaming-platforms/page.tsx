@@ -5,7 +5,6 @@ import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { Tv } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import SettingsNav from '../SettingsNav'
 import SystemNav from '../../system/SystemNav'
 
 interface Platform {
@@ -218,11 +217,8 @@ export default function StreamingPlatformsPage() {
 
   return (
     <div style={{ padding: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
-      {/* System Navigation */}
+      {/* Sub-navigation */}
       <SystemNav />
-
-      {/* Settings Navigation */}
-      <SettingsNav />
 
       <div style={{ marginBottom: '2rem' }}>
         <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
