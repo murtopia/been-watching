@@ -2314,11 +2314,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                       background: 'transparent',
                       padding: 0,
                       font: 'inherit',
-                      color: 'inherit',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '4px'
+                      color: 'inherit'
                     }}
                   >
                     <Icon name="play" size={10} /> Trailer
