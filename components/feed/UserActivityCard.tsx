@@ -2745,6 +2745,8 @@ export const UserActivityCard: React.FC<UserActivityCardProps> = (props) => {
       onSetStatus={props.onSetStatus}
       onSubmitActivityComment={props.onSubmitActivityComment}
       onSubmitShowComment={props.onSubmitShowComment}
+      onLikeShowComment={props.onLikeShowComment}
+      onLikeActivityComment={props.onLikeActivityComment}
       currentUser={props.currentUser}
       initialUserStatus={props.initialUserStatus}
       onFlip={props.onFlip}
