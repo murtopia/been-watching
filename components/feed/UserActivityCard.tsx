@@ -2210,10 +2210,15 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                       </div>
                       <button
                         className={`comment-like-btn ${(activityCommentLikes[comment.id] || { liked: comment.userLiked }).liked ? 'liked' : ''}`}
-                        onClick={(e) => {
+                        onClick={async (e) => {
                           e.stopPropagation()
+                          console.log('🔵 Activity comment like button clicked:', comment.id)
+                          console.log('🔵 Handler available:', !!onLikeActivityComment)
+                          
                           const current = activityCommentLikes[comment.id] || { liked: comment.userLiked, count: comment.likes }
                           const newLiked = !current.liked
+                          
+                          console.log('🔵 Current state:', current, 'New liked:', newLiked)
                           
                           // Optimistic update
                           setActivityCommentLikes({
@@ -2226,14 +2231,21 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                           
                           // Call handler
                           if (onLikeActivityComment) {
-                            onLikeActivityComment(comment.id).catch((error) => {
-                              console.error('Error liking activity comment:', error)
+                            console.log('🔵 Calling onLikeActivityComment handler...')
+                            try {
+                              await onLikeActivityComment(comment.id)
+                              console.log('🔵 Handler completed successfully')
+                            } catch (error) {
+                              console.error('❌ Error in onLikeActivityComment handler:', error)
                               // Revert on error
                               setActivityCommentLikes({
                                 ...activityCommentLikes,
                                 [comment.id]: current
                               })
-                            })
+                              alert(`Failed to save like: ${error instanceof Error ? error.message : 'Unknown error'}`)
+                            }
+                          } else {
+                            console.warn('⚠️ onLikeActivityComment handler is not provided!')
                           }
                         }}
                       >
