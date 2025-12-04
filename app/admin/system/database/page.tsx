@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { ArrowLeft, Database, HardDrive, Activity, Zap, TrendingUp } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
+import SystemNav from '../SystemNav'
 
 interface TableStats {
   name: string
@@ -137,26 +138,11 @@ export default function DatabaseStatsPage() {
       padding: '2rem',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
+      {/* Sub-navigation */}
+      <SystemNav />
+
       {/* Header */}
       <div style={{ marginBottom: '2rem' }}>
-        <button
-          onClick={() => router.push('/admin/system')}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: colors.textSecondary,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            marginBottom: '1rem',
-            padding: '0.5rem',
-            fontSize: '0.875rem'
-          }}
-        >
-          <ArrowLeft size={16} />
-          Back to System Overview
-        </button>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>

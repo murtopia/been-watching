@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { ArrowLeft, AlertTriangle, XCircle, AlertCircle, Info } from 'lucide-react'
+import SystemNav from '../SystemNav'
 
 export default function ErrorLogsPage() {
   const router = useRouter()
@@ -89,26 +90,11 @@ export default function ErrorLogsPage() {
       padding: '2rem',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
+      {/* Sub-navigation */}
+      <SystemNav />
+
       {/* Header */}
       <div style={{ marginBottom: '2rem' }}>
-        <button
-          onClick={() => router.push('/admin/system')}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: colors.textSecondary,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            marginBottom: '1rem',
-            padding: '0.5rem',
-            fontSize: '0.875rem'
-          }}
-        >
-          <ArrowLeft size={16} />
-          Back to System Overview
-        </button>
 
         <h1 style={{
           fontSize: '2rem',
