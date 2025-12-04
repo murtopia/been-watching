@@ -1705,6 +1705,15 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           pointer-events: none;
         }
 
+        /* Reset button defaults so badge styling applies */
+        button.back-badge {
+          border: none;
+          background: transparent;
+          padding: 0;
+          font: inherit;
+          color: inherit;
+        }
+
         /* Synopsis and Read More styles in globals.css */
 
         .back-action-icons {
@@ -2309,13 +2318,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                     className={`back-badge trailer ${!trailerKey || trailerLoading ? 'disabled' : ''}`}
                     onClick={handleTrailerClick}
                     disabled={!trailerKey || trailerLoading}
-                    style={{
-                      border: 'none',
-                      background: 'transparent',
-                      padding: 0,
-                      font: 'inherit',
-                      color: 'inherit'
-                    }}
+                    type="button"
                   >
                     <Icon name="play" size={10} /> Trailer
                   </button>
