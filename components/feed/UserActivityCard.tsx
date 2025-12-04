@@ -16,6 +16,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { Icon } from '@/components/ui/Icon'
 import { ShareButton } from '@/components/sharing/ShareButton'
+import YouTubeModal from '@/components/media/YouTubeModal'
 
 // ============================================================================
 // TypeScript Interfaces
@@ -365,6 +366,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   const [pressedIcon, setPressedIcon] = useState<string | null>(null) // Track which icon is being pressed for touch feedback
   const [trailerKey, setTrailerKey] = useState<string | null>(null) // YouTube trailer key
   const [trailerLoading, setTrailerLoading] = useState(true) // Track trailer fetch status
+  const [showTrailerModal, setShowTrailerModal] = useState(false) // Control trailer modal visibility
 
   // Refs for DOM elements
   const cardRef = useRef<HTMLDivElement>(null)
@@ -485,7 +487,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   const handleTrailerClick = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (trailerKey) {
-      window.open(`https://www.youtube.com/watch?v=${trailerKey}`, '_blank')
+      setShowTrailerModal(true)
     }
   }
   
@@ -2715,6 +2717,16 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           </div>
         </div>
       </div>
+
+      {/* YouTube Trailer Modal */}
+      {trailerKey && (
+        <YouTubeModal
+          isOpen={showTrailerModal}
+          onClose={() => setShowTrailerModal(false)}
+          videoId={trailerKey}
+          title={`${data.media.title} Trailer`}
+        />
+      )}
     </>
   )
 }
