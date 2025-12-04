@@ -1705,13 +1705,16 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           pointer-events: none;
         }
 
-        /* Reset button defaults so badge styling applies */
+        /* Ensure button inherits all badge styling */
         button.back-badge {
-          border: none;
-          background: transparent;
-          padding: 0;
-          font: inherit;
+          /* Reset only what's needed, let .back-badge class provide the rest */
+          margin: 0;
+          font-family: inherit;
+          font-size: inherit;
+          font-weight: inherit;
+          line-height: inherit;
           color: inherit;
+          /* Don't override border, background, padding, border-radius - let .back-badge handle it */
         }
 
         /* Synopsis and Read More styles in globals.css */
