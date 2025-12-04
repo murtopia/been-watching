@@ -11,7 +11,8 @@ export default function SystemNav() {
     { label: 'Health', href: '/admin/system/health' },
     { label: 'Errors', href: '/admin/system/errors' },
     { label: 'API', href: '/admin/system/api' },
-    { label: 'Database', href: '/admin/system/database' }
+    { label: 'Database', href: '/admin/system/database' },
+    { label: 'Streaming Platforms', href: '/admin/settings/streaming-platforms' }
   ]
 
   const isActive = (href: string, exact?: boolean) => {
