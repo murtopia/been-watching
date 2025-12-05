@@ -5,10 +5,19 @@ import { createClient } from '@/utils/supabase/server'
  * GET /api/feed
  * 
  * Returns unified feed with activities, recommendations, and release notifications
+ * Uses cursor-based pagination for infinite scroll
  * 
  * Query params:
- * - limit: number of items (default: 20)
- * - offset: pagination offset (default: 0)
+ * - limit: number of items (default: 5)
+ * - cursor: ISO timestamp cursor for pagination (optional)
+ * 
+ * Response:
+ * {
+ *   items: FeedItem[],
+ *   hasMore: boolean,
+ *   nextCursor: string | null,
+ *   feedType: 'friends' | 'discovery'
+ * }
  */
 export async function GET(request: NextRequest) {
   try {
@@ -24,9 +33,12 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get query params
+    // Get query params - cursor-based pagination
     const searchParams = request.nextUrl.searchParams
-    const limit = parseInt(searchParams.get('limit') || '20')
+    const limit = parseInt(searchParams.get('limit') || '5')
+    const cursor = searchParams.get('cursor') // ISO timestamp or null for first page
+    
+    // Legacy support
     const offset = parseInt(searchParams.get('offset') || '0')
 
     // Get admin setting for feed visibility
@@ -87,27 +99,33 @@ export async function GET(request: NextRequest) {
       .neq('user_id', user.id) // Always exclude current user's activities
       .order('created_at', { ascending: false })
 
+    // Get friend count for blended feed algorithm
+    const { data: follows } = await supabase
+      .from('follows')
+      .select('following_id')
+      .eq('follower_id', user.id)
+      .eq('status', 'accepted')
+    
+    const followedUserIds = follows?.map(f => f.following_id) || []
+    const hasFriends = followedUserIds.length > 0
+    
+    // Determine feed type based on friends
+    const feedType = hasFriends ? 'friends' : 'discovery'
+
     if (!showAllUsers) {
       // Only show activities from followed users
-      const { data: follows } = await supabase
-        .from('follows')
-        .select('following_id')
-        .eq('follower_id', user.id)
-        .eq('status', 'accepted')
-      
-      const followedUserIds = follows?.map(f => f.following_id) || []
-      if (followedUserIds.length > 0) {
+      if (hasFriends) {
         activitiesQuery = activitiesQuery.in('user_id', followedUserIds)
       } else {
-        // No followed users, return empty result
+        // No followed users - return discovery feed instead of empty
+        // Cold start: recommendations + find friends
         return NextResponse.json({
           items: [],
           hasMore: false,
-          limit,
-          offset,
-          // DEBUG INFO - this is why it's empty!
+          nextCursor: null,
+          feedType: 'discovery',
           _debug: {
-            reason: 'NO_FOLLOWED_USERS',
+            reason: 'COLD_START_NO_FRIENDS',
             showAllUsers,
             adminSettingValue: feedSetting?.setting_value,
             followedUserIds: []
@@ -116,8 +134,13 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Apply cursor-based pagination (use created_at as cursor)
+    if (cursor) {
+      activitiesQuery = activitiesQuery.lt('created_at', cursor)
+    }
+
     const { data: activities, error: activitiesError } = await activitiesQuery
-      .range(offset, offset + limit - 1)
+      .limit(limit)
 
     console.log('Feed API - Activities query result:', { 
       count: activities?.length || 0, 
@@ -292,14 +315,23 @@ export async function GET(request: NextRequest) {
       new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     )
 
-    // Apply pagination
-    const paginatedItems = feedItems.slice(offset, offset + limit)
+    // For cursor pagination, take first `limit` items
+    const paginatedItems = feedItems.slice(0, limit)
+    
+    // Calculate next cursor (timestamp of last item)
+    const lastItem = paginatedItems[paginatedItems.length - 1]
+    const nextCursor = lastItem ? lastItem.created_at : null
+    
+    // Determine if there are more items
+    // We fetched `limit` items, if we got exactly that many, there may be more
+    const hasMore = feedItems.length >= limit
 
     return NextResponse.json({
       items: paginatedItems,
       limit,
-      offset,
-      hasMore: feedItems.length > offset + limit,
+      hasMore,
+      nextCursor,
+      feedType,
       total: feedItems.length,
       // DEBUG INFO - remove after fixing
       _debug: {
@@ -308,7 +340,9 @@ export async function GET(request: NextRequest) {
         adminSettingError: settingError?.message,
         activitiesCount: activities?.length || 0,
         activitiesError: activitiesError?.message,
-        userId: user.id
+        userId: user.id,
+        hasFriends,
+        friendCount: followedUserIds.length
       }
     })
   } catch (error) {

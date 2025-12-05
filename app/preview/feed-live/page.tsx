@@ -9,7 +9,7 @@
 
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { UserActivityCard, FeedCard, BADGE_PRESETS } from '@/components/feed/UserActivityCard'
 import { FollowSuggestionsCard } from '@/components/feed/FollowSuggestionsCard'
@@ -25,6 +25,10 @@ import {
   APIShowComment,
   APIComment
 } from '@/utils/feedDataTransformers'
+
+// Initial batch size and load more batch size
+const INITIAL_BATCH_SIZE = 5
+const LOAD_MORE_BATCH_SIZE = 5
 
 interface FeedItem {
   type: 'activity' | 'recommendation' | 'follow_suggestions'
@@ -56,6 +60,13 @@ export default function PreviewFeedLivePage() {
   const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null)
   const [apiTestResult, setApiTestResult] = useState<string | null>(null)
   
+  // Infinite scroll state
+  const [cursor, setCursor] = useState<string | null>(null)
+  const [hasMore, setHasMore] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const loaderRef = useRef<HTMLDivElement>(null)
+  const isLoadingRef = useRef(false) // Prevent duplicate calls
+  
   const supabase = createClient()
   
   // Test API directly
@@ -82,6 +93,28 @@ export default function PreviewFeedLivePage() {
     const timeout = setTimeout(() => window.scrollTo(0, 0), 50)
     return () => clearTimeout(timeout)
   }, [])
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    if (!loaderRef.current || loading) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0]
+        if (first.isIntersecting && hasMore && !isLoadingRef.current) {
+          loadMoreItems()
+        }
+      },
+      {
+        rootMargin: '200px', // Load more when 200px from bottom
+        threshold: 0.1
+      }
+    )
+
+    observer.observe(loaderRef.current)
+
+    return () => observer.disconnect()
+  }, [hasMore, loading])
 
   useEffect(() => {
     loadUser()
@@ -178,11 +211,15 @@ export default function PreviewFeedLivePage() {
           `)
           .neq('user_id', user?.id)
           .order('created_at', { ascending: false })
-          .limit(10)
+          .limit(INITIAL_BATCH_SIZE)
         
         console.log('Full activities for rendering:', fullActivities)
         
         if (fullActivities && fullActivities.length > 0) {
+          // Set cursor to last item's created_at for pagination
+          const lastActivity = fullActivities[fullActivities.length - 1]
+          setCursor(lastActivity.created_at)
+          setHasMore(fullActivities.length === INITIAL_BATCH_SIZE)
           // Fetch comments for each activity
           const transformedItems: FeedItem[] = await Promise.all(
             fullActivities.map(async (activity) => {
@@ -399,6 +436,137 @@ export default function PreviewFeedLivePage() {
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Load more items when scrolling (infinite scroll)
+  const loadMoreItems = async () => {
+    if (isLoadingRef.current || !hasMore || !cursor || !user) return
+    
+    isLoadingRef.current = true
+    setIsLoadingMore(true)
+    
+    try {
+      console.log('Loading more items with cursor:', cursor)
+      
+      // Fetch more activities using cursor
+      const { data: moreActivities } = await supabase
+        .from('activities')
+        .select(`
+          id,
+          user_id,
+          media_id,
+          activity_type,
+          activity_data,
+          created_at,
+          profiles:user_id (
+            id,
+            username,
+            display_name,
+            avatar_url
+          ),
+          media:media_id (
+            id,
+            title,
+            poster_path,
+            backdrop_path,
+            overview,
+            release_date,
+            vote_average,
+            media_type,
+            tmdb_data
+          )
+        `)
+        .neq('user_id', user.id)
+        .lt('created_at', cursor)
+        .order('created_at', { ascending: false })
+        .limit(LOAD_MORE_BATCH_SIZE)
+      
+      if (!moreActivities || moreActivities.length === 0) {
+        setHasMore(false)
+        return
+      }
+      
+      // Update cursor for next load
+      const lastActivity = moreActivities[moreActivities.length - 1]
+      setCursor(lastActivity.created_at)
+      setHasMore(moreActivities.length === LOAD_MORE_BATCH_SIZE)
+      
+      // Transform new activities
+      const newItems: FeedItem[] = await Promise.all(
+        moreActivities.map(async (activity) => {
+          const activityComments = await fetchActivityComments(activity.id)
+          const showComments = await fetchShowComments(activity.media_id)
+          const friendsActivity = await fetchFriendsActivity(activity.media_id)
+          
+          const mediaType = (activity.media as any)?.media_type || (activity.media_id?.startsWith('movie-') ? 'movie' : 'tv')
+          const streamingPlatforms = await fetchWatchProviders(activity.media_id, mediaType)
+          
+          const { data: activityLikes } = await supabase
+            .from('activity_likes')
+            .select('user_id')
+            .eq('activity_id', activity.id)
+          
+          const userLiked = activityLikes?.some(like => like.user_id === user.id) || false
+          const likeCount = activityLikes?.length || 0
+          
+          let userRating: string | null = null
+          let userStatus: string | null = null
+          
+          if (activity.media_id) {
+            const { data: ratingData } = await supabase
+              .from('ratings')
+              .select('rating')
+              .eq('user_id', user.id)
+              .eq('media_id', activity.media_id)
+              .maybeSingle()
+            
+            userRating = ratingData?.rating || null
+            
+            const { data: statusData } = await supabase
+              .from('watch_status')
+              .select('status')
+              .eq('user_id', user.id)
+              .eq('media_id', activity.media_id)
+              .maybeSingle()
+            
+            userStatus = statusData?.status || null
+          }
+          
+          const activityWithLikes = {
+            ...activity,
+            like_count: likeCount,
+            comment_count: activityComments?.length || 0,
+            user_liked: userLiked
+          }
+          
+          return {
+            type: 'activity' as const,
+            id: activity.id,
+            data: {
+              activity: activityWithLikes,
+              friendsActivity,
+              showComments,
+              activityComments,
+              userLiked,
+              likeCount,
+              userRating,
+              userStatus,
+              streamingPlatforms
+            }
+          }
+        })
+      )
+      
+      // Append new items to existing feed
+      setFeedItems(prev => [...prev, ...newItems])
+      console.log(`Loaded ${newItems.length} more items, total: ${feedItems.length + newItems.length}`)
+      
+    } catch (err) {
+      console.error('Error loading more items:', err)
+    } finally {
+      setIsLoadingMore(false)
+      isLoadingRef.current = false
     }
   }
 
@@ -1259,9 +1427,18 @@ export default function PreviewFeedLivePage() {
       {/* Header - Instagram style: hides on scroll down, shows on scroll up */}
       <AppHeader profile={profile} hideOnScroll />
 
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+
       <div className="debug-info">
         <div>Feed Items: {feedItems.length}</div>
-        <div>Mode: TEST (Direct DB)</div>
+        <div>Mode: Infinite Scroll</div>
+        <div style={{ fontSize: '10px', opacity: 0.7 }}>
+          {hasMore ? 'More available' : 'End reached'}
+        </div>
         <button 
           onClick={testApi}
           style={{ marginTop: '8px', padding: '4px 8px', fontSize: '11px', cursor: 'pointer' }}
@@ -1334,6 +1511,43 @@ export default function PreviewFeedLivePage() {
 
           return null
         })}
+      </div>
+
+      {/* Infinite Scroll Loader */}
+      <div 
+        ref={loaderRef}
+        style={{
+          padding: '20px',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '60px'
+        }}
+      >
+        {isLoadingMore && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            color: 'rgba(255,255,255,0.6)',
+            fontSize: '14px'
+          }}>
+            <div className="loading-spinner" style={{
+              width: '20px',
+              height: '20px',
+              border: '2px solid rgba(255,255,255,0.2)',
+              borderTopColor: '#fff',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite'
+            }} />
+            Loading more...
+          </div>
+        )}
+        {!hasMore && feedItems.length > 0 && (
+          <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px' }}>
+            You've reached the end
+          </div>
+        )}
       </div>
 
       {/* Spacer to ensure content doesn't get hidden behind fixed nav */}

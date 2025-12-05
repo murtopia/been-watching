@@ -1265,6 +1265,41 @@ analytics.track('feed_card_dismissed', {
 4. **Mood-Based Discovery:** "Feeling happy? Try these comedies"
 5. **Watch Party Integration:** Group viewing recommendations
 
+### Phase 4.5: Onboarding & Engagement Cards (Future)
+
+Special card types to encourage engagement and network building without requiring explicit onboarding flows:
+
+1. **"Rate Your First Show" Card**
+   - Appears after user adds first show to watchlist
+   - Gentle prompt: "What did you think of [Show]?"
+   - Helps algorithm understand preferences
+
+2. **Progress Nudge Cards**
+   - "3 friends are watching Severance - follow them to see more"
+   - Shows friends who share taste to encourage follows
+   - Personalized based on user's watch history
+
+3. **Achievement Cards**
+   - "You've rated 5 shows! Here's what we recommend based on your taste"
+   - Milestone celebrations that unlock features
+   - Gamification without being pushy
+
+4. **Network Building Cards**
+   - "Your friend Sarah just joined - welcome them!"
+   - "5 users with 90%+ match discovered this week"
+   - Social proof to encourage exploration
+
+5. **First Steps Cards**
+   - "Add a show to get personalized recommendations"
+   - "Complete your profile to help friends find you"
+   - Contextual guidance without blocking flow
+
+**Implementation Notes:**
+- Cards appear contextually based on user state
+- Never block the feed - always optional
+- Track engagement to avoid fatigue
+- A/B test card frequency and messaging
+
 ### Phase 5: ML Sophistication
 1. **Deep Learning Embeddings:** Better content understanding
 2. **Reinforcement Learning:** Optimize for long-term engagement
