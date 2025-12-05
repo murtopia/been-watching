@@ -67,6 +67,10 @@ export default function PreviewFeedLivePage() {
   const loaderRef = useRef<HTMLDivElement>(null)
   const isLoadingRef = useRef(false) // Prevent duplicate calls
   
+  // Track dismissed user suggestions (persist across card re-insertions)
+  const [dismissedUsers, setDismissedUsers] = useState<Set<string>>(new Set())
+  const followSuggestionsCount = useRef(0) // Track how many times we've shown the card
+  
   const supabase = createClient()
   
   // Test API directly
@@ -579,9 +583,35 @@ export default function PreviewFeedLivePage() {
         })
       )
       
+      // Check if we should insert another Find New Friends card
+      // Randomly insert after every ~10 cards (roughly 2 batches)
+      followSuggestionsCount.current += 1
+      let itemsToAdd = [...newItems]
+      
+      if (followSuggestionsCount.current % 2 === 0) {
+        // Every 2nd batch, try to add a Find New Friends card
+        const freshSuggestions = await fetchUserSuggestions()
+        if (freshSuggestions.length > 0) {
+          const followSuggestionsCard: FeedItem = {
+            type: 'follow_suggestions',
+            id: `follow-suggestions-${followSuggestionsCount.current}`,
+            data: {
+              suggestions: freshSuggestions
+            }
+          }
+          // Insert at position 2 of the new batch
+          if (itemsToAdd.length >= 2) {
+            itemsToAdd.splice(2, 0, followSuggestionsCard)
+          } else {
+            itemsToAdd.push(followSuggestionsCard)
+          }
+          console.log('Inserted new Find Friends card with', freshSuggestions.length, 'suggestions')
+        }
+      }
+      
       // Append new items to existing feed
-      setFeedItems(prev => [...prev, ...newItems])
-      console.log(`Loaded ${newItems.length} more items, total: ${feedItems.length + newItems.length}`)
+      setFeedItems(prev => [...prev, ...itemsToAdd])
+      console.log(`Loaded ${itemsToAdd.length} more items, total: ${feedItems.length + itemsToAdd.length}`)
       
     } catch (err) {
       console.error('Error loading more items:', err)
@@ -619,8 +649,10 @@ export default function PreviewFeedLivePage() {
       
       if (!profiles || profiles.length === 0) return []
       
-      // Filter out already followed users
-      const suggestions = profiles.filter(p => !followingIds.includes(p.id))
+      // Filter out already followed users AND dismissed users
+      const suggestions = profiles.filter(p => 
+        !followingIds.includes(p.id) && !dismissedUsers.has(p.id)
+      )
       
       // For each suggestion, get their watch stats and mutual friends
       const enrichedSuggestions = await Promise.all(
@@ -1167,6 +1199,28 @@ export default function PreviewFeedLivePage() {
     }
   }
 
+  // Handle dismissing a user suggestion (don't show them again)
+  const handleDismiss = (userId: string) => {
+    console.log('Dismiss user suggestion:', userId)
+    
+    // Add to dismissed set
+    setDismissedUsers(prev => new Set([...prev, userId]))
+    
+    // Remove from current suggestions in UI
+    setFeedItems(prev => prev.map(item => {
+      if (item.type === 'follow_suggestions') {
+        return {
+          ...item,
+          data: {
+            ...item.data,
+            suggestions: item.data.suggestions.filter((s: any) => s.id !== userId)
+          }
+        }
+      }
+      return item
+    }))
+  }
+
   const handleLike = async (activityId: string) => {
     if (!user) return
     console.log('Like activity:', activityId)
@@ -1679,7 +1733,7 @@ export default function PreviewFeedLivePage() {
           }
 
           if (item.type === 'follow_suggestions') {
-            // Don't render if all suggestions have been followed
+            // Don't render if all suggestions have been followed/dismissed
             if (!item.data.suggestions || item.data.suggestions.length === 0) {
               return null
             }
@@ -1691,6 +1745,7 @@ export default function PreviewFeedLivePage() {
                     suggestions={item.data.suggestions}
                     colorTheme="purple"
                     onFollow={handleFollow}
+                    onDismiss={handleDismiss}
                     onUserClick={(userId) => {
                       // Navigate to user profile
                       window.location.href = `/${item.data.suggestions.find((s: any) => s.id === userId)?.username || userId}`

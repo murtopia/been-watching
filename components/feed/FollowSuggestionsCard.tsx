@@ -54,6 +54,7 @@ interface FollowSuggestionsCardProps {
   colorTheme?: CardColorTheme
   autoRotateInterval?: number // milliseconds, 0 to disable
   onFollow?: (userId: string) => void
+  onDismiss?: (userId: string) => void
   onUserClick?: (userId: string) => void
   onTrack?: (action: string, metadata?: any) => void
 }
@@ -65,6 +66,12 @@ interface FollowSuggestionsCardProps {
 const LinkIcon = () => (
   <svg viewBox="0 0 24 24" style={{ width: 16, height: 16, fill: 'currentColor' }}>
     <path d="M17.657 14.828l-1.414-1.414L17.657 12A4 4 0 1 0 12 6.343l-1.414 1.414-1.414-1.414 1.414-1.414a6 6 0 1 1 8.485 8.485l-1.414 1.414zm-2.829 2.829l-1.414 1.414a6 6 0 1 1-8.485-8.485l1.414-1.414 1.414 1.414L6.343 12A4 4 0 1 0 12 17.657l1.414-1.414 1.414 1.414zm0-9.9l1.415 1.415-7.071 7.07-1.415-1.414 7.071-7.07z"/>
+  </svg>
+)
+
+const CloseCircleIcon = () => (
+  <svg viewBox="0 0 24 24" style={{ width: 20, height: 20, fill: 'currentColor' }}>
+    <path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/>
   </svg>
 )
 
@@ -125,6 +132,7 @@ export const FollowSuggestionsCard: React.FC<FollowSuggestionsCardProps> = ({
   colorTheme = 'gold',
   autoRotateInterval = 6000, // 6 seconds default, like HTML template
   onFollow,
+  onDismiss,
   onUserClick,
   onTrack,
 }) => {
@@ -417,6 +425,41 @@ export const FollowSuggestionsCard: React.FC<FollowSuggestionsCardProps> = ({
           border-color: rgba(255, 255, 255, 0.5);
         }
         
+        .action-buttons {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          align-self: flex-start;
+          margin-top: 4px;
+        }
+        
+        .action-buttons .follow-btn {
+          margin-top: 0;
+          align-self: auto;
+        }
+        
+        .dismiss-btn {
+          background: transparent;
+          border: none;
+          padding: 4px;
+          cursor: pointer;
+          opacity: 0.5;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+        }
+        
+        .dismiss-btn:hover {
+          opacity: 0.8;
+          transform: scale(1.1);
+        }
+        
+        .dismiss-btn:active {
+          transform: scale(0.95);
+        }
+        
         .bio {
           font-size: 13px;
           line-height: 1.4;
@@ -579,12 +622,21 @@ export const FollowSuggestionsCard: React.FC<FollowSuggestionsCardProps> = ({
                           </div>
                         </div>
                       </div>
-                      <button 
-                        className={`follow-btn ${isFollowing ? 'following' : ''}`}
-                        onClick={() => handleFollow(user.id)}
-                      >
-                        {isFollowing ? 'FOLLOWING' : 'FOLLOW'}
-                      </button>
+                      <div className="action-buttons">
+                        <button 
+                          className={`follow-btn ${isFollowing ? 'following' : ''}`}
+                          onClick={() => handleFollow(user.id)}
+                        >
+                          {isFollowing ? 'FOLLOWING' : 'FOLLOW'}
+                        </button>
+                        <button 
+                          className="dismiss-btn"
+                          onClick={() => onDismiss?.(user.id)}
+                          title="Not interested"
+                        >
+                          <CloseCircleIcon />
+                        </button>
+                      </div>
                     </div>
                   </div>
 
