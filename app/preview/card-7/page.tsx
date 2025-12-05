@@ -1,315 +1,181 @@
-/**
- * Mobile Test Page for React Card 7 (Follow Suggestions)
- * 
- * Purpose: Isolated test page for Template C - user suggestions carousel
- * URL: /preview/card-7
- * 
- * Template C Features:
- * - Completely different from media cards
- * - Gold glassmorphic container
- * - Carousel of user profile suggestions
- * - Match percentage, bio, stats, friends in common
- * - Follow button with toggle state
- * - Swipe navigation + dot indicators
- */
-
 'use client'
 
-import { useState } from 'react'
-import { FollowSuggestionsCard, CardColorTheme } from '@/components/feed/FollowSuggestionsCard'
+import React, { useState } from 'react'
+import { FollowSuggestionsCard } from '@/components/feed/FollowSuggestionsCard'
 
-const COLOR_OPTIONS: { value: CardColorTheme; label: string; color: string }[] = [
-  { value: 'gold', label: 'Gold', color: '#FFD700' },
-  { value: 'purple', label: 'Purple', color: '#8B5CF6' },
-  { value: 'pink', label: 'Pink', color: '#FF006E' },
-  { value: 'blue', label: 'Blue', color: '#3B82F6' },
-  { value: 'green', label: 'Green', color: '#22C55E' },
-  { value: 'coral', label: 'Coral', color: '#FF6B6B' },
+// Mock data for testing the Find New Friends card
+const MOCK_SUGGESTIONS = [
+  {
+    id: 'test-1',
+    name: 'Alex Thompson',
+    username: 'alexthompson',
+    avatar: '',
+    matchPercentage: 92,
+    bio: 'Horror movie enthusiast 🎬 Always looking for the next great scare!',
+    stats: {
+      wantToWatch: 15,
+      watching: 3,
+      watched: 47
+    },
+    friendsInCommon: {
+      count: 5,
+      avatars: []
+    }
+  },
+  {
+    id: 'test-2',
+    name: 'Jordan Rivera',
+    username: 'jordanr',
+    avatar: '',
+    matchPercentage: 87,
+    bio: 'Binge-watching expert. Currently obsessed with true crime docs.',
+    stats: {
+      wantToWatch: 23,
+      watching: 2,
+      watched: 89
+    },
+    friendsInCommon: {
+      count: 3,
+      avatars: []
+    }
+  },
+  {
+    id: 'test-3',
+    name: 'Sam Chen',
+    username: 'samchen',
+    avatar: '',
+    matchPercentage: 81,
+    bio: 'Sci-fi nerd and anime lover. Lets talk about your favorite shows!',
+    stats: {
+      wantToWatch: 45,
+      watching: 5,
+      watched: 120
+    },
+    friendsInCommon: {
+      count: 8,
+      avatars: []
+    }
+  },
+  {
+    id: 'test-4',
+    name: 'Taylor Kim',
+    username: 'taylork',
+    avatar: '',
+    matchPercentage: 78,
+    bio: 'Comedy is my therapy. Also love a good drama that makes me cry.',
+    stats: {
+      wantToWatch: 12,
+      watching: 1,
+      watched: 65
+    },
+    friendsInCommon: {
+      count: 2,
+      avatars: []
+    }
+  }
 ]
 
-export default function Card7MobileTestPage() {
-  const [trackingLog, setTrackingLog] = useState<string[]>([])
-  const [showLog, setShowLog] = useState(false)
-  const [colorTheme, setColorTheme] = useState<CardColorTheme>('gold')
+export default function Card7PreviewPage() {
+  const [suggestions, setSuggestions] = useState(MOCK_SUGGESTIONS)
+  const [followed, setFollowed] = useState<string[]>([])
+  const [dismissed, setDismissed] = useState<string[]>([])
 
-  // Sample data for Card 7 - User suggestions
-  const suggestions = [
-    {
-      id: 'user-jamie',
-      name: 'Jamie Chen',
-      username: 'jamiechen',
-      avatar: 'https://i.pravatar.cc/150?img=10',
-      matchPercentage: 92,
-      bio: 'Drama enthusiast who loves binge-watching award-winning shows and tracking every major film festival. Always looking for the next critically acclaimed series to obsess over!',
-      stats: {
-        wantToWatch: 5,
-        watching: 14,
-        watched: 187
-      },
-      friendsInCommon: {
-        count: 8,
-        avatars: [
-          'https://i.pravatar.cc/150?img=2',
-          'https://i.pravatar.cc/150?img=3',
-          'https://i.pravatar.cc/150?img=4'
-        ]
-      }
-    },
-    {
-      id: 'user-marcus',
-      name: 'Marcus Rodriguez',
-      username: 'marcusr',
-      avatar: 'https://i.pravatar.cc/150?img=11',
-      matchPercentage: 88,
-      bio: 'Sci-fi nerd • Binge-watcher extraordinaire',
-      stats: {
-        wantToWatch: 12,
-        watching: 8,
-        watched: 243
-      },
-      friendsInCommon: {
-        count: 5,
-        avatars: [
-          'https://i.pravatar.cc/150?img=5',
-          'https://i.pravatar.cc/150?img=6',
-          'https://i.pravatar.cc/150?img=7'
-        ]
-      }
-    },
-    {
-      id: 'user-priya',
-      name: 'Priya Patel',
-      username: 'priyap',
-      avatar: 'https://i.pravatar.cc/150?img=12',
-      matchPercentage: 85,
-      bio: 'Crime drama devotee • True story fanatic',
-      stats: {
-        wantToWatch: 8,
-        watching: 6,
-        watched: 156
-      },
-      friendsInCommon: {
-        count: 11,
-        avatars: [
-          'https://i.pravatar.cc/150?img=8',
-          'https://i.pravatar.cc/150?img=9',
-          'https://i.pravatar.cc/150?img=14'
-        ]
-      }
-    },
-    {
-      id: 'user-alex',
-      name: 'Alex Thompson',
-      username: 'alexthompson',
-      avatar: 'https://i.pravatar.cc/150?img=13',
-      matchPercentage: 81,
-      bio: 'Comedy buff • Reality TV guilty pleasure',
-      stats: {
-        wantToWatch: 15,
-        watching: 11,
-        watched: 198
-      },
-      friendsInCommon: {
-        count: 6,
-        avatars: [
-          'https://i.pravatar.cc/150?img=15',
-          'https://i.pravatar.cc/150?img=16',
-          'https://i.pravatar.cc/150?img=17'
-        ]
-      }
-    }
-  ]
+  const handleFollow = (userId: string) => {
+    console.log('Follow:', userId)
+    setFollowed(prev => [...prev, userId])
+    setSuggestions(prev => prev.filter(s => s.id !== userId))
+  }
 
-  const handleTrack = (action: string, metadata?: any) => {
-    const log = `[${new Date().toLocaleTimeString()}] ${action}: ${JSON.stringify(metadata || {})}`
-    setTrackingLog((prev) => [log, ...prev].slice(0, 20))
-    console.log('Track:', action, metadata)
+  const handleDismiss = (userId: string) => {
+    console.log('Dismiss:', userId)
+    setDismissed(prev => [...prev, userId])
+    setSuggestions(prev => prev.filter(s => s.id !== userId))
+  }
+
+  const resetCard = () => {
+    setSuggestions(MOCK_SUGGESTIONS)
+    setFollowed([])
+    setDismissed([])
   }
 
   return (
-    <>
-      {/* Lock page scroll to isolate card scroll testing */}
-      <style>{`
-        html, body {
-          overflow: hidden !important;
-          height: 100% !important;
-          position: fixed !important;
-          width: 100% !important;
-          overscroll-behavior: none !important;
-        }
-      `}</style>
-      <div style={{
-        height: '100vh',
-        background: '#1a1a1a',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        padding: '20px 10px',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        overflow: 'hidden'
+    <div style={{ 
+      minHeight: '100vh', 
+      background: '#1a1a1a', 
+      padding: '20px',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '20px'
+    }}>
+      <h1 style={{ color: 'white', fontSize: '24px', marginBottom: '10px' }}>
+        Card 7: Find New Friends Preview
+      </h1>
+      
+      <div style={{ 
+        color: 'rgba(255,255,255,0.7)', 
+        fontSize: '14px',
+        textAlign: 'center',
+        maxWidth: '400px',
+        marginBottom: '10px'
       }}>
-        {/* Test Header */}
-        <div style={{
-          width: '100%',
-          maxWidth: '398px',
-          marginBottom: '12px',
-          padding: '12px 16px',
-          background: 'rgba(255, 255, 255, 0.05)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          borderRadius: '12px',
-          textAlign: 'center'
-        }}>
-          <h1 style={{
-            fontSize: '16px',
-            fontWeight: '600',
-            color: 'white',
-            margin: '0'
-          }}>
-            React Card 7: Find New Friends
-          </h1>
-          <p style={{
-            fontSize: '11px',
-            color: 'rgba(255,255,255,0.5)',
-            margin: '4px 0 0 0'
-          }}>
-            Auto-rotates every 6s • Swipe or tap dots
-          </p>
-        </div>
-
-        {/* Color Theme Switcher */}
-        <div style={{
-          width: '100%',
-          maxWidth: '398px',
-          marginBottom: '16px',
-          display: 'flex',
-          gap: '8px',
-          justifyContent: 'center',
-          flexWrap: 'wrap'
-        }}>
-          {COLOR_OPTIONS.map(opt => (
-            <button
-              key={opt.value}
-              onClick={() => setColorTheme(opt.value)}
-              style={{
-                padding: '6px 12px',
-                background: colorTheme === opt.value ? opt.color : 'rgba(255,255,255,0.1)',
-                border: `2px solid ${opt.color}`,
-                borderRadius: '20px',
-                color: colorTheme === opt.value ? (opt.value === 'gold' ? '#000' : '#fff') : opt.color,
-                fontSize: '11px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-
-        {/* The Card */}
-        <div style={{
-          width: '100%',
-          maxWidth: '398px',
-          display: 'flex',
-          justifyContent: 'center'
-        }}>
-          <FollowSuggestionsCard
-            suggestions={suggestions}
-            colorTheme={colorTheme}
-            autoRotateInterval={6000}
-            onFollow={(userId) => handleTrack('follow_toggle', { userId })}
-            onUserClick={(userId) => handleTrack('user_click', { userId })}
-            onTrack={handleTrack}
-          />
-        </div>
-
-        {/* Test Checklist */}
-        <div style={{
-          width: '100%',
-          maxWidth: '398px',
-          marginTop: '16px',
-          padding: '12px 16px',
-          background: 'rgba(255, 255, 255, 0.05)',
-          borderRadius: '12px'
-        }}>
-          <h2 style={{
-            fontSize: '13px',
-            fontWeight: '600',
-            color: '#FFD700',
-            margin: '0 0 8px 0'
-          }}>
-            Card 7 Specifics
-          </h2>
-          <ul style={{
-            listStyle: 'none',
-            padding: 0,
-            margin: 0,
-            fontSize: '12px',
-            color: 'rgba(255,255,255,0.7)',
-            lineHeight: '1.8'
-          }}>
-            <li>✓ Gold glassmorphic container</li>
-            <li>✓ "Find New Friends" badge</li>
-            <li>✓ Carousel with 4 user profiles</li>
-            <li>✓ Swipe left/right to navigate</li>
-            <li>✓ Follow button toggles state</li>
-            <li>✓ Match %, bio, stats, mutual friends</li>
-          </ul>
-        </div>
-
-        {/* Tracking Log Toggle */}
-        <button
-          onClick={() => setShowLog(!showLog)}
-          style={{
-            marginTop: '12px',
-            padding: '6px 12px',
-            background: 'rgba(255,255,255,0.1)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            borderRadius: '8px',
-            color: 'rgba(255,255,255,0.7)',
-            fontSize: '11px',
-            cursor: 'pointer'
-          }}
-        >
-          {showLog ? 'Hide' : 'Show'} Log ({trackingLog.length})
-        </button>
-
-        {/* Tracking Log */}
-        {showLog && trackingLog.length > 0 && (
-          <div style={{
-            width: '100%',
-            maxWidth: '398px',
-            marginTop: '8px',
-            padding: '10px',
-            background: 'rgba(0,0,0,0.5)',
-            borderRadius: '8px',
-            fontSize: '10px',
-            fontFamily: 'monospace',
-            color: '#22C55E',
-            maxHeight: '150px',
-            overflow: 'auto'
-          }}>
-            {trackingLog.map((log, i) => (
-              <div key={i} style={{ marginBottom: '4px', opacity: 1 - i * 0.05 }}>
-                {log}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Footer */}
-        <div style={{
-          marginTop: 'auto',
-          paddingTop: '12px',
-          textAlign: 'center',
-          fontSize: '10px',
-          color: 'rgba(255,255,255,0.4)'
-        }}>
-          Card 7 of 8 | Template C | Been Watching
-        </div>
+        Test the Follow and <strong>X (dismiss)</strong> buttons. 
+        The X button is to the right of the Follow button.
       </div>
-    </>
+
+      {suggestions.length > 0 ? (
+        <FollowSuggestionsCard
+          suggestions={suggestions}
+          colorTheme="purple"
+          onFollow={handleFollow}
+          onDismiss={handleDismiss}
+          onUserClick={(userId) => console.log('Click user:', userId)}
+          onTrack={(action, meta) => console.log('Track:', action, meta)}
+        />
+      ) : (
+        <div style={{
+          width: '398px',
+          height: '420px',
+          background: 'rgba(139, 92, 246, 0.2)',
+          borderRadius: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          flexDirection: 'column',
+          gap: '16px'
+        }}>
+          <div style={{ fontSize: '48px' }}>✓</div>
+          <div style={{ fontSize: '18px', fontWeight: 600 }}>All done!</div>
+          <div style={{ fontSize: '14px', opacity: 0.7 }}>
+            You followed {followed.length} and dismissed {dismissed.length}
+          </div>
+        </div>
+      )}
+
+      <button
+        onClick={resetCard}
+        style={{
+          background: 'rgba(255,255,255,0.1)',
+          border: '1px solid rgba(255,255,255,0.3)',
+          color: 'white',
+          padding: '10px 20px',
+          borderRadius: '8px',
+          cursor: 'pointer',
+          fontSize: '14px'
+        }}
+      >
+        Reset Card
+      </button>
+
+      <div style={{ 
+        color: 'rgba(255,255,255,0.5)', 
+        fontSize: '12px',
+        marginTop: '20px'
+      }}>
+        <div>Followed: {followed.join(', ') || 'none'}</div>
+        <div>Dismissed: {dismissed.join(', ') || 'none'}</div>
+      </div>
+    </div>
   )
 }
-
