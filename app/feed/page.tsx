@@ -45,10 +45,103 @@ import {
 const INITIAL_BATCH_SIZE = 5
 const LOAD_MORE_BATCH_SIZE = 5
 
+// Time window for grouping activities (1 minute in milliseconds)
+const ACTIVITY_GROUP_WINDOW_MS = 60 * 1000
+
 interface FeedItem {
   type: 'activity' | 'recommendation' | 'follow_suggestions'
   id: string
   data: any
+}
+
+// Group activities by user_id + media_id within a time window
+// This combines "rated" and "status_changed" activities into a single card
+function groupActivities(activities: any[]): any[] {
+  if (!activities || activities.length === 0) return []
+  
+  const grouped: Map<string, any[]> = new Map()
+  
+  for (const activity of activities) {
+    // Create a group key based on user_id + media_id
+    const groupKey = `${activity.user_id}-${activity.media_id}`
+    
+    if (!grouped.has(groupKey)) {
+      grouped.set(groupKey, [])
+    }
+    grouped.get(groupKey)!.push(activity)
+  }
+  
+  // For each group, combine activities within the time window
+  const result: any[] = []
+  
+  for (const [, groupActivities] of grouped) {
+    // Sort by created_at desc
+    groupActivities.sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )
+    
+    // Go through activities and combine those within the time window
+    let i = 0
+    while (i < groupActivities.length) {
+      const primary = groupActivities[i]
+      const combinedActivities = [primary]
+      
+      // Look for related activities within the time window
+      let j = i + 1
+      while (j < groupActivities.length) {
+        const other = groupActivities[j]
+        const timeDiff = Math.abs(
+          new Date(primary.created_at).getTime() - 
+          new Date(other.created_at).getTime()
+        )
+        
+        if (timeDiff <= ACTIVITY_GROUP_WINDOW_MS) {
+          combinedActivities.push(other)
+          j++
+        } else {
+          break
+        }
+      }
+      
+      if (combinedActivities.length > 1) {
+        // Merge activity_data from all combined activities
+        // This ensures rating, status, etc. are all present
+        const mergedData: any = {}
+        for (const act of combinedActivities) {
+          Object.assign(mergedData, act.activity_data)
+        }
+        mergedData.combined_activities = combinedActivities.map(a => ({
+          type: a.activity_type,
+          data: a.activity_data
+        }))
+        
+        // Combine multiple activities into one
+        const combined = {
+          ...primary,
+          // Use the most recent activity's ID as the main ID
+          id: primary.id,
+          // Combine activity types
+          activity_type: combinedActivities.map(a => a.activity_type).join('+'),
+          // Use merged data so rating AND status are both present
+          activity_data: mergedData,
+          // Use the most recent created_at
+          created_at: primary.created_at
+        }
+        result.push(combined)
+        i = j // Skip the combined activities
+      } else {
+        result.push(primary)
+        i++
+      }
+    }
+  }
+  
+  // Sort final result by created_at desc
+  result.sort((a, b) => 
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  )
+  
+  return result
 }
 
 
@@ -205,13 +298,17 @@ export default function PreviewFeedLivePage() {
           .limit(INITIAL_BATCH_SIZE)
         
         if (fullActivities && fullActivities.length > 0) {
+          // Group related activities (e.g., rating + status change on same show)
+          const groupedActivities = groupActivities(fullActivities)
+          console.log(`Grouped ${fullActivities.length} activities into ${groupedActivities.length} cards`)
+          
           // Set cursor to last item's created_at for pagination
           const lastActivity = fullActivities[fullActivities.length - 1]
           setCursor(lastActivity.created_at)
           setHasMore(fullActivities.length === INITIAL_BATCH_SIZE)
           // Fetch comments for each activity
           const transformedItems: FeedItem[] = await Promise.all(
-            fullActivities.map(async (activity) => {
+            groupedActivities.map(async (activity) => {
               const activityComments = await fetchActivityComments(activity.id)
               const showComments = await fetchShowComments(activity.media_id)
               const friendsActivity = await fetchFriendsActivity(activity.media_id)
@@ -460,6 +557,10 @@ export default function PreviewFeedLivePage() {
         return
       }
       
+      // Group related activities
+      const groupedActivities = groupActivities(moreActivities)
+      console.log(`Grouped ${moreActivities.length} more activities into ${groupedActivities.length} cards`)
+      
       // Update cursor for next load
       const lastActivity = moreActivities[moreActivities.length - 1]
       setCursor(lastActivity.created_at)
@@ -467,7 +568,7 @@ export default function PreviewFeedLivePage() {
       
       // Transform new activities
       const newItems: FeedItem[] = await Promise.all(
-        moreActivities.map(async (activity) => {
+        groupedActivities.map(async (activity) => {
           const activityComments = await fetchActivityComments(activity.id)
           const showComments = await fetchShowComments(activity.media_id)
           const friendsActivity = await fetchFriendsActivity(activity.media_id)
@@ -557,9 +658,13 @@ export default function PreviewFeedLivePage() {
         }
       }
       
-      // Append new items to existing feed
-      setFeedItems(prev => [...prev, ...itemsToAdd])
-      console.log(`Loaded ${itemsToAdd.length} more items, total: ${feedItems.length + itemsToAdd.length}`)
+      // Append new items to existing feed (with deduplication)
+      setFeedItems(prev => {
+        const existingIds = new Set(prev.map(item => item.id))
+        const uniqueNewItems = itemsToAdd.filter(item => !existingIds.has(item.id))
+        return [...prev, ...uniqueNewItems]
+      })
+      console.log(`Loaded ${itemsToAdd.length} more items (deduplicated)`)
       
     } catch (err) {
       console.error('Error loading more items:', err)
