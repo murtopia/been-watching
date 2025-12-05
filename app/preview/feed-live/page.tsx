@@ -1679,6 +1679,11 @@ export default function PreviewFeedLivePage() {
           }
 
           if (item.type === 'follow_suggestions') {
+            // Don't render if all suggestions have been followed
+            if (!item.data.suggestions || item.data.suggestions.length === 0) {
+              return null
+            }
+            
             return (
               <div key={item.id} className="card-snap-wrapper">
                 <div className="card-inner-wrapper">
