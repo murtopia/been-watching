@@ -5,6 +5,7 @@ import { useTheme } from '@/contexts/ThemeContext'
 import { useEffect, useState, useRef, useCallback } from 'react'
 import ThemeToggle from '@/components/theme/ThemeToggle'
 import NotificationDropdown from '@/components/notifications/NotificationDropdown'
+import Icon from '@/components/ui/Icon'
 
 interface AppHeaderProps {
   profile?: any
@@ -126,11 +127,14 @@ export default function AppHeader({
       zIndex: 100,
       width: hideOnScroll ? 'calc(100% - 3rem)' : undefined
     }}>
+      {/* Inner content aligned to card width (398px) */}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        gap: '0.75rem'
+        gap: '0.75rem',
+        maxWidth: '398px',
+        margin: '0 auto'
       }}>
         {/* Logo */}
         <div style={{
@@ -169,18 +173,20 @@ export default function AppHeader({
               style={{
                 background: 'none',
                 border: 'none',
-                fontSize: '1.5rem',
                 cursor: 'pointer',
                 position: 'relative',
-                padding: '0.5rem'
+                padding: '0.25rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
             >
-              ✨
+              <Icon name="bell" size={24} color={isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.7)'} />
               {notificationCount > 0 && (
                 <span style={{
                   position: 'absolute',
-                  top: '0',
-                  right: '0',
+                  top: '-2px',
+                  right: '-2px',
                   background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
                   color: 'white',
                   fontSize: '0.625rem',
@@ -231,57 +237,38 @@ export default function AppHeader({
               style={{
                 background: 'none',
                 border: 'none',
-                fontSize: '1.5rem',
                 cursor: 'pointer',
-                position: 'relative',
-                padding: '0.5rem'
+                padding: '0.25rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
             >
               {profile.avatar_url ? (
-                <div style={{ position: 'relative' }}>
-                  <img
-                    src={profile.avatar_url}
-                    alt={profile.display_name}
-                    style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      objectFit: 'cover'
-                    }}
-                  />
-                  <div style={{
-                    position: 'absolute',
-                    top: '-4px',
-                    right: '-4px',
-                    fontSize: '1rem'
-                  }}>
-                    ✨
-                  </div>
-                </div>
-              ) : (
-                <div style={{ position: 'relative' }}>
-                  <div style={{
+                <img
+                  src={profile.avatar_url}
+                  alt={profile.display_name}
+                  style={{
                     width: '32px',
                     height: '32px',
                     borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                    fontSize: '0.875rem',
-                    fontWeight: '700'
-                  }}>
-                    {profile.display_name?.[0] || '?'}
-                  </div>
-                  <div style={{
-                    position: 'absolute',
-                    top: '-4px',
-                    right: '-4px',
-                    fontSize: '1rem'
-                  }}>
-                    ✨
-                  </div>
+                    objectFit: 'cover'
+                  }}
+                />
+              ) : (
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontSize: '0.875rem',
+                  fontWeight: '700'
+                }}>
+                  {profile.display_name?.[0] || '?'}
                 </div>
               )}
             </button>
