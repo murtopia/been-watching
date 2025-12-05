@@ -290,6 +290,27 @@ export default function PreviewFeedLivePage() {
             })
           )
           
+          // Fetch user suggestions for Find New Friends card
+          const userSuggestions = await fetchUserSuggestions()
+          
+          // Insert follow_suggestions card at position 2 (after first 2 activity cards)
+          if (userSuggestions.length > 0) {
+            const followSuggestionsCard: FeedItem = {
+              type: 'follow_suggestions',
+              id: 'follow-suggestions-1',
+              data: {
+                suggestions: userSuggestions
+              }
+            }
+            
+            // Insert at position 2 (index 2)
+            if (transformedItems.length >= 2) {
+              transformedItems.splice(2, 0, followSuggestionsCard)
+            } else {
+              transformedItems.push(followSuggestionsCard)
+            }
+          }
+          
           setFeedItems(transformedItems)
           setLoading(false)
           return
@@ -567,6 +588,100 @@ export default function PreviewFeedLivePage() {
     } finally {
       setIsLoadingMore(false)
       isLoadingRef.current = false
+    }
+  }
+
+  // Fetch user suggestions for Find New Friends card (Card 7)
+  const fetchUserSuggestions = async (): Promise<any[]> => {
+    if (!user) return []
+
+    try {
+      // Get users the current user already follows
+      const { data: following } = await supabase
+        .from('follows')
+        .select('following_id')
+        .eq('follower_id', user.id)
+      
+      const followingIds = following?.map(f => f.following_id) || []
+      
+      // Get all users except current user and those already followed
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select(`
+          id,
+          username,
+          display_name,
+          avatar_url,
+          bio
+        `)
+        .neq('id', user.id)
+        .limit(10)
+      
+      if (!profiles || profiles.length === 0) return []
+      
+      // Filter out already followed users
+      const suggestions = profiles.filter(p => !followingIds.includes(p.id))
+      
+      // For each suggestion, get their watch stats and mutual friends
+      const enrichedSuggestions = await Promise.all(
+        suggestions.slice(0, 4).map(async (profile) => {
+          // Get watch status counts
+          const { data: watchStatuses } = await supabase
+            .from('watch_status')
+            .select('status')
+            .eq('user_id', profile.id)
+          
+          const stats = {
+            wantToWatch: watchStatuses?.filter(ws => ws.status === 'want').length || 0,
+            watching: watchStatuses?.filter(ws => ws.status === 'watching').length || 0,
+            watched: watchStatuses?.filter(ws => ws.status === 'watched').length || 0
+          }
+          
+          // Get mutual friends (users that both current user and this profile follow)
+          const { data: theirFollowing } = await supabase
+            .from('follows')
+            .select('following_id')
+            .eq('follower_id', profile.id)
+            .eq('status', 'accepted')
+          
+          const theirFollowingIds = theirFollowing?.map(f => f.following_id) || []
+          const mutualFriendIds = followingIds.filter(id => theirFollowingIds.includes(id))
+          
+          // Get avatars for mutual friends
+          let mutualFriendAvatars: string[] = []
+          if (mutualFriendIds.length > 0) {
+            const { data: mutualProfiles } = await supabase
+              .from('profiles')
+              .select('avatar_url')
+              .in('id', mutualFriendIds.slice(0, 3))
+            
+            mutualFriendAvatars = mutualProfiles?.map(p => p.avatar_url || '').filter(Boolean) || []
+          }
+          
+          // Calculate a simple match percentage based on shared ratings
+          // (In production, this would use the taste match algorithm)
+          const matchPercentage = 75 + Math.floor(Math.random() * 20) // Placeholder: 75-95%
+          
+          return {
+            id: profile.id,
+            name: profile.display_name || profile.username || 'Unknown',
+            username: profile.username || '',
+            avatar: profile.avatar_url || '',
+            matchPercentage,
+            bio: profile.bio || '',
+            stats,
+            friendsInCommon: {
+              count: mutualFriendIds.length,
+              avatars: mutualFriendAvatars
+            }
+          }
+        })
+      )
+      
+      return enrichedSuggestions
+    } catch (err) {
+      console.error('Error fetching user suggestions:', err)
+      return []
     }
   }
 
@@ -996,6 +1111,60 @@ export default function PreviewFeedLivePage() {
 
   const handleTrack = (action: string, metadata?: any) => {
     console.log('Track:', action, metadata)
+  }
+
+  // Handle following a user from the Find New Friends card
+  const handleFollow = async (userId: string) => {
+    if (!user) return
+    console.log('Follow user:', userId)
+    
+    try {
+      // Check if already following
+      const { data: existingFollow } = await supabase
+        .from('follows')
+        .select('id, status')
+        .eq('follower_id', user.id)
+        .eq('following_id', userId)
+        .maybeSingle()
+      
+      if (existingFollow) {
+        console.log('Already following or pending:', existingFollow.status)
+        return
+      }
+      
+      // Create follow request
+      const { error } = await supabase
+        .from('follows')
+        .insert({
+          follower_id: user.id,
+          following_id: userId,
+          status: 'accepted' // Auto-accept for now (could be 'pending' if private accounts)
+        })
+      
+      if (error) {
+        console.error('Error following user:', error)
+        return
+      }
+      
+      console.log('Successfully followed user:', userId)
+      
+      // Optimistically update the UI - remove this user from suggestions
+      setFeedItems(prev => prev.map(item => {
+        if (item.type === 'follow_suggestions') {
+          return {
+            ...item,
+            data: {
+              ...item.data,
+              suggestions: item.data.suggestions.filter((s: any) => s.id !== userId)
+            }
+          }
+        }
+        return item
+      }))
+      
+    } catch (err) {
+      console.error('Error following user:', err)
+    }
   }
 
   const handleLike = async (activityId: string) => {
@@ -1502,6 +1671,25 @@ export default function PreviewFeedLivePage() {
                     onLikeActivityComment={handleLikeActivityComment}
                     currentUser={profile ? { name: profile.display_name || profile.username, avatar: profile.avatar_url || '' } : undefined}
                     initialUserStatus={item.data.userStatus as 'want' | 'watching' | 'watched' | null}
+                    onTrack={handleTrack}
+                  />
+                </div>
+              </div>
+            )
+          }
+
+          if (item.type === 'follow_suggestions') {
+            return (
+              <div key={item.id} className="card-snap-wrapper">
+                <div className="card-inner-wrapper">
+                  <FollowSuggestionsCard
+                    suggestions={item.data.suggestions}
+                    colorTheme="purple"
+                    onFollow={handleFollow}
+                    onUserClick={(userId) => {
+                      // Navigate to user profile
+                      window.location.href = `/${item.data.suggestions.find((s: any) => s.id === userId)?.username || userId}`
+                    }}
                     onTrack={handleTrack}
                   />
                 </div>
