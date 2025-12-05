@@ -25,6 +25,17 @@ import {
   APIShowComment,
   APIComment
 } from '@/utils/feedDataTransformers'
+import {
+  trackFeedViewed,
+  trackActivityLiked,
+  trackActivityUnliked,
+  trackActivityCommented,
+  trackUserFollowed,
+  trackMediaRated,
+  trackWatchStatusChanged,
+  trackShowCommentAdded,
+  trackEvent
+} from '@/utils/analytics'
 
 // Initial batch size and load more batch size
 const INITIAL_BATCH_SIZE = 5
@@ -1143,8 +1154,19 @@ export default function PreviewFeedLivePage() {
   }
 
   const handleTrack = (action: string, metadata?: any) => {
-    console.log('Track:', action, metadata)
+    // Generic tracking for card-specific events
+    trackEvent(action, metadata)
   }
+  
+  // Track feed viewed on initial load
+  useEffect(() => {
+    if (feedItems.length > 0 && !isLoading) {
+      trackFeedViewed({
+        feed_type: 'enhanced',
+        items_shown: feedItems.length,
+      })
+    }
+  }, [feedItems.length, isLoading])
 
   // Handle following a user from the Find New Friends card
   const handleFollow = async (userId: string) => {
@@ -1181,6 +1203,17 @@ export default function PreviewFeedLivePage() {
       
       console.log('Successfully followed user:', userId)
       
+      // Track follow event
+      const followedUser = userSuggestions.find(s => s.id === userId)
+      if (followedUser) {
+        trackUserFollowed({
+          followed_user_id: userId,
+          followed_username: followedUser.username,
+          followed_display_name: followedUser.display_name,
+          follow_type: 'public'
+        })
+      }
+      
       // Optimistically update the UI - remove this user from suggestions
       setFeedItems(prev => prev.map(item => {
         if (item.type === 'follow_suggestions') {
@@ -1203,6 +1236,14 @@ export default function PreviewFeedLivePage() {
   // Handle dismissing a user suggestion (don't show them again)
   const handleDismiss = (userId: string) => {
     console.log('Dismiss user suggestion:', userId)
+    
+    // Track dismiss event
+    const dismissedUser = userSuggestions.find(s => s.id === userId)
+    trackEvent('suggestion_dismissed', {
+      dismissed_user_id: userId,
+      dismissed_username: dismissedUser?.username,
+      source: 'find_friends_card'
+    })
     
     // Add to dismissed set
     setDismissedUsers(prev => new Set([...prev, userId]))
@@ -1235,6 +1276,12 @@ export default function PreviewFeedLivePage() {
         .eq('user_id', user.id)
         .maybeSingle()
 
+      // Get activity data for tracking
+      const activityItem = feedItems.find(item => 
+        item.type === 'activity' && item.data.activity?.id === activityId
+      )
+      const activity = activityItem?.data?.activity
+      
       if (existingLike) {
         // Unlike
         await supabase
@@ -1242,6 +1289,9 @@ export default function PreviewFeedLivePage() {
           .delete()
           .eq('id', existingLike.id)
         console.log('Unliked activity')
+        
+        // Track unlike
+        trackActivityUnliked({ activity_id: activityId })
       } else {
         // Like
         await supabase
@@ -1251,6 +1301,16 @@ export default function PreviewFeedLivePage() {
             user_id: user.id
           })
         console.log('Liked activity')
+        
+        // Track like
+        if (activity) {
+          trackActivityLiked({
+            activity_id: activityId,
+            activity_type: activity.activity_type || 'unknown',
+            activity_user_id: activity.user_id || '',
+            activity_username: activity.user?.username || ''
+          })
+        }
       }
     } catch (err) {
       console.error('Error toggling like:', err)
@@ -1260,6 +1320,11 @@ export default function PreviewFeedLivePage() {
   const handleRate = async (mediaId: string, rating: 'meh' | 'like' | 'love' | null) => {
     if (!user) return
     console.log('Rate media:', mediaId, rating)
+    
+    // Get media info for tracking
+    const mediaItem = feedItems.find(item => item.data?.mediaId === mediaId)
+    const mediaType = mediaId.startsWith('tv-') ? 'tv' : 'movie'
+    const mediaTitle = mediaItem?.data?.show?.title || 'Unknown'
     
     try {
       if (rating === null) {
@@ -1280,6 +1345,15 @@ export default function PreviewFeedLivePage() {
             rating: rating
           }, { onConflict: 'user_id,media_id' })
         console.log('Set rating to:', rating)
+        
+        // Track rating
+        trackMediaRated({
+          media_id: mediaId,
+          media_type: mediaType,
+          media_title: mediaTitle,
+          rating: rating,
+          has_comment: false
+        })
       }
     } catch (err) {
       console.error('Error setting rating:', err)
@@ -1289,6 +1363,12 @@ export default function PreviewFeedLivePage() {
   const handleSetStatus = async (mediaId: string, status: 'want' | 'watching' | 'watched' | null) => {
     if (!user) return
     console.log('Set watch status:', mediaId, status)
+    
+    // Get media info and current status for tracking
+    const mediaItem = feedItems.find(item => item.data?.mediaId === mediaId)
+    const mediaType = mediaId.startsWith('tv-') ? 'tv' : 'movie'
+    const mediaTitle = mediaItem?.data?.show?.title || 'Unknown'
+    const oldStatus = mediaItem?.data?.userStatus || null
     
     try {
       if (status === null) {
@@ -1310,6 +1390,15 @@ export default function PreviewFeedLivePage() {
           }, { onConflict: 'user_id,media_id' })
         console.log('Set status to:', status)
       }
+      
+      // Track status change
+      trackWatchStatusChanged({
+        media_id: mediaId,
+        media_type: mediaType,
+        media_title: mediaTitle,
+        old_status: oldStatus,
+        new_status: status
+      })
     } catch (err) {
       console.error('Error setting watch status:', err)
     }
@@ -1451,6 +1540,17 @@ export default function PreviewFeedLivePage() {
       }
       
       console.log('Activity comment submitted successfully:', data)
+      
+      // Track activity comment
+      const activityItem = feedItems.find(item => 
+        item.type === 'activity' && item.data.activity?.id === activityId
+      )
+      trackActivityCommented({
+        activity_id: activityId,
+        activity_type: activityItem?.data?.activity?.activity_type || 'unknown',
+        comment_length: text.length,
+        has_mentions: text.includes('@')
+      })
     } catch (err: any) {
       console.error('Exception submitting activity comment:', err)
       // Don't re-throw - let the component handle it gracefully
@@ -1496,6 +1596,15 @@ export default function PreviewFeedLivePage() {
       }
       
       console.log('Show comment submitted successfully:', data)
+      
+      // Track show comment
+      const mediaItem = feedItems.find(item => item.data?.mediaId === mediaId)
+      trackShowCommentAdded({
+        media_id: mediaId,
+        media_title: mediaItem?.data?.show?.title || 'Unknown',
+        comment_length: text.length,
+        is_public: true
+      })
     } catch (err: any) {
       console.error('Exception submitting show comment:', err)
       // Don't re-throw - let the component handle it gracefully
