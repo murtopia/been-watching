@@ -7,7 +7,7 @@ import { useThemeColors } from '@/hooks/useThemeColors'
 import BottomNav from '@/components/navigation/BottomNav'
 import AppHeader from '@/components/navigation/AppHeader'
 import SearchModal from '@/components/search/SearchModal'
-import MediaDetailModal from '@/components/media/MediaDetailModal'
+import ShowDetailCard from '@/components/media/ShowDetailCard'
 import MediaCardGrid from '@/components/media/MediaCardGrid'
 import TopShowModal from '@/components/profile/TopShowModal'
 import Footer from '@/components/navigation/Footer'
@@ -297,35 +297,119 @@ export default function MyShowsPage() {
   }
 
   const handlePosterClick = (mediaItem: any) => {
-    // Convert media item format to match what MediaDetailModal expects
+    // Convert media item format to match what ShowDetailCard expects
+    const tmdbData = mediaItem.media.tmdb_data || {}
     const media = {
-      ...mediaItem.media.tmdb_data,
-      id: mediaItem.media.id, // Use the full media ID (e.g., tv-12345-s1) not just tmdb_id
-      media_type: mediaItem.media.media_type,
+      id: mediaItem.media.id, // Use the full media ID (e.g., tv-12345-s1)
+      title: mediaItem.media.title,
+      posterUrl: mediaItem.media.poster_path 
+        ? `https://image.tmdb.org/t/p/w500${mediaItem.media.poster_path}`
+        : undefined,
+      backdropUrl: tmdbData.backdrop_path
+        ? `https://image.tmdb.org/t/p/w1280${tmdbData.backdrop_path}`
+        : undefined,
+      year: tmdbData.release_date?.substring(0, 4) || tmdbData.first_air_date?.substring(0, 4),
+      genres: tmdbData.genres?.map((g: any) => g.name) || [],
+      rating: tmdbData.vote_average,
+      synopsis: tmdbData.overview,
+      creator: tmdbData.created_by?.[0]?.name || tmdbData.production_companies?.[0]?.name,
+      cast: tmdbData.credits?.cast?.slice(0, 6).map((c: any) => c.name) || [],
+      network: tmdbData.networks?.[0]?.name || tmdbData.production_companies?.[0]?.name,
+      mediaType: mediaItem.media.media_type === 'tv' ? 'TV' : 'Movie',
+      season: tmdbData.season_number,
       tmdb_id: mediaItem.media.tmdb_id,
-      poster_path: mediaItem.media.poster_path,
-      title: mediaItem.media.title
+      // Store current rating and status for the card
+      currentRating: mediaItem.rating,
+      currentStatus: mediaItem.status
     }
     setSelectedMedia(media)
     setDetailModalOpen(true)
   }
 
-  const handleDetailModalRate = async (rating: string) => {
-    if (selectedMedia) {
-      await handleMediaSelect(selectedMedia, rating, undefined)
+  const handleDetailModalRate = async (mediaId: string, rating: 'meh' | 'like' | 'love' | null) => {
+    if (selectedMedia && user) {
+      try {
+        if (rating === null) {
+          await supabase
+            .from('ratings')
+            .delete()
+            .eq('media_id', mediaId)
+            .eq('user_id', user.id)
+        } else {
+          await supabase
+            .from('ratings')
+            .upsert({
+              media_id: mediaId,
+              user_id: user.id,
+              rating: rating
+            }, { onConflict: 'user_id,media_id' })
+          
+          // Track rating
+          trackMediaRated({
+            media_id: mediaId,
+            media_type: selectedMedia.mediaType === 'TV' ? 'tv' : 'movie',
+            media_title: selectedMedia.title,
+            rating: rating,
+            has_comment: false
+          })
+        }
+        
+        // Update selected media's current rating
+        setSelectedMedia((prev: any) => prev ? { ...prev, currentRating: rating } : null)
+        
+        // Reload data
+        loadMediaForTab(activeTab)
+      } catch (error) {
+        console.error('Error updating rating:', error)
+      }
     }
   }
 
-  const handleDetailModalStatus = async (status: string, currentStatus?: string) => {
-    if (!selectedMedia) return
+  const handleDetailModalStatus = async (mediaId: string, status: 'want' | 'watching' | 'watched' | null) => {
+    if (!selectedMedia || !user) return
 
+    const currentStatus = selectedMedia.currentStatus
+    
     // If user is unchecking (removing from list), show confirmation
     if (status === null && currentStatus) {
       setPendingRemoval({ media: selectedMedia, currentStatus })
       setShowRemoveConfirm(true)
     } else {
-      // Adding or changing status - proceed normally
-      await handleMediaSelect(selectedMedia, undefined, status)
+      try {
+        if (status === null) {
+          await supabase
+            .from('watch_status')
+            .delete()
+            .eq('media_id', mediaId)
+            .eq('user_id', user.id)
+        } else {
+          await supabase
+            .from('watch_status')
+            .upsert({
+              media_id: mediaId,
+              user_id: user.id,
+              status: status
+            }, { onConflict: 'user_id,media_id' })
+          
+          // Track status change
+          trackWatchStatusChanged({
+            media_id: mediaId,
+            media_type: selectedMedia.mediaType === 'TV' ? 'tv' : 'movie',
+            media_title: selectedMedia.title,
+            old_status: currentStatus || null,
+            new_status: status
+          })
+        }
+        
+        // Update selected media's current status
+        setSelectedMedia((prev: any) => prev ? { ...prev, currentStatus: status } : null)
+        
+        // Reload data
+        loadMediaForTab(activeTab)
+        loadCounts()
+      } catch (error) {
+        console.error('Error updating status:', error)
+      }
     }
   }
 
@@ -356,28 +440,43 @@ export default function MyShowsPage() {
 
     if (!show) return
 
-    // Check if this is a season-specific entry
-    const isSeasonEntry = show.id?.toString().includes('-s') || show.tmdb_data?.season_number
+    // Fetch full media details from TMDB
+    const mediaType = show.media_type || (show.first_air_date ? 'tv' : 'movie')
+    const tmdbId = show.tmdb_id || show.id
+    
+    try {
+      // Fetch details with credits
+      const response = await fetch(
+        `https://api.themoviedb.org/3/${mediaType}/${tmdbId}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY || '99b89037cac7fea56692934b534ea26a'}&append_to_response=credits`
+      )
+      const tmdbData = await response.json()
 
-    if (isSeasonEntry) {
-      // For season-specific entries, reconstruct the full media object
-      // The show object already has everything we need
-      setSelectedMedia(show)
-      setDetailModalOpen(true)
-    } else {
-      // For regular movies/shows, fetch full media details from TMDB
-      const mediaType = show.media_type || (show.first_air_date ? 'tv' : 'movie')
-      try {
-        const response = await fetch(
-          `https://api.themoviedb.org/3/${mediaType}/${show.tmdb_id || show.id}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY || '99b89037cac7fea56692934b534ea26a'}`
-        )
-        const fullMediaData = await response.json()
-
-        setSelectedMedia(fullMediaData)
-        setDetailModalOpen(true)
-      } catch (error) {
-        console.error('Error fetching media details:', error)
+      // Transform to ShowDetailCard format
+      const media = {
+        id: show.id || `${mediaType}-${tmdbId}`,
+        title: tmdbData.title || tmdbData.name,
+        posterUrl: tmdbData.poster_path 
+          ? `https://image.tmdb.org/t/p/w500${tmdbData.poster_path}`
+          : undefined,
+        backdropUrl: tmdbData.backdrop_path
+          ? `https://image.tmdb.org/t/p/w1280${tmdbData.backdrop_path}`
+          : undefined,
+        year: tmdbData.release_date?.substring(0, 4) || tmdbData.first_air_date?.substring(0, 4),
+        genres: tmdbData.genres?.map((g: any) => g.name) || [],
+        rating: tmdbData.vote_average,
+        synopsis: tmdbData.overview,
+        creator: tmdbData.created_by?.[0]?.name || tmdbData.production_companies?.[0]?.name,
+        cast: tmdbData.credits?.cast?.slice(0, 6).map((c: any) => c.name) || [],
+        network: tmdbData.networks?.[0]?.name || tmdbData.production_companies?.[0]?.name,
+        mediaType: mediaType === 'tv' ? 'TV' : 'Movie',
+        season: show.tmdb_data?.season_number,
+        tmdb_id: tmdbId
       }
+
+      setSelectedMedia(media)
+      setDetailModalOpen(true)
+    } catch (error) {
+      console.error('Error fetching media details:', error)
     }
   }
 
@@ -725,16 +824,25 @@ export default function MyShowsPage() {
         user={user}
       />
 
-      <MediaDetailModal
+      <ShowDetailCard
         isOpen={detailModalOpen}
         onClose={() => {
           setDetailModalOpen(false)
           setSelectedMedia(null)
         }}
-        media={selectedMedia}
+        media={selectedMedia || {
+          id: '',
+          title: '',
+        }}
+        currentUser={profile ? {
+          id: user?.id || '',
+          name: profile.display_name || profile.username || '',
+          avatar: profile.avatar_url
+        } : undefined}
+        initialRating={selectedMedia?.currentRating}
+        initialStatus={selectedMedia?.currentStatus}
         onRate={handleDetailModalRate}
-        onStatus={handleDetailModalStatus}
-        user={user}
+        onSetStatus={handleDetailModalStatus}
       />
 
       {showTopShowModal && selectedSlot && user && (
