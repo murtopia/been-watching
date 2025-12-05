@@ -19,6 +19,7 @@ import { useRouter } from 'next/navigation'
 import { Icon } from '@/components/ui/Icon'
 import { ShareButton } from '@/components/sharing/ShareButton'
 import YouTubeModal from '@/components/media/YouTubeModal'
+import { getAvatarProps } from '@/utils/avatarUtils'
 
 // ============================================================================
 // TypeScript Interfaces
@@ -155,7 +156,7 @@ interface FeedCardProps {
   /** Called when user likes an activity comment (front of card) */
   onLikeActivityComment?: (commentId: string) => Promise<void>
   /** Current logged-in user (for showing their info on new comments) */
-  currentUser?: { name: string; avatar: string }
+  currentUser?: { name: string; avatar: string; id?: string }
   /** Initial watch status for this media (to show selected state in modal) */
   initialUserStatus?: 'want' | 'watching' | 'watched' | null
   onTrack?: (action: string, metadata?: any) => void
@@ -292,6 +293,62 @@ const getProfileUrl = (user: { username?: string; id?: string } | undefined): st
   if (user.username) return `/${user.username}`
   // If no username, we can't navigate - return null
   return null
+}
+
+// Avatar component with initials fallback
+const Avatar: React.FC<{
+  src?: string | null
+  alt: string
+  name?: string | null
+  userId?: string | null
+  size?: number
+  className?: string
+  style?: React.CSSProperties
+  onClick?: () => void
+}> = ({ src, alt, name, userId, size = 40, className, style, onClick }) => {
+  const avatarProps = getAvatarProps(src, name, userId)
+  
+  const baseStyle: React.CSSProperties = {
+    width: size,
+    height: size,
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    overflow: 'hidden',
+    cursor: onClick ? 'pointer' : 'default',
+    ...style
+  }
+  
+  if (avatarProps.hasImage && avatarProps.imageSrc) {
+    return (
+      <img
+        src={avatarProps.imageSrc}
+        alt={alt}
+        className={className}
+        style={baseStyle}
+        onClick={onClick}
+      />
+    )
+  }
+  
+  return (
+    <div
+      className={className}
+      style={{
+        ...baseStyle,
+        background: avatarProps.backgroundGradient || avatarProps.backgroundColor,
+        color: 'white',
+        fontSize: size * 0.4,
+        fontWeight: 700,
+        textTransform: 'uppercase',
+      }}
+      onClick={onClick}
+    >
+      {avatarProps.initials}
+    </div>
+  )
 }
 
 export const FeedCard: React.FC<FeedCardProps> = ({
@@ -2203,7 +2260,14 @@ export const FeedCard: React.FC<FeedCardProps> = ({
 
               <div className="comments-full">
                 <div className="activity-comment-input-container">
-                  <img src={currentUser?.avatar || cardUser?.avatar || 'https://i.pravatar.cc/150?img=1'} alt="You" className="activity-comment-input-avatar" />
+                  <Avatar
+                    src={currentUser?.avatar || cardUser?.avatar}
+                    alt="You"
+                    name={currentUser?.name || cardUser?.name}
+                    userId={currentUser?.id || cardUser?.id}
+                    size={28}
+                    className="activity-comment-input-avatar"
+                  />
                   <div className="activity-comment-input-wrapper">
                     <textarea
                       className="activity-comment-input"
@@ -2248,17 +2312,22 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                         <div className="activity-comment-header-left">
                           {profileUrl ? (
                             <Link href={profileUrl} style={{ textDecoration: 'none' }}>
-                              <img
+                              <Avatar
                                 src={comment.user.avatar}
                                 alt={comment.user.name}
+                                name={comment.user.name}
+                                userId={comment.user.id}
+                                size={28}
                                 className="activity-comment-avatar"
-                                style={{ cursor: 'pointer' }}
                               />
                             </Link>
                           ) : (
-                            <img
+                            <Avatar
                               src={comment.user.avatar}
                               alt={comment.user.name}
+                              name={comment.user.name}
+                              userId={comment.user.id}
+                              size={28}
                               className="activity-comment-avatar"
                             />
                           )}
@@ -2561,7 +2630,14 @@ export const FeedCard: React.FC<FeedCardProps> = ({
 
                 {/* Comment Input */}
                 <div className="comment-input-container">
-                  <img src={currentUser?.avatar || cardUser?.avatar || 'https://i.pravatar.cc/150?img=1'} alt="You" className="comment-input-avatar" />
+                  <Avatar
+                    src={currentUser?.avatar || cardUser?.avatar}
+                    alt="You"
+                    name={currentUser?.name || cardUser?.name}
+                    userId={currentUser?.id || cardUser?.id}
+                    size={32}
+                    className="comment-input-avatar"
+                  />
                   <div className="comment-input-wrapper">
                     <textarea
                       ref={commentInputRef}

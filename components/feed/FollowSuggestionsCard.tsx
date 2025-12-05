@@ -13,6 +13,7 @@
 'use client'
 
 import React, { useState, useRef, useCallback, useEffect } from 'react'
+import { getAvatarProps } from '@/utils/avatarUtils'
 
 // ============================================================================
 // Types
@@ -500,12 +501,38 @@ export const FollowSuggestionsCard: React.FC<FollowSuggestionsCardProps> = ({
               return (
                 <div key={user.id} className={cardClass} data-user={index}>
                   <div className="user-profile">
-                    <img 
-                      src={user.avatar} 
-                      alt={user.name} 
-                      className="profile-photo"
-                      onClick={() => onUserClick?.(user.id)}
-                    />
+                    {(() => {
+                      const avatarProps = getAvatarProps(user.avatar, user.name, user.id)
+                      if (avatarProps.hasImage && avatarProps.imageSrc) {
+                        return (
+                          <img 
+                            src={avatarProps.imageSrc} 
+                            alt={user.name} 
+                            className="profile-photo"
+                            onClick={() => onUserClick?.(user.id)}
+                          />
+                        )
+                      }
+                      return (
+                        <div
+                          className="profile-photo"
+                          onClick={() => onUserClick?.(user.id)}
+                          style={{
+                            background: avatarProps.backgroundGradient || avatarProps.backgroundColor,
+                            color: 'white',
+                            fontSize: '2rem',
+                            fontWeight: 700,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            textTransform: 'uppercase',
+                          }}
+                        >
+                          {avatarProps.initials}
+                        </div>
+                      )
+                    })()}
                     <div className="profile-info">
                       <div className="name-match-row">
                         <div className="name-username">
@@ -558,9 +585,31 @@ export const FollowSuggestionsCard: React.FC<FollowSuggestionsCardProps> = ({
 
                   <div className="friends-common">
                     <div className="friend-avatars-stack">
-                      {user.friendsInCommon.avatars.slice(0, 3).map((avatar, i) => (
-                        <img key={i} src={avatar} alt="Friend" />
-                      ))}
+                      {user.friendsInCommon.avatars.slice(0, 3).map((avatar, i) => {
+                        // For friend avatars, we don't have name/userId, so just show image or placeholder
+                        if (avatar) {
+                          return <img key={i} src={avatar} alt="Friend" />
+                        }
+                        return (
+                          <div
+                            key={i}
+                            style={{
+                              width: '22px',
+                              height: '22px',
+                              borderRadius: '50%',
+                              background: 'rgba(255, 255, 255, 0.2)',
+                              border: '1.5px solid rgba(255, 255, 255, 0.9)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '8px',
+                              color: 'white',
+                            }}
+                          >
+                            ?
+                          </div>
+                        )
+                      })}
                     </div>
                     <span>{user.friendsInCommon.count} friends in common</span>
                   </div>

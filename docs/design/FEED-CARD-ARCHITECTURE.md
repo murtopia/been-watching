@@ -39,6 +39,12 @@ The `/preview/feed-live` page demonstrates the new cards with real database data
 - ✅ Data transformation layer (`utils/feedDataTransformers.ts`)
 - ✅ Scroll-to-top on page load
 - ✅ Mock comments on first card for scroll testing
+- ✅ Clickable usernames and avatars (navigate to profile pages)
+- ✅ Initials avatars with consistent colors (when no photo uploaded)
+- ✅ Activity comment likes (front of card)
+- ✅ Show comment likes (back of card)
+- ✅ Trailer modal overlay (YouTube embed)
+- ✅ Streaming platforms display (with admin allowlist)
 
 **Header Behavior:**
 - Visible on page load
@@ -51,10 +57,19 @@ The `/preview/feed-live` page demonstrates the new cards with real database data
 - API handles `activity_group_id` for merged display
 - Cards show multiple badges for grouped activities
 
+**Completed Features:**
+- ✅ Activity likes (saving to database)
+- ✅ Activity comments (front of card) with likes
+- ✅ Show comments (back of card) with likes
+- ✅ Trailer playback in modal overlay
+- ✅ Streaming platforms with admin allowlist
+- ✅ Clickable usernames/avatars for profile navigation
+- ✅ Initials avatars with consistent color generation
+
 **Next Steps:**
-- Wire up like/comment/rating actions
-- Debug API to work with "show all users" setting
 - Replace old feed components in `/feed` page
+- Test Find New Friends card (Card 7) with real data
+- Implement remaining card types (2, 3, 4, 5, 8) in feed
 
 **Known Behavior to Track:**
 - When quick action modal opens on card back, page scroll becomes unlocked
