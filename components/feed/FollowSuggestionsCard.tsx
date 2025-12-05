@@ -69,6 +69,54 @@ const LinkIcon = () => (
 )
 
 // ============================================================================
+// Avatar Component with Error Handling
+// ============================================================================
+
+const UserAvatar: React.FC<{
+  src?: string | null
+  name: string
+  userId: string
+  onClick?: () => void
+}> = ({ src, name, userId, onClick }) => {
+  const [imageError, setImageError] = useState(false)
+  const avatarProps = getAvatarProps(src, name, userId)
+  
+  // If image failed to load or no image provided, show initials
+  if (imageError || !avatarProps.hasImage || !avatarProps.imageSrc) {
+    return (
+      <div
+        className="profile-photo"
+        onClick={onClick}
+        style={{
+          background: avatarProps.backgroundGradient || avatarProps.backgroundColor,
+          color: 'white',
+          fontSize: '2rem',
+          fontWeight: 700,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: onClick ? 'pointer' : 'default',
+          textTransform: 'uppercase',
+        }}
+      >
+        {avatarProps.initials}
+      </div>
+    )
+  }
+  
+  // Try to show image, but fall back to initials on error
+  return (
+    <img 
+      src={avatarProps.imageSrc} 
+      alt={name} 
+      className="profile-photo"
+      onClick={onClick}
+      onError={() => setImageError(true)}
+    />
+  )
+}
+
+// ============================================================================
 // Main Component
 // ============================================================================
 
@@ -501,38 +549,12 @@ export const FollowSuggestionsCard: React.FC<FollowSuggestionsCardProps> = ({
               return (
                 <div key={user.id} className={cardClass} data-user={index}>
                   <div className="user-profile">
-                    {(() => {
-                      const avatarProps = getAvatarProps(user.avatar, user.name, user.id)
-                      if (avatarProps.hasImage && avatarProps.imageSrc) {
-                        return (
-                          <img 
-                            src={avatarProps.imageSrc} 
-                            alt={user.name} 
-                            className="profile-photo"
-                            onClick={() => onUserClick?.(user.id)}
-                          />
-                        )
-                      }
-                      return (
-                        <div
-                          className="profile-photo"
-                          onClick={() => onUserClick?.(user.id)}
-                          style={{
-                            background: avatarProps.backgroundGradient || avatarProps.backgroundColor,
-                            color: 'white',
-                            fontSize: '2rem',
-                            fontWeight: 700,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            textTransform: 'uppercase',
-                          }}
-                        >
-                          {avatarProps.initials}
-                        </div>
-                      )
-                    })()}
+                    <UserAvatar
+                      src={user.avatar}
+                      name={user.name}
+                      userId={user.id}
+                      onClick={() => onUserClick?.(user.id)}
+                    />
                     <div className="profile-info">
                       <div className="name-match-row">
                         <div className="name-username">

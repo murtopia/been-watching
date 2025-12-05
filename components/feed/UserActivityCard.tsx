@@ -306,6 +306,7 @@ const Avatar: React.FC<{
   style?: React.CSSProperties
   onClick?: () => void
 }> = ({ src, alt, name, userId, size = 40, className, style, onClick }) => {
+  const [imageError, setImageError] = useState(false)
   const avatarProps = getAvatarProps(src, name, userId)
   
   const baseStyle: React.CSSProperties = {
@@ -321,33 +322,36 @@ const Avatar: React.FC<{
     ...style
   }
   
-  if (avatarProps.hasImage && avatarProps.imageSrc) {
+  // If image failed to load or no image provided, show initials
+  if (imageError || !avatarProps.hasImage || !avatarProps.imageSrc) {
     return (
-      <img
-        src={avatarProps.imageSrc}
-        alt={alt}
+      <div
         className={className}
-        style={baseStyle}
+        style={{
+          ...baseStyle,
+          background: avatarProps.backgroundGradient || avatarProps.backgroundColor,
+          color: 'white',
+          fontSize: size * 0.4,
+          fontWeight: 700,
+          textTransform: 'uppercase',
+        }}
         onClick={onClick}
-      />
+      >
+        {avatarProps.initials}
+      </div>
     )
   }
   
+  // Try to show image, but fall back to initials on error
   return (
-    <div
+    <img
+      src={avatarProps.imageSrc}
+      alt={alt}
       className={className}
-      style={{
-        ...baseStyle,
-        background: avatarProps.backgroundGradient || avatarProps.backgroundColor,
-        color: 'white',
-        fontSize: size * 0.4,
-        fontWeight: 700,
-        textTransform: 'uppercase',
-      }}
+      style={baseStyle}
       onClick={onClick}
-    >
-      {avatarProps.initials}
-    </div>
+      onError={() => setImageError(true)}
+    />
   )
 }
 
