@@ -99,6 +99,7 @@ export default function PreviewFeedLivePage() {
   }, [])
 
   // Intersection Observer for infinite scroll
+  // Trigger loading when user is ~2 cards from the end for seamless experience
   useEffect(() => {
     if (!loaderRef.current || loading) return
 
@@ -110,7 +111,7 @@ export default function PreviewFeedLivePage() {
         }
       },
       {
-        rootMargin: '200px', // Load more when 200px from bottom
+        rootMargin: '1200px', // Load more when ~2 cards (1200px) from bottom
         threshold: 0.1
       }
     )
