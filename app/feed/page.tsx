@@ -1096,13 +1096,13 @@ export default function PreviewFeedLivePage() {
   
   // Track feed viewed on initial load
   useEffect(() => {
-    if (feedItems.length > 0 && !isLoading) {
+    if (feedItems.length > 0 && !loading) {
       trackFeedViewed({
         feed_type: 'enhanced',
         items_shown: feedItems.length,
       })
     }
-  }, [feedItems.length, isLoading])
+  }, [feedItems.length, loading])
 
   // Handle following a user from the Find New Friends card
   const handleFollow = async (userId: string) => {
@@ -1139,8 +1139,9 @@ export default function PreviewFeedLivePage() {
       
       console.log('Successfully followed user:', userId)
       
-      // Track follow event
-      const followedUser = userSuggestions.find(s => s.id === userId)
+      // Track follow event - get user info from feedItems
+      const suggestionsItem = feedItems.find(item => item.type === 'follow_suggestions')
+      const followedUser = suggestionsItem?.data?.suggestions?.find((s: any) => s.id === userId)
       if (followedUser) {
         trackUserFollowed({
           followed_user_id: userId,
@@ -1173,8 +1174,9 @@ export default function PreviewFeedLivePage() {
   const handleDismiss = (userId: string) => {
     console.log('Dismiss user suggestion:', userId)
     
-    // Track dismiss event
-    const dismissedUser = userSuggestions.find(s => s.id === userId)
+    // Track dismiss event - get user info from feedItems
+    const suggestionsItem = feedItems.find(item => item.type === 'follow_suggestions')
+    const dismissedUser = suggestionsItem?.data?.suggestions?.find((s: any) => s.id === userId)
     trackEvent('suggestion_dismissed', {
       dismissed_user_id: userId,
       dismissed_username: dismissedUser?.username,
