@@ -161,6 +161,8 @@ interface FeedCardProps {
   initialUserStatus?: 'want' | 'watching' | 'watched' | null
   onTrack?: (action: string, metadata?: any) => void
   onFlip?: (isFlipped: boolean) => void  // Notify parent when card flips
+  /** Start the card in flipped (back) state - useful for modal/detail views */
+  initialFlipped?: boolean
 }
 
 /** Legacy props interface for backwards compatibility */
@@ -182,6 +184,7 @@ interface UserActivityCardProps {
   currentUser?: { name: string; avatar: string }
   initialUserStatus?: 'want' | 'watching' | 'watched' | null
   onFlip?: (isFlipped: boolean) => void
+  initialFlipped?: boolean
 }
 
 // ============================================================================
@@ -379,6 +382,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   initialUserStatus,
   onTrack,
   onFlip,
+  initialFlipped = false,
 }) => {
   // Determine if this is legacy data format
   const isLegacyData = 'user' in data && 'activityBadges' in data
@@ -402,7 +406,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   const showCommentAction = variant === 'a' // Template B cards don't have comment on front
   const isUnreleased = backVariant === 'unreleased' // Card 4 special handling
 
-  const [isFlipped, setIsFlipped] = useState(false)
+  const [isFlipped, setIsFlipped] = useState(initialFlipped)
   const [commentsVisible, setCommentsVisible] = useState(false)
   const [commentsExpanded, setCommentsExpanded] = useState(false)
   const [synopsisExpanded, setSynopsisExpanded] = useState(false)
