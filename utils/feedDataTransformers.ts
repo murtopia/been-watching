@@ -120,7 +120,9 @@ export interface APIShowComment {
   comment_text: string
   created_at: string
   user?: {
+    id?: string
     display_name: string
+    username?: string
     avatar_url: string | null
   }
   like_count?: number
@@ -203,7 +205,9 @@ export function transformComments(comments: APIComment[] | undefined): FeedCardD
     id: c.id,
     user: {
       name: c.user?.display_name || 'Unknown',
-      avatar: c.user?.avatar_url || '/images/default-avatar.png'
+      avatar: c.user?.avatar_url || '/images/default-avatar.png',
+      username: (c.user as any)?.username,
+      id: c.user?.id || c.user_id
     },
     text: c.comment_text,
     timestamp: formatTimeAgo(c.created_at),
@@ -222,7 +226,9 @@ export function transformShowComments(comments: APIShowComment[] | undefined): F
     id: c.id,
     user: {
       name: c.user?.display_name || 'Unknown',
-      avatar: c.user?.avatar_url || '/images/default-avatar.png'
+      avatar: c.user?.avatar_url || '/images/default-avatar.png',
+      username: c.user?.username,
+      id: c.user?.id || c.user_id
     },
     text: c.comment_text,
     timestamp: formatTimeAgo(c.created_at),

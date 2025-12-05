@@ -568,6 +568,7 @@ export default function PreviewFeedLivePage() {
           user: {
             id: c.profiles?.id || c.user_id,
             display_name: c.profiles?.display_name || c.profiles?.username || 'Unknown',
+            username: c.profiles?.username,
             avatar_url: c.profiles?.avatar_url || null
           }
         }
@@ -752,7 +753,7 @@ export default function PreviewFeedLivePage() {
       // Fetch profiles separately
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, display_name, avatar_url')
+        .select('id, display_name, username, avatar_url')
         .in('id', userIds)
 
       if (profilesError) {
@@ -812,7 +813,9 @@ export default function PreviewFeedLivePage() {
           like_count: likeData.count,
           user_liked: likeData.userLiked,
           user: {
+            id: profile?.id || c.user_id,
             display_name: profile?.display_name || 'Unknown',
+            username: profile?.username,
             avatar_url: profile?.avatar_url || null
           }
         }

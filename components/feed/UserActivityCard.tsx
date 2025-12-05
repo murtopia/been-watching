@@ -14,6 +14,8 @@
 'use client'
 
 import React, { useState, useRef, useEffect, useCallback } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Icon } from '@/components/ui/Icon'
 import { ShareButton } from '@/components/sharing/ShareButton'
 import YouTubeModal from '@/components/media/YouTubeModal'
@@ -83,7 +85,7 @@ export interface FeedCardData {
   }
   comments: Array<{
     id: string
-    user: { name: string; avatar: string }
+    user: { name: string; avatar: string; username?: string; id?: string }
     text: string
     timestamp: string
     likes: number
@@ -91,7 +93,7 @@ export interface FeedCardData {
   }>
   showComments: Array<{
     id: string
-    user: { name: string; avatar: string }
+    user: { name: string; avatar: string; username?: string; id?: string }
     text: string
     timestamp: string
     likes: number
@@ -284,6 +286,14 @@ export const BADGE_PRESETS = {
  * Use variant='a' for user activity cards (1, 6)
  * Use variant='b' for recommendation cards (2, 3, 4, 5, 8)
  */
+// Helper function to get profile URL from username or user ID
+const getProfileUrl = (user: { username?: string; id?: string } | undefined): string | null => {
+  if (!user) return null
+  if (user.username) return `/${user.username}`
+  // If no username, we can't navigate - return null
+  return null
+}
+
 export const FeedCard: React.FC<FeedCardProps> = ({
   variant = 'a',
   backVariant = 'standard',
@@ -2011,20 +2021,41 @@ export const FeedCard: React.FC<FeedCardProps> = ({
             {/* Card Content */}
             <div className="card-content">
               {/* User Header - Only for Template A */}
-              {showUserHeader && cardUser && (
-                <div className="user-header">
-                  <img
-                    src={cardUser.avatar}
-                    alt={cardUser.name}
-                    className="user-avatar"
-                    onClick={() => onUserClick?.(cardUser.id)}
-                  />
-                  <div className="user-info">
-                    <div className="username" style={{ color: 'white' }}>{cardUser.name}</div>
-                    <div className="timestamp" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>{cardTimestamp}</div>
+              {showUserHeader && cardUser && (() => {
+                const profileUrl = cardUser.username ? `/${cardUser.username}` : null
+                
+                return (
+                  <div className="user-header">
+                    {profileUrl ? (
+                      <Link href={profileUrl} style={{ textDecoration: 'none' }}>
+                        <img
+                          src={cardUser.avatar}
+                          alt={cardUser.name}
+                          className="user-avatar"
+                          style={{ cursor: 'pointer' }}
+                        />
+                      </Link>
+                    ) : (
+                      <img
+                        src={cardUser.avatar}
+                        alt={cardUser.name}
+                        className="user-avatar"
+                        onClick={() => onUserClick?.(cardUser.id)}
+                      />
+                    )}
+                    <div className="user-info">
+                      {profileUrl ? (
+                        <Link href={profileUrl} style={{ textDecoration: 'none', color: 'inherit' }}>
+                          <div className="username" style={{ color: 'white', cursor: 'pointer' }}>{cardUser.name}</div>
+                        </Link>
+                      ) : (
+                        <div className="username" style={{ color: 'white' }}>{cardUser.name}</div>
+                      )}
+                      <div className="timestamp" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>{cardTimestamp}</div>
+                    </div>
                   </div>
-                </div>
-              )}
+                )
+              })()}
 
               {/* Activity/Recommendation Badges */}
               <div className="activity-badges">
@@ -2208,20 +2239,42 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                   </div>
                 </div>
                 <div className="activity-comment-divider"></div>
-                {localActivityComments.map((comment) => (
-                  <div key={comment.id} className="activity-comment-item">
-                    <div className="activity-comment-header">
-                      <div className="activity-comment-header-left">
-                        <img
-                          src={comment.user.avatar}
-                          alt={comment.user.name}
-                          className="activity-comment-avatar"
-                        />
-                        <span className="activity-comment-username">
-                          {comment.user.name}
-                        </span>
-                        <span className="activity-comment-time">{comment.timestamp}</span>
-                      </div>
+                {localActivityComments.map((comment) => {
+                  const profileUrl = comment.user.username ? `/${comment.user.username}` : null
+                  
+                  return (
+                    <div key={comment.id} className="activity-comment-item">
+                      <div className="activity-comment-header">
+                        <div className="activity-comment-header-left">
+                          {profileUrl ? (
+                            <Link href={profileUrl} style={{ textDecoration: 'none' }}>
+                              <img
+                                src={comment.user.avatar}
+                                alt={comment.user.name}
+                                className="activity-comment-avatar"
+                                style={{ cursor: 'pointer' }}
+                              />
+                            </Link>
+                          ) : (
+                            <img
+                              src={comment.user.avatar}
+                              alt={comment.user.name}
+                              className="activity-comment-avatar"
+                            />
+                          )}
+                          {profileUrl ? (
+                            <Link href={profileUrl} style={{ textDecoration: 'none', color: 'inherit' }}>
+                              <span className="activity-comment-username" style={{ cursor: 'pointer' }}>
+                                {comment.user.name}
+                              </span>
+                            </Link>
+                          ) : (
+                            <span className="activity-comment-username">
+                              {comment.user.name}
+                            </span>
+                          )}
+                          <span className="activity-comment-time">{comment.timestamp}</span>
+                        </div>
                       <button
                         className={`comment-like-btn ${(activityCommentLikes[comment.id] || { liked: comment.userLiked }).liked ? 'liked' : ''}`}
                         onClick={async (e) => {
@@ -2274,7 +2327,8 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                     </div>
                     <div className="activity-comment-text">{comment.text}</div>
                   </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           </div>
@@ -2547,13 +2601,27 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                 <div className="comments-list">
                   {localShowComments.slice(0, visibleShowComments).map((comment) => {
                     const likeState = commentLikes[comment.id] || { liked: false, count: 0 }
+                    const profileUrl = comment.user.username ? `/${comment.user.username}` : null
+                    
                     return (
                       <div key={comment.id} className="comment-item">
-                        <img src={comment.user.avatar} alt={comment.user.name} className="comment-avatar" />
+                        {profileUrl ? (
+                          <Link href={profileUrl} style={{ textDecoration: 'none' }}>
+                            <img src={comment.user.avatar} alt={comment.user.name} className="comment-avatar" style={{ cursor: 'pointer' }} />
+                          </Link>
+                        ) : (
+                          <img src={comment.user.avatar} alt={comment.user.name} className="comment-avatar" />
+                        )}
                         <div className="comment-content">
                           <div className="comment-header">
                             <div className="comment-header-left">
-                              <span className="comment-username">{comment.user.name}</span>
+                              {profileUrl ? (
+                                <Link href={profileUrl} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                  <span className="comment-username" style={{ cursor: 'pointer' }}>{comment.user.name}</span>
+                                </Link>
+                              ) : (
+                                <span className="comment-username">{comment.user.name}</span>
+                              )}
                               <span className="comment-timestamp">{comment.timestamp}</span>
                             </div>
                             <button
