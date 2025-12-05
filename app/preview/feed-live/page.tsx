@@ -1,10 +1,14 @@
 /**
- * Preview Feed Live - Test new React cards with real API data
+ * Enhanced Activity Feed
  * 
- * Purpose: Verify data transformation and card rendering before
- * replacing the main feed components
+ * Features:
+ * - New React card components with flip animations
+ * - Infinite scroll with cursor-based pagination
+ * - PostHog analytics integration
+ * - Find New Friends suggestions
+ * - Activity likes, comments, ratings, watch status
  * 
- * URL: /preview/feed-live
+ * URL: /feed
  */
 
 'use client'
@@ -47,12 +51,6 @@ interface FeedItem {
   data: any
 }
 
-interface DebugInfo {
-  totalActivitiesInDB: number
-  followsCount: number
-  adminShowAll: boolean
-  apiResponse: any
-}
 
 interface Profile {
   id: string
@@ -68,8 +66,6 @@ export default function PreviewFeedLivePage() {
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
-  const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null)
-  const [apiTestResult, setApiTestResult] = useState<string | null>(null)
   
   // Infinite scroll state
   const [cursor, setCursor] = useState<string | null>(null)
@@ -84,18 +80,6 @@ export default function PreviewFeedLivePage() {
   
   const supabase = createClient()
   
-  // Test API directly
-  const testApi = async () => {
-    setApiTestResult('Testing...')
-    try {
-      const response = await fetch('/api/feed?limit=10&offset=0')
-      const data = await response.json()
-      setApiTestResult(JSON.stringify(data, null, 2))
-    } catch (err) {
-      setApiTestResult(`Error: ${err}`)
-    }
-  }
-
   // Scroll to top on page load (prevents scroll restoration putting content behind header)
   useEffect(() => {
     // Disable browser's automatic scroll restoration
@@ -183,19 +167,10 @@ export default function PreviewFeedLivePage() {
         .order('created_at', { ascending: false })
         .limit(10)
       
-      console.log('Direct DB activities:', directActivities, directError)
-      console.log('Current user ID:', user?.id)
-      
       // Check how many are NOT from current user
       const otherUsersActivities = directActivities?.filter(a => a.user_id !== user?.id) || []
-      console.log('Activities from OTHER users:', otherUsersActivities.length)
       
-      // TEST MODE: Bypass API and render directly from DB
-      // This helps us verify the cards work before fixing the API
-      const useTestMode = true // Set to true to bypass API
-      
-      if (useTestMode && otherUsersActivities.length > 0) {
-        console.log('TEST MODE: Rendering directly from DB, bypassing API')
+      if (otherUsersActivities.length > 0) {
         
         // Get full activity data for rendering
         const { data: fullActivities } = await supabase
@@ -228,8 +203,6 @@ export default function PreviewFeedLivePage() {
           .neq('user_id', user?.id)
           .order('created_at', { ascending: false })
           .limit(INITIAL_BATCH_SIZE)
-        
-        console.log('Full activities for rendering:', fullActivities)
         
         if (fullActivities && fullActivities.length > 0) {
           // Set cursor to last item's created_at for pagination
@@ -334,32 +307,14 @@ export default function PreviewFeedLivePage() {
       }
       
       if (otherUsersActivities.length === 0 && directActivities && directActivities.length > 0) {
-        // All activities are from current user
-        setDebugInfo({
-          totalActivitiesInDB: directActivities.length,
-          followsCount: 0,
-          adminShowAll: true,
-          apiResponse: { message: 'All activities are yours - excluded from feed' },
-          activitiesFromFollowed: 0,
-          myActivities: directActivities.length,
-          sampleActivities: directActivities.map(a => ({
-            user: (a.profiles as any)?.display_name || (a.profiles as any)?.username || 'Unknown',
-            type: a.activity_type,
-            media: (a.media as any)?.title || 'Unknown',
-            isMe: a.user_id === user?.id,
-            isFollowed: false
-          }))
-        } as any)
+        // All activities are from current user - show empty feed
         setFeedItems([])
         setLoading(false)
         return
       }
       
-      // Fetch feed from API
-      console.log('Fetching feed from API...')
+      // Fetch feed from API as fallback
       const response = await fetch('/api/feed?limit=10&offset=0')
-      
-      console.log('Response status:', response.status)
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
@@ -368,27 +323,8 @@ export default function PreviewFeedLivePage() {
       }
 
       const data = await response.json()
-      console.log('Feed API Response:', data)
 
       if (!data.items || data.items.length === 0) {
-        console.log('API returned no items')
-        // Use the direct query results we already have
-        setDebugInfo({
-          totalActivitiesInDB: directActivities?.length || 0,
-          followsCount: 0,
-          adminShowAll: true,
-          apiResponse: data,
-          activitiesFromFollowed: 0,
-          myActivities: directActivities?.filter(a => a.user_id === user?.id).length || 0,
-          sampleActivities: directActivities?.map(a => ({
-            user: (a.profiles as any)?.display_name || (a.profiles as any)?.username || 'Unknown',
-            type: a.activity_type,
-            media: (a.media as any)?.title || 'Unknown',
-            isMe: a.user_id === user?.id,
-            isFollowed: false
-          }))
-        } as any)
-        
         setFeedItems([])
         setLoading(false)
         return
@@ -1671,56 +1607,6 @@ export default function PreviewFeedLivePage() {
           Follow some friends or wait for activity!
         </div>
         
-        {debugInfo && (
-          <div style={{ 
-            marginTop: '20px', 
-            background: 'rgba(0,0,0,0.5)', 
-            padding: '16px', 
-            borderRadius: '8px',
-            fontSize: '13px',
-            maxWidth: '400px'
-          }}>
-            <div style={{ fontWeight: 'bold', marginBottom: '10px', color: '#3b82f6' }}>
-              Debug Info:
-            </div>
-            <div>Activities in DB: {debugInfo.totalActivitiesInDB}</div>
-            <div>Your accepted follows: {debugInfo.followsCount}</div>
-            <div>Admin "show all users": {debugInfo.adminShowAll ? 'Yes' : 'No'}</div>
-            <div>Activities from people you follow: {(debugInfo as any).activitiesFromFollowed || 0}</div>
-            <div>Your own activities: {(debugInfo as any).myActivities || 0}</div>
-            
-            {(debugInfo as any).sampleActivities && (
-              <div style={{ marginTop: '10px', borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: '10px' }}>
-                <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>Sample Activities:</div>
-                {(debugInfo as any).sampleActivities.map((a: any, i: number) => (
-                  <div key={i} style={{ 
-                    fontSize: '11px', 
-                    color: a.isMe ? '#f87171' : a.isFollowed ? '#4ade80' : 'rgba(255,255,255,0.5)',
-                    marginBottom: '4px'
-                  }}>
-                    <strong>{a.user}</strong>: {a.type}
-                    {a.media && <span style={{ opacity: 0.7 }}> - {a.media}</span>}
-                    {a.isMe && <span style={{ color: '#f87171' }}> (YOU)</span>}
-                    {a.isFollowed && <span style={{ color: '#4ade80' }}> (FOLLOWED)</span>}
-                  </div>
-                ))}
-              </div>
-            )}
-            
-            <div style={{ marginTop: '10px', color: 'rgba(255,255,255,0.6)' }}>
-              {debugInfo.totalActivitiesInDB === 0 && "No activities exist in the database."}
-              {(debugInfo as any).myActivities === debugInfo.totalActivitiesInDB && debugInfo.totalActivitiesInDB > 0 &&
-                "All activities are yours (excluded from feed)."}
-              {(debugInfo as any).activitiesFromFollowed === 0 && (debugInfo as any).myActivities < debugInfo.totalActivitiesInDB && !debugInfo.adminShowAll &&
-                "Activities exist from users you don't follow. Enable 'show all users' in admin."}
-            </div>
-          </div>
-        )}
-        
-        <div style={{ marginTop: '16px', display: 'flex', gap: '12px' }}>
-          <a href="/admin" style={{ color: '#3b82f6', fontSize: '14px' }}>Admin Panel</a>
-          <a href="/feed" style={{ color: '#3b82f6', fontSize: '14px' }}>Old Feed</a>
-        </div>
       </div>
     )
   }
@@ -1744,17 +1630,6 @@ export default function PreviewFeedLivePage() {
           justify-content: center;
         }
         
-        .debug-info {
-          position: fixed;
-          top: 70px;
-          left: 10px;
-          background: rgba(0,0,0,0.8);
-          color: white;
-          padding: 10px;
-          font-size: 12px;
-          border-radius: 8px;
-          z-index: 50;
-        }
       `}</style>
 
       {/* Header - Instagram style: hides on scroll down, shows on scroll up */}
@@ -1765,35 +1640,6 @@ export default function PreviewFeedLivePage() {
           to { transform: rotate(360deg); }
         }
       `}</style>
-
-      <div className="debug-info">
-        <div>Feed Items: {feedItems.length}</div>
-        <div>Mode: Infinite Scroll</div>
-        <div style={{ fontSize: '10px', opacity: 0.7 }}>
-          {hasMore ? 'More available' : 'End reached'}
-        </div>
-        <button 
-          onClick={testApi}
-          style={{ marginTop: '8px', padding: '4px 8px', fontSize: '11px', cursor: 'pointer' }}
-        >
-          Test API
-        </button>
-        {apiTestResult && (
-          <pre style={{ 
-            marginTop: '8px', 
-            fontSize: '9px', 
-            maxHeight: '200px', 
-            overflow: 'auto',
-            background: 'rgba(0,0,0,0.5)',
-            padding: '4px',
-            borderRadius: '4px',
-            maxWidth: '300px',
-            whiteSpace: 'pre-wrap'
-          }}>
-            {apiTestResult}
-          </pre>
-        )}
-      </div>
 
       <div>
         {feedItems.map((item) => {
