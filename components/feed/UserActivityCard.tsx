@@ -39,7 +39,7 @@ export interface FeedCardUser {
   id: string
   name: string
   username: string
-  avatar: string
+  avatar: string | null
 }
 
 /** Media/Show data */
@@ -86,7 +86,7 @@ export interface FeedCardData {
   }
   comments: Array<{
     id: string
-    user: { name: string; avatar: string; username?: string; id?: string }
+    user: { name: string; avatar: string | null; username?: string; id?: string }
     text: string
     timestamp: string
     likes: number
@@ -94,7 +94,7 @@ export interface FeedCardData {
   }>
   showComments: Array<{
     id: string
-    user: { name: string; avatar: string; username?: string; id?: string }
+    user: { name: string; avatar: string | null; username?: string; id?: string }
     text: string
     timestamp: string
     likes: number
@@ -2089,17 +2089,22 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                   <div className="user-header">
                     {profileUrl ? (
                       <Link href={profileUrl} style={{ textDecoration: 'none' }}>
-                        <img
+                        <Avatar
                           src={cardUser.avatar}
                           alt={cardUser.name}
+                          name={cardUser.name}
+                          userId={cardUser.id}
+                          size={40}
                           className="user-avatar"
-                          style={{ cursor: 'pointer' }}
                         />
                       </Link>
                     ) : (
-                      <img
+                      <Avatar
                         src={cardUser.avatar}
                         alt={cardUser.name}
+                        name={cardUser.name}
+                        userId={cardUser.id}
+                        size={40}
                         className="user-avatar"
                         onClick={() => onUserClick?.(cardUser.id)}
                       />
@@ -2687,10 +2692,24 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                       <div key={comment.id} className="comment-item">
                         {profileUrl ? (
                           <Link href={profileUrl} style={{ textDecoration: 'none' }}>
-                            <img src={comment.user.avatar} alt={comment.user.name} className="comment-avatar" style={{ cursor: 'pointer' }} />
+                            <Avatar
+                              src={comment.user.avatar}
+                              alt={comment.user.name}
+                              name={comment.user.name}
+                              userId={comment.user.id}
+                              size={32}
+                              className="comment-avatar"
+                            />
                           </Link>
                         ) : (
-                          <img src={comment.user.avatar} alt={comment.user.name} className="comment-avatar" />
+                          <Avatar
+                            src={comment.user.avatar}
+                            alt={comment.user.name}
+                            name={comment.user.name}
+                            userId={comment.user.id}
+                            size={32}
+                            className="comment-avatar"
+                          />
                         )}
                         <div className="comment-content">
                           <div className="comment-header">

@@ -191,7 +191,8 @@ export function transformUser(profile: APIActivity['profiles']): FeedCardUser {
     id: profile.id,
     name: profile.display_name || profile.username,
     username: profile.username,
-    avatar: profile.avatar_url || '/images/default-avatar.png'
+    // Pass null instead of default path - Avatar component will handle with initials
+    avatar: profile.avatar_url || null
   }
 }
 
@@ -205,7 +206,7 @@ export function transformComments(comments: APIComment[] | undefined): FeedCardD
     id: c.id,
     user: {
       name: c.user?.display_name || 'Unknown',
-      avatar: c.user?.avatar_url || '/images/default-avatar.png',
+      avatar: c.user?.avatar_url || null,
       username: (c.user as any)?.username,
       id: c.user?.id || c.user_id
     },
@@ -226,7 +227,7 @@ export function transformShowComments(comments: APIShowComment[] | undefined): F
     id: c.id,
     user: {
       name: c.user?.display_name || 'Unknown',
-      avatar: c.user?.avatar_url || '/images/default-avatar.png',
+      avatar: c.user?.avatar_url || null,
       username: c.user?.username,
       id: c.user?.id || c.user_id
     },
@@ -340,11 +341,11 @@ export function transformFriendsActivity(
     },
     wantToWatch: {
       count: friendsData.wantToWatch.length,
-      avatars: friendsData.wantToWatch.slice(0, 3).map(f => f.avatar_url || '/images/default-avatar.png')
+      avatars: friendsData.wantToWatch.slice(0, 3).map(f => f.avatar_url).filter(Boolean) as string[]
     },
     watched: {
       count: friendsData.watched.length,
-      avatars: friendsData.watched.slice(0, 3).map(f => f.avatar_url || '/images/default-avatar.png')
+      avatars: friendsData.watched.slice(0, 3).map(f => f.avatar_url).filter(Boolean) as string[]
     },
     ratings: {
       meh: friendsData.ratings.meh,

@@ -122,7 +122,14 @@ export function getAvatarProps(
   backgroundColor?: string
   backgroundGradient?: string
 } {
-  if (avatarUrl) {
+  // Check if avatarUrl is a valid, non-empty string
+  // Also filter out common placeholder/default URLs that might be broken
+  const isValidUrl = avatarUrl && 
+    avatarUrl.trim() !== '' && 
+    avatarUrl !== '/images/default-avatar.png' &&
+    (avatarUrl.startsWith('data:') || avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://') || avatarUrl.startsWith('/'))
+  
+  if (isValidUrl) {
     return {
       hasImage: true,
       imageSrc: avatarUrl,
