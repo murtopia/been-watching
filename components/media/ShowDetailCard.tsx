@@ -119,8 +119,72 @@ export default function ShowDetailCard({
   const [trailerLoading, setTrailerLoading] = useState(false)
   const [showTrailerModal, setShowTrailerModal] = useState(false)
   
+  // Scroll state for custom momentum scrolling
+  const [scrollY, setScrollY] = useState(0)
+  const [maxScroll, setMaxScroll] = useState(0)
+  const velocityRef = useRef(0)
+  const lastTouchYRef = useRef(0)
+  const animationRef = useRef<number | null>(null)
+  
   const synopsisRef = useRef<HTMLParagraphElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+  const innerRef = useRef<HTMLDivElement>(null)
   const supabase = createClient()
+
+  // Calculate max scroll when content changes
+  useEffect(() => {
+    if (isOpen && contentRef.current && innerRef.current) {
+      const containerHeight = contentRef.current.clientHeight
+      const contentHeight = innerRef.current.scrollHeight
+      setMaxScroll(Math.max(0, contentHeight - containerHeight))
+    }
+  }, [isOpen, showComments, showCommentsExpanded])
+
+  // Handle touch scroll
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current)
+    }
+    lastTouchYRef.current = e.touches[0].clientY
+    velocityRef.current = 0
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault()
+    const touch = e.touches[0]
+    const deltaY = lastTouchYRef.current - touch.clientY
+    lastTouchYRef.current = touch.clientY
+    velocityRef.current = deltaY
+
+    setScrollY(prev => {
+      const newScroll = prev + deltaY
+      return Math.max(0, Math.min(newScroll, maxScroll))
+    })
+  }
+
+  const handleTouchEnd = () => {
+    // Momentum scrolling
+    const decelerate = () => {
+      velocityRef.current *= 0.95
+      if (Math.abs(velocityRef.current) > 0.5) {
+        setScrollY(prev => {
+          const newScroll = prev + velocityRef.current
+          return Math.max(0, Math.min(newScroll, maxScroll))
+        })
+        animationRef.current = requestAnimationFrame(decelerate)
+      }
+    }
+    animationRef.current = requestAnimationFrame(decelerate)
+  }
+
+  // Handle wheel scroll
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault()
+    setScrollY(prev => {
+      const newScroll = prev + e.deltaY
+      return Math.max(0, Math.min(newScroll, maxScroll))
+    })
+  }
 
   // Fetch show comments
   const fetchShowComments = useCallback(async () => {
@@ -140,7 +204,6 @@ export default function ShowDetailCard({
         .limit(20)
       
       if (comments && comments.length > 0) {
-        // Fetch profiles separately
         const userIds = [...new Set(comments.map(c => c.user_id))]
         const { data: profiles } = await supabase
           .from('profiles')
@@ -161,12 +224,11 @@ export default function ShowDetailCard({
     }
   }, [media.id, supabase])
 
-  // Fetch friends activity for this show
+  // Fetch friends activity
   const fetchFriendsActivity = useCallback(async () => {
     if (!media.id || !currentUser?.id) return
     
     try {
-      // Get list of people current user follows
       const { data: following } = await supabase
         .from('follows')
         .select('following_id')
@@ -177,7 +239,6 @@ export default function ShowDetailCard({
       
       const followingIds = following.map(f => f.following_id)
       
-      // Get watch status of followed users for this media
       const { data: statuses } = await supabase
         .from('watch_status')
         .select(`
@@ -247,10 +308,16 @@ export default function ShowDetailCard({
       fetchShowComments()
       fetchFriendsActivity()
       fetchTrailer()
+      setScrollY(0)
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden'
+    }
+    return () => {
+      document.body.style.overflow = ''
     }
   }, [isOpen, fetchShowComments, fetchFriendsActivity, fetchTrailer])
 
-  // Check if synopsis needs truncation
+  // Check synopsis truncation
   useEffect(() => {
     if (synopsisRef.current) {
       const lineHeight = parseInt(getComputedStyle(synopsisRef.current).lineHeight)
@@ -259,7 +326,6 @@ export default function ShowDetailCard({
     }
   }, [media.synopsis])
 
-  // Update local state when props change
   useEffect(() => {
     setSelectedRating(initialRating || null)
     setSelectedStatus(initialStatus || null)
@@ -304,6 +370,21 @@ export default function ShowDetailCard({
     }
   }
 
+  const formatTimeAgo = (dateString: string): string => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMins / 60)
+    const diffDays = Math.floor(diffHours / 24)
+    
+    if (diffMins < 1) return 'just now'
+    if (diffMins < 60) return `${diffMins}m ago`
+    if (diffHours < 24) return `${diffHours}h ago`
+    if (diffDays < 7) return `${diffDays}d ago`
+    return date.toLocaleDateString()
+  }
+
   if (!isOpen) return null
 
   return (
@@ -315,221 +396,242 @@ export default function ShowDetailCard({
             <Icon name="close" variant="circle" size={42} />
           </button>
 
-          <div className="card-content">
-            {/* Title Section */}
-            <div className="back-title-section">
-              <h1 className="back-title">
-                {media.title}
-                {media.season && !media.title.includes(`Season ${media.season}`) && ` - Season ${media.season}`}
-              </h1>
-              <div className="back-meta">
-                {media.year && <span className="back-year">{media.year}</span>}
-                {media.genres && media.genres.length > 0 && (
-                  <>
-                    <span className="meta-dot">•</span>
-                    <span>{media.genres.join(', ')}</span>
-                  </>
-                )}
-                {media.rating && (
-                  <>
-                    <span className="meta-dot">•</span>
-                    <span className="back-rating" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                      <Icon name="star-gold" size={14} /> {media.rating.toFixed(1)}
-                    </span>
-                  </>
-                )}
+          <div 
+            className="card-back-content"
+            ref={contentRef}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onWheel={handleWheel}
+          >
+            <div 
+              className="card-back-inner" 
+              ref={innerRef}
+              style={{ transform: `translate3d(0, ${-scrollY}px, 0)` }}
+            >
+              {/* Title Section */}
+              <div className="back-title-section">
+                <h1 className="back-title">
+                  {media.title}
+                  {media.season && !media.title.includes(`Season ${media.season}`) && ` - Season ${media.season}`}
+                </h1>
+                <div className="back-meta">
+                  {media.year && <span>{media.year}</span>}
+                  {media.genres && media.genres.length > 0 && (
+                    <>
+                      <span className="meta-dot">•</span>
+                      <span>{media.genres.slice(0, 2).join(', ')}</span>
+                    </>
+                  )}
+                  {media.rating && (
+                    <>
+                      <span className="meta-dot">•</span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <Icon name="star-gold" size={14} /> {media.rating.toFixed(1)}
+                      </span>
+                    </>
+                  )}
+                </div>
+
+                {/* Badges */}
+                <div className="back-badges">
+                  {media.season && <div className="back-badge">S{media.season}</div>}
+                  {media.mediaType && <div className="back-badge">{media.mediaType}</div>}
+                  {media.streamingPlatforms && media.streamingPlatforms.length > 0 ? (
+                    media.streamingPlatforms.map((platform, idx) => (
+                      <div key={idx} className="back-badge">{platform}</div>
+                    ))
+                  ) : (
+                    media.network && <div className="back-badge">{media.network}</div>
+                  )}
+                  <button
+                    className={`back-badge trailer ${!trailerKey || trailerLoading ? 'disabled' : ''}`}
+                    onClick={handleTrailerClick}
+                    disabled={!trailerKey || trailerLoading}
+                    type="button"
+                  >
+                    <Icon name="play" size={10} /> Trailer
+                  </button>
+                </div>
               </div>
 
-              {/* Badges */}
-              <div className="back-badges">
-                {media.season && <div className="back-badge season">S{media.season}</div>}
-                {media.mediaType && <div className="back-badge type">{media.mediaType}</div>}
-                {media.streamingPlatforms && media.streamingPlatforms.length > 0 ? (
-                  media.streamingPlatforms.map((platform, idx) => (
-                    <div key={idx} className="back-badge network">{platform}</div>
-                  ))
-                ) : (
-                  media.network && <div className="back-badge network">{media.network}</div>
-                )}
+              {/* Synopsis */}
+              {media.synopsis && (
+                <>
+                  <p 
+                    ref={synopsisRef}
+                    className={`back-synopsis ${synopsisExpanded ? '' : 'collapsed'}`}
+                  >
+                    {media.synopsis}
+                  </p>
+                  {needsTruncation && (
+                    <span className="read-more" onClick={() => setSynopsisExpanded(!synopsisExpanded)}>
+                      {synopsisExpanded ? 'Show less' : 'Read more'}
+                    </span>
+                  )}
+                </>
+              )}
+
+              {/* Action Icons */}
+              <div className="back-action-icons">
                 <button
-                  className={`back-badge trailer ${!trailerKey || trailerLoading ? 'disabled' : ''}`}
-                  onClick={handleTrailerClick}
-                  disabled={!trailerKey || trailerLoading}
-                  type="button"
+                  className="back-icon-btn"
+                  onClick={() => setActionOverlayVisible(true)}
+                  style={{ background: 'linear-gradient(135deg, #8B5CF6, #EC4899)' }}
                 >
-                  <Icon name="play" size={10} /> Trailer
+                  <Icon name="plus" size={22} color="white" />
+                </button>
+                <button className="back-icon-btn" onClick={() => setShowCommentsExpanded(!showCommentsExpanded)}>
+                  <Icon name="comment" size={22} color="white" />
+                </button>
+                <button className="back-icon-btn" disabled style={{ opacity: 0.4, cursor: 'not-allowed' }}>
+                  <Icon name="share" size={22} color="white" />
                 </button>
               </div>
-            </div>
 
-            {/* Synopsis */}
-            {media.synopsis && (
-              <>
-                <p 
-                  ref={synopsisRef}
-                  className={`back-synopsis ${synopsisExpanded ? '' : 'collapsed'}`}
-                >
-                  {media.synopsis}
-                </p>
-                {needsTruncation && (
-                  <span className="read-more" onClick={() => setSynopsisExpanded(!synopsisExpanded)}>
-                    {synopsisExpanded ? 'Show less' : 'Read more'}
-                  </span>
+              {/* Info Grid */}
+              <div className="back-info-grid">
+                {media.creator && (
+                  <div className="back-info-item">
+                    <span className="back-info-label">Creator</span>
+                    <span className="back-info-value">{media.creator}</span>
+                  </div>
                 )}
-              </>
-            )}
+                {media.genres && media.genres.length > 0 && (
+                  <div className="back-info-item">
+                    <span className="back-info-label">Genre</span>
+                    <span className="back-info-value">{media.genres.join(', ')}</span>
+                  </div>
+                )}
+              </div>
 
-            {/* Action Icons */}
-            <div className="back-action-icons">
-              <button
-                className="back-icon-btn primary"
-                onClick={() => setActionOverlayVisible(true)}
-              >
-                <Icon name="plus" size={22} color="white" />
-              </button>
-              <button className="back-icon-btn" onClick={() => setShowCommentsExpanded(!showCommentsExpanded)}>
-                <Icon name="comment" size={22} color="white" />
-              </button>
-              <button className="back-icon-btn" disabled style={{ opacity: 0.4, cursor: 'not-allowed' }}>
-                <Icon name="share" size={22} color="white" />
-              </button>
-            </div>
-
-            {/* Info Grid */}
-            <div className="back-info-grid">
-              {media.creator && (
-                <div className="back-info-item">
-                  <span className="back-info-label">Creator</span>
-                  <span className="back-info-value">{media.creator}</span>
+              {/* Cast */}
+              {media.cast && media.cast.length > 0 && (
+                <div className="back-section">
+                  <h3 className="back-section-title">Cast</h3>
+                  <div className="cast-list">
+                    {media.cast.map((actor, idx) => (
+                      <span key={idx} className="cast-member">{actor}</span>
+                    ))}
+                  </div>
                 </div>
               )}
-              {media.genres && media.genres.length > 0 && (
-                <div className="back-info-item">
-                  <span className="back-info-label">Genre</span>
-                  <span className="back-info-value">{media.genres.join(', ')}</span>
-                </div>
-              )}
-            </div>
 
-            {/* Cast */}
-            {media.cast && media.cast.length > 0 && (
+              {/* Friends Watching */}
               <div className="back-section">
-                <h3 className="back-section-title">Cast</h3>
-                <div className="cast-list">
-                  {media.cast.map((actor, idx) => (
-                    <span key={idx} className="cast-member">
-                      {actor}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Friends Watching */}
-            <div className="back-section">
-              <h3 className="back-section-title">Friends Watching</h3>
-              <div className="friends-categories">
-                <div className="friends-category">
-                  <div className="friends-avatars-stack">
-                    {friendsActivity.watching.avatars.slice(0, 3).map((avatar: string, idx: number) => (
-                      <img key={idx} src={avatar} alt="Friend" />
-                    ))}
-                  </div>
-                  <div className="friends-category-text">
-                    <span className="count">{friendsActivity.watching.count}</span> friends watching
-                  </div>
-                </div>
-                <div className="friends-category">
-                  <div className="friends-avatars-stack">
-                    {friendsActivity.watched.avatars.slice(0, 3).map((avatar: string, idx: number) => (
-                      <img key={idx} src={avatar} alt="Friend" />
-                    ))}
-                  </div>
-                  <div className="friends-category-text">
-                    <span className="count">{friendsActivity.watched.count}</span> friends watched
-                  </div>
-                </div>
-                <div className="friends-category">
-                  <div className="friends-avatars-stack">
-                    {friendsActivity.wantToWatch.avatars.slice(0, 3).map((avatar: string, idx: number) => (
-                      <img key={idx} src={avatar} alt="Friend" />
-                    ))}
-                  </div>
-                  <div className="friends-category-text">
-                    <span className="count">{friendsActivity.wantToWatch.count}</span> want to watch
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Comments Section */}
-            <div className="back-section">
-              <div 
-                className="comments-header"
-                onClick={() => setShowCommentsExpanded(!showCommentsExpanded)}
-              >
-                <h3 className="back-section-title">
-                  Comments ({showComments.length})
-                </h3>
-                <Icon 
-                  name={showCommentsExpanded ? 'chevron-up' : 'chevron-down'} 
-                  size={20} 
-                  color="rgba(255,255,255,0.6)"
-                />
-              </div>
-              
-              {showCommentsExpanded && (
-                <div className="comments-section">
-                  {/* Comment Input */}
-                  {currentUser && (
-                    <div className="comment-input-row">
-                      <Avatar 
-                        src={currentUser.avatar}
-                        name={currentUser.name}
-                        userId={currentUser.id}
-                        size={32}
-                      />
-                      <input
-                        type="text"
-                        placeholder="Add a comment..."
-                        value={showCommentInput}
-                        onChange={(e) => setShowCommentInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') handleSubmitShowComment()
-                        }}
-                      />
-                      <button 
-                        onClick={handleSubmitShowComment}
-                        disabled={!showCommentInput.trim()}
-                      >
-                        Post
-                      </button>
+                <h3 className="back-section-title">Friends</h3>
+                <div className="friends-categories">
+                  <div className="friends-category">
+                    <div className="friends-avatars-stack">
+                      {friendsActivity.watching.avatars.slice(0, 3).map((avatar: string, idx: number) => (
+                        <img key={idx} src={avatar} alt="Friend" />
+                      ))}
                     </div>
-                  )}
-                  
-                  {/* Comment List */}
-                  {showComments.map((comment) => (
-                    <div key={comment.id} className="comment-item">
-                      <Avatar 
-                        src={comment.profiles?.avatar_url}
-                        name={comment.profiles?.display_name || comment.profiles?.username}
-                        userId={comment.user_id}
-                        size={28}
-                      />
-                      <div className="comment-content">
-                        <Link href={`/${comment.profiles?.username}`} className="comment-username">
-                          {comment.profiles?.display_name || comment.profiles?.username}
-                        </Link>
-                        <p className="comment-text">{comment.comment_text}</p>
+                    <div className="friends-category-text">
+                      <span className="count">{friendsActivity.watching.count}</span> watching
+                    </div>
+                  </div>
+                  <div className="friends-category">
+                    <div className="friends-avatars-stack">
+                      {friendsActivity.watched.avatars.slice(0, 3).map((avatar: string, idx: number) => (
+                        <img key={idx} src={avatar} alt="Friend" />
+                      ))}
+                    </div>
+                    <div className="friends-category-text">
+                      <span className="count">{friendsActivity.watched.count}</span> watched
+                    </div>
+                  </div>
+                  <div className="friends-category">
+                    <div className="friends-avatars-stack">
+                      {friendsActivity.wantToWatch.avatars.slice(0, 3).map((avatar: string, idx: number) => (
+                        <img key={idx} src={avatar} alt="Friend" />
+                      ))}
+                    </div>
+                    <div className="friends-category-text">
+                      <span className="count">{friendsActivity.wantToWatch.count}</span> want to watch
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Comments Section */}
+              <div className="back-section show-comments-section">
+                <div 
+                  className="comments-header"
+                  onClick={() => setShowCommentsExpanded(!showCommentsExpanded)}
+                >
+                  <h3 className="back-section-title" style={{ margin: 0 }}>
+                    Comments ({showComments.length})
+                  </h3>
+                  <Icon 
+                    name={showCommentsExpanded ? 'chevron-up' : 'chevron-down'} 
+                    size={20} 
+                    color="rgba(255,255,255,0.6)"
+                  />
+                </div>
+                
+                {showCommentsExpanded && (
+                  <div className="comments-list">
+                    {/* Comment Input */}
+                    {currentUser && (
+                      <div className="comment-input-container">
+                        <Avatar 
+                          src={currentUser.avatar}
+                          name={currentUser.name}
+                          userId={currentUser.id}
+                          size={32}
+                        />
+                        <input
+                          type="text"
+                          className="comment-input"
+                          placeholder="Add a comment..."
+                          value={showCommentInput}
+                          onChange={(e) => setShowCommentInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSubmitShowComment()
+                          }}
+                        />
+                        <button 
+                          className="comment-send-btn"
+                          onClick={handleSubmitShowComment}
+                          disabled={!showCommentInput.trim()}
+                        >
+                          <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                          </svg>
+                        </button>
                       </div>
-                    </div>
-                  ))}
-                  
-                  {showComments.length === 0 && (
-                    <p className="no-comments">No comments yet. Be the first!</p>
-                  )}
-                </div>
-              )}
+                    )}
+                    
+                    {/* Comment List */}
+                    {showComments.map((comment) => (
+                      <div key={comment.id} className="comment-item">
+                        <Avatar 
+                          src={comment.profiles?.avatar_url}
+                          name={comment.profiles?.display_name || comment.profiles?.username}
+                          userId={comment.user_id}
+                          size={32}
+                        />
+                        <div className="comment-content">
+                          <div className="comment-header">
+                            <div className="comment-header-left">
+                              <Link href={`/${comment.profiles?.username}`} className="comment-username">
+                                {comment.profiles?.display_name || comment.profiles?.username}
+                              </Link>
+                              <span className="comment-timestamp">{formatTimeAgo(comment.created_at)}</span>
+                            </div>
+                          </div>
+                          <p className="comment-text">{comment.comment_text}</p>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {showComments.length === 0 && (
+                      <p className="no-comments">No comments yet. Be the first!</p>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -617,7 +719,7 @@ export default function ShowDetailCard({
           left: 0;
           right: 0;
           bottom: 0;
-          background: rgba(0, 0, 0, 0.9);
+          background: rgba(0, 0, 0, 0.95);
           z-index: 1000;
           display: flex;
           align-items: center;
@@ -629,12 +731,11 @@ export default function ShowDetailCard({
           position: relative;
           width: 100%;
           max-width: 398px;
-          max-height: 90vh;
+          height: 80vh;
+          max-height: 700px;
           background: #0a0a0a;
           border-radius: 20px;
           overflow: hidden;
-          display: flex;
-          flex-direction: column;
         }
 
         .close-btn {
@@ -646,100 +747,105 @@ export default function ShowDetailCard({
           border: none;
           cursor: pointer;
           padding: 0;
+          transition: transform 0.2s;
         }
 
-        .card-content {
-          padding: 50px 20px 20px;
-          overflow-y: auto;
-          flex: 1;
-          -webkit-overflow-scrolling: touch;
+        .close-btn:active {
+          transform: scale(0.9);
+        }
+
+        .card-back-content {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          padding: 0 16px 20px 16px;
+          box-sizing: border-box;
+          overflow: hidden;
+          touch-action: none;
+          color: white;
+        }
+
+        .card-back-inner {
+          width: 100%;
+          display: block;
+          padding-top: 50px;
+          padding-bottom: 40px;
+          min-height: fit-content;
+          height: auto !important;
+          will-change: transform;
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
         }
 
         .back-title-section {
-          margin-bottom: 16px;
+          margin-bottom: 12px;
         }
 
         .back-title {
-          font-family: 'PP Editorial New', Georgia, serif;
-          font-size: 28px;
-          font-weight: 400;
-          color: white;
-          margin: 0 0 8px 0;
-          line-height: 1.2;
+          font-size: 22px;
+          font-weight: 700;
+          margin: 0 0 6px 0;
+          letter-spacing: -0.5px;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
         }
 
         .back-meta {
-          font-size: 13px;
-          color: rgba(255, 255, 255, 0.7);
           display: flex;
           align-items: center;
+          gap: 8px;
           flex-wrap: wrap;
-          gap: 6px;
+          margin-bottom: 12px;
+          font-size: 14px;
+          opacity: 0.9;
         }
 
         .meta-dot {
-          color: rgba(255, 255, 255, 0.4);
+          opacity: 0.5;
         }
 
         .back-badges {
           display: flex;
+          gap: 6px;
           flex-wrap: wrap;
-          gap: 8px;
-          margin-top: 12px;
+          margin-bottom: 14px;
         }
 
         .back-badge {
-          padding: 4px 10px;
-          border-radius: 20px;
-          font-size: 11px;
-          font-weight: 500;
-          text-transform: uppercase;
-        }
-
-        .back-badge.season {
-          background: rgba(139, 92, 246, 0.3);
-          border: 1px solid rgba(139, 92, 246, 0.5);
-          color: #a78bfa;
-        }
-
-        .back-badge.type {
-          background: rgba(59, 130, 246, 0.3);
-          border: 1px solid rgba(59, 130, 246, 0.5);
-          color: #93c5fd;
-        }
-
-        .back-badge.network {
-          background: rgba(16, 185, 129, 0.3);
-          border: 1px solid rgba(16, 185, 129, 0.5);
-          color: #6ee7b7;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+          padding: 8px 14px;
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 10px;
+          font-size: 12px;
+          font-weight: 600;
+          text-align: center;
+          min-width: 36px;
+          line-height: 1;
         }
 
         button.back-badge {
-          border: 1px solid rgba(255, 255, 255, 0.3);
-          background: rgba(255, 255, 255, 0.1);
-          color: white;
           cursor: pointer;
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
+          margin: 0;
           font-family: inherit;
-          font-size: 11px;
-          font-weight: 500;
-          text-transform: uppercase;
-          padding: 4px 10px;
-          border-radius: 20px;
+          color: white;
         }
 
-        button.back-badge.disabled {
+        .back-badge.trailer.disabled {
           opacity: 0.4;
           cursor: not-allowed;
+          pointer-events: none;
         }
 
         .back-synopsis {
           font-size: 14px;
-          line-height: 1.6;
-          color: rgba(255, 255, 255, 0.8);
-          margin: 16px 0 8px;
+          line-height: 1.5;
+          opacity: 0.9;
+          margin: 0 0 8px 0;
         }
 
         .back-synopsis.collapsed {
@@ -750,110 +856,122 @@ export default function ShowDetailCard({
         }
 
         .read-more {
-          color: #3b82f6;
+          color: #8B5CF6;
           font-size: 13px;
+          font-weight: 600;
           cursor: pointer;
+          display: inline-block;
+          margin-bottom: 16px;
         }
 
         .back-action-icons {
           display: flex;
-          gap: 12px;
-          margin: 20px 0;
+          gap: 10px;
+          margin-bottom: 20px;
+          padding-bottom: 16px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .back-icon-btn {
-          width: 44px;
-          height: 44px;
+          width: 42px;
+          height: 42px;
           border-radius: 50%;
           background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(20px);
           border: 1px solid rgba(255, 255, 255, 0.2);
           display: flex;
           align-items: center;
           justify-content: center;
+          font-size: 18px;
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all 0.2s ease;
+          color: white;
         }
 
-        .back-icon-btn:hover:not(:disabled) {
-          background: rgba(255, 255, 255, 0.2);
-        }
-
-        .back-icon-btn.primary {
-          background: #8b5cf6;
-          border-color: #8b5cf6;
+        .back-icon-btn:active {
+          transform: scale(0.9);
         }
 
         .back-info-grid {
           display: grid;
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: repeat(2, 1fr);
           gap: 16px;
-          margin: 20px 0;
+          margin-bottom: 20px;
         }
 
         .back-info-item {
           display: flex;
           flex-direction: column;
-          gap: 4px;
+          gap: 2px;
         }
 
         .back-info-label {
           font-size: 11px;
-          color: rgba(255, 255, 255, 0.5);
+          opacity: 0.6;
           text-transform: uppercase;
+          letter-spacing: 0.5px;
         }
 
         .back-info-value {
           font-size: 14px;
-          color: white;
+          font-weight: 600;
         }
 
         .back-section {
-          margin: 24px 0;
+          margin-bottom: 20px;
+        }
+
+        .show-comments-section {
+          margin-bottom: 0;
         }
 
         .back-section-title {
-          font-size: 14px;
-          font-weight: 600;
-          color: white;
-          margin: 0 0 12px 0;
+          font-size: 11px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          opacity: 0.6;
+          margin-bottom: 10px;
         }
 
         .cast-list {
           display: flex;
           flex-wrap: wrap;
-          gap: 8px;
+          gap: 6px;
         }
 
         .cast-member {
-          padding: 6px 12px;
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 20px;
+          padding: 5px 10px;
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 16px;
           font-size: 12px;
-          color: rgba(255, 255, 255, 0.8);
         }
 
         .friends-categories {
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 10px;
         }
 
         .friends-category {
           display: flex;
           align-items: center;
           gap: 12px;
+          padding: 12px;
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 10px;
         }
 
         .friends-avatars-stack {
           display: flex;
+          align-items: center;
         }
 
         .friends-avatars-stack img {
-          width: 28px;
-          height: 28px;
+          width: 32px;
+          height: 32px;
           border-radius: 50%;
           border: 2px solid #0a0a0a;
-          margin-left: -8px;
+          margin-left: -10px;
           object-fit: cover;
         }
 
@@ -862,12 +980,12 @@ export default function ShowDetailCard({
         }
 
         .friends-category-text {
-          font-size: 13px;
-          color: rgba(255, 255, 255, 0.7);
+          flex: 1;
+          font-size: 14px;
+          font-weight: 500;
         }
 
         .friends-category-text .count {
-          color: white;
           font-weight: 600;
         }
 
@@ -879,55 +997,81 @@ export default function ShowDetailCard({
           padding: 8px 0;
         }
 
-        .comments-section {
-          margin-top: 12px;
+        .comments-list {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          padding-top: 12px;
         }
 
-        .comment-input-row {
+        .comment-input-container {
           display: flex;
           align-items: center;
           gap: 10px;
-          margin-bottom: 16px;
+          padding: 10px;
+          background: rgba(255, 255, 255, 0.03);
+          border-radius: 8px;
         }
 
-        .comment-input-row input {
+        .comment-input {
           flex: 1;
-          background: rgba(255, 255, 255, 0.1);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          border-radius: 20px;
-          padding: 8px 14px;
+          background: transparent;
+          border: none;
           color: white;
           font-size: 14px;
+          outline: none;
         }
 
-        .comment-input-row input::placeholder {
+        .comment-input::placeholder {
           color: rgba(255, 255, 255, 0.5);
         }
 
-        .comment-input-row button {
-          background: #8b5cf6;
+        .comment-send-btn {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.1);
           border: none;
-          border-radius: 20px;
-          padding: 8px 16px;
-          color: white;
-          font-size: 13px;
-          font-weight: 500;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           cursor: pointer;
+          color: white;
         }
 
-        .comment-input-row button:disabled {
-          opacity: 0.5;
+        .comment-send-btn:disabled {
+          opacity: 0.4;
           cursor: not-allowed;
+        }
+
+        .comment-send-btn svg {
+          width: 16px;
+          height: 16px;
         }
 
         .comment-item {
           display: flex;
           gap: 10px;
-          margin-bottom: 12px;
+          padding: 10px;
+          background: rgba(255, 255, 255, 0.03);
+          border-radius: 8px;
         }
 
         .comment-content {
           flex: 1;
+        }
+
+        .comment-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 4px;
+        }
+
+        .comment-header-left {
+          display: flex;
+          align-items: center;
+          gap: 8px;
         }
 
         .comment-username {
@@ -937,10 +1081,16 @@ export default function ShowDetailCard({
           text-decoration: none;
         }
 
+        .comment-timestamp {
+          font-size: 11px;
+          opacity: 0.6;
+        }
+
         .comment-text {
           font-size: 13px;
-          color: rgba(255, 255, 255, 0.8);
-          margin: 4px 0 0 0;
+          line-height: 1.4;
+          opacity: 0.9;
+          margin: 0;
         }
 
         .no-comments {
@@ -948,6 +1098,7 @@ export default function ShowDetailCard({
           color: rgba(255, 255, 255, 0.5);
           text-align: center;
           padding: 20px 0;
+          margin: 0;
         }
 
         /* Action Overlay */
@@ -957,7 +1108,7 @@ export default function ShowDetailCard({
           left: 0;
           right: 0;
           bottom: 0;
-          background: rgba(0, 0, 0, 0.95);
+          background: rgba(0, 0, 0, 0.98);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -965,6 +1116,7 @@ export default function ShowDetailCard({
           visibility: hidden;
           transition: all 0.3s;
           z-index: 20;
+          border-radius: 20px;
         }
 
         .action-overlay.visible {
@@ -989,10 +1141,11 @@ export default function ShowDetailCard({
         }
 
         .action-overlay-title {
-          font-family: 'PP Editorial New', Georgia, serif;
-          font-size: 24px;
+          font-size: 20px;
+          font-weight: 700;
           color: white;
           margin: 0 0 30px 0;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
         }
 
         .action-section {
@@ -1010,7 +1163,7 @@ export default function ShowDetailCard({
         .rating-buttons {
           display: flex;
           justify-content: center;
-          gap: 24px;
+          gap: 16px;
         }
 
         .rating-btn {
@@ -1021,9 +1174,10 @@ export default function ShowDetailCard({
           background: none;
           border: 2px solid rgba(255, 255, 255, 0.2);
           border-radius: 16px;
-          padding: 16px 24px;
+          padding: 16px 20px;
           cursor: pointer;
           transition: all 0.2s;
+          color: white;
         }
 
         .rating-btn span {
@@ -1052,11 +1206,11 @@ export default function ShowDetailCard({
           padding: 14px 20px;
           cursor: pointer;
           transition: all 0.2s;
+          color: white;
         }
 
         .status-btn span {
           font-size: 14px;
-          color: white;
         }
 
         .status-btn.selected {
@@ -1067,4 +1221,3 @@ export default function ShowDetailCard({
     </>
   )
 }
-
