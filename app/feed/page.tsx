@@ -968,13 +968,16 @@ export default function PreviewFeedLivePage() {
             let rawId: string | null = null
             
             if (card.type === 'activity') {
+              // Activity: media_id from database, already formatted as tv-12345 or tv-12345-s1
               rawId = card.data?.activity?.media_id || null
-            } else if (card.type === 'because_you_liked' || card.type === 'you_might_like') {
+            } else if (card.type === 'because_you_liked') {
+              // TMDB data: media.id is numeric (12345), need to construct
               const media = card.data?.media
               if (media) {
                 rawId = `${media.media_type || 'tv'}-${media.id}`
               }
-            } else if (card.type === 'friends_loved' || card.type === 'coming_soon' || card.type === 'now_streaming') {
+            } else if (card.type === 'you_might_like' || card.type === 'friends_loved' || card.type === 'coming_soon' || card.type === 'now_streaming') {
+              // Database data: media.id is already formatted as tv-12345
               rawId = card.data?.media?.id || null
             }
             
