@@ -953,16 +953,59 @@ export default function PreviewFeedLivePage() {
             }] : []
           }
           
-          // Helper to get card from bucket by type (returns null if empty)
-          const getCardFromBucket = (cardType: number): FeedItem | null => {
-            switch (cardType) {
-              case 1: return buckets.activities.shift() || null
-              case 2: return buckets.becauseYouLiked.shift() || null
-              case 3: return buckets.friendsLoved.shift() || null
-              case 7: return buckets.findFriends.shift() || null
-              case 8: return buckets.youMightLike.shift() || null
-              default: return null
+          // Track media IDs already in feed to prevent duplicates
+          const usedMediaIds = new Set<string>()
+          
+          // Helper to extract media_id from a card
+          const getMediaId = (card: FeedItem): string | null => {
+            if (card.type === 'activity') {
+              return card.data?.activity?.media_id || null
             }
+            if (card.type === 'because_you_liked' || card.type === 'you_might_like') {
+              const media = card.data?.media
+              if (!media) return null
+              return `${media.media_type || 'tv'}-${media.id}`
+            }
+            if (card.type === 'friends_loved' || card.type === 'coming_soon' || card.type === 'now_streaming') {
+              return card.data?.media?.id || null
+            }
+            return null // follow_suggestions don't have media
+          }
+          
+          // Helper to get card from bucket by type, skipping duplicates
+          const getCardFromBucket = (cardType: number): FeedItem | null => {
+            const getBucket = () => {
+              switch (cardType) {
+                case 1: return buckets.activities
+                case 2: return buckets.becauseYouLiked
+                case 3: return buckets.friendsLoved
+                case 7: return buckets.findFriends
+                case 8: return buckets.youMightLike
+                default: return null
+              }
+            }
+            
+            const bucket = getBucket()
+            if (!bucket) return null
+            
+            // For non-media cards (like follow_suggestions), just return first
+            if (cardType === 7) {
+              return bucket.shift() || null
+            }
+            
+            // For media cards, skip any that have already been shown
+            while (bucket.length > 0) {
+              const card = bucket.shift()!
+              const mediaId = getMediaId(card)
+              
+              if (!mediaId || !usedMediaIds.has(mediaId)) {
+                if (mediaId) usedMediaIds.add(mediaId)
+                return card
+              }
+              console.log(`⏭️ Skipping duplicate: ${mediaId}`)
+            }
+            
+            return null
           }
           
           // Helper to get fallback card when activities run out (rotate 2->3->8)
@@ -975,14 +1018,24 @@ export default function PreviewFeedLivePage() {
             return null
           }
           
-          // Helper to get bonus card (4 or 5)
+          // Helper to get bonus card (4 or 5), skipping duplicates
           const getBonusCard = (): FeedItem | null => {
             // Priority: Now Streaming (5) before Coming Soon (4)
-            if (buckets.nowStreaming.length > 0) {
-              return buckets.nowStreaming.shift() || null
+            while (buckets.nowStreaming.length > 0) {
+              const card = buckets.nowStreaming.shift()!
+              const mediaId = getMediaId(card)
+              if (!mediaId || !usedMediaIds.has(mediaId)) {
+                if (mediaId) usedMediaIds.add(mediaId)
+                return card
+              }
             }
-            if (buckets.comingSoon.length > 0) {
-              return buckets.comingSoon.shift() || null
+            while (buckets.comingSoon.length > 0) {
+              const card = buckets.comingSoon.shift()!
+              const mediaId = getMediaId(card)
+              if (!mediaId || !usedMediaIds.has(mediaId)) {
+                if (mediaId) usedMediaIds.add(mediaId)
+                return card
+              }
             }
             return null
           }
