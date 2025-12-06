@@ -505,7 +505,7 @@ export function getRecommendationBadge(
     case 'because_you_liked':
       return BADGE_PRESETS.becauseYouLiked(sourceShowTitle || 'a show')
     case 'friends_loved':
-      return BADGE_PRESETS.friendsLoved
+      return BADGE_PRESETS.friendsLoved()
     case 'you_might_like':
       return BADGE_PRESETS.youMightLike
     case 'now_streaming':

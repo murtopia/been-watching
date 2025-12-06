@@ -252,7 +252,7 @@ export default function Card3MobileTestPage() {
           <FeedCard
             variant="b"
             backVariant="standard"
-            badges={[BADGE_PRESETS.friendsLoved]}
+            badges={[BADGE_PRESETS.friendsLoved()]}
             data={sampleData}
             onShare={() => handleTrack('share')}
             onAddToWatchlist={() => handleTrack('add_to_watchlist')}

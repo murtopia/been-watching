@@ -58,11 +58,12 @@ export default function TopShowModal({ onClose, onSelect, slotNumber, userId }: 
 
   const handleSelect = async (item: any) => {
     // Item comes from TVSeasonCard with full structure
+    const itemMediaType = item.media_type || (mediaType !== 'all' ? mediaType : 'movie')
     const mediaData = {
       id: item.id,
       title: item.title || item.name,
       poster_path: item.poster_path,
-      media_type: item.media_type || (mediaType !== 'all' ? mediaType : 'movie'),
+      media_type: itemMediaType,
       season_number: item.season_number,
       tmdb_id: item.tmdb_id || (typeof item.id === 'string' && item.id.includes('-') ? parseInt(item.id.split('-')[1]) : item.id)
     }
@@ -80,6 +81,44 @@ export default function TopShowModal({ onClose, onSelect, slotNumber, userId }: 
         console.error('Attempted to save:', mediaData)
         alert(`Error saving: ${error.message || JSON.stringify(error)}`)
       } else {
+        // Create activity for Card 6 (Top 3 Update)
+        const mediaId = typeof item.id === 'string' ? item.id : `${itemMediaType}-${item.id}`
+        
+        // Ensure media exists in media table
+        const { data: existingMedia } = await supabase
+          .from('media')
+          .select('id')
+          .eq('id', mediaId)
+          .maybeSingle()
+        
+        if (!existingMedia) {
+          // Create media record if it doesn't exist
+          await supabase.from('media').insert({
+            id: mediaId,
+            title: mediaData.title,
+            poster_path: mediaData.poster_path,
+            media_type: itemMediaType,
+            tmdb_data: {
+              id: mediaData.tmdb_id,
+              season_number: mediaData.season_number
+            }
+          })
+        }
+        
+        // Create activity for the Top 3 update
+        await supabase.from('activities').insert({
+          user_id: userId,
+          media_id: mediaId,
+          activity_type: 'top_3_update',
+          activity_data: {
+            rank: slotNumber,
+            title: mediaData.title,
+            poster_path: mediaData.poster_path
+          }
+        })
+        
+        console.log('Created Top 3 update activity for slot', slotNumber)
+        
         onSelect(mediaData)
         onClose()
       }

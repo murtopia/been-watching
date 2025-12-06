@@ -433,7 +433,7 @@ export default function PreviewFeedPage() {
                   <FeedCard
                     variant="b"
                     backVariant="standard"
-                    badges={[BADGE_PRESETS.friendsLoved]}
+                    badges={[BADGE_PRESETS.friendsLoved()]}
                     data={item.data}
                     onShare={() => handleTrack('share', { card: 3 })}
                     onTrack={handleTrack}

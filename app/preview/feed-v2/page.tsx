@@ -470,7 +470,7 @@ export default function PreviewFeedV2Page() {
             <FeedCard
               variant="b"
               backVariant="standard"
-              badges={[BADGE_PRESETS.friendsLoved]}
+              badges={[BADGE_PRESETS.friendsLoved()]}
               data={card3Data}
               onShare={() => handleTrack('share', { card: 3 })}
               onAddToWatchlist={() => handleTrack('add_to_watchlist', { card: 3 })}

@@ -15,7 +15,7 @@
 
 import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { UserActivityCard, FeedCard, BADGE_PRESETS } from '@/components/feed/UserActivityCard'
+import { UserActivityCard, FeedCard, BADGE_PRESETS, FeedCardData } from '@/components/feed/UserActivityCard'
 import { FollowSuggestionsCard } from '@/components/feed/FollowSuggestionsCard'
 import BottomNav from '@/components/navigation/BottomNav'
 import AppHeader from '@/components/navigation/AppHeader'
@@ -29,6 +29,14 @@ import {
   APIShowComment,
   APIComment
 } from '@/utils/feedDataTransformers'
+import { 
+  getUserExcludedMediaIds, 
+  shouldShowCard, 
+  recordCardImpression,
+  getShowableMediaIds,
+  findSimilarUsers
+} from '@/utils/feedUtils'
+import { getSimilarShows, getUpcomingSeasonInfo, TMDBShow } from '@/utils/tmdb'
 import {
   trackFeedViewed,
   trackActivityLiked,
@@ -51,9 +59,43 @@ const LOAD_MORE_BATCH_SIZE = 5
 const ACTIVITY_GROUP_WINDOW_MS = 5 * 60 * 1000
 
 interface FeedItem {
-  type: 'activity' | 'recommendation' | 'follow_suggestions'
+  type: 'activity' | 'recommendation' | 'follow_suggestions' | 'because_you_liked' | 'friends_loved' | 'coming_soon' | 'now_streaming' | 'you_might_like'
   id: string
   data: any
+}
+
+// Card 2: Because You Liked - recommendation based on user's liked shows
+interface BecauseYouLikedData {
+  media: TMDBShow
+  sourceShowTitle: string
+  sourceMediaId: string
+}
+
+// Card 3: Your Friends Loved - shows 3+ friends rated as love
+interface FriendsLovedData {
+  media: any
+  friends: Array<{ id: string; display_name: string; avatar_url: string | null }>
+  friendCount: number
+}
+
+// Card 4: Coming Soon - upcoming seasons for user's watchlist shows
+interface ComingSoonData {
+  media: any
+  airDate: string
+  seasonNumber: number
+}
+
+// Card 5: Now Streaming - shows where reminder set and air date arrived
+interface NowStreamingData {
+  media: any
+  reminderId: string
+}
+
+// Card 8: You Might Like - taste match algorithm
+interface YouMightLikeData {
+  media: any
+  matchPercentage: number
+  similarUsers: number
 }
 
 // Group activities by activity_group_id (database-level) or user_id + media_id (fallback)
@@ -175,6 +217,370 @@ interface Profile {
   username: string
   display_name: string
   avatar_url: string | null
+}
+
+// =====================================================
+// Card Fetching Functions
+// =====================================================
+
+/**
+ * Card 2: Because You Liked
+ * Fetches shows similar to ones the user has liked/loved
+ */
+async function fetchBecauseYouLiked(
+  supabase: any,
+  userId: string,
+  excludedMediaIds: Set<string>,
+  limit: number = 3
+): Promise<FeedItem[]> {
+  try {
+    // Get user's liked/loved shows
+    const { data: userRatings } = await supabase
+      .from('ratings')
+      .select('media_id, rating, media:media_id(id, title, media_type, tmdb_data)')
+      .eq('user_id', userId)
+      .in('rating', ['like', 'love'])
+      .order('created_at', { ascending: false })
+      .limit(10)
+    
+    if (!userRatings || userRatings.length === 0) return []
+    
+    const results: FeedItem[] = []
+    
+    for (const rating of userRatings) {
+      if (results.length >= limit) break
+      
+      const media = rating.media
+      if (!media) continue
+      
+      // Get TMDB ID from media
+      const tmdbId = media.tmdb_data?.id || parseInt(media.id.split('-')[1])
+      const mediaType = media.media_type || (media.id.startsWith('tv-') ? 'tv' : 'movie')
+      
+      // Fetch similar shows from TMDB
+      const similar = await getSimilarShows(tmdbId, mediaType as 'tv' | 'movie')
+      
+      for (const show of similar.slice(0, 5)) {
+        if (results.length >= limit) break
+        
+        const mediaId = `${mediaType}-${show.id}`
+        
+        // Skip excluded media
+        if (excludedMediaIds.has(mediaId)) continue
+        
+        // Check impression limits
+        const canShow = await shouldShowCard(userId, 'because_you_liked', mediaId)
+        if (!canShow) continue
+        
+        results.push({
+          type: 'because_you_liked',
+          id: `byl-${mediaId}-${rating.media_id}`,
+          data: {
+            media: show,
+            sourceShowTitle: media.title,
+            sourceMediaId: rating.media_id
+          } as BecauseYouLikedData
+        })
+        break // Only one recommendation per source show
+      }
+    }
+    
+    return results
+  } catch (error) {
+    console.error('Error fetching Because You Liked:', error)
+    return []
+  }
+}
+
+/**
+ * Card 3: Your Friends Loved
+ * Shows that 3+ friends have rated as "love"
+ */
+async function fetchFriendsLoved(
+  supabase: any,
+  userId: string,
+  excludedMediaIds: Set<string>,
+  limit: number = 3
+): Promise<FeedItem[]> {
+  try {
+    // Get user's friends
+    const { data: follows } = await supabase
+      .from('follows')
+      .select('following_id')
+      .eq('follower_id', userId)
+    
+    if (!follows || follows.length < 3) return []
+    
+    const friendIds = follows.map((f: any) => f.following_id)
+    
+    // Get all "love" ratings from friends
+    const { data: friendRatings } = await supabase
+      .from('ratings')
+      .select(`
+        media_id,
+        user_id,
+        profiles:user_id(id, display_name, avatar_url),
+        media:media_id(id, title, poster_path, overview, media_type, tmdb_data)
+      `)
+      .in('user_id', friendIds)
+      .eq('rating', 'love')
+    
+    if (!friendRatings || friendRatings.length === 0) return []
+    
+    // Group by media_id and count friends
+    const mediaMap = new Map<string, {
+      media: any
+      friends: Array<{ id: string; display_name: string; avatar_url: string | null }>
+    }>()
+    
+    for (const rating of friendRatings) {
+      if (!rating.media || !rating.profiles) continue
+      
+      const mediaId = rating.media_id
+      if (!mediaMap.has(mediaId)) {
+        mediaMap.set(mediaId, { media: rating.media, friends: [] })
+      }
+      
+      const entry = mediaMap.get(mediaId)!
+      entry.friends.push({
+        id: rating.profiles.id,
+        display_name: rating.profiles.display_name,
+        avatar_url: rating.profiles.avatar_url
+      })
+    }
+    
+    // Filter to shows with 3+ friends, excluding user's media
+    const results: FeedItem[] = []
+    
+    for (const [mediaId, data] of mediaMap) {
+      if (results.length >= limit) break
+      if (data.friends.length < 3) continue
+      if (excludedMediaIds.has(mediaId)) continue
+      
+      const canShow = await shouldShowCard(userId, 'friends_loved', mediaId)
+      if (!canShow) continue
+      
+      results.push({
+        type: 'friends_loved',
+        id: `fl-${mediaId}`,
+        data: {
+          media: data.media,
+          friends: data.friends.slice(0, 5), // Show max 5 friend avatars
+          friendCount: data.friends.length
+        } as FriendsLovedData
+      })
+    }
+    
+    return results
+  } catch (error) {
+    console.error('Error fetching Friends Loved:', error)
+    return []
+  }
+}
+
+/**
+ * Card 4: Coming Soon
+ * TV shows in user's watchlist with upcoming seasons
+ */
+async function fetchComingSoon(
+  supabase: any,
+  userId: string,
+  limit: number = 2
+): Promise<FeedItem[]> {
+  try {
+    // Get user's TV shows in any watchlist
+    const { data: watchStatus } = await supabase
+      .from('watch_status')
+      .select('media_id, media:media_id(id, title, poster_path, overview, media_type, tmdb_data)')
+      .eq('user_id', userId)
+      .like('media_id', 'tv-%')
+    
+    if (!watchStatus || watchStatus.length === 0) return []
+    
+    const results: FeedItem[] = []
+    
+    for (const item of watchStatus) {
+      if (results.length >= limit) break
+      
+      const media = item.media
+      if (!media) continue
+      
+      // Get TMDB ID
+      const tmdbId = media.tmdb_data?.id || parseInt(media.id.split('-')[1])
+      
+      // Check for upcoming season
+      const upcoming = await getUpcomingSeasonInfo(tmdbId)
+      
+      if (upcoming.hasUpcoming && upcoming.airDate) {
+        const mediaId = item.media_id
+        
+        // Check impression cooldown (2 days)
+        const canShow = await shouldShowCard(userId, 'coming_soon', mediaId, 999, 2)
+        if (!canShow) continue
+        
+        results.push({
+          type: 'coming_soon',
+          id: `cs-${mediaId}-s${upcoming.seasonNumber}`,
+          data: {
+            media,
+            airDate: upcoming.airDate,
+            seasonNumber: upcoming.seasonNumber
+          } as ComingSoonData
+        })
+      }
+    }
+    
+    return results
+  } catch (error) {
+    console.error('Error fetching Coming Soon:', error)
+    return []
+  }
+}
+
+/**
+ * Card 5: Now Streaming
+ * Shows where user set a reminder and air date has arrived
+ */
+async function fetchNowStreaming(
+  supabase: any,
+  userId: string,
+  limit: number = 2
+): Promise<FeedItem[]> {
+  try {
+    const today = new Date().toISOString().split('T')[0]
+    
+    // Get reminders that are due (air_date <= today) and not yet notified
+    const { data: reminders } = await supabase
+      .from('show_reminders')
+      .select('id, media_id, season_number, air_date')
+      .eq('user_id', userId)
+      .lte('air_date', today)
+      .is('notified_at', null)
+      .is('dismissed_at', null)
+      .limit(limit)
+    
+    if (!reminders || reminders.length === 0) return []
+    
+    const results: FeedItem[] = []
+    
+    for (const reminder of reminders) {
+      // Fetch media details
+      const { data: media } = await supabase
+        .from('media')
+        .select('id, title, poster_path, overview, media_type, tmdb_data')
+        .eq('id', reminder.media_id)
+        .single()
+      
+      if (!media) continue
+      
+      results.push({
+        type: 'now_streaming',
+        id: `ns-${reminder.id}`,
+        data: {
+          media,
+          reminderId: reminder.id
+        } as NowStreamingData
+      })
+      
+      // Mark as notified (will also trigger bell notification)
+      await supabase
+        .from('show_reminders')
+        .update({ notified_at: new Date().toISOString() })
+        .eq('id', reminder.id)
+    }
+    
+    return results
+  } catch (error) {
+    console.error('Error fetching Now Streaming:', error)
+    return []
+  }
+}
+
+/**
+ * Card 8: You Might Like
+ * Recommendations based on taste match algorithm
+ */
+async function fetchYouMightLike(
+  supabase: any,
+  userId: string,
+  excludedMediaIds: Set<string>,
+  limit: number = 2
+): Promise<FeedItem[]> {
+  try {
+    // Check if user has enough ratings (10+)
+    const { count: ratingCount } = await supabase
+      .from('ratings')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+    
+    if (!ratingCount || ratingCount < 10) return []
+    
+    // Find similar users (75%+ taste match)
+    const similarUsers = await findSimilarUsers(userId, 75, 5)
+    
+    if (similarUsers.length < 3) return []
+    
+    // Get "love" ratings from similar users
+    const similarUserIds = similarUsers.map(u => u.userId)
+    
+    const { data: loveRatings } = await supabase
+      .from('ratings')
+      .select('media_id, user_id, media:media_id(id, title, poster_path, overview, media_type, tmdb_data)')
+      .in('user_id', similarUserIds)
+      .eq('rating', 'love')
+    
+    if (!loveRatings || loveRatings.length === 0) return []
+    
+    // Count how many similar users loved each show
+    const mediaLoveCount = new Map<string, { media: any; count: number; avgMatch: number }>()
+    
+    for (const rating of loveRatings) {
+      if (!rating.media) continue
+      
+      const mediaId = rating.media_id
+      if (!mediaLoveCount.has(mediaId)) {
+        mediaLoveCount.set(mediaId, { media: rating.media, count: 0, avgMatch: 0 })
+      }
+      
+      const entry = mediaLoveCount.get(mediaId)!
+      entry.count++
+      
+      // Find match score for this user
+      const userMatch = similarUsers.find(u => u.userId === rating.user_id)
+      if (userMatch) {
+        entry.avgMatch = (entry.avgMatch * (entry.count - 1) + userMatch.matchScore) / entry.count
+      }
+    }
+    
+    // Filter and sort
+    const results: FeedItem[] = []
+    const sorted = Array.from(mediaLoveCount.entries())
+      .filter(([mediaId]) => !excludedMediaIds.has(mediaId))
+      .filter(([_, data]) => data.count >= 3)
+      .sort((a, b) => b[1].count - a[1].count || b[1].avgMatch - a[1].avgMatch)
+    
+    for (const [mediaId, data] of sorted) {
+      if (results.length >= limit) break
+      
+      const canShow = await shouldShowCard(userId, 'you_might_like', mediaId)
+      if (!canShow) continue
+      
+      results.push({
+        type: 'you_might_like',
+        id: `yml-${mediaId}`,
+        data: {
+          media: data.media,
+          matchPercentage: Math.round(data.avgMatch),
+          similarUsers: data.count
+        } as YouMightLikeData
+      })
+    }
+    
+    return results
+  } catch (error) {
+    console.error('Error fetching You Might Like:', error)
+    return []
+  }
 }
 
 export default function PreviewFeedLivePage() {
@@ -402,28 +808,90 @@ export default function PreviewFeedLivePage() {
             })
           )
           
-          // Fetch user suggestions for Find New Friends card
-          const userSuggestions = await fetchUserSuggestions()
+          // Fetch all recommendation cards and user suggestions in parallel
+          const excludedMediaIds = user ? await getUserExcludedMediaIds(user.id) : new Set<string>()
           
-          // Insert follow_suggestions card at position 2 (after first 2 activity cards)
-          if (userSuggestions.length > 0) {
-            const followSuggestionsCard: FeedItem = {
-              type: 'follow_suggestions',
-              id: 'follow-suggestions-1',
-              data: {
-                suggestions: userSuggestions
+          const [
+            userSuggestions,
+            becauseYouLikedCards,
+            friendsLovedCards,
+            comingSoonCards,
+            nowStreamingCards,
+            youMightLikeCards
+          ] = await Promise.all([
+            fetchUserSuggestions(),
+            user ? fetchBecauseYouLiked(supabase, user.id, excludedMediaIds) : [],
+            user ? fetchFriendsLoved(supabase, user.id, excludedMediaIds) : [],
+            user ? fetchComingSoon(supabase, user.id) : [],
+            user ? fetchNowStreaming(supabase, user.id) : [],
+            user ? fetchYouMightLike(supabase, user.id, excludedMediaIds) : []
+          ])
+          
+          console.log('📦 Recommendation cards fetched:', {
+            becauseYouLiked: becauseYouLikedCards.length,
+            friendsLoved: friendsLovedCards.length,
+            comingSoon: comingSoonCards.length,
+            nowStreaming: nowStreamingCards.length,
+            youMightLike: youMightLikeCards.length
+          })
+          
+          // Smart Feed Builder: Interleave activities with recommendation cards
+          // Rule: After every 2-4 activity cards, insert a recommendation/utility card
+          const allRecommendations = [
+            ...nowStreamingCards,      // Priority: notifications first
+            ...comingSoonCards,         // Then upcoming shows
+            ...becauseYouLikedCards,    // Then recommendations
+            ...friendsLovedCards,
+            ...youMightLikeCards
+          ]
+          
+          // Create follow suggestions card
+          const followSuggestionsCard: FeedItem | null = userSuggestions.length > 0 ? {
+            type: 'follow_suggestions',
+            id: 'follow-suggestions-1',
+            data: { suggestions: userSuggestions }
+          } : null
+          
+          // Interleave cards
+          const finalFeed: FeedItem[] = []
+          let activityIndex = 0
+          let recIndex = 0
+          let insertedFollowCard = false
+          let activityCount = 0
+          const activityInterval = 2 + Math.floor(Math.random() * 3) // 2-4 activities then recommend
+          
+          for (const item of transformedItems) {
+            if (item.type === 'activity') {
+              finalFeed.push(item)
+              activityCount++
+              activityIndex++
+              
+              // After first 2 activities, insert follow suggestions (once)
+              if (activityCount === 2 && followSuggestionsCard && !insertedFollowCard) {
+                finalFeed.push(followSuggestionsCard)
+                insertedFollowCard = true
               }
-            }
-            
-            // Insert at position 2 (index 2)
-            if (transformedItems.length >= 2) {
-              transformedItems.splice(2, 0, followSuggestionsCard)
-            } else {
-              transformedItems.push(followSuggestionsCard)
+              // Insert recommendation every 2-4 activities
+              else if (activityCount >= activityInterval && recIndex < allRecommendations.length) {
+                finalFeed.push(allRecommendations[recIndex])
+                recIndex++
+                activityCount = 0 // Reset counter
+              }
             }
           }
           
-          setFeedItems(transformedItems)
+          // Add any remaining recommendations at the end
+          while (recIndex < allRecommendations.length) {
+            finalFeed.push(allRecommendations[recIndex])
+            recIndex++
+          }
+          
+          // If we didn't insert follow suggestions yet and have activities, add at end
+          if (!insertedFollowCard && followSuggestionsCard && finalFeed.length > 0) {
+            finalFeed.push(followSuggestionsCard)
+          }
+          
+          setFeedItems(finalFeed)
           setLoading(false)
           return
         }
@@ -1840,6 +2308,318 @@ export default function PreviewFeedLivePage() {
                       window.location.href = `/${item.data.suggestions.find((s: any) => s.id === userId)?.username || userId}`
                     }}
                     onTrack={handleTrack}
+                  />
+                </div>
+              </div>
+            )
+          }
+
+          // Card 2: Because You Liked
+          if (item.type === 'because_you_liked') {
+            const { media, sourceShowTitle, sourceMediaId } = item.data as BecauseYouLikedData
+            const mediaType = media.media_type || 'tv'
+            const mediaId = `${mediaType}-${media.id}`
+            
+            // Transform TMDB data to FeedCardData format
+            const releaseYear = parseInt((media.first_air_date || media.release_date || '').substring(0, 4)) || new Date().getFullYear()
+            const cardData: FeedCardData = {
+              id: item.id,
+              media: {
+                id: mediaId,
+                title: media.title || media.name || 'Unknown',
+                year: releaseYear,
+                genres: [],
+                rating: media.vote_average || 0,
+                posterUrl: media.poster_path ? `https://image.tmdb.org/t/p/w500${media.poster_path}` : '',
+                synopsis: media.overview || '',
+                creator: '',
+                cast: [],
+                mediaType: (mediaType === 'tv' ? 'TV' : 'Movie') as 'TV' | 'Movie',
+              },
+              friends: { avatars: [], count: 0, text: '' },
+              stats: { likeCount: 0, commentCount: 0, userLiked: false },
+              friendsActivity: {
+                watching: { count: 0, avatars: [] },
+                wantToWatch: { count: 0, avatars: [] },
+                watched: { count: 0, avatars: [] },
+                ratings: { meh: 0, like: 0, love: 0 }
+              },
+              comments: [],
+              showComments: []
+            }
+            
+            return (
+              <div key={item.id} className="card-snap-wrapper">
+                <div className="card-inner-wrapper">
+                  <FeedCard
+                    data={cardData}
+                    badges={[BADGE_PRESETS.BECAUSE_YOU_LIKED(sourceShowTitle)]}
+                    variant="b"
+                    currentUser={{
+                      id: user?.id || '',
+                      name: profile?.display_name || 'Guest',
+                      avatar: profile?.avatar_url || ''
+                    }}
+                    onRate={handleRate}
+                    onSetStatus={handleSetStatus}
+                    onLikeShowComment={(commentId) => handleLikeShowComment(commentId)}
+                    onSubmitShowComment={(text) => handleSubmitShowComment(mediaId, text)}
+                  />
+                </div>
+              </div>
+            )
+          }
+
+          // Card 3: Your Friends Loved
+          if (item.type === 'friends_loved') {
+            const { media, friends: lovedByFriends, friendCount } = item.data as FriendsLovedData
+            
+            const releaseYear = parseInt((media.release_date || '').substring(0, 4)) || new Date().getFullYear()
+            const mediaType = media.media_type || 'tv'
+            const cardData: FeedCardData = {
+              id: item.id,
+              media: {
+                id: media.id,
+                title: media.title || 'Unknown',
+                year: releaseYear,
+                genres: [],
+                rating: media.vote_average || 0,
+                posterUrl: media.poster_path ? `https://image.tmdb.org/t/p/w500${media.poster_path}` : '',
+                synopsis: media.overview || '',
+                creator: '',
+                cast: [],
+                mediaType: (mediaType === 'tv' ? 'TV' : 'Movie') as 'TV' | 'Movie',
+              },
+              friends: { 
+                avatars: lovedByFriends.map(f => ({
+                  id: f.id,
+                  name: f.display_name,
+                  username: '',
+                  avatar: f.avatar_url || ''
+                })),
+                count: friendCount,
+                text: `${friendCount} friends loved this`
+              },
+              stats: { likeCount: 0, commentCount: 0, userLiked: false },
+              friendsActivity: {
+                watching: { count: 0, avatars: [] },
+                wantToWatch: { count: 0, avatars: [] },
+                watched: { count: 0, avatars: [] },
+                ratings: { meh: 0, like: 0, love: friendCount }
+              },
+              comments: [],
+              showComments: []
+            }
+            
+            return (
+              <div key={item.id} className="card-snap-wrapper">
+                <div className="card-inner-wrapper">
+                  <FeedCard
+                    data={cardData}
+                    badges={[BADGE_PRESETS.FRIENDS_LOVED(friendCount)]}
+                    variant="b"
+                    currentUser={{
+                      id: user?.id || '',
+                      name: profile?.display_name || 'Guest',
+                      avatar: profile?.avatar_url || ''
+                    }}
+                    onRate={handleRate}
+                    onSetStatus={handleSetStatus}
+                    onLikeShowComment={(commentId) => handleLikeShowComment(commentId)}
+                    onSubmitShowComment={(text) => handleSubmitShowComment(media.id, text)}
+                  />
+                </div>
+              </div>
+            )
+          }
+
+          // Card 4: Coming Soon (uses backVariant="unreleased")
+          if (item.type === 'coming_soon') {
+            const { media, airDate, seasonNumber } = item.data as ComingSoonData
+            
+            // Format air date nicely
+            const formattedDate = new Date(airDate).toLocaleDateString('en-US', { 
+              month: 'short', 
+              day: 'numeric', 
+              year: 'numeric' 
+            })
+            
+            const releaseYear = parseInt(airDate.substring(0, 4)) || new Date().getFullYear()
+            const cardData: FeedCardData = {
+              id: item.id,
+              media: {
+                id: media.id,
+                title: media.title || 'Unknown',
+                year: releaseYear,
+                genres: [],
+                rating: media.vote_average || 0,
+                posterUrl: media.poster_path ? `https://image.tmdb.org/t/p/w500${media.poster_path}` : '',
+                synopsis: media.overview || '',
+                creator: '',
+                cast: [],
+                mediaType: 'TV',
+              },
+              friends: { avatars: [], count: 0, text: '' },
+              stats: { likeCount: 0, commentCount: 0, userLiked: false },
+              friendsActivity: {
+                watching: { count: 0, avatars: [] },
+                wantToWatch: { count: 0, avatars: [] },
+                watched: { count: 0, avatars: [] },
+                ratings: { meh: 0, like: 0, love: 0 }
+              },
+              comments: [],
+              showComments: []
+            }
+            
+            return (
+              <div key={item.id} className="card-snap-wrapper">
+                <div className="card-inner-wrapper">
+                  <FeedCard
+                    data={cardData}
+                    badges={[BADGE_PRESETS.COMING_SOON(formattedDate)]}
+                    variant="b"
+                    backVariant="unreleased"
+                    currentUser={{
+                      id: user?.id || '',
+                      name: profile?.display_name || 'Guest',
+                      avatar: profile?.avatar_url || ''
+                    }}
+                    onSetReminder={async () => {
+                      // Save reminder to database
+                      if (!user) return
+                      try {
+                        await supabase.from('show_reminders').upsert({
+                          user_id: user.id,
+                          media_id: media.id,
+                          season_number: seasonNumber,
+                          air_date: airDate
+                        }, { onConflict: 'user_id,media_id,season_number' })
+                        console.log('Reminder set for', media.title, 'Season', seasonNumber)
+                      } catch (err) {
+                        console.error('Error setting reminder:', err)
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+            )
+          }
+
+          // Card 5: Now Streaming
+          if (item.type === 'now_streaming') {
+            const { media, reminderId } = item.data as NowStreamingData
+            
+            const releaseYear = parseInt((media.release_date || '').substring(0, 4)) || new Date().getFullYear()
+            const mediaTypeVal = media.media_type || 'tv'
+            const cardData: FeedCardData = {
+              id: item.id,
+              media: {
+                id: media.id,
+                title: media.title || 'Unknown',
+                year: releaseYear,
+                genres: [],
+                rating: media.vote_average || 0,
+                posterUrl: media.poster_path ? `https://image.tmdb.org/t/p/w500${media.poster_path}` : '',
+                synopsis: media.overview || '',
+                creator: '',
+                cast: [],
+                mediaType: (mediaTypeVal === 'tv' ? 'TV' : 'Movie') as 'TV' | 'Movie',
+              },
+              friends: { avatars: [], count: 0, text: '' },
+              stats: { likeCount: 0, commentCount: 0, userLiked: false },
+              friendsActivity: {
+                watching: { count: 0, avatars: [] },
+                wantToWatch: { count: 0, avatars: [] },
+                watched: { count: 0, avatars: [] },
+                ratings: { meh: 0, like: 0, love: 0 }
+              },
+              comments: [],
+              showComments: []
+            }
+            
+            return (
+              <div key={item.id} className="card-snap-wrapper">
+                <div className="card-inner-wrapper">
+                  <FeedCard
+                    data={cardData}
+                    badges={[BADGE_PRESETS.NOW_STREAMING]}
+                    variant="b"
+                    currentUser={{
+                      id: user?.id || '',
+                      name: profile?.display_name || 'Guest',
+                      avatar: profile?.avatar_url || ''
+                    }}
+                    onRate={handleRate}
+                    onSetStatus={handleSetStatus}
+                    onLikeShowComment={(commentId) => handleLikeShowComment(commentId)}
+                    onSubmitShowComment={(text) => handleSubmitShowComment(media.id, text)}
+                    onDismiss={async () => {
+                      // Mark reminder as dismissed
+                      if (!user) return
+                      try {
+                        await supabase.from('show_reminders')
+                          .update({ dismissed_at: new Date().toISOString() })
+                          .eq('id', reminderId)
+                        // Remove card from feed
+                        setFeedItems(prev => prev.filter(i => i.id !== item.id))
+                      } catch (err) {
+                        console.error('Error dismissing notification:', err)
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+            )
+          }
+
+          // Card 8: You Might Like
+          if (item.type === 'you_might_like') {
+            const { media, matchPercentage, similarUsers } = item.data as YouMightLikeData
+            
+            const releaseYear = parseInt((media.release_date || '').substring(0, 4)) || new Date().getFullYear()
+            const mediaTypeVal = media.media_type || 'tv'
+            const cardData: FeedCardData = {
+              id: item.id,
+              media: {
+                id: media.id,
+                title: media.title || 'Unknown',
+                year: releaseYear,
+                genres: [],
+                rating: media.vote_average || 0,
+                posterUrl: media.poster_path ? `https://image.tmdb.org/t/p/w500${media.poster_path}` : '',
+                synopsis: media.overview || '',
+                creator: '',
+                cast: [],
+                mediaType: (mediaTypeVal === 'tv' ? 'TV' : 'Movie') as 'TV' | 'Movie',
+              },
+              friends: { avatars: [], count: 0, text: '' },
+              stats: { likeCount: 0, commentCount: 0, userLiked: false },
+              friendsActivity: {
+                watching: { count: 0, avatars: [] },
+                wantToWatch: { count: 0, avatars: [] },
+                watched: { count: 0, avatars: [] },
+                ratings: { meh: 0, like: 0, love: 0 }
+              },
+              comments: [],
+              showComments: []
+            }
+            
+            return (
+              <div key={item.id} className="card-snap-wrapper">
+                <div className="card-inner-wrapper">
+                  <FeedCard
+                    data={cardData}
+                    badges={[BADGE_PRESETS.YOU_MIGHT_LIKE(matchPercentage, similarUsers)]}
+                    variant="b"
+                    currentUser={{
+                      id: user?.id || '',
+                      name: profile?.display_name || 'Guest',
+                      avatar: profile?.avatar_url || ''
+                    }}
+                    onRate={handleRate}
+                    onSetStatus={handleSetStatus}
+                    onLikeShowComment={(commentId) => handleLikeShowComment(commentId)}
+                    onSubmitShowComment={(text) => handleSubmitShowComment(media.id, text)}
                   />
                 </div>
               </div>

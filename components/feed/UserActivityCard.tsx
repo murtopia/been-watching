@@ -140,7 +140,9 @@ interface FeedCardProps {
   onComment?: () => void
   onShare?: () => void
   onAddToWatchlist?: () => void
-  onRemindMe?: () => void  // For Card 4 (Coming Soon)
+  onRemindMe?: () => void  // For Card 4 (Coming Soon) - legacy
+  onSetReminder?: () => void  // For Card 4 (Coming Soon) - preferred
+  onDismiss?: () => void  // For Card 5 (Now Streaming) - dismiss notification
   onUserClick?: (userId: string) => void
   onMediaClick?: (mediaId: string) => void
   /** Called when user rates the show - should persist to database */
@@ -234,14 +236,23 @@ export const BADGE_PRESETS = {
     textColor: 'white',
   }),
   
-  // Card 3 - Friends Loved
-  friendsLoved: {
-    text: 'Your Friends Loved',
+  // Card 3 - Friends Loved (can optionally include count)
+  friendsLoved: (count?: number): FeedCardBadge => ({
+    text: count ? `${count} Friends Loved This` : 'Your Friends Loved',
     icon: 'heart',
     color: 'rgba(236, 72, 153, 0.25)',
     borderColor: 'rgba(236, 72, 153, 0.5)',
     textColor: 'white',
-  } as FeedCardBadge,
+  }),
+  
+  // Alias for uppercase naming convention
+  FRIENDS_LOVED: (count?: number): FeedCardBadge => ({
+    text: count ? `${count} Friends Loved This` : 'Your Friends Loved',
+    icon: 'heart',
+    color: 'rgba(236, 72, 153, 0.25)',
+    borderColor: 'rgba(236, 72, 153, 0.5)',
+    textColor: 'white',
+  }),
   
   // Card 4 - Coming Soon
   comingSoon: (date: string): FeedCardBadge => ({
@@ -278,6 +289,42 @@ export const BADGE_PRESETS = {
     borderColor: 'rgba(139, 92, 246, 0.5)',
     textColor: 'white',
   } as FeedCardBadge,
+  
+  // ============================================================================
+  // Uppercase Aliases for Feed Page Usage
+  // ============================================================================
+  
+  BECAUSE_YOU_LIKED: (showName: string): FeedCardBadge => ({
+    text: `Because you liked ${showName}`,
+    icon: 'thumbs-up',
+    color: 'rgba(139, 92, 246, 0.25)',
+    borderColor: 'rgba(139, 92, 246, 0.5)',
+    textColor: 'white',
+  }),
+  
+  COMING_SOON: (date: string): FeedCardBadge => ({
+    text: `Coming ${date}`,
+    icon: 'clock',
+    color: 'rgba(168, 85, 247, 0.25)',
+    borderColor: 'rgba(168, 85, 247, 0.5)',
+    textColor: 'white',
+  }),
+  
+  NOW_STREAMING: {
+    text: 'Now Streaming!',
+    icon: 'tv-screen',
+    color: 'rgba(139, 92, 246, 0.25)',
+    borderColor: 'rgba(139, 92, 246, 0.5)',
+    textColor: 'white',
+  } as FeedCardBadge,
+  
+  YOU_MIGHT_LIKE: (matchPercent?: number, similarUsers?: number): FeedCardBadge => ({
+    text: matchPercent ? `${matchPercent}% Match` : 'You Might Like',
+    icon: 'thumbs-up-outline',
+    color: 'rgba(59, 130, 246, 0.25)',
+    borderColor: 'rgba(59, 130, 246, 0.5)',
+    textColor: 'white',
+  }),
   
 }
 
