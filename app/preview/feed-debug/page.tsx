@@ -391,16 +391,64 @@ export default function FeedDebugPage() {
       const usTime = Date.now() - usStart
       addLog(`User suggestions: ${suggestions?.length || 0} in ${usTime}ms`)
       
-      if (suggestions && suggestions.length > 0) {
-        items.push({
-          type: 'follow_suggestions',
-          id: 'follow-suggestions-1',
-          data: { suggestions },
-          loadTime: usTime
-        })
+      // Separate activities from recommendations
+      const activityItems = items.filter(i => i.type === 'activity')
+      const recommendationItems = items.filter(i => i.type !== 'activity')
+      
+      // Create follow suggestions card
+      const followSuggestionsCard: FeedItem | null = suggestions && suggestions.length > 0 ? {
+        type: 'follow_suggestions',
+        id: 'follow-suggestions-1',
+        data: { suggestions },
+        loadTime: usTime
+      } : null
+      
+      // ========================================
+      // SMART FEED BUILDER - Same as main feed!
+      // ========================================
+      addLog('--- Building interleaved feed ---')
+      
+      const finalFeed: FeedItem[] = []
+      let recIndex = 0
+      let insertedFollowCard = false
+      let activityCount = 0
+      const activityInterval = 3 // Insert recommendation every 3 activities
+      
+      for (const item of activityItems) {
+        finalFeed.push(item)
+        activityCount++
+        
+        // After first 2 activities, insert follow suggestions (once)
+        if (activityCount === 2 && followSuggestionsCard && !insertedFollowCard) {
+          finalFeed.push(followSuggestionsCard)
+          insertedFollowCard = true
+          addLog(`📍 Inserted Find Friends after activity #${activityCount}`)
+        }
+        // Insert recommendation every 3 activities
+        else if (activityCount >= activityInterval && recIndex < recommendationItems.length) {
+          finalFeed.push(recommendationItems[recIndex])
+          addLog(`📍 Inserted ${recommendationItems[recIndex].type} after activity #${activityCount}`)
+          recIndex++
+          activityCount = 0 // Reset counter
+        }
       }
       
-      setFeedItems(items)
+      // Add any remaining recommendations at the end
+      while (recIndex < recommendationItems.length) {
+        finalFeed.push(recommendationItems[recIndex])
+        addLog(`📍 Appended remaining ${recommendationItems[recIndex].type}`)
+        recIndex++
+      }
+      
+      // If we didn't insert follow suggestions yet, add at end
+      if (!insertedFollowCard && followSuggestionsCard) {
+        finalFeed.push(followSuggestionsCard)
+        addLog(`📍 Appended Find Friends at end`)
+      }
+      
+      addLog(`Final feed: ${finalFeed.length} cards (${activityItems.length} activities + ${recommendationItems.length + (followSuggestionsCard ? 1 : 0)} other)`)
+      
+      setFeedItems(finalFeed)
       
       const totalTime = Date.now() - startTime
       setLoadTime(totalTime)
