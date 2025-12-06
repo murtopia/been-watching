@@ -110,22 +110,19 @@ export default function AppHeader({
     <div style={{
       padding: '1rem 1.5rem',
       background: cardBg,
-      border: cardBorder,
-      borderBottomLeftRadius: '12px',
-      borderBottomRightRadius: '12px',
-      maxWidth: '600px',
-      margin: '0 auto 0.5rem',
+      borderBottom: cardBorder,
       backdropFilter: backdropBlur,
       WebkitBackdropFilter: backdropBlur,
       position: hideOnScroll ? 'fixed' : 'sticky',
       top: 0,
-      left: hideOnScroll ? '50%' : undefined,
+      left: 0,
+      right: 0,
       transform: hideOnScroll 
-        ? `translateX(-50%) translateY(${headerVisible ? '0' : '-100%'})`
+        ? `translateY(${headerVisible ? '0' : '-100%'})`
         : undefined,
       transition: hideOnScroll ? 'transform 0.3s ease-out' : undefined,
       zIndex: 100,
-      width: hideOnScroll ? 'calc(100% - 3rem)' : undefined
+      width: '100%'
     }}>
       {/* Inner content aligned to card width (398px) */}
       <div style={{
