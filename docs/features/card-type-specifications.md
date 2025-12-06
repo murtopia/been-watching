@@ -520,22 +520,22 @@ Same as Card 2, plus:
 ## Card 4: Coming Soon / New Season Alert
 
 ### Purpose
-Build anticipation for upcoming releases. Help users discover new shows or remember when new seasons of shows they like are dropping.
+Build anticipation for upcoming releases. Notify users when TV shows in their watchlist have new seasons coming.
+
+### Scope
+**TV Shows only** (movies excluded for now). Uses TMDB `next_episode_to_air` data.
 
 ### Display Rules
 
 **Card is created when:**
-1. Show has a confirmed release date in the next 90 days
-2. Show is relevant to user:
-   - New season of show in user's watchlist, OR
-   - New show in genre user loves (80%+ of ratings), OR
-   - New show friends are excited about (5+ friends have it in "Want to Watch")
-3. User hasn't dismissed this release notification
+1. User has a TV show in ANY watchlist (want/watching/watched)
+2. That show has an upcoming season with `air_date` in the future
+3. Card not shown in the last 2 days (cooldown)
 
 **Frequency:**
-- Appears in feed at 10% distribution (Release Notifications pool)
-- More frequent on Fridays (new release day)
-- Maximum 2 release cards per feed session
+- 2-day cooldown between showing the same show
+- No max impressions (keeps showing until season is released)
+- Appears in feed via smart interleaving (every 2-4 activity cards)
 
 ### Card Front
 
@@ -657,21 +657,31 @@ interface Card4Data {
 ## Card 5: Now Streaming
 
 ### Purpose
-Alert users when shows they might like become available on streaming platforms. Helps with content discovery and reduces decision fatigue.
+Notify users when shows they set reminders for (from Card 4) have been released and are now available to stream.
 
 ### Display Rules
 
 **Card is created when:**
-1. Show recently added to streaming platform (past 7 days)
-2. Show is relevant to user:
-   - In user's "Want to Watch" list, OR
-   - Friends with 75%+ match score loved it, OR
-   - Genre user frequently watches
-3. User hasn't dismissed this notification
+1. User set a reminder on Card 4 (bell icon) for an upcoming season
+2. The `air_date` for that season has arrived or passed
+3. User hasn't dismissed this card yet
+
+**Trigger Flow:**
+```
+Card 4: User taps bell → Saved to show_reminders table
+                ↓
+        Air date arrives
+                ↓
+Card 5 appears in feed + In-app notification created
+```
+
+**In-App Notification:**
+- Message added to `notifications` table
+- Bell icon turns gold and shakes (existing feature)
+- **Tap action:** Opens show as card overlay (same behavior as /myshows)
 
 **Frequency:**
-- Appears in feed at 10% distribution (Release Notifications pool)
-- More frequent on Fridays (new content day)
+- Card 5 shows until user dismisses or takes action (adds to watchlist)
 
 ### Card Front
 

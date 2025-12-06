@@ -91,10 +91,11 @@ const FEED_DISTRIBUTION = {
    - Space out recommendations evenly
    - Insert follow suggestions at strategic points
    ↓
-6. Apply frequency caps:
-   - Max 3 "Because You Liked" per session
-   - Max 1 "Find New Friends" per session
-   - Max 1 "Top 3 Update" per friend per day
+6. Apply impression tracking:
+   - 2-day cooldown: Don't show same recommendation card if shown in last 48 hours
+   - Max 2 impressions: Cards 2, 3, 8 shown max 2 times total, then never again
+   - Card 4: No max (keep showing every 2 days until released)
+   - Card 7: Max 1 per session
    ↓
 7. Personalize order (Phase 2):
    - Boost card types user engages with most
@@ -482,37 +483,99 @@ function scoreYouMightLike(rec: CollaborativeRecommendation): number {
 
 ---
 
+## Impression Tracking
+
+### Database Table
+
+```sql
+CREATE TABLE card_impressions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES profiles(id),
+  card_type TEXT,  -- 'because_you_liked', 'friends_loved', 'coming_soon', 'you_might_like'
+  media_id TEXT,
+  source_media_id TEXT,  -- For Card 2: the show they liked that triggered this
+  impression_count INT DEFAULT 1,
+  first_shown_at TIMESTAMPTZ DEFAULT NOW(),
+  last_shown_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+### Rules
+
+| Card Type | Cooldown | Max Impressions |
+|-----------|----------|-----------------|
+| Card 2: Because You Liked | 2 days | 2 total |
+| Card 3: Friends Loved | 2 days | 2 total |
+| Card 4: Coming Soon | 2 days | No max (until released) |
+| Card 5: Now Streaming | N/A | Until dismissed |
+| Card 7: Find Friends | Per session | 1 per session |
+| Card 8: You Might Like | 2 days | 2 total |
+
+### Logic
+
+```typescript
+async function shouldShowCard(userId: string, cardType: string, mediaId: string): Promise<boolean> {
+  const impression = await getImpression(userId, cardType, mediaId)
+  
+  if (!impression) return true  // Never shown
+  
+  const daysSinceShown = (Date.now() - impression.last_shown_at) / (1000 * 60 * 60 * 24)
+  
+  // 2-day cooldown
+  if (daysSinceShown < 2) return false
+  
+  // Max impressions (for Cards 2, 3, 8)
+  if (['because_you_liked', 'friends_loved', 'you_might_like'].includes(cardType)) {
+    if (impression.impression_count >= 2) return false
+  }
+  
+  return true
+}
+```
+
+---
+
 ## Interleaving Strategy
 
 ### Goal
-Avoid monotony by mixing card types. Don't show 10 friend activities in a row.
+Avoid monotony by mixing card types. Create natural variety in the feed.
 
-### Algorithm
+### Smart Feed Builder (Updated)
+
+After every 2-4 activity cards, insert from another bucket. The exact interval varies slightly for natural feel.
 
 ```typescript
-function interleaveFeedCards(cardsByType: Map<CardType, Card[]>): Card[] {
-  const feed: Card[] = [];
-  const buckets = {
-    friendActivity: [...cardsByType.get('userActivity'), ...cardsByType.get('top3Update')],
-    recommendations: [...cardsByType.get('becauseYouLiked'), ...cardsByType.get('youMightLike'), ...cardsByType.get('friendsLoved')],
-    releases: [...cardsByType.get('comingSoon'), ...cardsByType.get('nowStreaming')],
-    follow: cardsByType.get('findNewFriends') || []
-  };
-
-  // Sort each bucket by score
-  Object.values(buckets).forEach(bucket => bucket.sort((a, b) => b.score - a.score));
-
-  // Interleaving pattern (for 20-card feed):
-  // F F R F F Rec F F Follow F F Rec F Rel F F Rec F F Rel F
-  // F = Friend Activity, Rec = Recommendation, Rel = Release, Follow = Follow Suggestions
-
-  const pattern = [
-    'friendActivity', 'friendActivity',
-    'recommendations',
-    'friendActivity', 'friendActivity',
-    'recommendations',
-    'friendActivity', 'friendActivity',
-    'follow',
+function buildFeed(buckets: FeedBuckets): FeedItem[] {
+  const feed: FeedItem[] = []
+  let activityCount = 0
+  const getNextInterval = () => 2 + Math.floor(Math.random() * 3) // 2-4
+  let nextInsertAt = getNextInterval()
+  
+  // Rotate through non-activity buckets
+  const otherBuckets = ['recommendations', 'releases', 'follow']
+  let bucketIndex = 0
+  
+  while (hasMoreContent(buckets)) {
+    // Pull from activities
+    if (buckets.activities.length > 0) {
+      feed.push(buckets.activities.shift())
+      activityCount++
+    }
+    
+    // After 2-4 activities, insert from another bucket
+    if (activityCount >= nextInsertAt) {
+      const bucket = otherBuckets[bucketIndex % otherBuckets.length]
+      if (buckets[bucket]?.length > 0) {
+        feed.push(buckets[bucket].shift())
+        bucketIndex++
+      }
+      activityCount = 0
+      nextInsertAt = getNextInterval()
+    }
+  }
+  
+  return feed
+}
     'friendActivity', 'friendActivity',
     'releases',
     'friendActivity',
