@@ -47,6 +47,7 @@ const LOAD_MORE_BATCH_SIZE = 5
 
 // Time window for grouping activities (5 minutes in milliseconds)
 // This groups rating + status changes that happen close together
+// Used as fallback for activities without activity_group_id
 const ACTIVITY_GROUP_WINDOW_MS = 5 * 60 * 1000
 
 interface FeedItem {
@@ -55,13 +56,14 @@ interface FeedItem {
   data: any
 }
 
-// Group activities by user_id + media_id within a time window
+// Group activities by activity_group_id (database-level) or user_id + media_id (fallback)
 // This combines "rated" and "status_changed" activities into a single card
 function groupActivities(activities: any[]): any[] {
   if (!activities || activities.length === 0) return []
   
   console.log('🔄 Grouping activities:', activities.map(a => ({
     id: a.id,
+    group_id: a.activity_group_id,
     user: (a.profiles as any)?.display_name,
     media: (a.media as any)?.title,
     type: a.activity_type,
@@ -71,8 +73,11 @@ function groupActivities(activities: any[]): any[] {
   const grouped: Map<string, any[]> = new Map()
   
   for (const activity of activities) {
-    // Create a group key based on user_id + media_id
-    const groupKey = `${activity.user_id}-${activity.media_id}`
+    // Use activity_group_id if available (database-level grouping)
+    // Otherwise fall back to user_id + media_id (for historical activities)
+    const groupKey = activity.activity_group_id 
+      ? `group-${activity.activity_group_id}`
+      : `${activity.user_id}-${activity.media_id}`
     
     if (!grouped.has(groupKey)) {
       grouped.set(groupKey, [])
@@ -80,7 +85,7 @@ function groupActivities(activities: any[]): any[] {
     grouped.get(groupKey)!.push(activity)
   }
   
-  console.log('📦 Grouped by user+media:', Array.from(grouped.entries()).map(([key, acts]) => ({
+  console.log('📦 Grouped:', Array.from(grouped.entries()).map(([key, acts]) => ({
     key,
     count: acts.length,
     types: acts.map(a => a.activity_type)
@@ -294,6 +299,7 @@ export default function PreviewFeedLivePage() {
             media_id,
             activity_type,
             activity_data,
+            activity_group_id,
             created_at,
             profiles:user_id (
               id,
@@ -315,7 +321,7 @@ export default function PreviewFeedLivePage() {
           `)
           .neq('user_id', user?.id)
           .order('created_at', { ascending: false })
-          .limit(INITIAL_BATCH_SIZE)
+          .limit(INITIAL_BATCH_SIZE * 2) // Fetch more to ensure we get related activities for grouping
         
         if (fullActivities && fullActivities.length > 0) {
           // Group related activities (e.g., rating + status change on same show)
