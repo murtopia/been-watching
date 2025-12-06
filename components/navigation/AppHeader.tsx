@@ -27,7 +27,9 @@ export default function AppHeader({
 }: AppHeaderProps) {
   const router = useRouter()
   const { resolvedTheme } = useTheme()
-  const [notificationCount, setNotificationCount] = useState(0)
+  // TODO: Remove test mode after reviewing animation
+  const TEST_NOTIFICATION_COUNT = 3 // Set to 0 to disable test mode
+  const [notificationCount, setNotificationCount] = useState(TEST_NOTIFICATION_COUNT)
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false)
   const [headerVisible, setHeaderVisible] = useState(true)
   const lastScrollY = useRef(0)
