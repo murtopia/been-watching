@@ -142,12 +142,14 @@ User's friends (follows table)
     ↓
 Their "love" ratings (ratings table)
     ↓
-Group by media_id, filter to 3+ friends
+Group by media_id, filter to 1+ friends (prioritize shows with more)
     ↓
 Filter: exclude user's watchlist + impression limits
     ↓
 Display with friend avatars
 ```
+
+**Threshold:** Lowered from 3 friends to 1 friend to generate more content. Shows are sorted by friend count (most loves first).
 
 ### Card 4: Coming Soon
 
@@ -232,33 +234,55 @@ async function calculateTasteMatch(userA: string, userB: string): Promise<number
 
 ## Smart Feed Builder
 
-After every 2-4 activity cards, insert from another bucket (rotating).
+Uses a deterministic 13-card pattern that repeats:
+
+```
+Position:  1  2  3  4  5  6  7  8  9  10 11 12 13
+Card Type: 1, 1, 2, 1, 3, 1, 7, 1, 8, 1, 2, 3, 8
+```
+
+Where:
+- **1** = User Activity (Card 1 or 6)
+- **2** = Because You Liked (Card 2)
+- **3** = Your Friends Loved (Card 3)
+- **7** = Find New Friends (Card 7)
+- **8** = You Might Like (Card 8)
+
+**Bonus Cards:** Cards 4 (Coming Soon) and 5 (Now Streaming) are inserted as bonus cards every 4th position when available.
+
+**Fallback:** When activities run out, rotate through Cards 2 → 3 → 8.
 
 ```typescript
+const FEED_PATTERN = [1, 1, 2, 1, 3, 1, 7, 1, 8, 1, 2, 3, 8]
+const BONUS_CARD_INTERVAL = 4
+
 function buildFeed(buckets: FeedBuckets): FeedItem[] {
   const feed: FeedItem[] = []
-  let activityCount = 0
-  const getInterval = () => 2 + Math.floor(Math.random() * 3) // 2-4
-  let nextInsertAt = getInterval()
+  let patternIndex = 0
+  let positionCounter = 0
   
-  const otherBuckets = ['recommendations', 'releases', 'follow']
-  let bucketIndex = 0
-  
-  while (hasMoreContent(buckets)) {
-    if (buckets.activities.length > 0) {
-      feed.push(buckets.activities.shift())
-      activityCount++
+  while (hasMoreContent(buckets) && feed.length < 50) {
+    positionCounter++
+    
+    // Insert bonus card (4/5) every 4th position
+    if (positionCounter % BONUS_CARD_INTERVAL === 0) {
+      const bonusCard = getBonusCard(buckets) // Now Streaming > Coming Soon
+      if (bonusCard) {
+        feed.push(bonusCard)
+        continue
+      }
     }
     
-    if (activityCount >= nextInsertAt && hasOtherContent(buckets)) {
-      const bucket = otherBuckets[bucketIndex % otherBuckets.length]
-      if (buckets[bucket]?.length > 0) {
-        feed.push(buckets[bucket].shift())
-        bucketIndex++
-      }
-      activityCount = 0
-      nextInsertAt = getInterval()
+    const cardType = FEED_PATTERN[patternIndex % FEED_PATTERN.length]
+    let card = getCardFromBucket(cardType, buckets)
+    
+    // If Activity (1) is empty, use fallback rotation (2 → 3 → 8)
+    if (!card && cardType === 1) {
+      card = getFallbackCard(buckets)
     }
+    
+    if (card) feed.push(card)
+    patternIndex++
   }
   
   return feed

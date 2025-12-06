@@ -422,12 +422,12 @@ Social proof recommendation. Show the user content their friends have highly rat
 ### Display Rules
 
 **Card is created when:**
-1. 3+ friends have rated a show as "love"
+1. 1+ friends have rated a show as "love" (prioritizes shows with more friends)
 2. Show is NOT already in user's watchlist
 3. User hasn't dismissed this recommendation before
 
 **Frequency:**
-- Appears in feed at 15% distribution (Social Recommendations pool)
+- Appears at positions 5 and 12 in the 13-card cycle
 - Prioritize shows with most friends who loved it
 - Prioritize recent friend activity (past 60 days)
 
@@ -1185,25 +1185,34 @@ Similar to Card 1 (Template A), but with:
 
 ## Summary Tables
 
-### Card Distribution
+### Card Distribution (Deterministic Pattern)
 
-| Card Type | Distribution | Frequency Cap |
-|-----------|--------------|---------------|
-| Card 1: User Activity | 50% | No limit |
-| Card 2: Because You Liked | 20% | 3 per session |
-| Card 3: Friends Loved | 15% | 5 per session |
-| Card 4: Coming Soon | 10% | 2 per session |
-| Card 5: Now Streaming | 10% | 2 per session |
-| Card 6: Top 3 Update | 50% | 1 per friend per day |
-| Card 7: Find New Friends | 5% | 1 per session |
-| Card 8: You Might Like | 20% | 5 per session |
+The feed uses a repeating 13-card pattern:
 
-**Distribution Pool Totals:**
-- Friend Activity (Cards 1, 6): 50%
-- AI Recommendations (Cards 2, 8): 20%
-- Social Recommendations (Card 3): 15%
-- Release Notifications (Cards 4, 5): 10%
-- Follow Suggestions (Card 7): 5%
+```
+1, 1, 2, 1, 3, 1, 7, 1, 8, 1, 2, 3, 8
+```
+
+| Card Type | Count per Cycle | Notes |
+|-----------|-----------------|-------|
+| Card 1: User Activity | 6 | Positions 1, 2, 4, 6, 8, 10 |
+| Card 2: Because You Liked | 2 | Positions 3, 11 |
+| Card 3: Friends Loved | 2 | Positions 5, 12 (threshold: 1+ friend loves) |
+| Card 4: Coming Soon | Bonus | Every 4th position (when available) |
+| Card 5: Now Streaming | Bonus | Every 4th position (when available) |
+| Card 6: Top 3 Update | (Part of 1) | Included in Activity pool |
+| Card 7: Find New Friends | 1 | Position 7 |
+| Card 8: You Might Like | 2 | Positions 9, 13 |
+
+**Fetch Limits per Load:**
+- Card 2: 4 cards
+- Card 3: 4 cards  
+- Card 4: 2 cards
+- Card 5: 2 cards
+- Card 8: 4 cards
+
+**Fallback Behavior:**
+When activities run out, rotate through Cards 2 → 3 → 8 to keep showing recommendations.
 
 ### Template Usage
 

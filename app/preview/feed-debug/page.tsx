@@ -15,6 +15,15 @@ import {
 // Simplified card types for debugging
 type CardType = 'activity' | 'because_you_liked' | 'friends_loved' | 'coming_soon' | 'now_streaming' | 'you_might_like' | 'follow_suggestions'
 
+// =====================================================
+// Feed Pattern Configuration (same as main feed)
+// =====================================================
+// Deterministic 13-card pattern that repeats
+// Card 1 = Activity, Card 2 = Because You Liked, Card 3 = Friends Loved
+// Card 7 = Find Friends, Card 8 = You Might Like
+const FEED_PATTERN = [1, 1, 2, 1, 3, 1, 7, 1, 8, 1, 2, 3, 8]
+const BONUS_CARD_INTERVAL = 4 // Cards 4/5 insert every 4th position
+
 interface FeedItem {
   type: CardType
   id: string
@@ -160,8 +169,13 @@ export default function FeedDebugPage() {
       addLog(`User ratings: ${userRatings?.length || 0}`)
       
       if (userRatings && userRatings.length > 0) {
-        // Actually fetch similar shows
-        for (const rating of userRatings.slice(0, 2)) {
+        // Actually fetch similar shows - now fetch up to 4 cards total
+        let bylCardCount = 0
+        const maxBylCards = 4
+        
+        for (const rating of userRatings.slice(0, 3)) {
+          if (bylCardCount >= maxBylCards) break
+          
           const media = rating.media as any
           if (!media) continue
           
@@ -190,8 +204,11 @@ export default function FeedDebugPage() {
             const similar = (data.results || []).slice(0, 5)
             addLog(`✅ Found ${similar.length} similar to ${media.title}`)
             
-            // Add first non-excluded similar show
+            // Add up to 2 non-excluded similar shows per source
+            let addedFromSource = 0
             for (const show of similar) {
+              if (bylCardCount >= maxBylCards || addedFromSource >= 2) break
+              
               const showMediaId = `${mediaType}-${show.id}`
               if (!excludedMediaIds.has(showMediaId)) {
                 items.push({
@@ -201,7 +218,8 @@ export default function FeedDebugPage() {
                   loadTime: Date.now() - bylStart
                 })
                 addLog(`➕ Added recommendation: ${show.title || show.name}`)
-                break
+                bylCardCount++
+                addedFromSource++
               }
             }
           } catch (err: any) {
@@ -300,26 +318,29 @@ export default function FeedDebugPage() {
             loveCounts.get(r.media_id)!.count++
           })
           
-          // Find shows with 3+ loves
-          for (const [mediaId, data] of loveCounts) {
-            if (data.count >= 3 && !excludedMediaIds.has(mediaId)) {
-              addLog(`✅ Friends Loved: ${data.media.title} (${data.count} friends)`)
-              items.push({
-                type: 'friends_loved',
-                id: `fl-${mediaId}`,
-                data: { media: data.media, friendCount: data.count },
-                loadTime: Date.now() - flStart
-              })
-              break // Just add one for now
-            }
+          // Find shows with 1+ loves (lowered from 3 for more content)
+          // Sort by love count to prioritize most-loved shows
+          const sortedLoves = Array.from(loveCounts.entries())
+            .filter(([mediaId, data]) => data.count >= 1 && !excludedMediaIds.has(mediaId))
+            .sort((a, b) => b[1].count - a[1].count)
+          
+          // Add up to 4 Friends Loved cards
+          for (const [mediaId, data] of sortedLoves.slice(0, 4)) {
+            addLog(`✅ Friends Loved: ${data.media.title} (${data.count} friends)`)
+            items.push({
+              type: 'friends_loved',
+              id: `fl-${mediaId}`,
+              data: { media: data.media, friendCount: data.count },
+              loadTime: Date.now() - flStart
+            })
           }
           
           if (!items.some(i => i.type === 'friends_loved')) {
-            addLog(`⏭️ No shows with 3+ friend loves found`)
+            addLog(`⏭️ No shows with friend loves found`)
           }
         }
       } else {
-        addLog(`⏭️ Need 3+ friends for Friends Loved`)
+        addLog(`⏭️ No friends to check for Friends Loved`)
       }
       
       const flTime = Date.now() - flStart
@@ -360,14 +381,16 @@ export default function FeedDebugPage() {
             .sort((a, b) => b[1].count - a[1].count)
           
           if (sorted.length > 0) {
-            const [mediaId, data] = sorted[0]
-            addLog(`✅ You Might Like: ${data.media.title} (${data.count} users loved)`)
-            items.push({
-              type: 'you_might_like',
-              id: `yml-${mediaId}`,
-              data: { media: data.media, similarUsers: data.count },
-              loadTime: Date.now() - ymlStart
-            })
+            // Add up to 4 You Might Like cards
+            for (const [mediaId, data] of sorted.slice(0, 4)) {
+              addLog(`✅ You Might Like: ${data.media.title} (${data.count} users loved)`)
+              items.push({
+                type: 'you_might_like',
+                id: `yml-${mediaId}`,
+                data: { media: data.media, similarUsers: data.count },
+                loadTime: Date.now() - ymlStart
+              })
+            }
           } else {
             addLog(`⏭️ No eligible You Might Like shows found`)
           }
@@ -391,62 +414,105 @@ export default function FeedDebugPage() {
       const usTime = Date.now() - usStart
       addLog(`User suggestions: ${suggestions?.length || 0} in ${usTime}ms`)
       
-      // Separate activities from recommendations
-      const activityItems = items.filter(i => i.type === 'activity')
-      const recommendationItems = items.filter(i => i.type !== 'activity')
-      
-      // Create follow suggestions card
-      const followSuggestionsCard: FeedItem | null = suggestions && suggestions.length > 0 ? {
-        type: 'follow_suggestions',
-        id: 'follow-suggestions-1',
-        data: { suggestions },
-        loadTime: usTime
-      } : null
-      
       // ========================================
-      // SMART FEED BUILDER - Same as main feed!
+      // SMART FEED BUILDER - Deterministic Pattern
+      // Pattern: 1, 1, 2, 1, 3, 1, 7, 1, 8, 1, 2, 3, 8
       // ========================================
-      addLog('--- Building interleaved feed ---')
+      addLog('--- Building deterministic feed ---')
+      addLog(`Pattern: ${FEED_PATTERN.join(', ')}`)
       
+      // Create buckets for each card type
+      const buckets = {
+        activities: items.filter(i => i.type === 'activity'),
+        becauseYouLiked: items.filter(i => i.type === 'because_you_liked'),
+        friendsLoved: items.filter(i => i.type === 'friends_loved'),
+        comingSoon: items.filter(i => i.type === 'coming_soon'),
+        nowStreaming: items.filter(i => i.type === 'now_streaming'),
+        youMightLike: items.filter(i => i.type === 'you_might_like'),
+        findFriends: suggestions && suggestions.length > 0 ? [{
+          type: 'follow_suggestions' as const,
+          id: 'follow-suggestions-1',
+          data: { suggestions },
+          loadTime: usTime
+        }] : [] as FeedItem[]
+      }
+      
+      addLog(`Buckets: activities=${buckets.activities.length}, byl=${buckets.becauseYouLiked.length}, fl=${buckets.friendsLoved.length}, yml=${buckets.youMightLike.length}, ff=${buckets.findFriends.length}`)
+      
+      // Helper to get card from bucket by type
+      const getCardFromBucket = (cardType: number): FeedItem | null => {
+        switch (cardType) {
+          case 1: return buckets.activities.shift() || null
+          case 2: return buckets.becauseYouLiked.shift() || null
+          case 3: return buckets.friendsLoved.shift() || null
+          case 7: return buckets.findFriends.shift() || null
+          case 8: return buckets.youMightLike.shift() || null
+          default: return null
+        }
+      }
+      
+      // Helper to get fallback card when activities run out (rotate 2->3->8)
+      const getFallbackCard = (): FeedItem | null => {
+        const fallbackOrder = [2, 3, 8]
+        for (const cardType of fallbackOrder) {
+          const card = getCardFromBucket(cardType)
+          if (card) return card
+        }
+        return null
+      }
+      
+      // Helper to get bonus card (4 or 5)
+      const getBonusCard = (): FeedItem | null => {
+        if (buckets.nowStreaming.length > 0) return buckets.nowStreaming.shift() || null
+        if (buckets.comingSoon.length > 0) return buckets.comingSoon.shift() || null
+        return null
+      }
+      
+      // Build the feed using the pattern
       const finalFeed: FeedItem[] = []
-      let recIndex = 0
-      let insertedFollowCard = false
-      let activityCount = 0
-      const activityInterval = 3 // Insert recommendation every 3 activities
+      let patternIndex = 0
+      let positionCounter = 0
       
-      for (const item of activityItems) {
-        finalFeed.push(item)
-        activityCount++
+      const hasMoreContent = () => {
+        return buckets.activities.length > 0 ||
+               buckets.becauseYouLiked.length > 0 ||
+               buckets.friendsLoved.length > 0 ||
+               buckets.youMightLike.length > 0 ||
+               buckets.findFriends.length > 0
+      }
+      
+      while (hasMoreContent() && finalFeed.length < 50) {
+        positionCounter++
         
-        // After first 2 activities, insert follow suggestions (once)
-        if (activityCount === 2 && followSuggestionsCard && !insertedFollowCard) {
-          finalFeed.push(followSuggestionsCard)
-          insertedFollowCard = true
-          addLog(`📍 Inserted Find Friends after activity #${activityCount}`)
+        // Insert bonus card (4/5) every Nth position
+        if (positionCounter % BONUS_CARD_INTERVAL === 0) {
+          const bonusCard = getBonusCard()
+          if (bonusCard) {
+            finalFeed.push(bonusCard)
+            addLog(`📍 Position ${finalFeed.length}: BONUS ${bonusCard.type}`)
+            continue
+          }
         }
-        // Insert recommendation every 3 activities
-        else if (activityCount >= activityInterval && recIndex < recommendationItems.length) {
-          finalFeed.push(recommendationItems[recIndex])
-          addLog(`📍 Inserted ${recommendationItems[recIndex].type} after activity #${activityCount}`)
-          recIndex++
-          activityCount = 0 // Reset counter
+        
+        // Get the card type from the pattern
+        const cardType = FEED_PATTERN[patternIndex % FEED_PATTERN.length]
+        let card = getCardFromBucket(cardType)
+        
+        // If card type is Activity (1) but we're out, use fallback
+        if (!card && cardType === 1) {
+          card = getFallbackCard()
+          if (card) addLog(`📍 Position ${finalFeed.length + 1}: Fallback ${card.type} (pattern wanted Card 1)`)
         }
+        
+        if (card) {
+          finalFeed.push(card)
+          addLog(`📍 Position ${finalFeed.length}: Card ${cardType} → ${card.type}`)
+        }
+        
+        patternIndex++
       }
       
-      // Add any remaining recommendations at the end
-      while (recIndex < recommendationItems.length) {
-        finalFeed.push(recommendationItems[recIndex])
-        addLog(`📍 Appended remaining ${recommendationItems[recIndex].type}`)
-        recIndex++
-      }
-      
-      // If we didn't insert follow suggestions yet, add at end
-      if (!insertedFollowCard && followSuggestionsCard) {
-        finalFeed.push(followSuggestionsCard)
-        addLog(`📍 Appended Find Friends at end`)
-      }
-      
-      addLog(`Final feed: ${finalFeed.length} cards (${activityItems.length} activities + ${recommendationItems.length + (followSuggestionsCard ? 1 : 0)} other)`)
+      addLog(`Final feed: ${finalFeed.length} cards`)
       
       setFeedItems(finalFeed)
       

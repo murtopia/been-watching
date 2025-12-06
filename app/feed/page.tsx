@@ -50,13 +50,33 @@ import {
 } from '@/utils/analytics'
 
 // Initial batch size and load more batch size
-const INITIAL_BATCH_SIZE = 5
-const LOAD_MORE_BATCH_SIZE = 5
+const INITIAL_BATCH_SIZE = 10
+const LOAD_MORE_BATCH_SIZE = 10
 
 // Time window for grouping activities (5 minutes in milliseconds)
 // This groups rating + status changes that happen close together
 // Used as fallback for activities without activity_group_id
 const ACTIVITY_GROUP_WINDOW_MS = 5 * 60 * 1000
+
+// =====================================================
+// Feed Pattern Configuration
+// =====================================================
+// Deterministic 13-card pattern that repeats
+// Card 1 = Activity, Card 2 = Because You Liked, Card 3 = Friends Loved
+// Card 7 = Find Friends, Card 8 = You Might Like
+const FEED_PATTERN = [1, 1, 2, 1, 3, 1, 7, 1, 8, 1, 2, 3, 8]
+
+// Bonus cards (4 = Coming Soon, 5 = Now Streaming) insert every N positions
+const BONUS_CARD_INTERVAL = 4
+
+// Fetch limits for each card type
+const CARD_LIMITS = {
+  BECAUSE_YOU_LIKED: 4,    // Card 2: need ~2 per cycle, with buffer
+  FRIENDS_LOVED: 4,        // Card 3: need ~2 per cycle, with buffer
+  COMING_SOON: 2,          // Card 4: on-demand
+  NOW_STREAMING: 2,        // Card 5: on-demand
+  YOU_MIGHT_LIKE: 4,       // Card 8: need ~2 per cycle, with buffer
+}
 
 interface FeedItem {
   type: 'activity' | 'recommendation' | 'follow_suggestions' | 'because_you_liked' | 'friends_loved' | 'coming_soon' | 'now_streaming' | 'you_might_like'
@@ -254,7 +274,7 @@ async function fetchBecauseYouLiked(
   supabase: any,
   userId: string,
   excludedMediaIds: Set<string>,
-  limit: number = 3
+  limit: number = CARD_LIMITS.BECAUSE_YOU_LIKED
 ): Promise<FeedItem[]> {
   try {
     console.time('fetchBecauseYouLiked')
@@ -350,13 +370,14 @@ async function fetchBecauseYouLiked(
 
 /**
  * Card 3: Your Friends Loved
- * Shows that 3+ friends have rated as "love"
+ * Shows that 1+ friends have rated as "love" (lowered from 3 for more content)
+ * Prioritizes shows with more friends who loved it
  */
 async function fetchFriendsLoved(
   supabase: any,
   userId: string,
   excludedMediaIds: Set<string>,
-  limit: number = 3
+  limit: number = CARD_LIMITS.FRIENDS_LOVED
 ): Promise<FeedItem[]> {
   try {
     // Get user's friends
@@ -365,7 +386,7 @@ async function fetchFriendsLoved(
       .select('following_id')
       .eq('follower_id', userId)
     
-    if (!follows || follows.length < 3) return []
+    if (!follows || follows.length === 0) return []
     
     const friendIds = follows.map((f: any) => f.following_id)
     
@@ -405,13 +426,16 @@ async function fetchFriendsLoved(
       })
     }
     
-    // Filter to shows with 3+ friends, excluding user's media
+    // Filter to shows with 1+ friends who loved it, excluding user's media
+    // Sort by friend count (most friends first) for better relevance
+    const sortedMedia = Array.from(mediaMap.entries())
+      .filter(([mediaId, data]) => data.friends.length >= 1 && !excludedMediaIds.has(mediaId))
+      .sort((a, b) => b[1].friends.length - a[1].friends.length)
+    
     const results: FeedItem[] = []
     
-    for (const [mediaId, data] of mediaMap) {
+    for (const [mediaId, data] of sortedMedia) {
       if (results.length >= limit) break
-      if (data.friends.length < 3) continue
-      if (excludedMediaIds.has(mediaId)) continue
       
       const canShow = await shouldShowCard(userId, 'friends_loved', mediaId)
       if (!canShow) continue
@@ -442,7 +466,7 @@ async function fetchFriendsLoved(
 async function fetchComingSoon(
   supabase: any,
   userId: string,
-  limit: number = 2
+  limit: number = CARD_LIMITS.COMING_SOON
 ): Promise<FeedItem[]> {
   try {
     console.time('fetchComingSoon')
@@ -518,7 +542,7 @@ async function fetchComingSoon(
 async function fetchNowStreaming(
   supabase: any,
   userId: string,
-  limit: number = 2
+  limit: number = CARD_LIMITS.NOW_STREAMING
 ): Promise<FeedItem[]> {
   try {
     const today = new Date().toISOString().split('T')[0]
@@ -579,7 +603,7 @@ async function fetchYouMightLike(
   supabase: any,
   userId: string,
   excludedMediaIds: Set<string>,
-  limit: number = 2
+  limit: number = CARD_LIMITS.YOU_MIGHT_LIKE
 ): Promise<FeedItem[]> {
   try {
     console.time('fetchYouMightLike')
@@ -907,61 +931,108 @@ export default function PreviewFeedLivePage() {
             youMightLike: youMightLikeCards.length
           })
           
-          // Smart Feed Builder: Interleave activities with recommendation cards
-          // Rule: After every 2-4 activity cards, insert a recommendation/utility card
-          const allRecommendations = [
-            ...nowStreamingCards,      // Priority: notifications first
-            ...comingSoonCards,         // Then upcoming shows
-            ...becauseYouLikedCards,    // Then recommendations
-            ...friendsLovedCards,
-            ...youMightLikeCards
-          ]
+          // =====================================================
+          // Smart Feed Builder: Deterministic 13-card Pattern
+          // Pattern: 1, 1, 2, 1, 3, 1, 7, 1, 8, 1, 2, 3, 8
+          // Where: 1=Activity, 2=BecauseYouLiked, 3=FriendsLoved, 7=FindFriends, 8=YouMightLike
+          // Bonus: Cards 4/5 (Coming Soon/Now Streaming) insert every 4th position
+          // =====================================================
           
-          // Create follow suggestions card
-          const followSuggestionsCard: FeedItem | null = userSuggestions.length > 0 ? {
-            type: 'follow_suggestions',
-            id: 'follow-suggestions-1',
-            data: { suggestions: userSuggestions }
-          } : null
+          // Create buckets for each card type
+          const buckets = {
+            activities: [...transformedItems],
+            becauseYouLiked: [...becauseYouLikedCards],
+            friendsLoved: [...friendsLovedCards],
+            comingSoon: [...comingSoonCards],
+            nowStreaming: [...nowStreamingCards],
+            youMightLike: [...youMightLikeCards],
+            findFriends: userSuggestions.length > 0 ? [{
+              type: 'follow_suggestions' as const,
+              id: 'follow-suggestions-1',
+              data: { suggestions: userSuggestions }
+            }] : []
+          }
           
-          // Interleave cards
-          const finalFeed: FeedItem[] = []
-          let activityIndex = 0
-          let recIndex = 0
-          let insertedFollowCard = false
-          let activityCount = 0
-          const activityInterval = 2 + Math.floor(Math.random() * 3) // 2-4 activities then recommend
-          
-          for (const item of transformedItems) {
-            if (item.type === 'activity') {
-              finalFeed.push(item)
-              activityCount++
-              activityIndex++
-              
-              // After first 2 activities, insert follow suggestions (once)
-              if (activityCount === 2 && followSuggestionsCard && !insertedFollowCard) {
-                finalFeed.push(followSuggestionsCard)
-                insertedFollowCard = true
-              }
-              // Insert recommendation every 2-4 activities
-              else if (activityCount >= activityInterval && recIndex < allRecommendations.length) {
-                finalFeed.push(allRecommendations[recIndex])
-                recIndex++
-                activityCount = 0 // Reset counter
-              }
+          // Helper to get card from bucket by type (returns null if empty)
+          const getCardFromBucket = (cardType: number): FeedItem | null => {
+            switch (cardType) {
+              case 1: return buckets.activities.shift() || null
+              case 2: return buckets.becauseYouLiked.shift() || null
+              case 3: return buckets.friendsLoved.shift() || null
+              case 7: return buckets.findFriends.shift() || null
+              case 8: return buckets.youMightLike.shift() || null
+              default: return null
             }
           }
           
-          // Add any remaining recommendations at the end
-          while (recIndex < allRecommendations.length) {
-            finalFeed.push(allRecommendations[recIndex])
-            recIndex++
+          // Helper to get fallback card when activities run out (rotate 2->3->8)
+          const getFallbackCard = (): FeedItem | null => {
+            const fallbackOrder = [2, 3, 8]
+            for (const cardType of fallbackOrder) {
+              const card = getCardFromBucket(cardType)
+              if (card) return card
+            }
+            return null
           }
           
-          // If we didn't insert follow suggestions yet and have activities, add at end
-          if (!insertedFollowCard && followSuggestionsCard && finalFeed.length > 0) {
-            finalFeed.push(followSuggestionsCard)
+          // Helper to get bonus card (4 or 5)
+          const getBonusCard = (): FeedItem | null => {
+            // Priority: Now Streaming (5) before Coming Soon (4)
+            if (buckets.nowStreaming.length > 0) {
+              return buckets.nowStreaming.shift() || null
+            }
+            if (buckets.comingSoon.length > 0) {
+              return buckets.comingSoon.shift() || null
+            }
+            return null
           }
+          
+          // Build the feed using the pattern
+          const finalFeed: FeedItem[] = []
+          let patternIndex = 0
+          let positionCounter = 0
+          
+          // Continue while we have any content to show
+          const hasMoreContent = () => {
+            return buckets.activities.length > 0 ||
+                   buckets.becauseYouLiked.length > 0 ||
+                   buckets.friendsLoved.length > 0 ||
+                   buckets.youMightLike.length > 0 ||
+                   buckets.findFriends.length > 0
+          }
+          
+          while (hasMoreContent() && finalFeed.length < 50) { // Cap at 50 for initial load
+            positionCounter++
+            
+            // Insert bonus card (4/5) every Nth position
+            if (positionCounter % BONUS_CARD_INTERVAL === 0) {
+              const bonusCard = getBonusCard()
+              if (bonusCard) {
+                finalFeed.push(bonusCard)
+                console.log(`📍 Position ${finalFeed.length}: Bonus Card (${bonusCard.type})`)
+                continue // Don't advance pattern index for bonus cards
+              }
+            }
+            
+            // Get the card type from the pattern
+            const cardType = FEED_PATTERN[patternIndex % FEED_PATTERN.length]
+            let card = getCardFromBucket(cardType)
+            
+            // If card type is Activity (1) but we're out, use fallback
+            if (!card && cardType === 1) {
+              card = getFallbackCard()
+            }
+            
+            // If we got a card, add it
+            if (card) {
+              finalFeed.push(card)
+              console.log(`📍 Position ${finalFeed.length}: Card ${cardType} (${card.type})`)
+            }
+            
+            patternIndex++
+          }
+          
+          console.log('🎯 Final feed built with', finalFeed.length, 'cards')
           
           setFeedItems(finalFeed)
           setLoading(false)
