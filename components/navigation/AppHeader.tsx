@@ -27,9 +27,7 @@ export default function AppHeader({
 }: AppHeaderProps) {
   const router = useRouter()
   const { resolvedTheme } = useTheme()
-  // TODO: Remove test mode after reviewing animation
-  const TEST_NOTIFICATION_COUNT = 3 // Set to 0 to disable test mode
-  const [notificationCount, setNotificationCount] = useState(TEST_NOTIFICATION_COUNT)
+  const [notificationCount, setNotificationCount] = useState(0)
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false)
   const [headerVisible, setHeaderVisible] = useState(true)
   const lastScrollY = useRef(0)
@@ -83,9 +81,6 @@ export default function AppHeader({
   }, [profile, showNotifications])
 
   const loadNotificationCount = async () => {
-    // Skip API call in test mode
-    if (TEST_NOTIFICATION_COUNT > 0) return
-    
     try {
       const response = await fetch('/api/notifications/unread-count')
       const data = await response.json()
