@@ -105,8 +105,39 @@ export default function AppHeader({
   const cardBg = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.6)'
   const cardBorder = isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)'
   const backdropBlur = 'blur(20px)'
+  
+  // Bell color - pink when notifications exist
+  const bellColor = notificationCount > 0 
+    ? '#e94d88' 
+    : (isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.7)')
 
   return (
+    <>
+      {/* Bell animation styles */}
+      <style jsx global>{`
+        @keyframes bellRing {
+          0%, 100% { transform: rotate(0deg); }
+          10% { transform: rotate(14deg); }
+          20% { transform: rotate(-12deg); }
+          30% { transform: rotate(10deg); }
+          40% { transform: rotate(-8deg); }
+          50% { transform: rotate(6deg); }
+          60% { transform: rotate(-4deg); }
+          70% { transform: rotate(2deg); }
+          80% { transform: rotate(-1deg); }
+          90% { transform: rotate(0deg); }
+        }
+        
+        .bell-ring {
+          animation: bellRing 0.8s ease-in-out;
+          transform-origin: top center;
+        }
+        
+        .bell-active {
+          animation: bellRing 0.8s ease-in-out 2s 1;
+          transform-origin: top center;
+        }
+      `}</style>
     <div style={{
       padding: '1rem 1.5rem',
       background: cardBg,
@@ -167,6 +198,7 @@ export default function AppHeader({
           {showNotifications && profile && (
             <button
               onClick={handleNotificationClick}
+              className={notificationCount > 0 ? 'bell-active' : ''}
               style={{
                 background: 'none',
                 border: 'none',
@@ -178,7 +210,7 @@ export default function AppHeader({
                 justifyContent: 'center'
               }}
             >
-              <Icon name="bell" size={24} color={isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.7)'} />
+              <Icon name="bell" size={24} color={bellColor} />
               {notificationCount > 0 && (
                 <span style={{
                   position: 'absolute',
@@ -273,5 +305,6 @@ export default function AppHeader({
         </div>
       </div>
     </div>
+    </>
   )
 }
