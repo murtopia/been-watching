@@ -63,7 +63,7 @@ function groupActivities(activities: any[]): any[] {
   
   console.log('🔄 Grouping activities:', activities.map(a => ({
     id: a.id,
-    group_id: a.activity_group_id,
+    group_id: a.activity_group_id || null,
     user: (a.profiles as any)?.display_name,
     media: (a.media as any)?.title,
     type: a.activity_type,
@@ -291,6 +291,7 @@ export default function PreviewFeedLivePage() {
       if (otherUsersActivities.length > 0) {
         
         // Get full activity data for rendering
+        // Note: activity_group_id is optional - may not exist if migration hasn't been run
         const { data: fullActivities } = await supabase
           .from('activities')
           .select(`
@@ -299,7 +300,6 @@ export default function PreviewFeedLivePage() {
             media_id,
             activity_type,
             activity_data,
-            activity_group_id,
             created_at,
             profiles:user_id (
               id,
