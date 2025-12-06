@@ -83,6 +83,9 @@ export default function AppHeader({
   }, [profile, showNotifications])
 
   const loadNotificationCount = async () => {
+    // Skip API call in test mode
+    if (TEST_NOTIFICATION_COUNT > 0) return
+    
     try {
       const response = await fetch('/api/notifications/unread-count')
       const data = await response.json()
