@@ -11,10 +11,69 @@ export interface TMDBShow {
   backdrop_path: string | null
   overview: string
   vote_average: number
+  vote_count?: number
+  popularity?: number
   first_air_date?: string
   release_date?: string
   media_type?: 'tv' | 'movie'
   genre_ids?: number[]
+}
+
+/**
+ * Filter and score similar shows based on relevance
+ * Higher score = better match
+ */
+export function scoreSimilarShow(
+  show: TMDBShow,
+  sourceGenres: number[],
+  minVoteCount: number = 50
+): number {
+  let score = 0
+  
+  // Must have enough votes to be considered (filter out obscure content)
+  if ((show.vote_count || 0) < minVoteCount) {
+    return -1 // Exclude
+  }
+  
+  // Genre overlap bonus (max 30 points)
+  const showGenres = show.genre_ids || []
+  const genreOverlap = showGenres.filter(g => sourceGenres.includes(g)).length
+  score += genreOverlap * 10 // 10 points per matching genre
+  
+  // Vote average bonus (max 20 points)
+  // Scale: 0-10 rating → 0-20 points
+  score += (show.vote_average || 0) * 2
+  
+  // Popularity bonus (max 50 points)
+  // TMDB popularity scores vary widely, so we cap at reasonable levels
+  const popularity = show.popularity || 0
+  if (popularity > 100) score += 50
+  else if (popularity > 50) score += 40
+  else if (popularity > 20) score += 30
+  else if (popularity > 10) score += 20
+  else if (popularity > 5) score += 10
+  
+  return score
+}
+
+/**
+ * Filter and sort similar shows by relevance
+ */
+export function filterAndSortSimilarShows(
+  shows: TMDBShow[],
+  sourceGenres: number[],
+  minVoteCount: number = 50,
+  limit: number = 10
+): TMDBShow[] {
+  return shows
+    .map(show => ({
+      show,
+      score: scoreSimilarShow(show, sourceGenres, minVoteCount)
+    }))
+    .filter(item => item.score >= 0) // Exclude items with -1 score
+    .sort((a, b) => b.score - a.score) // Sort by score descending
+    .slice(0, limit)
+    .map(item => item.show)
 }
 
 export interface TMDBSimilarResponse {
@@ -57,9 +116,26 @@ export interface TMDBTVDetails {
 }
 
 /**
- * Get similar shows for a TV series
+ * Get show details to extract genre_ids
  */
-export async function getSimilarTVShows(tmdbId: number): Promise<TMDBShow[]> {
+export async function getShowGenres(tmdbId: number, mediaType: 'tv' | 'movie'): Promise<number[]> {
+  try {
+    const endpoint = mediaType === 'tv' ? `tv/${tmdbId}` : `movie/${tmdbId}`
+    const response = await fetch(`/api/tmdb/${endpoint}`)
+    if (!response.ok) return []
+    const data = await response.json()
+    // TMDB returns genres as objects with id and name
+    return (data.genres || []).map((g: { id: number }) => g.id)
+  } catch (error) {
+    console.error('Error fetching show genres:', error)
+    return []
+  }
+}
+
+/**
+ * Get similar shows for a TV series (raw, unfiltered)
+ */
+async function getSimilarTVShowsRaw(tmdbId: number): Promise<TMDBShow[]> {
   try {
     const response = await fetch(`/api/tmdb/tv/${tmdbId}/similar`)
     if (!response.ok) {
@@ -75,9 +151,9 @@ export async function getSimilarTVShows(tmdbId: number): Promise<TMDBShow[]> {
 }
 
 /**
- * Get similar movies
+ * Get similar movies (raw, unfiltered)
  */
-export async function getSimilarMovies(tmdbId: number): Promise<TMDBShow[]> {
+async function getSimilarMoviesRaw(tmdbId: number): Promise<TMDBShow[]> {
   try {
     const response = await fetch(`/api/tmdb/movie/${tmdbId}/similar`)
     if (!response.ok) {
@@ -93,14 +169,35 @@ export async function getSimilarMovies(tmdbId: number): Promise<TMDBShow[]> {
 }
 
 /**
- * Get similar shows (auto-detects TV vs movie based on media type)
+ * Get similar shows with genre filtering and popularity weighting
+ * Returns shows sorted by relevance score
  */
-export async function getSimilarShows(tmdbId: number, mediaType: 'tv' | 'movie'): Promise<TMDBShow[]> {
-  if (mediaType === 'tv') {
-    return getSimilarTVShows(tmdbId)
-  } else {
-    return getSimilarMovies(tmdbId)
+export async function getSimilarShows(
+  tmdbId: number, 
+  mediaType: 'tv' | 'movie',
+  options?: {
+    minVoteCount?: number
+    limit?: number
+    filterByGenre?: boolean
   }
+): Promise<TMDBShow[]> {
+  const { minVoteCount = 50, limit = 10, filterByGenre = true } = options || {}
+  
+  // Get raw similar shows
+  const rawShows = mediaType === 'tv' 
+    ? await getSimilarTVShowsRaw(tmdbId)
+    : await getSimilarMoviesRaw(tmdbId)
+  
+  if (rawShows.length === 0) return []
+  
+  // Get source show genres for filtering
+  let sourceGenres: number[] = []
+  if (filterByGenre) {
+    sourceGenres = await getShowGenres(tmdbId, mediaType)
+  }
+  
+  // Filter and sort by relevance
+  return filterAndSortSimilarShows(rawShows, sourceGenres, minVoteCount, limit)
 }
 
 /**
