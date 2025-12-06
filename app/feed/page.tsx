@@ -223,6 +223,28 @@ interface Profile {
 // Card Fetching Functions
 // =====================================================
 
+// Helper to extract numeric TMDB ID from various media_id formats
+// Handles: "tv-12345", "tv-12345-s1", "movie-67890", etc.
+function extractTmdbId(mediaId: string, tmdbData?: { id?: number }): number | null {
+  // First check tmdb_data.id if it's a valid number
+  if (tmdbData?.id && typeof tmdbData.id === 'number') {
+    return tmdbData.id
+  }
+  
+  // Parse from media_id string
+  // Format: "tv-12345" or "tv-12345-s1" or "movie-67890"
+  const parts = mediaId.split('-')
+  if (parts.length >= 2) {
+    const idPart = parts[1] // Get the numeric part
+    const parsed = parseInt(idPart, 10)
+    if (!isNaN(parsed)) {
+      return parsed
+    }
+  }
+  
+  return null
+}
+
 /**
  * Card 2: Because You Liked
  * Fetches shows similar to ones the user has liked/loved
@@ -253,8 +275,12 @@ async function fetchBecauseYouLiked(
       const media = rating.media
       if (!media) continue
       
-      // Get TMDB ID from media
-      const tmdbId = media.tmdb_data?.id || parseInt(media.id.split('-')[1])
+      // Get TMDB ID from media (handles season suffixes like tv-12345-s1)
+      const tmdbId = extractTmdbId(media.id, media.tmdb_data)
+      if (!tmdbId) {
+        console.warn('Could not extract TMDB ID from:', media.id)
+        continue
+      }
       const mediaType = media.media_type || (media.id.startsWith('tv-') ? 'tv' : 'movie')
       
       // Fetch similar shows from TMDB
@@ -405,8 +431,12 @@ async function fetchComingSoon(
       const media = item.media
       if (!media) continue
       
-      // Get TMDB ID
-      const tmdbId = media.tmdb_data?.id || parseInt(media.id.split('-')[1])
+      // Get TMDB ID (handles season suffixes like tv-12345-s1)
+      const tmdbId = extractTmdbId(media.id, media.tmdb_data)
+      if (!tmdbId) {
+        console.warn('Could not extract TMDB ID from:', media.id)
+        continue
+      }
       
       // Check for upcoming season
       const upcoming = await getUpcomingSeasonInfo(tmdbId)

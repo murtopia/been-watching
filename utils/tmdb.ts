@@ -121,8 +121,8 @@ export async function getTVShowDetails(tmdbId: number): Promise<TMDBTVDetails | 
 }
 
 /**
- * Check if a TV show has an upcoming season
- * Returns the next air date if available
+ * Check if a TV show has a truly upcoming season (not yet started)
+ * Only returns seasons where the first episode hasn't aired yet
  */
 export async function getUpcomingSeasonInfo(tmdbId: number): Promise<{
   hasUpcoming: boolean
@@ -135,33 +135,34 @@ export async function getUpcomingSeasonInfo(tmdbId: number): Promise<{
     return { hasUpcoming: false, airDate: null, seasonNumber: null }
   }
   
-  // Check next_episode_to_air first
-  if (details.next_episode_to_air) {
-    const airDate = details.next_episode_to_air.air_date
-    const today = new Date().toISOString().split('T')[0]
-    
-    if (airDate > today) {
+  const today = new Date().toISOString().split('T')[0]
+  
+  // Look for seasons that haven't started yet (air_date is in the future)
+  // Sort seasons by number to get them in order
+  const sortedSeasons = [...details.seasons]
+    .filter(s => s.season_number > 0) // Exclude specials (season 0)
+    .sort((a, b) => a.season_number - b.season_number)
+  
+  for (const season of sortedSeasons) {
+    // Check if this season's air_date is in the future
+    if (season.air_date && season.air_date > today) {
       return {
         hasUpcoming: true,
-        airDate,
-        seasonNumber: details.next_episode_to_air.season_number
+        airDate: season.air_date,
+        seasonNumber: season.season_number
       }
     }
   }
   
-  // Check if show is returning and has announced future seasons
-  if (details.status === 'Returning Series') {
-    // Look for seasons with future air dates
-    for (const season of details.seasons) {
-      if (season.air_date) {
-        const today = new Date().toISOString().split('T')[0]
-        if (season.air_date > today) {
-          return {
-            hasUpcoming: true,
-            airDate: season.air_date,
-            seasonNumber: season.season_number
-          }
-        }
+  // Also check next_episode_to_air, but ONLY if it's episode 1 of a season
+  // (meaning the season hasn't started yet)
+  if (details.next_episode_to_air) {
+    const nextEp = details.next_episode_to_air
+    if (nextEp.episode_number === 1 && nextEp.air_date > today) {
+      return {
+        hasUpcoming: true,
+        airDate: nextEp.air_date,
+        seasonNumber: nextEp.season_number
       }
     }
   }
