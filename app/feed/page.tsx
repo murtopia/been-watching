@@ -45,8 +45,9 @@ import {
 const INITIAL_BATCH_SIZE = 5
 const LOAD_MORE_BATCH_SIZE = 5
 
-// Time window for grouping activities (1 minute in milliseconds)
-const ACTIVITY_GROUP_WINDOW_MS = 60 * 1000
+// Time window for grouping activities (5 minutes in milliseconds)
+// This groups rating + status changes that happen close together
+const ACTIVITY_GROUP_WINDOW_MS = 5 * 60 * 1000
 
 interface FeedItem {
   type: 'activity' | 'recommendation' | 'follow_suggestions'
@@ -59,6 +60,14 @@ interface FeedItem {
 function groupActivities(activities: any[]): any[] {
   if (!activities || activities.length === 0) return []
   
+  console.log('🔄 Grouping activities:', activities.map(a => ({
+    id: a.id,
+    user: (a.profiles as any)?.display_name,
+    media: (a.media as any)?.title,
+    type: a.activity_type,
+    created_at: a.created_at
+  })))
+  
   const grouped: Map<string, any[]> = new Map()
   
   for (const activity of activities) {
@@ -70,6 +79,12 @@ function groupActivities(activities: any[]): any[] {
     }
     grouped.get(groupKey)!.push(activity)
   }
+  
+  console.log('📦 Grouped by user+media:', Array.from(grouped.entries()).map(([key, acts]) => ({
+    key,
+    count: acts.length,
+    types: acts.map(a => a.activity_type)
+  })))
   
   // For each group, combine activities within the time window
   const result: any[] = []
@@ -127,6 +142,11 @@ function groupActivities(activities: any[]): any[] {
           // Use the most recent created_at
           created_at: primary.created_at
         }
+        console.log('✅ Combined activities:', {
+          media: (primary.media as any)?.title,
+          types: combinedActivities.map(a => a.activity_type),
+          mergedData
+        })
         result.push(combined)
         i = j // Skip the combined activities
       } else {
