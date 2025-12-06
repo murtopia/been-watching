@@ -956,20 +956,30 @@ export default function PreviewFeedLivePage() {
           // Track media IDs already in feed to prevent duplicates
           const usedMediaIds = new Set<string>()
           
-          // Helper to extract media_id from a card
+          // Normalize media ID to base format (tv-12345 or movie-12345)
+          // Strips season suffix like -s1, -s2, etc.
+          const normalizeMediaId = (mediaId: string): string => {
+            // Remove season suffix: tv-12345-s1 -> tv-12345
+            return mediaId.replace(/-s\d+$/, '')
+          }
+          
+          // Helper to extract media_id from a card (normalized)
           const getMediaId = (card: FeedItem): string | null => {
+            let rawId: string | null = null
+            
             if (card.type === 'activity') {
-              return card.data?.activity?.media_id || null
-            }
-            if (card.type === 'because_you_liked' || card.type === 'you_might_like') {
+              rawId = card.data?.activity?.media_id || null
+            } else if (card.type === 'because_you_liked' || card.type === 'you_might_like') {
               const media = card.data?.media
-              if (!media) return null
-              return `${media.media_type || 'tv'}-${media.id}`
+              if (media) {
+                rawId = `${media.media_type || 'tv'}-${media.id}`
+              }
+            } else if (card.type === 'friends_loved' || card.type === 'coming_soon' || card.type === 'now_streaming') {
+              rawId = card.data?.media?.id || null
             }
-            if (card.type === 'friends_loved' || card.type === 'coming_soon' || card.type === 'now_streaming') {
-              return card.data?.media?.id || null
-            }
-            return null // follow_suggestions don't have media
+            
+            // Normalize to base ID (strip season suffix)
+            return rawId ? normalizeMediaId(rawId) : null
           }
           
           // Helper to get card from bucket by type, skipping duplicates
