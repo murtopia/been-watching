@@ -521,7 +521,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
       background: 'var(--bg-primary)'
     }}>
       {/* App Header */}
-      <AppHeader profile={currentUserProfile} showNotifications={false} />
+      <AppHeader profile={currentUserProfile} hideOnScroll />
 
       {/* Home and Follow Button Row */}
       <div style={{
@@ -530,7 +530,8 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         gap: '0.75rem',
         alignItems: 'center',
         background: colors.cardBg,
-        borderBottom: colors.cardBorder
+        borderBottom: colors.cardBorder,
+        marginTop: '60px'
       }}>
         <button
           onClick={() => router.push(currentUser ? '/feed' : '/welcome')}

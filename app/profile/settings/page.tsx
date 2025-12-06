@@ -19,6 +19,7 @@ import {
 
 export default function SettingsPage() {
   const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
   const colors = useThemeColors()
@@ -32,10 +33,22 @@ export default function SettingsPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       router.push('/auth')
-    } else {
-      setUser(user)
-      setLoading(false)
+      return
     }
+    
+    setUser(user)
+    
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single()
+    
+    if (profileData) {
+      setProfile(profileData)
+    }
+    
+    setLoading(false)
   }
 
   const handleLogout = async () => {
@@ -117,9 +130,9 @@ export default function SettingsPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: colors.bgGradient, paddingBottom: '100px' }}>
-      <AppHeader />
+      <AppHeader profile={profile} hideOnScroll />
 
-      <div style={{ padding: '1rem', maxWidth: '600px', margin: '0 auto' }}>
+      <div style={{ padding: '1rem', maxWidth: '600px', margin: '0 auto', marginTop: '60px' }}>
         {/* Header */}
         <div style={{ marginBottom: '1.5rem' }}>
           <button
