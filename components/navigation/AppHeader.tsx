@@ -111,35 +111,31 @@ export default function AppHeader({
   const cardBorder = isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)'
   const backdropBlur = 'blur(20px)'
   
-  // Bell color - pink when notifications exist
+  // Bell color - gold when notifications exist
   const bellColor = notificationCount > 0 
-    ? '#e94d88' 
+    ? '#F5A623' 
     : (isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.7)')
 
   return (
     <>
       {/* Bell animation styles */}
       <style jsx global>{`
-        @keyframes bellRing {
-          0%, 100% { transform: rotate(0deg); }
-          10% { transform: rotate(14deg); }
-          20% { transform: rotate(-12deg); }
-          30% { transform: rotate(10deg); }
-          40% { transform: rotate(-8deg); }
-          50% { transform: rotate(6deg); }
-          60% { transform: rotate(-4deg); }
-          70% { transform: rotate(2deg); }
-          80% { transform: rotate(-1deg); }
-          90% { transform: rotate(0deg); }
-        }
-        
-        .bell-ring {
-          animation: bellRing 0.8s ease-in-out;
-          transform-origin: top center;
+        /* Bell rings for ~0.8s, then pauses for ~4.2s = 5s total cycle */
+        @keyframes bellRingWithPause {
+          0% { transform: rotate(0deg); }
+          2% { transform: rotate(14deg); }
+          4% { transform: rotate(-12deg); }
+          6% { transform: rotate(10deg); }
+          8% { transform: rotate(-8deg); }
+          10% { transform: rotate(6deg); }
+          12% { transform: rotate(-4deg); }
+          14% { transform: rotate(2deg); }
+          16% { transform: rotate(0deg); }
+          16.01%, 100% { transform: rotate(0deg); }
         }
         
         .bell-active {
-          animation: bellRing 0.8s ease-in-out 2s 1;
+          animation: bellRingWithPause 5s ease-in-out 2s infinite;
           transform-origin: top center;
         }
       `}</style>
