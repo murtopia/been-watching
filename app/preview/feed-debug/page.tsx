@@ -129,7 +129,24 @@ export default function FeedDebugPage() {
         })
       })
       
-      // 2. Fetch "Because You Liked" (with timing)
+      // Get excluded media IDs (shows user has already interacted with)
+      addLog('Fetching excluded media IDs...')
+      const excludeStart = Date.now()
+      const { data: userWatchStatus } = await supabase
+        .from('watch_status')
+        .select('media_id')
+        .eq('user_id', authUser.id)
+      const { data: userRatingsAll } = await supabase
+        .from('ratings')
+        .select('media_id')
+        .eq('user_id', authUser.id)
+      
+      const excludedMediaIds = new Set<string>()
+      userWatchStatus?.forEach((w: any) => excludedMediaIds.add(w.media_id))
+      userRatingsAll?.forEach((r: any) => excludedMediaIds.add(r.media_id))
+      addLog(`Excluded media: ${excludedMediaIds.size} in ${Date.now() - excludeStart}ms`)
+      
+      // 2. Fetch "Because You Liked" (ACTUALLY FETCH)
       addLog('Fetching Because You Liked...')
       const bylStart = Date.now()
       const { data: userRatings } = await supabase
@@ -137,18 +154,64 @@ export default function FeedDebugPage() {
         .select('media_id, rating, media:media_id(id, title, media_type, tmdb_data)')
         .eq('user_id', authUser.id)
         .in('rating', ['like', 'love'])
+        .order('created_at', { ascending: false })
         .limit(3)
       
-      const bylTime = Date.now() - bylStart
-      addLog(`User ratings: ${userRatings?.length || 0} in ${bylTime}ms`)
+      addLog(`User ratings: ${userRatings?.length || 0}`)
       
-      // Skip the expensive TMDB calls for now - just note what we would fetch
-      userRatings?.forEach(rating => {
-        const media = rating.media as any
-        if (media) {
-          addLog(`Would fetch similar to: ${media.title}`)
+      if (userRatings && userRatings.length > 0) {
+        // Actually fetch similar shows
+        for (const rating of userRatings.slice(0, 2)) {
+          const media = rating.media as any
+          if (!media) continue
+          
+          // Extract TMDB ID
+          const parts = media.id.split('-')
+          const tmdbId = media.tmdb_data?.id || (parts.length >= 2 ? parseInt(parts[1]) : null)
+          const mediaType = media.media_type || (media.id.startsWith('tv-') ? 'tv' : 'movie')
+          
+          if (!tmdbId) {
+            addLog(`❌ No TMDB ID for: ${media.title}`)
+            continue
+          }
+          
+          addLog(`Fetching similar to: ${media.title} (${mediaType}-${tmdbId})`)
+          
+          try {
+            const endpoint = mediaType === 'tv' ? `tv/${tmdbId}/similar` : `movie/${tmdbId}/similar`
+            const response = await fetch(`/api/tmdb/${endpoint}`)
+            
+            if (!response.ok) {
+              addLog(`❌ TMDB ${response.status} for ${media.title}`)
+              continue
+            }
+            
+            const data = await response.json()
+            const similar = (data.results || []).slice(0, 5)
+            addLog(`✅ Found ${similar.length} similar to ${media.title}`)
+            
+            // Add first non-excluded similar show
+            for (const show of similar) {
+              const showMediaId = `${mediaType}-${show.id}`
+              if (!excludedMediaIds.has(showMediaId)) {
+                items.push({
+                  type: 'because_you_liked',
+                  id: `byl-${showMediaId}`,
+                  data: { media: show, sourceShowTitle: media.title },
+                  loadTime: Date.now() - bylStart
+                })
+                addLog(`➕ Added recommendation: ${show.title || show.name}`)
+                break
+              }
+            }
+          } catch (err: any) {
+            addLog(`❌ Error: ${err.message}`)
+          }
         }
-      })
+      }
+      
+      const bylTime = Date.now() - bylStart
+      addLog(`Because You Liked completed in ${bylTime}ms`)
       
       // 3. Check for Coming Soon
       addLog('Checking Coming Soon...')
@@ -160,8 +223,52 @@ export default function FeedDebugPage() {
         .like('media_id', 'tv-%')
         .limit(5)
       
+      addLog(`TV shows in watchlist: ${watchStatus?.length || 0}`)
+      
+      // Check each for upcoming seasons
+      if (watchStatus && watchStatus.length > 0) {
+        for (const item of watchStatus.slice(0, 3)) {
+          const media = item.media as any
+          if (!media) continue
+          
+          const parts = media.id.split('-')
+          const tmdbId = media.tmdb_data?.id || (parts.length >= 2 ? parseInt(parts[1]) : null)
+          
+          if (!tmdbId) continue
+          
+          addLog(`Checking upcoming for: ${media.title} (${tmdbId})`)
+          
+          try {
+            const response = await fetch(`/api/tmdb/tv/${tmdbId}`)
+            if (!response.ok) continue
+            
+            const details = await response.json()
+            const today = new Date().toISOString().split('T')[0]
+            
+            // Check for future seasons
+            const futureSeason = details.seasons?.find((s: any) => 
+              s.season_number > 0 && s.air_date && s.air_date > today
+            )
+            
+            if (futureSeason) {
+              addLog(`✅ Coming Soon: ${media.title} S${futureSeason.season_number} on ${futureSeason.air_date}`)
+              items.push({
+                type: 'coming_soon',
+                id: `cs-${item.media_id}-s${futureSeason.season_number}`,
+                data: { media, airDate: futureSeason.air_date, seasonNumber: futureSeason.season_number },
+                loadTime: Date.now() - csStart
+              })
+            } else {
+              addLog(`⏭️ No upcoming season for: ${media.title}`)
+            }
+          } catch (err: any) {
+            addLog(`❌ Error: ${err.message}`)
+          }
+        }
+      }
+      
       const csTime = Date.now() - csStart
-      addLog(`TV shows in watchlist: ${watchStatus?.length || 0} in ${csTime}ms`)
+      addLog(`Coming Soon completed in ${csTime}ms`)
       
       // 4. Check for Friends Loved
       addLog('Checking Friends Loved...')
@@ -171,8 +278,106 @@ export default function FeedDebugPage() {
         .select('following_id')
         .eq('follower_id', authUser.id)
       
+      addLog(`Following: ${follows?.length || 0} users`)
+      
+      if (follows && follows.length >= 3) {
+        const friendIds = follows.map((f: any) => f.following_id)
+        
+        const { data: friendLoves } = await supabase
+          .from('ratings')
+          .select('media_id, user_id, media:media_id(id, title, poster_path)')
+          .in('user_id', friendIds)
+          .eq('rating', 'love')
+        
+        if (friendLoves) {
+          // Count loves per media
+          const loveCounts = new Map<string, { media: any; count: number }>()
+          friendLoves.forEach((r: any) => {
+            if (!r.media) return
+            if (!loveCounts.has(r.media_id)) {
+              loveCounts.set(r.media_id, { media: r.media, count: 0 })
+            }
+            loveCounts.get(r.media_id)!.count++
+          })
+          
+          // Find shows with 3+ loves
+          for (const [mediaId, data] of loveCounts) {
+            if (data.count >= 3 && !excludedMediaIds.has(mediaId)) {
+              addLog(`✅ Friends Loved: ${data.media.title} (${data.count} friends)`)
+              items.push({
+                type: 'friends_loved',
+                id: `fl-${mediaId}`,
+                data: { media: data.media, friendCount: data.count },
+                loadTime: Date.now() - flStart
+              })
+              break // Just add one for now
+            }
+          }
+          
+          if (!items.some(i => i.type === 'friends_loved')) {
+            addLog(`⏭️ No shows with 3+ friend loves found`)
+          }
+        }
+      } else {
+        addLog(`⏭️ Need 3+ friends for Friends Loved`)
+      }
+      
       const flTime = Date.now() - flStart
-      addLog(`Following: ${follows?.length || 0} in ${flTime}ms`)
+      addLog(`Friends Loved completed in ${flTime}ms`)
+      
+      // 5. Check for You Might Like
+      addLog('Checking You Might Like...')
+      const ymlStart = Date.now()
+      
+      const { count: ratingCount } = await supabase
+        .from('ratings')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', authUser.id)
+      
+      addLog(`User has ${ratingCount || 0} ratings`)
+      
+      if (ratingCount && ratingCount >= 10) {
+        // Find popular loved shows
+        const { data: popularLoved } = await supabase
+          .from('ratings')
+          .select('media_id, media:media_id(id, title, poster_path)')
+          .eq('rating', 'love')
+          .neq('user_id', authUser.id)
+        
+        if (popularLoved) {
+          const loveCounts = new Map<string, { media: any; count: number }>()
+          popularLoved.forEach((r: any) => {
+            if (!r.media) return
+            if (!loveCounts.has(r.media_id)) {
+              loveCounts.set(r.media_id, { media: r.media, count: 0 })
+            }
+            loveCounts.get(r.media_id)!.count++
+          })
+          
+          const sorted = Array.from(loveCounts.entries())
+            .filter(([mediaId]) => !excludedMediaIds.has(mediaId))
+            .filter(([_, data]) => data.count >= 2)
+            .sort((a, b) => b[1].count - a[1].count)
+          
+          if (sorted.length > 0) {
+            const [mediaId, data] = sorted[0]
+            addLog(`✅ You Might Like: ${data.media.title} (${data.count} users loved)`)
+            items.push({
+              type: 'you_might_like',
+              id: `yml-${mediaId}`,
+              data: { media: data.media, similarUsers: data.count },
+              loadTime: Date.now() - ymlStart
+            })
+          } else {
+            addLog(`⏭️ No eligible You Might Like shows found`)
+          }
+        }
+      } else {
+        addLog(`⏭️ Need 10+ ratings for You Might Like`)
+      }
+      
+      const ymlTime = Date.now() - ymlStart
+      addLog(`You Might Like completed in ${ymlTime}ms`)
       
       // 5. Check for user suggestions
       addLog('Checking user suggestions...')
@@ -431,18 +636,59 @@ export default function FeedDebugPage() {
               padding: 16
             }}>
               <div style={{ fontSize: 14, marginBottom: 8 }}>
-                <strong>ID:</strong> {item.id.substring(0, 20)}...
+                <strong>ID:</strong> {item.id.substring(0, 30)}...
               </div>
+              
               {item.type === 'activity' && item.data?.media && (
                 <div>
                   <strong>Media:</strong> {(item.data.media as any)?.title || 'Unknown'}
+                  <br />
+                  <strong>User:</strong> {(item.data.profiles as any)?.display_name || 'Unknown'}
+                  <br />
+                  <strong>Type:</strong> {item.data.activity_type}
                 </div>
               )}
+              
+              {item.type === 'because_you_liked' && (
+                <div>
+                  <strong>Recommended:</strong> {item.data?.media?.title || item.data?.media?.name || 'Unknown'}
+                  <br />
+                  <strong>Because you liked:</strong> {item.data?.sourceShowTitle || 'Unknown'}
+                </div>
+              )}
+              
+              {item.type === 'friends_loved' && (
+                <div>
+                  <strong>Show:</strong> {item.data?.media?.title || 'Unknown'}
+                  <br />
+                  <strong>Loved by:</strong> {item.data?.friendCount || 0} friends
+                </div>
+              )}
+              
+              {item.type === 'coming_soon' && (
+                <div>
+                  <strong>Show:</strong> {item.data?.media?.title || 'Unknown'}
+                  <br />
+                  <strong>Season:</strong> {item.data?.seasonNumber}
+                  <br />
+                  <strong>Air Date:</strong> {item.data?.airDate}
+                </div>
+              )}
+              
+              {item.type === 'you_might_like' && (
+                <div>
+                  <strong>Show:</strong> {item.data?.media?.title || 'Unknown'}
+                  <br />
+                  <strong>Loved by:</strong> {item.data?.similarUsers || 0} users
+                </div>
+              )}
+              
               {item.type === 'follow_suggestions' && (
                 <div>
                   <strong>Suggestions:</strong> {item.data?.suggestions?.length || 0} users
                 </div>
               )}
+              
               {item.loadTime && (
                 <div style={{ fontSize: 11, color: '#888', marginTop: 8 }}>
                   Load time: {Math.round(item.loadTime)}ms
