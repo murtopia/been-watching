@@ -394,7 +394,7 @@ export default function ProfilePage() {
   return (
     <div style={{ minHeight: '100vh', background: colors.bgGradient, paddingBottom: '100px' }}>
       {/* Header */}
-      <AppHeader showThemeToggle showLogout onLogout={handleLogout} />
+      <AppHeader profile={profile} hideOnScroll />
 
       {/* Profile Info */}
       <div style={{
@@ -402,7 +402,7 @@ export default function ProfilePage() {
         background: colors.cardBg,
         border: colors.cardBorder,
         borderRadius: '12px',
-        margin: '0.5rem auto',
+        margin: '70px auto 0.5rem',
         maxWidth: '600px',
         backdropFilter: 'blur(20px)'
       }}>
