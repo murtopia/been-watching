@@ -836,7 +836,7 @@ export default function PreviewFeedLivePage() {
           // Set cursor to last item's created_at for pagination
           const lastActivity = fullActivities[fullActivities.length - 1]
           setCursor(lastActivity.created_at)
-          setHasMore(fullActivities.length === INITIAL_BATCH_SIZE)
+          setHasMore(fullActivities.length >= INITIAL_BATCH_SIZE) // More content likely available
           // Fetch comments for each activity
           const transformedItems: FeedItem[] = await Promise.all(
             groupedActivities.map(async (activity) => {
