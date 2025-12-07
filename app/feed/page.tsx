@@ -980,7 +980,8 @@ export default function PreviewFeedLivePage() {
               
               // Fetch watch providers (streaming platforms)
               const mediaType = (activity.media as any)?.media_type || (activity.media_id?.startsWith('movie-') ? 'movie' : 'tv')
-              const streamingPlatforms = await fetchWatchProviders(activity.media_id, mediaType)
+              const releaseDate = (activity.media as any)?.release_date || (activity.media as any)?.tmdb_data?.release_date
+              const streamingPlatforms = await fetchWatchProviders(activity.media_id, mediaType, releaseDate)
               
               // Fetch activity likes
               const { data: activityLikes } = await supabase
@@ -1368,7 +1369,8 @@ export default function PreviewFeedLivePage() {
           
           // Fetch watch providers (streaming platforms)
           const mediaType = item.media?.media_type || 'tv'
-          const streamingPlatforms = await fetchWatchProviders(item.media?.id, mediaType)
+          const releaseDate = item.media?.release_date || item.media?.tmdb_data?.release_date
+          const streamingPlatforms = await fetchWatchProviders(item.media?.id, mediaType, releaseDate)
           
           // Fetch activity likes
           const { data: activityLikes } = await supabase
@@ -1537,7 +1539,8 @@ export default function PreviewFeedLivePage() {
           ])
           
           const mediaType = (activity.media as any)?.media_type || (activity.media_id?.startsWith('movie-') ? 'movie' : 'tv')
-          const streamingPlatforms = await fetchWatchProviders(activity.media_id, mediaType)
+          const releaseDate = (activity.media as any)?.release_date || (activity.media as any)?.tmdb_data?.release_date
+          const streamingPlatforms = await fetchWatchProviders(activity.media_id, mediaType, releaseDate)
           
           const { data: activityLikes } = await supabase
             .from('activity_likes')
@@ -2014,7 +2017,7 @@ export default function PreviewFeedLivePage() {
     return normalized
   }
 
-  const fetchWatchProviders = async (mediaId: string, mediaType: 'tv' | 'movie'): Promise<string[]> => {
+  const fetchWatchProviders = async (mediaId: string, mediaType: 'tv' | 'movie', releaseDate?: string): Promise<string[]> => {
     if (!mediaId) {
       console.log('fetchWatchProviders: mediaId is empty')
       return []
@@ -2055,6 +2058,18 @@ export default function PreviewFeedLivePage() {
       
       if (streamingServices.length === 0) {
         console.log(`fetchWatchProviders: No streaming providers found for ${mediaId}`)
+        
+        // For movies released in the last 120 days with no streaming, show "In Theaters"
+        if (mediaType === 'movie' && releaseDate) {
+          const releaseDateObj = new Date(releaseDate)
+          const daysSinceRelease = (Date.now() - releaseDateObj.getTime()) / (1000 * 60 * 60 * 24)
+          
+          if (daysSinceRelease >= 0 && daysSinceRelease <= 120) {
+            console.log(`fetchWatchProviders: Movie "${mediaId}" is recent (${Math.round(daysSinceRelease)} days old), showing "In Theaters"`)
+            return ['In Theaters']
+          }
+        }
+        
         return []
       }
 
