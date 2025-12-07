@@ -698,8 +698,12 @@ export default function PreviewFeedLivePage() {
   const [dismissedUsers, setDismissedUsers] = useState<Set<string>>(new Set())
   const followSuggestionsCount = useRef(0) // Track how many times we've shown the card
   
-  // Track media IDs shown in feed (persist across infinite scroll loads)
+  // Track media IDs shown in CURRENT batch (reset each load to allow recommendations to repeat)
+  // Activities are always unique (cursor-based), but recommendations can repeat after a few loads
   const shownMediaIds = useRef<Set<string>>(new Set())
+  
+  // Track media IDs shown in LAST batch only (to prevent back-to-back duplicates)
+  const lastBatchMediaIds = useRef<Set<string>>(new Set())
   
   // Track pattern position for infinite scroll (persist across loads)
   const patternPosition = useRef(0)
@@ -1258,8 +1262,10 @@ export default function PreviewFeedLivePage() {
         return rawId ? normalizeMediaId(rawId) : null
       }
       
-      // Fetch excluded media IDs (user's own content)
-      const excludedMediaIds = await getUserExcludedMediaIds(user.id)
+      // Fetch excluded media IDs (user's own content + already shown in feed)
+      const userExcludedIds = await getUserExcludedMediaIds(user.id)
+      const excludedMediaIds = new Set([...userExcludedIds, ...shownMediaIds.current])
+      console.log(`📝 Excluding ${excludedMediaIds.size} media IDs (${userExcludedIds.size} user + ${shownMediaIds.current.size} shown)`)
       
       // Fetch all content types in parallel
       const [moreActivities, becauseYouLikedCards, friendsLovedCards, youMightLikeCards, userSuggestions] = await Promise.all([
@@ -1369,7 +1375,9 @@ export default function PreviewFeedLivePage() {
         findFriends: buckets.findFriends.length
       })
       
-      // Helper to get card from bucket, skipping already-shown media
+      // Helper to get card from bucket
+      // Activities: deduplicate against all shown (cursor ensures uniqueness anyway)
+      // Recommendations: only deduplicate against LAST batch (allow repeats after a few loads)
       const getCardFromBucket = (cardType: number): FeedItem | null => {
         const getBucket = () => {
           switch (cardType) {
@@ -1385,17 +1393,33 @@ export default function PreviewFeedLivePage() {
         const bucket = getBucket()
         if (!bucket) return null
         
+        // Find Friends card - just return it
         if (cardType === 7) return bucket.shift() || null
         
+        // Activities (cardType 1): strict dedup against all shown
+        if (cardType === 1) {
+          while (bucket.length > 0) {
+            const card = bucket.shift()!
+            const mediaId = getCardMediaId(card)
+            
+            if (!mediaId || !shownMediaIds.current.has(mediaId)) {
+              if (mediaId) shownMediaIds.current.add(mediaId)
+              return card
+            }
+            console.log(`⏭️ Skipping duplicate activity: ${mediaId}`)
+          }
+          return null
+        }
+        
+        // Recommendations (2, 3, 8): only check against last batch to prevent back-to-back
         while (bucket.length > 0) {
           const card = bucket.shift()!
           const mediaId = getCardMediaId(card)
           
-          if (!mediaId || !shownMediaIds.current.has(mediaId)) {
-            if (mediaId) shownMediaIds.current.add(mediaId)
+          if (!mediaId || !lastBatchMediaIds.current.has(mediaId)) {
             return card
           }
-          console.log(`⏭️ Skipping duplicate in loadMore: ${mediaId}`)
+          console.log(`⏭️ Skipping recent duplicate: ${mediaId}`)
         }
         return null
       }
