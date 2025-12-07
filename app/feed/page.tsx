@@ -1432,7 +1432,6 @@ export default function PreviewFeedLivePage() {
       
       // Append to feed
       setFeedItems(prev => [...prev, ...newBatch])
-      console.log(`Loaded ${itemsToAdd.length} more items (deduplicated)`)
       
     } catch (err) {
       console.error('Error loading more items:', err)
