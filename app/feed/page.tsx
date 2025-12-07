@@ -326,16 +326,16 @@ function extractTmdbId(mediaId: string, tmdbData?: { id?: number }): number | nu
 
 /**
  * Card 2: Because You Liked
- * Uses GENRE-BASED DISCOVER instead of TMDB Similar
+ * Uses TRENDING shows filtered by user's preferred genres
  * 
- * Why? TMDB's /similar returns thematically similar shows regardless of release date,
- * often surfacing old classics. /discover with genre + date filters guarantees fresh content.
+ * Why? Trending shows are what's hot RIGHT NOW - culturally relevant content
+ * that people are talking about. Filtered by genres you like for personalization.
  * 
  * Algorithm:
- * 1. Get user's liked shows with their genres
- * 2. Use /discover?with_genres=X&first_air_date.gte=12_months_ago&sort_by=popularity.desc
- * 3. Filter out excluded media (already in watchlists)
- * 4. Sort by release date (newest first)
+ * 1. Get user's liked shows to extract their preferred genres
+ * 2. Fetch TMDB /trending/tv/week (what's hot this week)
+ * 3. Filter to shows matching user's preferred genres
+ * 4. Exclude shows already in user's watchlists
  */
 async function fetchBecauseYouLiked(
   supabase: any,
@@ -346,113 +346,99 @@ async function fetchBecauseYouLiked(
   try {
     console.time('fetchBecauseYouLiked')
     
-    const cutoffDate = getRecencyCutoffDate()
-    
-    // Get user's liked/loved shows with their genre data
+    // Get user's liked/loved shows to extract preferred genres
     const { data: userRatings } = await supabase
       .from('ratings')
       .select('media_id, rating, media:media_id(id, title, media_type, tmdb_data)')
       .eq('user_id', userId)
       .in('rating', ['like', 'love'])
       .order('created_at', { ascending: false })
-      .limit(5)
+      .limit(10)
     
     if (!userRatings || userRatings.length === 0) {
       console.timeEnd('fetchBecauseYouLiked')
       return []
     }
     
-    // Prepare source shows with genres
-    const sourcesWithGenres = userRatings
-      .filter((r: any) => r.media?.tmdb_data?.genres)
-      .map((rating: any) => {
-        const media = rating.media
-        const genres = media.tmdb_data.genres?.map((g: any) => g.id) || []
-        const mediaType = media.media_type || (media.id.startsWith('tv-') ? 'tv' : 'movie')
-        return { rating, media, genres, mediaType }
-      })
-      .filter((s: any) => s.genres.length > 0)
-      .slice(0, 3) // Process top 3 liked shows
+    // Extract user's preferred genres from their liked shows
+    const userGenres = new Set<number>()
+    const sourceShowsByGenre = new Map<number, { title: string; mediaId: string }>()
     
-    if (sourcesWithGenres.length === 0) {
+    for (const rating of userRatings) {
+      if (!rating.media?.tmdb_data?.genres) continue
+      const genres = rating.media.tmdb_data.genres
+      for (const genre of genres) {
+        userGenres.add(genre.id)
+        if (!sourceShowsByGenre.has(genre.id)) {
+          sourceShowsByGenre.set(genre.id, {
+            title: rating.media.title,
+            mediaId: rating.media_id
+          })
+        }
+      }
+    }
+    
+    if (userGenres.size === 0) {
       console.timeEnd('fetchBecauseYouLiked')
       return []
     }
     
-    // Fetch discover results in PARALLEL using genre filters
-    const discoverResults = await Promise.all(
-      sourcesWithGenres.map(async (source: any) => {
-        const { genres, mediaType } = source
-        try {
-          // Build discover endpoint with 12-month recency filter
-          const genreParam = genres.slice(0, 3).join(',') // Use top 3 genres
-          const dateParam = mediaType === 'tv' ? 'first_air_date.gte' : 'primary_release_date.gte'
-          const endpoint = `discover/${mediaType}?with_genres=${genreParam}&${dateParam}=${cutoffDate}&sort_by=popularity.desc&vote_count.gte=50`
-          
-          const response = await fetch(`/api/tmdb/${endpoint}`)
-          if (!response.ok) return []
-          const data = await response.json()
-          
-          return (data.results || [])
-            .slice(0, 8) // Get more results since we'll filter
-            .map((show: any) => ({ ...show, media_type: mediaType }))
-        } catch {
-          return []
-        }
-      })
-    )
+    // Fetch trending TV shows and movies in parallel
+    const [tvTrending, movieTrending] = await Promise.all([
+      fetch('/api/tmdb/trending/tv/week').then(r => r.ok ? r.json() : { results: [] }).catch(() => ({ results: [] })),
+      fetch('/api/tmdb/trending/movie/week').then(r => r.ok ? r.json() : { results: [] }).catch(() => ({ results: [] }))
+    ])
     
-    // Build results - take best from each source, sorted by recency
-    const allShows: Array<{ show: any; source: any }> = []
+    // Combine and filter trending shows by user's genres
+    const allTrending = [
+      ...(tvTrending.results || []).map((s: any) => ({ ...s, media_type: 'tv' })),
+      ...(movieTrending.results || []).map((s: any) => ({ ...s, media_type: 'movie' }))
+    ]
     
-    for (let i = 0; i < sourcesWithGenres.length; i++) {
-      const source = sourcesWithGenres[i]
-      const shows = discoverResults[i] || []
-      
-      for (const show of shows) {
-        const mediaId = `${source.mediaType}-${show.id}`
-        
-        // Skip excluded media (already in user's lists or shown)
-        if (excludedMediaIds.has(mediaId)) continue
-        
-        allShows.push({ show, source })
-      }
-    }
-    
-    // Sort by release date (newest first)
-    allShows.sort((a, b) => {
-      const dateA = a.show.first_air_date || a.show.release_date || ''
-      const dateB = b.show.first_air_date || b.show.release_date || ''
-      return dateB.localeCompare(dateA)
+    // Filter to shows that match user's preferred genres
+    const personalizedTrending = allTrending.filter((show: any) => {
+      const showGenres = show.genre_ids || []
+      return showGenres.some((g: number) => userGenres.has(g))
     })
     
-    // Take the top results, one per source show max
-    const usedSources = new Set<string>()
+    // Build results
     const results: FeedItem[] = []
+    const usedGenres = new Set<number>() // Track genres used to get variety
     
-    for (const { show, source } of allShows) {
+    for (const show of personalizedTrending) {
       if (results.length >= limit) break
       
-      // Only one recommendation per source show to increase variety
-      const sourceId = source.media.id
-      if (usedSources.has(sourceId)) continue
-      usedSources.add(sourceId)
+      const mediaId = `${show.media_type}-${show.id}`
       
-      const mediaId = `${source.mediaType}-${show.id}`
+      // Skip excluded media
+      if (excludedMediaIds.has(mediaId)) continue
+      
+      // Find which genre matched and get the source show
+      const matchedGenre = (show.genre_ids || []).find((g: number) => userGenres.has(g) && !usedGenres.has(g))
+      if (!matchedGenre && results.length > 0) {
+        // Allow repeat genres after we've shown at least one unique
+        const anyMatchedGenre = (show.genre_ids || []).find((g: number) => userGenres.has(g))
+        if (!anyMatchedGenre) continue
+      }
+      
+      const sourceShow = sourceShowsByGenre.get(matchedGenre || (show.genre_ids || [])[0])
+      if (!sourceShow) continue
+      
+      if (matchedGenre) usedGenres.add(matchedGenre)
       
       results.push({
         type: 'because_you_liked',
-        id: `byl-${mediaId}-${source.rating.media_id}`,
+        id: `byl-${mediaId}-${sourceShow.mediaId}`,
         data: {
           media: show,
-          sourceShowTitle: abbreviateSeason(source.media.title),
-          sourceMediaId: source.rating.media_id
+          sourceShowTitle: abbreviateSeason(sourceShow.title),
+          sourceMediaId: sourceShow.mediaId
         } as BecauseYouLikedData
       })
     }
     
     console.timeEnd('fetchBecauseYouLiked')
-    console.log(`✅ fetchBecauseYouLiked: Found ${results.length} fresh shows from last 12 months`)
+    console.log(`✅ fetchBecauseYouLiked: Found ${results.length} trending shows matching your genres`)
     return results
   } catch (error) {
     console.error('Error fetching Because You Liked:', error)
@@ -730,98 +716,72 @@ async function fetchYouMightLike(
   try {
     console.time('fetchYouMightLike')
     
-    const cutoffDate = getRecencyCutoffDate()
+    // Card 8: General Trending - Discovery mode
+    // Shows what's trending across ALL genres to help users discover new content
+    // This exposes users to popular shows they might not normally search for
     
-    // Check if user has enough ratings (10+)
-    const { count: ratingCount } = await supabase
+    // Fetch trending TV shows and movies in parallel
+    const [tvTrending, movieTrending] = await Promise.all([
+      fetch('/api/tmdb/trending/tv/week').then(r => r.ok ? r.json() : { results: [] }).catch(() => ({ results: [] })),
+      fetch('/api/tmdb/trending/movie/week').then(r => r.ok ? r.json() : { results: [] }).catch(() => ({ results: [] }))
+    ])
+    
+    // Combine all trending (no genre filter - this is discovery mode)
+    const allTrending = [
+      ...(tvTrending.results || []).map((s: any) => ({ ...s, media_type: 'tv' })),
+      ...(movieTrending.results || []).map((s: any) => ({ ...s, media_type: 'movie' }))
+    ]
+    
+    // Sort by popularity (TMDB trending is already sorted, but let's ensure)
+    allTrending.sort((a: any, b: any) => (b.popularity || 0) - (a.popularity || 0))
+    
+    // Get user's genres to calculate a "match percentage" for display
+    const { data: userRatings } = await supabase
       .from('ratings')
-      .select('id', { count: 'exact', head: true })
+      .select('media:media_id(tmdb_data)')
       .eq('user_id', userId)
+      .in('rating', ['like', 'love'])
+      .limit(20)
     
-    if (!ratingCount || ratingCount < 10) {
-      console.log('You Might Like: Not enough ratings', ratingCount)
-      console.timeEnd('fetchYouMightLike')
-      return []
-    }
-    
-    // SIMPLIFIED: Instead of expensive taste matching across all users,
-    // find shows that many users loved (popularity proxy)
-    // This avoids O(n*m) rating comparisons
-    
-    const { data: popularLoved } = await supabase
-      .from('ratings')
-      .select('media_id, media:media_id(id, title, poster_path, overview, media_type, tmdb_data, vote_average, release_date)')
-      .eq('rating', 'love')
-      .neq('user_id', userId) // Not our own ratings
-    
-    if (!popularLoved || popularLoved.length === 0) {
-      console.timeEnd('fetchYouMightLike')
-      return []
-    }
-    
-    // Count loves per media and get release date
-    const mediaLoveCount = new Map<string, { media: any; count: number; releaseDate: string }>()
-    
-    for (const rating of popularLoved) {
-      if (!rating.media) continue
-      
-      const mediaId = rating.media_id
-      if (!mediaLoveCount.has(mediaId)) {
-        // Get release date from tmdb_data or release_date field
-        const releaseDate = rating.media.release_date || 
-          rating.media.tmdb_data?.first_air_date || 
-          rating.media.tmdb_data?.release_date || ''
-        
-        mediaLoveCount.set(mediaId, { media: rating.media, count: 0, releaseDate })
+    const userGenres = new Set<number>()
+    for (const rating of (userRatings || [])) {
+      const genres = rating.media?.tmdb_data?.genres || []
+      for (const genre of genres) {
+        userGenres.add(genre.id)
       }
-      mediaLoveCount.get(mediaId)!.count++
     }
     
-    // Filter and sort:
-    // 1. Exclude user's media
-    // 2. At least 2 users loved it
-    // 3. Prioritize shows from last 12 months
-    // 4. Sort by recency, then love count
+    // Build results
     const results: FeedItem[] = []
-    const sorted = Array.from(mediaLoveCount.entries())
-      .filter(([mediaId]) => !excludedMediaIds.has(mediaId))
-      .filter(([_, data]) => data.count >= 2) // At least 2 users loved it
-      .map(([mediaId, data]) => ({
-        mediaId,
-        data,
-        isRecent: data.releaseDate >= cutoffDate
-      }))
-      .sort((a, b) => {
-        // Prioritize recent shows
-        if (a.isRecent && !b.isRecent) return -1
-        if (!a.isRecent && b.isRecent) return 1
-        
-        // Within same recency tier, sort by release date (newest first)
-        if (a.isRecent && b.isRecent) {
-          const dateCmp = b.data.releaseDate.localeCompare(a.data.releaseDate)
-          if (dateCmp !== 0) return dateCmp
-        }
-        
-        // Then by love count
-        return b.data.count - a.data.count
-      })
     
-    for (const { mediaId, data } of sorted) {
+    for (const show of allTrending) {
       if (results.length >= limit) break
+      
+      const mediaId = `${show.media_type}-${show.id}`
+      
+      // Skip excluded media
+      if (excludedMediaIds.has(mediaId)) continue
+      
+      // Calculate match percentage based on genre overlap
+      const showGenres = show.genre_ids || []
+      const genreOverlap = showGenres.filter((g: number) => userGenres.has(g)).length
+      const matchPercentage = userGenres.size > 0 
+        ? Math.min(95, 60 + Math.round((genreOverlap / Math.min(showGenres.length, 3)) * 35))
+        : 75 // Default for new users
       
       results.push({
         type: 'you_might_like',
         id: `yml-${mediaId}`,
         data: {
-          media: data.media,
-          matchPercentage: Math.min(95, 70 + data.count * 5), // Estimate based on love count
-          similarUsers: data.count
+          media: show,
+          matchPercentage,
+          similarUsers: Math.floor(show.popularity / 10) || 1 // Estimate based on popularity
         } as YouMightLikeData
       })
     }
     
     console.timeEnd('fetchYouMightLike')
-    console.log(`✅ fetchYouMightLike: Found ${results.length} shows (prioritizing last 12 months)`)
+    console.log(`✅ fetchYouMightLike: Found ${results.length} trending shows for discovery`)
     return results
   } catch (error) {
     console.error('Error fetching You Might Like:', error)

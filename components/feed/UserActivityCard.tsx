@@ -2266,7 +2266,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                   <button 
                     className="action-btn dismiss-btn" 
                     onClick={() => {
-                      const mediaId = ('media' in cardData && cardData.media?.id) || ''
+                      const mediaId = ('media' in data && (data as FeedCardData).media?.id) || ''
                       if (mediaId) {
                         onDismissRecommendation(mediaId)
                       }
