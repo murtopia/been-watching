@@ -1069,6 +1069,46 @@ export default function PreviewFeedLivePage() {
             youMightLike: youMightLikeCards.length
           })
           
+          // Enrich recommendation cards with streaming platforms (in parallel batches)
+          const enrichWithStreamingPlatforms = async (cards: FeedItem[]): Promise<void> => {
+            await Promise.all(cards.map(async (card) => {
+              const media = card.data?.media
+              if (!media) return
+              
+              // Get media ID and type
+              let mediaId: string
+              let mediaType: 'tv' | 'movie'
+              let releaseDate: string | undefined
+              
+              if (card.type === 'because_you_liked' || card.type === 'you_might_like') {
+                // TMDB data format
+                mediaType = media.media_type || 'tv'
+                mediaId = `${mediaType}-${media.id}`
+                releaseDate = media.first_air_date || media.release_date
+              } else if (card.type === 'friends_loved') {
+                // Database format - id is already formatted
+                mediaId = media.id
+                mediaType = media.media_type || (mediaId.startsWith('movie-') ? 'movie' : 'tv')
+                releaseDate = media.release_date || media.tmdb_data?.release_date
+              } else {
+                return
+              }
+              
+              const platforms = await fetchWatchProviders(mediaId, mediaType, releaseDate)
+              // Attach to media object for use during render
+              ;(media as any).streamingPlatforms = platforms
+            }))
+          }
+          
+          // Enrich all recommendation cards in parallel
+          await Promise.all([
+            enrichWithStreamingPlatforms(becauseYouLikedCards),
+            enrichWithStreamingPlatforms(friendsLovedCards),
+            enrichWithStreamingPlatforms(youMightLikeCards)
+          ])
+          
+          console.log('✅ Streaming platforms enriched for recommendation cards')
+          
           // =====================================================
           // Smart Feed Builder: Deterministic 13-card Pattern
           // Pattern: 1, 1, 2, 1, 3, 1, 7, 1, 8, 1, 2, 3, 8
@@ -1599,6 +1639,39 @@ export default function PreviewFeedLivePage() {
       buckets.becauseYouLiked = filterBucket(buckets.becauseYouLiked)
       buckets.friendsLoved = filterBucket(buckets.friendsLoved)
       buckets.youMightLike = filterBucket(buckets.youMightLike)
+      
+      // Enrich lazy-loaded recommendation cards with streaming platforms
+      const enrichWithStreamingPlatforms = async (cards: FeedItem[]): Promise<void> => {
+        await Promise.all(cards.map(async (card) => {
+          const media = card.data?.media
+          if (!media) return
+          
+          let mediaId: string
+          let mediaType: 'tv' | 'movie'
+          let releaseDate: string | undefined
+          
+          if (card.type === 'because_you_liked' || card.type === 'you_might_like') {
+            mediaType = media.media_type || 'tv'
+            mediaId = `${mediaType}-${media.id}`
+            releaseDate = media.first_air_date || media.release_date
+          } else if (card.type === 'friends_loved') {
+            mediaId = media.id
+            mediaType = media.media_type || (mediaId.startsWith('movie-') ? 'movie' : 'tv')
+            releaseDate = media.release_date || media.tmdb_data?.release_date
+          } else {
+            return
+          }
+          
+          const platforms = await fetchWatchProviders(mediaId, mediaType, releaseDate)
+          ;(media as any).streamingPlatforms = platforms
+        }))
+      }
+      
+      await Promise.all([
+        enrichWithStreamingPlatforms(buckets.becauseYouLiked),
+        enrichWithStreamingPlatforms(buckets.friendsLoved),
+        enrichWithStreamingPlatforms(buckets.youMightLike)
+      ])
       
       console.log('📦 LoadMore buckets (after dedup):', {
         activities: buckets.activities.length,
@@ -2931,6 +3004,7 @@ export default function PreviewFeedLivePage() {
                 creator: '',
                 cast: [],
                 mediaType: (mediaType === 'tv' ? 'TV' : 'Movie') as 'TV' | 'Movie',
+                streamingPlatforms: (media as any).streamingPlatforms || [],
               },
               friends: { avatars: [], count: 0, text: '' },
               stats: { likeCount: 0, commentCount: 0, userLiked: false },
@@ -2988,6 +3062,7 @@ export default function PreviewFeedLivePage() {
                 creator: '',
                 cast: [],
                 mediaType: (mediaType === 'tv' ? 'TV' : 'Movie') as 'TV' | 'Movie',
+                streamingPlatforms: (media as any).streamingPlatforms || [],
               },
               friends: { 
                 avatars: lovedByFriends.map(f => ({
@@ -3197,6 +3272,7 @@ export default function PreviewFeedLivePage() {
                 creator: '',
                 cast: [],
                 mediaType: (mediaTypeVal === 'tv' ? 'TV' : 'Movie') as 'TV' | 'Movie',
+                streamingPlatforms: (media as any).streamingPlatforms || [],
               },
               friends: { avatars: [], count: 0, text: '' },
               stats: { likeCount: 0, commentCount: 0, userLiked: false },
