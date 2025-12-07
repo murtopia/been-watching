@@ -830,7 +830,7 @@ export default function PreviewFeedLivePage() {
   const shownMediaIds = useRef<Set<string>>(new Set())
   
   // Track media IDs shown in LAST batch only (to prevent back-to-back duplicates)
-  const lastBatchMediaIds = useRef<Set<string>>(new Set())
+  // Note: lastBatchMediaIds was removed - we now use shownMediaIds for all deduplication
   
   // Track pattern position for infinite scroll (persist across loads)
   const patternPosition = useRef(0)
@@ -1583,12 +1583,27 @@ export default function PreviewFeedLivePage() {
         }] : []
       }
       
-      console.log('📦 LoadMore buckets:', {
+      // Bucket-level deduplication: Remove anything already shown in this session
+      // (shownMediaIds.current contains everything from initial load + previous lazy loads)
+      const filterBucket = (cards: FeedItem[]): FeedItem[] => {
+        return cards.filter(card => {
+          const mediaId = getCardMediaId(card)
+          return !mediaId || !shownMediaIds.current.has(mediaId)
+        })
+      }
+      
+      buckets.activities = filterBucket(buckets.activities)
+      buckets.becauseYouLiked = filterBucket(buckets.becauseYouLiked)
+      buckets.friendsLoved = filterBucket(buckets.friendsLoved)
+      buckets.youMightLike = filterBucket(buckets.youMightLike)
+      
+      console.log('📦 LoadMore buckets (after dedup):', {
         activities: buckets.activities.length,
         becauseYouLiked: buckets.becauseYouLiked.length,
         friendsLoved: buckets.friendsLoved.length,
         youMightLike: buckets.youMightLike.length,
-        findFriends: buckets.findFriends.length
+        findFriends: buckets.findFriends.length,
+        totalShown: shownMediaIds.current.size
       })
       
       // Helper to get card from bucket
@@ -1627,15 +1642,16 @@ export default function PreviewFeedLivePage() {
           return null
         }
         
-        // Recommendations (2, 3, 8): only check against last batch to prevent back-to-back
+        // Recommendations (2, 3, 8): check against ALL shown media to prevent duplicates
         while (bucket.length > 0) {
           const card = bucket.shift()!
           const mediaId = getCardMediaId(card)
           
-          if (!mediaId || !lastBatchMediaIds.current.has(mediaId)) {
+          if (!mediaId || !shownMediaIds.current.has(mediaId)) {
+            if (mediaId) shownMediaIds.current.add(mediaId)
             return card
           }
-          console.log(`⏭️ Skipping recent duplicate: ${mediaId}`)
+          console.log(`⏭️ Skipping duplicate recommendation: ${mediaId}`)
         }
         return null
       }
