@@ -701,6 +701,9 @@ export default function PreviewFeedLivePage() {
   // Track media IDs shown in feed (persist across infinite scroll loads)
   const shownMediaIds = useRef<Set<string>>(new Set())
   
+  // Track pattern position for infinite scroll (persist across loads)
+  const patternPosition = useRef(0)
+  
   const supabase = createClient()
   
   // Scroll to top on page load (prevents scroll restoration putting content behind header)
@@ -1107,6 +1110,10 @@ export default function PreviewFeedLivePage() {
           shownMediaIds.current = new Set(usedMediaIds)
           console.log('📝 Tracking', shownMediaIds.current.size, 'media IDs for deduplication')
           
+          // Track pattern position for infinite scroll continuation
+          patternPosition.current = patternIndex
+          console.log('📍 Pattern position:', patternPosition.current, '(next card type:', FEED_PATTERN[patternPosition.current % FEED_PATTERN.length], ')')
+          
           setFeedItems(finalFeed)
           setLoading(false)
           return
@@ -1220,6 +1227,7 @@ export default function PreviewFeedLivePage() {
   }
 
   // Load more items when scrolling (infinite scroll)
+  // Follows the same pattern as initial load: 1,1,2,1,3,1,7,1,8,1,2,3,8
   const loadMoreItems = async () => {
     if (isLoadingRef.current || !hasMore || !cursor || !user) return
     
@@ -1227,61 +1235,79 @@ export default function PreviewFeedLivePage() {
     setIsLoadingMore(true)
     
     try {
-      console.log('Loading more items with cursor:', cursor)
+      console.log('📦 Loading more items with pattern position:', patternPosition.current)
       
-      // Fetch more activities using cursor
-      const { data: moreActivities } = await supabase
-        .from('activities')
-        .select(`
-          id,
-          user_id,
-          media_id,
-          activity_type,
-          activity_data,
-          created_at,
-          profiles:user_id (
-            id,
-            username,
-            display_name,
-            avatar_url
-          ),
-          media:media_id (
-            id,
-            title,
-            poster_path,
-            backdrop_path,
-            overview,
-            release_date,
-            vote_average,
-            media_type,
-            tmdb_data
-          )
-        `)
-        .neq('user_id', user.id)
-        .lt('created_at', cursor)
-        .order('created_at', { ascending: false })
-        .limit(LOAD_MORE_BATCH_SIZE)
+      // Normalize media ID helper
+      const normalizeMediaId = (mediaId: string): string => {
+        return mediaId.replace(/-s\d+$/, '')
+      }
       
-      if (!moreActivities || moreActivities.length === 0) {
+      // Get media ID from various card types
+      const getCardMediaId = (card: FeedItem): string | null => {
+        let rawId: string | null = null
+        
+        if (card.type === 'activity') {
+          rawId = card.data?.activity?.media_id || null
+        } else if (card.type === 'because_you_liked') {
+          const media = card.data?.media
+          if (media) rawId = `${media.media_type || 'tv'}-${media.id}`
+        } else if (card.type === 'you_might_like' || card.type === 'friends_loved') {
+          rawId = card.data?.media?.id || null
+        }
+        
+        return rawId ? normalizeMediaId(rawId) : null
+      }
+      
+      // Fetch excluded media IDs (user's own content)
+      const excludedMediaIds = await getUserExcludedMediaIds(user.id)
+      
+      // Fetch all content types in parallel
+      const [moreActivities, becauseYouLikedCards, friendsLovedCards, youMightLikeCards, userSuggestions] = await Promise.all([
+        // Activities
+        supabase
+          .from('activities')
+          .select(`
+            id, user_id, media_id, activity_type, activity_data, created_at,
+            profiles:user_id (id, username, display_name, avatar_url),
+            media:media_id (id, title, poster_path, backdrop_path, overview, release_date, vote_average, media_type, tmdb_data)
+          `)
+          .neq('user_id', user.id)
+          .lt('created_at', cursor)
+          .order('created_at', { ascending: false })
+          .limit(LOAD_MORE_BATCH_SIZE * 2),
+        // Card 2: Because You Liked
+        fetchBecauseYouLiked(supabase, user.id, excludedMediaIds, 2),
+        // Card 3: Friends Loved
+        fetchFriendsLoved(supabase, user.id, excludedMediaIds, 2),
+        // Card 8: You Might Like
+        fetchYouMightLike(supabase, user.id, excludedMediaIds, 2),
+        // Card 7: Follow Suggestions
+        fetchUserSuggestions()
+      ])
+      
+      const activities = moreActivities.data || []
+      
+      if (activities.length === 0 && becauseYouLikedCards.length === 0 && friendsLovedCards.length === 0 && youMightLikeCards.length === 0) {
         setHasMore(false)
         return
       }
       
-      // Group related activities
-      const groupedActivities = groupActivities(moreActivities)
-      console.log(`Grouped ${moreActivities.length} more activities into ${groupedActivities.length} cards`)
+      // Update cursor
+      if (activities.length > 0) {
+        const lastActivity = activities[activities.length - 1]
+        setCursor(lastActivity.created_at)
+        setHasMore(activities.length >= LOAD_MORE_BATCH_SIZE)
+      }
       
-      // Update cursor for next load
-      const lastActivity = moreActivities[moreActivities.length - 1]
-      setCursor(lastActivity.created_at)
-      setHasMore(moreActivities.length === LOAD_MORE_BATCH_SIZE)
-      
-      // Transform new activities
-      const newItems: FeedItem[] = await Promise.all(
+      // Group and transform activities
+      const groupedActivities = groupActivities(activities)
+      const transformedActivities: FeedItem[] = await Promise.all(
         groupedActivities.map(async (activity) => {
-          const activityComments = await fetchActivityComments(activity.id)
-          const showComments = await fetchShowComments(activity.media_id)
-          const friendsActivity = await fetchFriendsActivity(activity.media_id)
+          const [activityComments, showComments, friendsActivity] = await Promise.all([
+            fetchActivityComments(activity.id),
+            fetchShowComments(activity.media_id),
+            fetchFriendsActivity(activity.media_id)
+          ])
           
           const mediaType = (activity.media as any)?.media_type || (activity.media_id?.startsWith('movie-') ? 'movie' : 'tv')
           const streamingPlatforms = await fetchWatchProviders(activity.media_id, mediaType)
@@ -1298,117 +1324,114 @@ export default function PreviewFeedLivePage() {
           let userStatus: string | null = null
           
           if (activity.media_id) {
-            const { data: ratingData } = await supabase
-              .from('ratings')
-              .select('rating')
-              .eq('user_id', user.id)
-              .eq('media_id', activity.media_id)
-              .maybeSingle()
-            
-            userRating = ratingData?.rating || null
-            
-            const { data: statusData } = await supabase
-              .from('watch_status')
-              .select('status')
-              .eq('user_id', user.id)
-              .eq('media_id', activity.media_id)
-              .maybeSingle()
-            
-            userStatus = statusData?.status || null
-          }
-          
-          const activityWithLikes = {
-            ...activity,
-            like_count: likeCount,
-            comment_count: activityComments?.length || 0,
-            user_liked: userLiked
+            const [ratingData, statusData] = await Promise.all([
+              supabase.from('ratings').select('rating').eq('user_id', user.id).eq('media_id', activity.media_id).maybeSingle(),
+              supabase.from('watch_status').select('status').eq('user_id', user.id).eq('media_id', activity.media_id).maybeSingle()
+            ])
+            userRating = ratingData.data?.rating || null
+            userStatus = statusData.data?.status || null
           }
           
           return {
             type: 'activity' as const,
             id: activity.id,
             data: {
-              activity: activityWithLikes,
-              friendsActivity,
-              showComments,
-              activityComments,
-              userLiked,
-              likeCount,
-              userRating,
-              userStatus,
-              streamingPlatforms
+              activity: { ...activity, like_count: likeCount, comment_count: activityComments?.length || 0, user_liked: userLiked },
+              friendsActivity, showComments, activityComments, userLiked, likeCount, userRating, userStatus, streamingPlatforms
             }
           }
         })
       )
       
-      // Check if we should insert another Find New Friends card
-      // Randomly insert after every ~10 cards (roughly 2 batches)
-      followSuggestionsCount.current += 1
-      let itemsToAdd = [...newItems]
+      // Create buckets for pattern building
+      const buckets = {
+        activities: [...transformedActivities],
+        becauseYouLiked: [...becauseYouLikedCards],
+        friendsLoved: [...friendsLovedCards],
+        youMightLike: [...youMightLikeCards],
+        findFriends: userSuggestions.length > 0 ? [{
+          type: 'follow_suggestions' as const,
+          id: `follow-suggestions-${Date.now()}`,
+          data: { suggestions: userSuggestions }
+        }] : []
+      }
       
-      if (followSuggestionsCount.current % 2 === 0) {
-        // Every 2nd batch, try to add a Find New Friends card
-        const freshSuggestions = await fetchUserSuggestions()
-        if (freshSuggestions.length > 0) {
-          const followSuggestionsCard: FeedItem = {
-            type: 'follow_suggestions',
-            id: `follow-suggestions-${followSuggestionsCount.current}`,
-            data: {
-              suggestions: freshSuggestions
-            }
+      console.log('📦 LoadMore buckets:', {
+        activities: buckets.activities.length,
+        becauseYouLiked: buckets.becauseYouLiked.length,
+        friendsLoved: buckets.friendsLoved.length,
+        youMightLike: buckets.youMightLike.length,
+        findFriends: buckets.findFriends.length
+      })
+      
+      // Helper to get card from bucket, skipping already-shown media
+      const getCardFromBucket = (cardType: number): FeedItem | null => {
+        const getBucket = () => {
+          switch (cardType) {
+            case 1: return buckets.activities
+            case 2: return buckets.becauseYouLiked
+            case 3: return buckets.friendsLoved
+            case 7: return buckets.findFriends
+            case 8: return buckets.youMightLike
+            default: return null
           }
-          // Insert at position 2 of the new batch
-          if (itemsToAdd.length >= 2) {
-            itemsToAdd.splice(2, 0, followSuggestionsCard)
-          } else {
-            itemsToAdd.push(followSuggestionsCard)
-          }
-          console.log('Inserted new Find Friends card with', freshSuggestions.length, 'suggestions')
         }
-      }
-      
-      // Normalize media ID helper (same as initial load)
-      const normalizeMediaId = (mediaId: string): string => {
-        return mediaId.replace(/-s\d+$/, '')
-      }
-      
-      // Extract media ID from item
-      const getItemMediaId = (item: FeedItem): string | null => {
-        if (item.type === 'activity') {
-          const rawId = item.data?.activity?.media_id
-          return rawId ? normalizeMediaId(rawId) : null
+        
+        const bucket = getBucket()
+        if (!bucket) return null
+        
+        if (cardType === 7) return bucket.shift() || null
+        
+        while (bucket.length > 0) {
+          const card = bucket.shift()!
+          const mediaId = getCardMediaId(card)
+          
+          if (!mediaId || !shownMediaIds.current.has(mediaId)) {
+            if (mediaId) shownMediaIds.current.add(mediaId)
+            return card
+          }
+          console.log(`⏭️ Skipping duplicate in loadMore: ${mediaId}`)
         }
         return null
       }
       
-      // Append new items to existing feed (with cross-media deduplication)
-      setFeedItems(prev => {
-        const existingIds = new Set(prev.map(item => item.id))
+      // Fallback when activities run out
+      const getFallbackCard = (): FeedItem | null => {
+        for (const type of [2, 3, 8]) {
+          const card = getCardFromBucket(type)
+          if (card) return card
+        }
+        return null
+      }
+      
+      // Build feed batch using pattern
+      const newBatch: FeedItem[] = []
+      const targetSize = LOAD_MORE_BATCH_SIZE
+      
+      const hasMoreContent = () => 
+        buckets.activities.length > 0 || buckets.becauseYouLiked.length > 0 ||
+        buckets.friendsLoved.length > 0 || buckets.youMightLike.length > 0 || buckets.findFriends.length > 0
+      
+      while (hasMoreContent() && newBatch.length < targetSize) {
+        const cardType = FEED_PATTERN[patternPosition.current % FEED_PATTERN.length]
+        let card = getCardFromBucket(cardType)
         
-        // Filter out duplicates by item.id AND by media_id
-        const uniqueNewItems = itemsToAdd.filter(item => {
-          // Skip if item.id already exists
-          if (existingIds.has(item.id)) return false
-          
-          // Skip if this media has already been shown (any card type)
-          const mediaId = getItemMediaId(item)
-          if (mediaId && shownMediaIds.current.has(mediaId)) {
-            console.log(`⏭️ Skipping duplicate media in loadMore: ${mediaId}`)
-            return false
-          }
-          
-          // Track this media as shown
-          if (mediaId) {
-            shownMediaIds.current.add(mediaId)
-          }
-          
-          return true
-        })
+        if (!card && cardType === 1) {
+          card = getFallbackCard()
+        }
         
-        console.log(`Adding ${uniqueNewItems.length} unique items (filtered ${itemsToAdd.length - uniqueNewItems.length} duplicates)`)
-        return [...prev, ...uniqueNewItems]
-      })
+        if (card) {
+          newBatch.push(card)
+          console.log(`📍 LoadMore position ${newBatch.length}: Card ${cardType} (${card.type})`)
+        }
+        
+        patternPosition.current++
+      }
+      
+      console.log(`🎯 LoadMore built ${newBatch.length} cards, pattern now at position ${patternPosition.current}`)
+      
+      // Append to feed
+      setFeedItems(prev => [...prev, ...newBatch])
       console.log(`Loaded ${itemsToAdd.length} more items (deduplicated)`)
       
     } catch (err) {
