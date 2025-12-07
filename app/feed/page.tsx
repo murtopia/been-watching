@@ -1287,17 +1287,22 @@ export default function PreviewFeedLivePage() {
       
       const activities = moreActivities.data || []
       
-      if (activities.length === 0 && becauseYouLikedCards.length === 0 && friendsLovedCards.length === 0 && youMightLikeCards.length === 0) {
+      // Update cursor for next activity fetch
+      if (activities.length > 0) {
+        const lastActivity = activities[activities.length - 1]
+        setCursor(lastActivity.created_at)
+      }
+      
+      // Check if we have any content at all
+      const totalContent = activities.length + becauseYouLikedCards.length + friendsLovedCards.length + youMightLikeCards.length + userSuggestions.length
+      if (totalContent === 0) {
         setHasMore(false)
         return
       }
       
-      // Update cursor
-      if (activities.length > 0) {
-        const lastActivity = activities[activities.length - 1]
-        setCursor(lastActivity.created_at)
-        setHasMore(activities.length >= LOAD_MORE_BATCH_SIZE)
-      }
+      // Keep hasMore true as long as we have activities OR can generate recommendations
+      // Only stop if we ran out of activities AND couldn't build any cards
+      setHasMore(activities.length > 0 || becauseYouLikedCards.length > 0 || friendsLovedCards.length > 0 || youMightLikeCards.length > 0)
       
       // Group and transform activities
       const groupedActivities = groupActivities(activities)
