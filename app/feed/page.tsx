@@ -829,7 +829,7 @@ export default function PreviewFeedLivePage() {
           `)
           .neq('user_id', user?.id)
           .order('created_at', { ascending: false })
-          .limit(INITIAL_BATCH_SIZE * 2) // Fetch more to ensure we get related activities for grouping
+          .limit(INITIAL_BATCH_SIZE) // Fetch 5 activities
         
         if (fullActivities && fullActivities.length > 0) {
           // Group related activities (e.g., rating + status change on same show)
@@ -1274,7 +1274,7 @@ export default function PreviewFeedLivePage() {
           .neq('user_id', user.id)
           .lt('created_at', cursor)
           .order('created_at', { ascending: false })
-          .limit(LOAD_MORE_BATCH_SIZE * 2),
+          .limit(LOAD_MORE_BATCH_SIZE),
         // Card 2: Because You Liked
         fetchBecauseYouLiked(supabase, user.id, excludedMediaIds, 2),
         // Card 3: Friends Loved
