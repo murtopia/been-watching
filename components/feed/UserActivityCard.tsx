@@ -143,6 +143,7 @@ interface FeedCardProps {
   onRemindMe?: () => void  // For Card 4 (Coming Soon) - legacy
   onSetReminder?: () => void  // For Card 4 (Coming Soon) - preferred
   onDismiss?: () => void  // For Card 5 (Now Streaming) - dismiss notification
+  onDismissRecommendation?: (mediaId: string) => void  // For Cards 2, 3, 8 - permanently hide from recommendations
   onUserClick?: (userId: string) => void
   onMediaClick?: (mediaId: string) => void
   /** Called when user rates the show - should persist to database */
@@ -417,6 +418,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   onShare,
   onAddToWatchlist,
   onRemindMe,
+  onDismissRecommendation,
   onUserClick,
   onMediaClick,
   onRate,
@@ -1268,6 +1270,16 @@ export const FeedCard: React.FC<FeedCardProps> = ({
 
         .action-btn:active {
           transform: scale(0.9);
+        }
+
+        .action-btn.dismiss-btn {
+          width: 36px;
+          height: 36px;
+          background: rgba(80, 80, 80, 0.5);
+        }
+
+        .action-btn.dismiss-btn:hover {
+          background: rgba(100, 100, 100, 0.6);
         }
 
         .action-btn svg {
@@ -2248,7 +2260,25 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                 </div>
               )}
 
-                {/* Add Button - Shows + icon (or bookmark-plus for unreleased) */}
+              {/* Dismiss Button - Only for Template B (recommendation cards) */}
+              {variant === 'b' && !isUnreleased && onDismissRecommendation && (
+                <div>
+                  <button 
+                    className="action-btn dismiss-btn" 
+                    onClick={() => {
+                      const mediaId = ('media' in cardData && cardData.media?.id) || ''
+                      if (mediaId) {
+                        onDismissRecommendation(mediaId)
+                      }
+                    }}
+                    title="Not interested"
+                  >
+                    <Icon name="close" state="default" size={20} />
+                  </button>
+                </div>
+              )}
+
+              {/* Add Button - Shows + icon (or bookmark-plus for unreleased) */}
               <div>
                 {isUnreleased ? (
                   // Card 4 (Coming Soon) - Direct bookmark action, no modal

@@ -303,20 +303,34 @@ interface Card1Data {
 ## Card 2: Because You Liked
 
 ### Purpose
-Algorithmic recommendation to help users discover new shows based on their existing likes/loves. Personalized content discovery without social pressure.
+Algorithmic recommendation to help users discover **fresh, new shows** based on their existing likes/loves. Personalized content discovery focused on recent releases.
 
 ### Display Rules
 
 **Card is created when:**
 1. User has rated a show as "like" or "love"
-2. TMDB has similar shows for that media
-3. Similar show is NOT already in user's watchlist
-4. User hasn't dismissed this recommendation before
+2. We find popular recent shows in the same genres
+3. Show was released within the **last 12 months**
+4. Show is NOT already in user's watchlist
+5. User hasn't dismissed this recommendation before
+
+**Algorithm (Genre-Based Discover):**
+```
+User likes "The Bear" (Comedy, Drama)
+    ↓
+TMDB /discover/tv?with_genres=35,18&first_air_date.gte=2024-01-01&sort_by=popularity.desc
+    ↓
+Filter: exclude user's watchlist, 50+ votes minimum
+    ↓
+Display: "Because You Liked The Bear"
+```
+
+**Why not TMDB "similar"?** TMDB's similar endpoint returns thematically similar shows regardless of release date, often surfacing classics from decades ago. Genre-based discover guarantees fresh content.
 
 **Frequency:**
-- Appears in feed at 20% distribution (AI Recommendations pool)
-- Maximum 3 "Because You Liked" cards per feed session
-- Prioritize recent likes (past 30 days)
+- Appears at positions 3, 11 in the 13-card cycle
+- Prioritize recent likes (past 90 days)
+- Sort results by release date (newest first)
 
 ### Card Front
 
@@ -1051,12 +1065,15 @@ Advanced algorithmic recommendation based on taste match with similar users. Hel
 1. User has rated 10+ shows (enough data for algorithm)
 2. System finds users with 75%+ taste match score
 3. Matched user loved a show current user hasn't seen
-4. Show is not already in user's watchlist
+4. Show was released within the **last 12 months**
+5. Show is not already in user's watchlist
+
+**Recency Filter:** Only recommends shows from the last 12 months to keep content fresh and relevant.
 
 **Frequency:**
-- Appears in feed at 20% distribution (AI Recommendations pool)
-- Shares distribution pool with Card 2
+- Appears at positions 9, 13 in the 13-card cycle
 - Prioritize high-confidence recommendations (85%+ match scores)
+- Sort by release date (newest first)
 
 ### Card Front
 

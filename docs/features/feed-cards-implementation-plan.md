@@ -86,13 +86,21 @@ CREATE INDEX idx_show_reminders_date ON show_reminders(air_date);
 
 ### Card 2: Because You Liked
 
+**Algorithm: Genre-Based Discover (not TMDB Similar)**
+
+We use TMDB's `/discover` endpoint instead of `/similar` because:
+- `/similar` returns thematically similar shows regardless of release date (often old classics)
+- `/discover` allows filtering by release date to guarantee **fresh content (last 12 months)**
+
 **Data Flow:**
 ```
 User's liked/loved shows (ratings table)
     ↓
-TMDB Similar Shows API for each
+Extract genres from each liked show
     ↓
-Filter: exclude user's watchlist + impression limits
+TMDB /discover?with_genres=X&first_air_date.gte=12_months_ago&sort_by=popularity.desc
+    ↓
+Filter: exclude user's watchlist, 50+ votes, recency sort
     ↓
 Display with badge: "Because You Liked [Source Show]"
 ```
@@ -100,27 +108,36 @@ Display with badge: "Because You Liked [Source Show]"
 **Implementation:**
 ```typescript
 async function fetchBecauseYouLiked(userId: string): Promise<Card2Data[]> {
-  // 1. Get user's liked shows (past 90 days)
+  const cutoffDate = new Date()
+  cutoffDate.setFullYear(cutoffDate.getFullYear() - 1)
+  const cutoffStr = cutoffDate.toISOString().split('T')[0]
+  
+  // 1. Get user's liked shows with genres
   const likedShows = await supabase
     .from('ratings')
-    .select('media_id, rating, media:media_id(title, tmdb_data)')
+    .select('media_id, rating, media:media_id(title, media_type, tmdb_data)')
     .eq('user_id', userId)
     .in('rating', ['like', 'love'])
     .order('created_at', { ascending: false })
-    .limit(10)
+    .limit(5)
 
   // 2. Get excluded media IDs
   const excluded = await getUserExcludedMediaIds(userId)
 
-  // 3. Get valid impressions (not shown in 2 days, count < 2)
-  const validImpressions = await getValidImpressions(userId, 'because_you_liked')
-
-  // 4. For each liked show, fetch TMDB similar
+  // 3. For each liked show, use /discover with genres + 12-month filter
   const recommendations = []
   for (const show of likedShows) {
-    const similar = await tmdb.getSimilarShows(show.media.tmdb_data.id)
-    for (const rec of similar.results) {
-      if (!excluded.has(rec.id) && validImpressions.has(rec.id)) {
+    const genres = show.media.tmdb_data?.genres?.map(g => g.id).join(',')
+    if (!genres) continue
+    
+    const mediaType = show.media.media_type || 'tv'
+    const endpoint = `/discover/${mediaType}?with_genres=${genres}&first_air_date.gte=${cutoffStr}&sort_by=popularity.desc&vote_count.gte=50`
+    
+    const response = await fetch(`/api/tmdb${endpoint}`)
+    const data = await response.json()
+    
+    for (const rec of data.results || []) {
+      if (!excluded.has(`${mediaType}-${rec.id}`)) {
         recommendations.push({
           media: rec,
           sourceShow: show.media.title,
@@ -129,6 +146,13 @@ async function fetchBecauseYouLiked(userId: string): Promise<Card2Data[]> {
       }
     }
   }
+
+  // Sort by release date (newest first)
+  recommendations.sort((a, b) => {
+    const dateA = a.media.first_air_date || a.media.release_date || ''
+    const dateB = b.media.first_air_date || b.media.release_date || ''
+    return dateB.localeCompare(dateA)
+  })
 
   return recommendations
 }
@@ -291,25 +315,99 @@ function buildFeed(buckets: FeedBuckets): FeedItem[] {
 
 ---
 
+## UI Improvements
+
+### Genre Display
+
+TMDB returns `genre_ids` (numbers) in discover/similar results. We map to names for display:
+
+```typescript
+const GENRE_MAP: Record<number, string> = {
+  // TV Genres
+  10759: 'Action & Adventure',
+  16: 'Animation',
+  35: 'Comedy',
+  80: 'Crime',
+  99: 'Documentary',
+  18: 'Drama',
+  10751: 'Family',
+  9648: 'Mystery',
+  10765: 'Sci-Fi & Fantasy',
+  10768: 'War & Politics',
+  37: 'Western',
+  // Movie Genres
+  28: 'Action',
+  12: 'Adventure',
+  14: 'Fantasy',
+  36: 'History',
+  27: 'Horror',
+  10402: 'Music',
+  10749: 'Romance',
+  878: 'Science Fiction',
+  53: 'Thriller',
+  10752: 'War'
+}
+
+// Usage in card rendering:
+genres: (media.genre_ids || []).slice(0, 2).map(id => GENRE_MAP[id]).filter(Boolean)
+```
+
+### Badge Overflow Fix
+
+Long badge text (e.g., "Because You Liked The Chair Company - Season 1") can overflow into the right navigation icons. Fix with CSS:
+
+```css
+.badge-text {
+  max-width: calc(100% - 80px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+```
+
+Also abbreviate seasons: "Season 1" → "S1"
+
+```typescript
+const formatBadgeText = (text: string) => text.replace(/Season (\d+)/g, 'S$1')
+```
+
+### Dismiss Button (Recommendation Cards)
+
+Users can permanently dismiss recommendations (Cards 2, 3, 8) so they don't appear again.
+
+**Database Table:**
+```sql
+CREATE TABLE user_dismissed_media (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  media_id TEXT NOT NULL,
+  dismissed_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, media_id)
+);
+```
+
+**UI:** X button positioned above the + icon on lower right (recommendation cards only, not activity cards)
+
+**Logic:** All recommendation fetches exclude dismissed media IDs
+
+---
+
 ## Global Exclusion Filter
 
-Shows user has interacted with should never appear in Cards 2, 3, or 8.
+Shows user has interacted with OR dismissed should never appear in Cards 2, 3, or 8.
 
 ```typescript
 async function getUserExcludedMediaIds(userId: string): Promise<Set<string>> {
-  const { data: watchStatus } = await supabase
-    .from('watch_status')
-    .select('media_id')
-    .eq('user_id', userId)
-  
-  const { data: ratings } = await supabase
-    .from('ratings')
-    .select('media_id')
-    .eq('user_id', userId)
+  const [watchStatus, ratings, dismissed] = await Promise.all([
+    supabase.from('watch_status').select('media_id').eq('user_id', userId),
+    supabase.from('ratings').select('media_id').eq('user_id', userId),
+    supabase.from('user_dismissed_media').select('media_id').eq('user_id', userId)
+  ])
   
   return new Set([
-    ...(watchStatus?.map(w => w.media_id) || []),
-    ...(ratings?.map(r => r.media_id) || [])
+    ...(watchStatus.data?.map(w => w.media_id) || []),
+    ...(ratings.data?.map(r => r.media_id) || []),
+    ...(dismissed.data?.map(d => d.media_id) || [])
   ])
 }
 ```

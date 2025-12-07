@@ -78,6 +78,65 @@ const CARD_LIMITS = {
   YOU_MIGHT_LIKE: 4,       // Card 8: need ~2 per cycle, with buffer
 }
 
+// =====================================================
+// TMDB Genre ID to Name Mapping
+// =====================================================
+// Used for displaying genre names on cards (TMDB returns genre_ids in discover/similar)
+const GENRE_MAP: Record<number, string> = {
+  // TV Genres
+  10759: 'Action & Adventure',
+  16: 'Animation',
+  35: 'Comedy',
+  80: 'Crime',
+  99: 'Documentary',
+  18: 'Drama',
+  10751: 'Family',
+  10762: 'Kids',
+  9648: 'Mystery',
+  10763: 'News',
+  10764: 'Reality',
+  10765: 'Sci-Fi & Fantasy',
+  10766: 'Soap',
+  10767: 'Talk',
+  10768: 'War & Politics',
+  37: 'Western',
+  // Movie Genres
+  28: 'Action',
+  12: 'Adventure',
+  14: 'Fantasy',
+  36: 'History',
+  27: 'Horror',
+  10402: 'Music',
+  10749: 'Romance',
+  878: 'Science Fiction',
+  10770: 'TV Movie',
+  53: 'Thriller',
+  10752: 'War'
+}
+
+// Helper to map genre IDs to names
+function mapGenreIds(genreIds: number[] | undefined): string[] {
+  if (!genreIds) return []
+  return genreIds
+    .slice(0, 2) // Max 2 genres for display
+    .map(id => GENRE_MAP[id])
+    .filter(Boolean) as string[]
+}
+
+// =====================================================
+// Recency Filter (12 months)
+// =====================================================
+function getRecencyCutoffDate(): string {
+  const cutoff = new Date()
+  cutoff.setFullYear(cutoff.getFullYear() - 1)
+  return cutoff.toISOString().split('T')[0] // "2024-01-07"
+}
+
+// Helper to abbreviate seasons in badge text
+function abbreviateSeason(text: string): string {
+  return text.replace(/Season (\d+)/g, 'S$1')
+}
+
 interface FeedItem {
   type: 'activity' | 'recommendation' | 'follow_suggestions' | 'because_you_liked' | 'friends_loved' | 'coming_soon' | 'now_streaming' | 'you_might_like'
   id: string
@@ -267,8 +326,16 @@ function extractTmdbId(mediaId: string, tmdbData?: { id?: number }): number | nu
 
 /**
  * Card 2: Because You Liked
- * Fetches shows similar to ones the user has liked/loved
- * OPTIMIZED: Uses parallel fetching and limits API calls
+ * Uses GENRE-BASED DISCOVER instead of TMDB Similar
+ * 
+ * Why? TMDB's /similar returns thematically similar shows regardless of release date,
+ * often surfacing old classics. /discover with genre + date filters guarantees fresh content.
+ * 
+ * Algorithm:
+ * 1. Get user's liked shows with their genres
+ * 2. Use /discover?with_genres=X&first_air_date.gte=12_months_ago&sort_by=popularity.desc
+ * 3. Filter out excluded media (already in watchlists)
+ * 4. Sort by release date (newest first)
  */
 async function fetchBecauseYouLiked(
   supabase: any,
@@ -279,50 +346,55 @@ async function fetchBecauseYouLiked(
   try {
     console.time('fetchBecauseYouLiked')
     
-    // Get user's liked/loved shows - limit to 3 for performance
+    const cutoffDate = getRecencyCutoffDate()
+    
+    // Get user's liked/loved shows with their genre data
     const { data: userRatings } = await supabase
       .from('ratings')
       .select('media_id, rating, media:media_id(id, title, media_type, tmdb_data)')
       .eq('user_id', userId)
       .in('rating', ['like', 'love'])
       .order('created_at', { ascending: false })
-      .limit(3) // Reduced from 10 to 3 for performance
+      .limit(5)
     
     if (!userRatings || userRatings.length === 0) {
       console.timeEnd('fetchBecauseYouLiked')
       return []
     }
     
-    // Prepare source shows with valid TMDB IDs
-    const sourcesWithIds = userRatings
-      .filter((r: any) => r.media)
+    // Prepare source shows with genres
+    const sourcesWithGenres = userRatings
+      .filter((r: any) => r.media?.tmdb_data?.genres)
       .map((rating: any) => {
         const media = rating.media
-        const tmdbId = extractTmdbId(media.id, media.tmdb_data)
+        const genres = media.tmdb_data.genres?.map((g: any) => g.id) || []
         const mediaType = media.media_type || (media.id.startsWith('tv-') ? 'tv' : 'movie')
-        return { rating, media, tmdbId, mediaType }
+        return { rating, media, genres, mediaType }
       })
-      .filter((s: any) => s.tmdbId !== null)
-      .slice(0, 2) // Only process top 2 for performance
+      .filter((s: any) => s.genres.length > 0)
+      .slice(0, 3) // Process top 3 liked shows
     
-    if (sourcesWithIds.length === 0) {
+    if (sourcesWithGenres.length === 0) {
       console.timeEnd('fetchBecauseYouLiked')
       return []
     }
     
-    // Fetch similar shows in PARALLEL (not sequential!)
-    const similarResults = await Promise.all(
-      sourcesWithIds.map(async (source: any) => {
-        const { tmdbId, mediaType } = source
-        // Use simplified fetch without genre scoring for speed
+    // Fetch discover results in PARALLEL using genre filters
+    const discoverResults = await Promise.all(
+      sourcesWithGenres.map(async (source: any) => {
+        const { genres, mediaType } = source
         try {
-          const endpoint = mediaType === 'tv' ? `tv/${tmdbId}/similar` : `movie/${tmdbId}/similar`
+          // Build discover endpoint with 12-month recency filter
+          const genreParam = genres.slice(0, 3).join(',') // Use top 3 genres
+          const dateParam = mediaType === 'tv' ? 'first_air_date.gte' : 'primary_release_date.gte'
+          const endpoint = `discover/${mediaType}?with_genres=${genreParam}&${dateParam}=${cutoffDate}&sort_by=popularity.desc&vote_count.gte=50`
+          
           const response = await fetch(`/api/tmdb/${endpoint}`)
           if (!response.ok) return []
           const data = await response.json()
+          
           return (data.results || [])
-            .slice(0, 5) // Only first 5 results
-            .filter((show: any) => (show.vote_count || 0) >= 50) // Basic quality filter
+            .slice(0, 8) // Get more results since we'll filter
             .map((show: any) => ({ ...show, media_type: mediaType }))
         } catch {
           return []
@@ -330,37 +402,57 @@ async function fetchBecauseYouLiked(
       })
     )
     
-    // Build results without additional API calls
-    const results: FeedItem[] = []
+    // Build results - take best from each source, sorted by recency
+    const allShows: Array<{ show: any; source: any }> = []
     
-    for (let i = 0; i < sourcesWithIds.length && results.length < limit; i++) {
-      const { rating, media, mediaType } = sourcesWithIds[i]
-      const similar = similarResults[i] || []
+    for (let i = 0; i < sourcesWithGenres.length; i++) {
+      const source = sourcesWithGenres[i]
+      const shows = discoverResults[i] || []
       
-      for (const show of similar) {
-        if (results.length >= limit) break
+      for (const show of shows) {
+        const mediaId = `${source.mediaType}-${show.id}`
         
-        const mediaId = `${mediaType}-${show.id}`
-        
-        // Skip excluded media (already in user's lists)
+        // Skip excluded media (already in user's lists or shown)
         if (excludedMediaIds.has(mediaId)) continue
         
-        // Skip impression check for now (too slow) - will batch later
-        
-        results.push({
-          type: 'because_you_liked',
-          id: `byl-${mediaId}-${rating.media_id}`,
-          data: {
-            media: show,
-            sourceShowTitle: media.title,
-            sourceMediaId: rating.media_id
-          } as BecauseYouLikedData
-        })
-        break // Only one recommendation per source show
+        allShows.push({ show, source })
       }
     }
     
+    // Sort by release date (newest first)
+    allShows.sort((a, b) => {
+      const dateA = a.show.first_air_date || a.show.release_date || ''
+      const dateB = b.show.first_air_date || b.show.release_date || ''
+      return dateB.localeCompare(dateA)
+    })
+    
+    // Take the top results, one per source show max
+    const usedSources = new Set<string>()
+    const results: FeedItem[] = []
+    
+    for (const { show, source } of allShows) {
+      if (results.length >= limit) break
+      
+      // Only one recommendation per source show to increase variety
+      const sourceId = source.media.id
+      if (usedSources.has(sourceId)) continue
+      usedSources.add(sourceId)
+      
+      const mediaId = `${source.mediaType}-${show.id}`
+      
+      results.push({
+        type: 'because_you_liked',
+        id: `byl-${mediaId}-${source.rating.media_id}`,
+        data: {
+          media: show,
+          sourceShowTitle: abbreviateSeason(source.media.title),
+          sourceMediaId: source.rating.media_id
+        } as BecauseYouLikedData
+      })
+    }
+    
     console.timeEnd('fetchBecauseYouLiked')
+    console.log(`✅ fetchBecauseYouLiked: Found ${results.length} fresh shows from last 12 months`)
     return results
   } catch (error) {
     console.error('Error fetching Because You Liked:', error)
@@ -371,7 +463,7 @@ async function fetchBecauseYouLiked(
 /**
  * Card 3: Your Friends Loved
  * Shows that 1+ friends have rated as "love" (lowered from 3 for more content)
- * Prioritizes shows with more friends who loved it
+ * Prioritizes shows released in the last 12 months, then by friend count
  */
 async function fetchFriendsLoved(
   supabase: any,
@@ -380,6 +472,8 @@ async function fetchFriendsLoved(
   limit: number = CARD_LIMITS.FRIENDS_LOVED
 ): Promise<FeedItem[]> {
   try {
+    const cutoffDate = getRecencyCutoffDate()
+    
     // Get user's friends
     const { data: follows } = await supabase
       .from('follows')
@@ -397,7 +491,7 @@ async function fetchFriendsLoved(
         media_id,
         user_id,
         profiles:user_id(id, display_name, avatar_url),
-        media:media_id(id, title, poster_path, overview, media_type, tmdb_data)
+        media:media_id(id, title, poster_path, overview, media_type, tmdb_data, release_date)
       `)
       .in('user_id', friendIds)
       .eq('rating', 'love')
@@ -408,6 +502,7 @@ async function fetchFriendsLoved(
     const mediaMap = new Map<string, {
       media: any
       friends: Array<{ id: string; display_name: string; avatar_url: string | null }>
+      releaseDate: string
     }>()
     
     for (const rating of friendRatings) {
@@ -415,7 +510,12 @@ async function fetchFriendsLoved(
       
       const mediaId = rating.media_id
       if (!mediaMap.has(mediaId)) {
-        mediaMap.set(mediaId, { media: rating.media, friends: [] })
+        // Get release date from tmdb_data or release_date field
+        const releaseDate = rating.media.release_date || 
+          rating.media.tmdb_data?.first_air_date || 
+          rating.media.tmdb_data?.release_date || ''
+        
+        mediaMap.set(mediaId, { media: rating.media, friends: [], releaseDate })
       }
       
       const entry = mediaMap.get(mediaId)!
@@ -426,15 +526,36 @@ async function fetchFriendsLoved(
       })
     }
     
-    // Filter to shows with 1+ friends who loved it, excluding user's media
-    // Sort by friend count (most friends first) for better relevance
+    // Filter and sort:
+    // 1. Must have 1+ friends who loved it
+    // 2. Exclude user's media
+    // 3. Prioritize shows from last 12 months
+    // 4. Sort by recency, then friend count
     const sortedMedia = Array.from(mediaMap.entries())
       .filter(([mediaId, data]) => data.friends.length >= 1 && !excludedMediaIds.has(mediaId))
-      .sort((a, b) => b[1].friends.length - a[1].friends.length)
+      .map(([mediaId, data]) => ({
+        mediaId,
+        data,
+        isRecent: data.releaseDate >= cutoffDate
+      }))
+      .sort((a, b) => {
+        // Prioritize recent shows
+        if (a.isRecent && !b.isRecent) return -1
+        if (!a.isRecent && b.isRecent) return 1
+        
+        // Within same recency tier, sort by release date (newest first)
+        if (a.isRecent && b.isRecent) {
+          const dateCmp = b.data.releaseDate.localeCompare(a.data.releaseDate)
+          if (dateCmp !== 0) return dateCmp
+        }
+        
+        // Then by friend count
+        return b.data.friends.length - a.data.friends.length
+      })
     
     const results: FeedItem[] = []
     
-    for (const [mediaId, data] of sortedMedia) {
+    for (const { mediaId, data } of sortedMedia) {
       if (results.length >= limit) break
       
       const canShow = await shouldShowCard(userId, 'friends_loved', mediaId)
@@ -451,6 +572,7 @@ async function fetchFriendsLoved(
       })
     }
     
+    console.log(`✅ fetchFriendsLoved: Found ${results.length} shows (prioritizing last 12 months)`)
     return results
   } catch (error) {
     console.error('Error fetching Friends Loved:', error)
@@ -608,6 +730,8 @@ async function fetchYouMightLike(
   try {
     console.time('fetchYouMightLike')
     
+    const cutoffDate = getRecencyCutoffDate()
+    
     // Check if user has enough ratings (10+)
     const { count: ratingCount } = await supabase
       .from('ratings')
@@ -626,7 +750,7 @@ async function fetchYouMightLike(
     
     const { data: popularLoved } = await supabase
       .from('ratings')
-      .select('media_id, media:media_id(id, title, poster_path, overview, media_type, tmdb_data, vote_average)')
+      .select('media_id, media:media_id(id, title, poster_path, overview, media_type, tmdb_data, vote_average, release_date)')
       .eq('rating', 'love')
       .neq('user_id', userId) // Not our own ratings
     
@@ -635,30 +759,55 @@ async function fetchYouMightLike(
       return []
     }
     
-    // Count loves per media
-    const mediaLoveCount = new Map<string, { media: any; count: number }>()
+    // Count loves per media and get release date
+    const mediaLoveCount = new Map<string, { media: any; count: number; releaseDate: string }>()
     
     for (const rating of popularLoved) {
       if (!rating.media) continue
       
       const mediaId = rating.media_id
       if (!mediaLoveCount.has(mediaId)) {
-        mediaLoveCount.set(mediaId, { media: rating.media, count: 0 })
+        // Get release date from tmdb_data or release_date field
+        const releaseDate = rating.media.release_date || 
+          rating.media.tmdb_data?.first_air_date || 
+          rating.media.tmdb_data?.release_date || ''
+        
+        mediaLoveCount.set(mediaId, { media: rating.media, count: 0, releaseDate })
       }
       mediaLoveCount.get(mediaId)!.count++
     }
     
-    // Filter and sort by love count
+    // Filter and sort:
+    // 1. Exclude user's media
+    // 2. At least 2 users loved it
+    // 3. Prioritize shows from last 12 months
+    // 4. Sort by recency, then love count
     const results: FeedItem[] = []
     const sorted = Array.from(mediaLoveCount.entries())
       .filter(([mediaId]) => !excludedMediaIds.has(mediaId))
       .filter(([_, data]) => data.count >= 2) // At least 2 users loved it
-      .sort((a, b) => b[1].count - a[1].count)
+      .map(([mediaId, data]) => ({
+        mediaId,
+        data,
+        isRecent: data.releaseDate >= cutoffDate
+      }))
+      .sort((a, b) => {
+        // Prioritize recent shows
+        if (a.isRecent && !b.isRecent) return -1
+        if (!a.isRecent && b.isRecent) return 1
+        
+        // Within same recency tier, sort by release date (newest first)
+        if (a.isRecent && b.isRecent) {
+          const dateCmp = b.data.releaseDate.localeCompare(a.data.releaseDate)
+          if (dateCmp !== 0) return dateCmp
+        }
+        
+        // Then by love count
+        return b.data.count - a.data.count
+      })
     
-    for (const [mediaId, data] of sorted) {
+    for (const { mediaId, data } of sorted) {
       if (results.length >= limit) break
-      
-      // Skip impression check for speed
       
       results.push({
         type: 'you_might_like',
@@ -672,6 +821,7 @@ async function fetchYouMightLike(
     }
     
     console.timeEnd('fetchYouMightLike')
+    console.log(`✅ fetchYouMightLike: Found ${results.length} shows (prioritizing last 12 months)`)
     return results
   } catch (error) {
     console.error('Error fetching You Might Like:', error)
@@ -2102,6 +2252,53 @@ export default function PreviewFeedLivePage() {
     }))
   }
 
+  // Handle dismissing a media recommendation (Cards 2, 3, 8)
+  // Persists to database so the show never appears again in recommendations
+  const handleDismissMedia = async (mediaId: string, cardType: string) => {
+    if (!user) return
+    console.log('Dismiss media:', mediaId, 'from card type:', cardType)
+    
+    // Normalize media ID (strip season suffix)
+    const normalizedMediaId = mediaId.replace(/-s\d+$/, '')
+    
+    try {
+      // Insert into user_dismissed_media table
+      const { error } = await supabase
+        .from('user_dismissed_media')
+        .insert({
+          user_id: user.id,
+          media_id: normalizedMediaId
+        })
+      
+      if (error && error.code !== '23505') { // Ignore duplicate key errors
+        console.error('Error dismissing media:', error)
+        return
+      }
+      
+      // Track dismiss event
+      trackEvent('media_dismissed', {
+        media_id: normalizedMediaId,
+        card_type: cardType,
+        source: 'recommendation_card'
+      })
+      
+      // Remove card from feed UI immediately
+      setFeedItems(prev => prev.filter(item => {
+        // Check if this item's media_id matches the dismissed one
+        const itemMediaId = 
+          item.data?.media?.id?.replace?.(/-s\d+$/, '') ||
+          (item.type === 'because_you_liked' ? `${item.data?.media?.media_type || 'tv'}-${item.data?.media?.id}` : null)
+        
+        if (!itemMediaId) return true
+        return itemMediaId.replace(/-s\d+$/, '') !== normalizedMediaId
+      }))
+      
+      console.log('✅ Media dismissed and removed from feed')
+    } catch (error) {
+      console.error('Error dismissing media:', error)
+    }
+  }
+
   const handleLike = async (activityId: string) => {
     if (!user) return
     console.log('Like activity:', activityId)
@@ -2630,7 +2827,7 @@ export default function PreviewFeedLivePage() {
                 id: mediaId,
                 title: media.title || media.name || 'Unknown',
                 year: releaseYear,
-                genres: [],
+                genres: mapGenreIds(media.genre_ids),
                 rating: media.vote_average || 0,
                 posterUrl: media.poster_path ? `https://image.tmdb.org/t/p/w500${media.poster_path}` : '',
                 synopsis: media.overview || '',
@@ -2655,7 +2852,7 @@ export default function PreviewFeedLivePage() {
                 <div className="card-inner-wrapper">
                   <FeedCard
                     data={cardData}
-                    badges={[BADGE_PRESETS.BECAUSE_YOU_LIKED(sourceShowTitle)]}
+                    badges={[BADGE_PRESETS.BECAUSE_YOU_LIKED(abbreviateSeason(sourceShowTitle))]}
                     variant="b"
                     currentUser={{
                       id: user?.id || '',
@@ -2666,6 +2863,7 @@ export default function PreviewFeedLivePage() {
                     onSetStatus={handleSetStatus}
                     onLikeShowComment={(commentId) => handleLikeShowComment(commentId)}
                     onSubmitShowComment={(text) => handleSubmitShowComment(mediaId, text)}
+                    onDismissRecommendation={(id) => handleDismissMedia(id, 'because_you_liked')}
                   />
                 </div>
               </div>
@@ -2678,13 +2876,15 @@ export default function PreviewFeedLivePage() {
             
             const releaseYear = parseInt((media.release_date || '').substring(0, 4)) || new Date().getFullYear()
             const mediaType = media.media_type || 'tv'
+            // Get genres from tmdb_data (database records have genres as objects with name)
+            const genreNames = media.tmdb_data?.genres?.map((g: any) => g.name).slice(0, 2) || []
             const cardData: FeedCardData = {
               id: item.id,
               media: {
                 id: media.id,
                 title: media.title || 'Unknown',
                 year: releaseYear,
-                genres: [],
+                genres: genreNames,
                 rating: media.vote_average || 0,
                 posterUrl: media.poster_path ? `https://image.tmdb.org/t/p/w500${media.poster_path}` : '',
                 synopsis: media.overview || '',
@@ -2729,6 +2929,7 @@ export default function PreviewFeedLivePage() {
                     onSetStatus={handleSetStatus}
                     onLikeShowComment={(commentId) => handleLikeShowComment(commentId)}
                     onSubmitShowComment={(text) => handleSubmitShowComment(media.id, text)}
+                    onDismissRecommendation={(id) => handleDismissMedia(id, 'friends_loved')}
                   />
                 </div>
               </div>
@@ -2747,13 +2948,15 @@ export default function PreviewFeedLivePage() {
             })
             
             const releaseYear = parseInt(airDate.substring(0, 4)) || new Date().getFullYear()
+            // Get genres from tmdb_data (database records have genres as objects with name)
+            const genreNames = media.tmdb_data?.genres?.map((g: any) => g.name).slice(0, 2) || []
             const cardData: FeedCardData = {
               id: item.id,
               media: {
                 id: media.id,
                 title: media.title || 'Unknown',
                 year: releaseYear,
-                genres: [],
+                genres: genreNames,
                 rating: media.vote_average || 0,
                 posterUrl: media.poster_path ? `https://image.tmdb.org/t/p/w500${media.poster_path}` : '',
                 synopsis: media.overview || '',
@@ -2813,13 +3016,15 @@ export default function PreviewFeedLivePage() {
             
             const releaseYear = parseInt((media.release_date || '').substring(0, 4)) || new Date().getFullYear()
             const mediaTypeVal = media.media_type || 'tv'
+            // Get genres from tmdb_data (database records have genres as objects with name)
+            const genreNames = media.tmdb_data?.genres?.map((g: any) => g.name).slice(0, 2) || []
             const cardData: FeedCardData = {
               id: item.id,
               media: {
                 id: media.id,
                 title: media.title || 'Unknown',
                 year: releaseYear,
-                genres: [],
+                genres: genreNames,
                 rating: media.vote_average || 0,
                 posterUrl: media.poster_path ? `https://image.tmdb.org/t/p/w500${media.poster_path}` : '',
                 synopsis: media.overview || '',
@@ -2880,13 +3085,15 @@ export default function PreviewFeedLivePage() {
             
             const releaseYear = parseInt((media.release_date || '').substring(0, 4)) || new Date().getFullYear()
             const mediaTypeVal = media.media_type || 'tv'
+            // Get genres from tmdb_data (database records have genres as objects with name)
+            const genreNames = media.tmdb_data?.genres?.map((g: any) => g.name).slice(0, 2) || []
             const cardData: FeedCardData = {
               id: item.id,
               media: {
                 id: media.id,
                 title: media.title || 'Unknown',
                 year: releaseYear,
-                genres: [],
+                genres: genreNames,
                 rating: media.vote_average || 0,
                 posterUrl: media.poster_path ? `https://image.tmdb.org/t/p/w500${media.poster_path}` : '',
                 synopsis: media.overview || '',
@@ -2922,6 +3129,7 @@ export default function PreviewFeedLivePage() {
                     onSetStatus={handleSetStatus}
                     onLikeShowComment={(commentId) => handleLikeShowComment(commentId)}
                     onSubmitShowComment={(text) => handleSubmitShowComment(media.id, text)}
+                    onDismissRecommendation={(id) => handleDismissMedia(id, 'you_might_like')}
                   />
                 </div>
               </div>
