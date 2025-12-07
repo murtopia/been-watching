@@ -1090,19 +1090,20 @@ export default function PreviewFeedLivePage() {
             if (card.type === 'activity') {
               // Activity: media_id from database, already formatted as tv-12345 or tv-12345-s1
               rawId = card.data?.activity?.media_id || null
-            } else if (card.type === 'because_you_liked') {
-              // TMDB data: media.id is numeric (12345), need to construct
+            } else if (card.type === 'because_you_liked' || card.type === 'you_might_like') {
+              // TMDB trending data: media.id is numeric (12345), need to construct
               const media = card.data?.media
               if (media) {
                 rawId = `${media.media_type || 'tv'}-${media.id}`
               }
-            } else if (card.type === 'you_might_like' || card.type === 'friends_loved' || card.type === 'coming_soon' || card.type === 'now_streaming') {
+            } else if (card.type === 'friends_loved' || card.type === 'coming_soon' || card.type === 'now_streaming') {
               // Database data: media.id is already formatted as tv-12345
               rawId = card.data?.media?.id || null
             }
             
-            // Normalize to base ID (strip season suffix)
-            return rawId ? normalizeMediaId(rawId) : null
+            // Ensure rawId is a string before calling replace
+            if (!rawId || typeof rawId !== 'string') return null
+            return normalizeMediaId(rawId)
           }
           
           // Helper to get card from bucket by type, skipping duplicates
@@ -1365,11 +1366,18 @@ export default function PreviewFeedLivePage() {
         } else if (card.type === 'because_you_liked') {
           const media = card.data?.media
           if (media) rawId = `${media.media_type || 'tv'}-${media.id}`
-        } else if (card.type === 'you_might_like' || card.type === 'friends_loved') {
+        } else if (card.type === 'you_might_like') {
+          // TMDB trending data has numeric id and media_type
+          const media = card.data?.media
+          if (media) rawId = `${media.media_type || 'tv'}-${media.id}`
+        } else if (card.type === 'friends_loved') {
+          // Database data already has formatted id like 'tv-12345'
           rawId = card.data?.media?.id || null
         }
         
-        return rawId ? normalizeMediaId(rawId) : null
+        // Ensure rawId is a string before calling replace
+        if (!rawId || typeof rawId !== 'string') return null
+        return normalizeMediaId(rawId)
       }
       
       // Fetch excluded media IDs (user's own content + already shown in feed)
@@ -2857,7 +2865,7 @@ export default function PreviewFeedLivePage() {
                   id: f.id,
                   name: f.display_name,
                   username: '',
-                  avatar: f.avatar_url || ''
+                  avatar: f.avatar_url || null  // Pass null to trigger initials fallback
                 })),
                 count: friendCount,
                 text: `${friendCount} friends loved this`

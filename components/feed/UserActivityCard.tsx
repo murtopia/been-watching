@@ -64,7 +64,7 @@ export interface FeedCardData {
   id: string
   media: FeedCardMedia
   friends: {
-    avatars: Array<{ id: string; name: string; username: string; avatar: string }>
+    avatars: Array<{ id: string; name: string; username: string; avatar: string | null }>
     count: number
     text: string
   }
@@ -248,7 +248,7 @@ export const BADGE_PRESETS = {
   
   // Alias for uppercase naming convention
   FRIENDS_LOVED: (count?: number): FeedCardBadge => ({
-    text: count ? `${count} Friends Loved This` : 'Your Friends Loved',
+    text: 'Your Friends Loved This',
     icon: 'heart',
     color: 'rgba(236, 72, 153, 0.25)',
     borderColor: 'rgba(236, 72, 153, 0.5)',
@@ -2233,9 +2233,42 @@ export const FeedCard: React.FC<FeedCardProps> = ({
               {/* Friend Avatars */}
               <div className="friend-avatars">
                 <div className="friend-avatars-stack">
-                  {data.friends.avatars.slice(0, 3).map((friend) => (
-                    <img key={friend.id} src={friend.avatar} alt={friend.name} />
-                  ))}
+                  {data.friends.avatars.slice(0, 3).map((friend) => {
+                    const avatarProps = getAvatarProps(friend.avatar, friend.name, friend.id)
+                    return avatarProps.hasImage ? (
+                      <img 
+                        key={friend.id} 
+                        src={avatarProps.imageSrc!} 
+                        alt={friend.name}
+                        onError={(e) => {
+                          // On image load error, replace with initials
+                          const target = e.target as HTMLImageElement
+                          target.style.display = 'none'
+                          const initialsEl = target.nextElementSibling as HTMLElement
+                          if (initialsEl) initialsEl.style.display = 'flex'
+                        }}
+                      />
+                    ) : (
+                      <div 
+                        key={friend.id}
+                        className="avatar-initials"
+                        style={{ 
+                          background: avatarProps.backgroundGradient,
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '10px',
+                          fontWeight: 600,
+                          color: 'white'
+                        }}
+                      >
+                        {avatarProps.initials}
+                      </div>
+                    )
+                  })}
                 </div>
                 <div className="friend-count">{data.friends.text}</div>
               </div>
@@ -2257,24 +2290,6 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                     />
                   </button>
                   <div className="action-count">{localLikeCount}</div>
-                </div>
-              )}
-
-              {/* Dismiss Button - Only for Template B (recommendation cards) */}
-              {variant === 'b' && !isUnreleased && onDismissRecommendation && (
-                <div>
-                  <button 
-                    className="action-btn dismiss-btn" 
-                    onClick={() => {
-                      const mediaId = ('media' in data && (data as FeedCardData).media?.id) || ''
-                      if (mediaId) {
-                        onDismissRecommendation(mediaId)
-                      }
-                    }}
-                    title="Not interested"
-                  >
-                    <Icon name="close" state="default" size={20} />
-                  </button>
                 </div>
               )}
 
@@ -2317,6 +2332,24 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                 <div>
                   <button className="action-btn" onClick={onRemindMe}>
                     <Icon name="bell" state="default" size={24} />
+                  </button>
+                </div>
+              )}
+
+              {/* Dismiss Button - Only for Template B (recommendation cards) */}
+              {variant === 'b' && !isUnreleased && onDismissRecommendation && (
+                <div>
+                  <button 
+                    className="action-btn dismiss-btn" 
+                    onClick={() => {
+                      const mediaId = ('media' in data && (data as FeedCardData).media?.id) || ''
+                      if (mediaId) {
+                        onDismissRecommendation(mediaId)
+                      }
+                    }}
+                    title="Not interested"
+                  >
+                    <Icon name="close" state="default" size={20} />
                   </button>
                 </div>
               )}
