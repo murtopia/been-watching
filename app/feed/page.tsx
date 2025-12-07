@@ -1275,12 +1275,12 @@ export default function PreviewFeedLivePage() {
           .lt('created_at', cursor)
           .order('created_at', { ascending: false })
           .limit(LOAD_MORE_BATCH_SIZE),
-        // Card 2: Because You Liked
-        fetchBecauseYouLiked(supabase, user.id, excludedMediaIds, 2),
+        // Card 2: Because You Liked (fetch more for fallback when activities run out)
+        fetchBecauseYouLiked(supabase, user.id, excludedMediaIds, 5),
         // Card 3: Friends Loved
-        fetchFriendsLoved(supabase, user.id, excludedMediaIds, 2),
+        fetchFriendsLoved(supabase, user.id, excludedMediaIds, 5),
         // Card 8: You Might Like
-        fetchYouMightLike(supabase, user.id, excludedMediaIds, 2),
+        fetchYouMightLike(supabase, user.id, excludedMediaIds, 5),
         // Card 7: Follow Suggestions
         fetchUserSuggestions()
       ])
