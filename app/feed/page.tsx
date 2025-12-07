@@ -50,8 +50,8 @@ import {
 } from '@/utils/analytics'
 
 // Initial batch size and load more batch size
-const INITIAL_BATCH_SIZE = 10
-const LOAD_MORE_BATCH_SIZE = 10
+const INITIAL_BATCH_SIZE = 5
+const LOAD_MORE_BATCH_SIZE = 5
 
 // Time window for grouping activities (5 minutes in milliseconds)
 // This groups rating + status changes that happen close together
@@ -698,6 +698,9 @@ export default function PreviewFeedLivePage() {
   const [dismissedUsers, setDismissedUsers] = useState<Set<string>>(new Set())
   const followSuggestionsCount = useRef(0) // Track how many times we've shown the card
   
+  // Track media IDs shown in feed (persist across infinite scroll loads)
+  const shownMediaIds = useRef<Set<string>>(new Set())
+  
   const supabase = createClient()
   
   // Scroll to top on page load (prevents scroll restoration putting content behind header)
@@ -1100,6 +1103,10 @@ export default function PreviewFeedLivePage() {
           
           console.log('🎯 Final feed built with', finalFeed.length, 'cards')
           
+          // Track all media IDs shown in this session (for infinite scroll deduplication)
+          shownMediaIds.current = new Set(usedMediaIds)
+          console.log('📝 Tracking', shownMediaIds.current.size, 'media IDs for deduplication')
+          
           setFeedItems(finalFeed)
           setLoading(false)
           return
@@ -1361,10 +1368,45 @@ export default function PreviewFeedLivePage() {
         }
       }
       
-      // Append new items to existing feed (with deduplication)
+      // Normalize media ID helper (same as initial load)
+      const normalizeMediaId = (mediaId: string): string => {
+        return mediaId.replace(/-s\d+$/, '')
+      }
+      
+      // Extract media ID from item
+      const getItemMediaId = (item: FeedItem): string | null => {
+        if (item.type === 'activity') {
+          const rawId = item.data?.activity?.media_id
+          return rawId ? normalizeMediaId(rawId) : null
+        }
+        return null
+      }
+      
+      // Append new items to existing feed (with cross-media deduplication)
       setFeedItems(prev => {
         const existingIds = new Set(prev.map(item => item.id))
-        const uniqueNewItems = itemsToAdd.filter(item => !existingIds.has(item.id))
+        
+        // Filter out duplicates by item.id AND by media_id
+        const uniqueNewItems = itemsToAdd.filter(item => {
+          // Skip if item.id already exists
+          if (existingIds.has(item.id)) return false
+          
+          // Skip if this media has already been shown (any card type)
+          const mediaId = getItemMediaId(item)
+          if (mediaId && shownMediaIds.current.has(mediaId)) {
+            console.log(`⏭️ Skipping duplicate media in loadMore: ${mediaId}`)
+            return false
+          }
+          
+          // Track this media as shown
+          if (mediaId) {
+            shownMediaIds.current.add(mediaId)
+          }
+          
+          return true
+        })
+        
+        console.log(`Adding ${uniqueNewItems.length} unique items (filtered ${itemsToAdd.length - uniqueNewItems.length} duplicates)`)
         return [...prev, ...uniqueNewItems]
       })
       console.log(`Loaded ${itemsToAdd.length} more items (deduplicated)`)
