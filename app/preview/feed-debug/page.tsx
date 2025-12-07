@@ -124,7 +124,7 @@ export default function FeedDebugPage() {
         `)
         .neq('user_id', authUser.id)
         .order('created_at', { ascending: false })
-        .limit(10)
+        .limit(5) // Match main feed INITIAL_BATCH_SIZE
       
       const actTime = Date.now() - actStart
       addLog(`Activities: ${activities?.length || 0} in ${actTime}ms`)
