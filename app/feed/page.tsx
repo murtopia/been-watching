@@ -1090,6 +1090,83 @@ export default function PreviewFeedLivePage() {
             }] : []
           }
           
+          // =====================================================
+          // Bucket-level deduplication: Ensure no show appears in multiple buckets
+          // Priority: activities > becauseYouLiked > friendsLoved > comingSoon > nowStreaming > youMightLike
+          // =====================================================
+          const seenInBuckets = new Set<string>()
+          
+          // Helper to get normalized media ID from card
+          const getCardMediaId = (card: FeedItem): string | null => {
+            let rawId: string | null = null
+            if (card.type === 'activity') {
+              rawId = card.data?.activity?.media_id || null
+            } else if (card.type === 'because_you_liked' || card.type === 'you_might_like') {
+              const media = card.data?.media
+              if (media) rawId = `${media.media_type || 'tv'}-${String(media.id)}`
+            } else if (card.type === 'friends_loved' || card.type === 'coming_soon' || card.type === 'now_streaming') {
+              rawId = card.data?.media?.id ? String(card.data.media.id) : null
+            }
+            if (!rawId) return null
+            return rawId.replace(/-s\d+$/, '') // Normalize: remove season suffix
+          }
+          
+          // Mark activity media IDs as seen first (highest priority)
+          buckets.activities.forEach(card => {
+            const mediaId = getCardMediaId(card)
+            if (mediaId) seenInBuckets.add(mediaId)
+          })
+          
+          // Dedupe becauseYouLiked, then add to seen
+          buckets.becauseYouLiked = buckets.becauseYouLiked.filter(card => {
+            const mediaId = getCardMediaId(card)
+            if (!mediaId || seenInBuckets.has(mediaId)) return false
+            seenInBuckets.add(mediaId)
+            return true
+          })
+          
+          // Dedupe friendsLoved, then add to seen
+          buckets.friendsLoved = buckets.friendsLoved.filter(card => {
+            const mediaId = getCardMediaId(card)
+            if (!mediaId || seenInBuckets.has(mediaId)) return false
+            seenInBuckets.add(mediaId)
+            return true
+          })
+          
+          // Dedupe comingSoon, then add to seen
+          buckets.comingSoon = buckets.comingSoon.filter(card => {
+            const mediaId = getCardMediaId(card)
+            if (!mediaId || seenInBuckets.has(mediaId)) return false
+            seenInBuckets.add(mediaId)
+            return true
+          })
+          
+          // Dedupe nowStreaming, then add to seen
+          buckets.nowStreaming = buckets.nowStreaming.filter(card => {
+            const mediaId = getCardMediaId(card)
+            if (!mediaId || seenInBuckets.has(mediaId)) return false
+            seenInBuckets.add(mediaId)
+            return true
+          })
+          
+          // Dedupe youMightLike (last priority)
+          buckets.youMightLike = buckets.youMightLike.filter(card => {
+            const mediaId = getCardMediaId(card)
+            if (!mediaId || seenInBuckets.has(mediaId)) return false
+            seenInBuckets.add(mediaId)
+            return true
+          })
+          
+          console.log('🧹 After bucket deduplication:', {
+            activities: buckets.activities.length,
+            becauseYouLiked: buckets.becauseYouLiked.length,
+            friendsLoved: buckets.friendsLoved.length,
+            comingSoon: buckets.comingSoon.length,
+            nowStreaming: buckets.nowStreaming.length,
+            youMightLike: buckets.youMightLike.length,
+            uniqueShows: seenInBuckets.size
+          })
+          
           // Track media IDs already in feed to prevent duplicates
           const usedMediaIds = new Set<string>()
           
@@ -1111,11 +1188,12 @@ export default function PreviewFeedLivePage() {
               // TMDB trending data: media.id is numeric (12345), need to construct
               const media = card.data?.media
               if (media) {
-                rawId = `${media.media_type || 'tv'}-${media.id}`
+                // Force string conversion of media.id to ensure consistent comparison
+                rawId = `${media.media_type || 'tv'}-${String(media.id)}`
               }
             } else if (card.type === 'friends_loved' || card.type === 'coming_soon' || card.type === 'now_streaming') {
               // Database data: media.id is already formatted as tv-12345
-              rawId = card.data?.media?.id || null
+              rawId = card.data?.media?.id ? String(card.data.media.id) : null
             }
             
             // Ensure rawId is a string before calling replace
@@ -1150,10 +1228,13 @@ export default function PreviewFeedLivePage() {
               const mediaId = getMediaId(card)
               
               if (!mediaId || !usedMediaIds.has(mediaId)) {
-                if (mediaId) usedMediaIds.add(mediaId)
+                if (mediaId) {
+                  usedMediaIds.add(mediaId)
+                  console.log(`✅ Added card type ${cardType}: ${mediaId} (${card.data?.media?.title || card.data?.media?.name || 'unknown'})`)
+                }
                 return card
               }
-              console.log(`⏭️ Skipping duplicate: ${mediaId}`)
+              console.log(`⏭️ Skipping duplicate ${cardType}: ${mediaId} (already in feed)`)
             }
             
             return null
