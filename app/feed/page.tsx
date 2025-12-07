@@ -1073,7 +1073,7 @@ export default function PreviewFeedLivePage() {
                    buckets.findFriends.length > 0
           }
           
-          while (hasMoreContent() && finalFeed.length < 50) { // Cap at 50 for initial load
+          while (hasMoreContent() && finalFeed.length < INITIAL_BATCH_SIZE) { // Cap at 5 for initial load
             positionCounter++
             
             // Insert bonus card (4/5) every Nth position

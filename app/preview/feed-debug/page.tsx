@@ -549,7 +549,7 @@ export default function FeedDebugPage() {
                buckets.findFriends.length > 0
       }
       
-      while (hasMoreContent() && finalFeed.length < 50) {
+      while (hasMoreContent() && finalFeed.length < 5) { // Cap at 5 for initial load
         positionCounter++
         
         // Insert bonus card (4/5) every Nth position
