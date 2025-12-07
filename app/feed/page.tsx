@@ -389,14 +389,24 @@ async function fetchBecauseYouLiked(
       fetch('/api/tmdb/trending/movie/week').then(r => r.ok ? r.json() : { results: [] }).catch(() => ({ results: [] }))
     ])
     
-    // Combine and filter trending shows by user's genres
+    // Combine trending shows
     const allTrending = [
       ...(tvTrending.results || []).map((s: any) => ({ ...s, media_type: 'tv' })),
       ...(movieTrending.results || []).map((s: any) => ({ ...s, media_type: 'movie' }))
     ]
     
-    // Filter to shows that match user's preferred genres
+    // Get cutoff date for 12-month recency filter
+    const cutoffDate = getRecencyCutoffDate()
+    
+    // Filter to:
+    // 1. Shows released in last 12 months (fresh content)
+    // 2. Shows matching user's preferred genres (personalized)
     const personalizedTrending = allTrending.filter((show: any) => {
+      // Check recency - must be from last 12 months
+      const releaseDate = show.first_air_date || show.release_date || ''
+      if (releaseDate < cutoffDate) return false
+      
+      // Check genre match
       const showGenres = show.genre_ids || []
       return showGenres.some((g: number) => userGenres.has(g))
     })
@@ -727,10 +737,17 @@ async function fetchYouMightLike(
     ])
     
     // Combine all trending (no genre filter - this is discovery mode)
-    const allTrending = [
+    const allTrendingRaw = [
       ...(tvTrending.results || []).map((s: any) => ({ ...s, media_type: 'tv' })),
       ...(movieTrending.results || []).map((s: any) => ({ ...s, media_type: 'movie' }))
     ]
+    
+    // Filter to shows from last 12 months only (fresh content)
+    const cutoffDate = getRecencyCutoffDate()
+    const allTrending = allTrendingRaw.filter((show: any) => {
+      const releaseDate = show.first_air_date || show.release_date || ''
+      return releaseDate >= cutoffDate
+    })
     
     // Sort by popularity (TMDB trending is already sorted, but let's ensure)
     allTrending.sort((a: any, b: any) => (b.popularity || 0) - (a.popularity || 0))
@@ -3051,10 +3068,10 @@ export default function PreviewFeedLivePage() {
           if (item.type === 'you_might_like') {
             const { media, matchPercentage, similarUsers } = item.data as YouMightLikeData
             
-            const releaseYear = parseInt((media.release_date || '').substring(0, 4)) || new Date().getFullYear()
+            const releaseYear = parseInt((media.first_air_date || media.release_date || '').substring(0, 4)) || new Date().getFullYear()
             const mediaTypeVal = media.media_type || 'tv'
-            // Get genres from tmdb_data (database records have genres as objects with name)
-            const genreNames = media.tmdb_data?.genres?.map((g: any) => g.name).slice(0, 2) || []
+            // TMDB trending data has genre_ids (numbers), map to names
+            const genreNames = mapGenreIds(media.genre_ids)
             const cardData: FeedCardData = {
               id: item.id,
               media: {

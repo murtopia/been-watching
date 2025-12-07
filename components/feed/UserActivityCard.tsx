@@ -560,17 +560,23 @@ export const FeedCard: React.FC<FeedCardProps> = ({
     const fetchTrailer = async () => {
       setTrailerLoading(true)
       try {
-        // Extract TMDB ID from media ID (format: tv-12345-s1 or movie-12345)
+        // Extract TMDB ID from media ID
+        // Formats: "tv-12345-s1", "movie-12345", or just a number (from TMDB trending)
         const mediaId = data.media.id
         let tmdbId: number | null = null
         const mediaType = data.media.mediaType.toLowerCase()
         
-        if (mediaType === 'tv') {
-          const match = mediaId.match(/^tv-(\d+)/)
-          if (match) tmdbId = parseInt(match[1])
-        } else {
-          const match = mediaId.match(/^movie-(\d+)/)
-          if (match) tmdbId = parseInt(match[1])
+        // Handle both string and number formats
+        if (typeof mediaId === 'number') {
+          tmdbId = mediaId
+        } else if (typeof mediaId === 'string') {
+          if (mediaType === 'tv') {
+            const match = mediaId.match(/^tv-(\d+)/)
+            if (match) tmdbId = parseInt(match[1])
+          } else {
+            const match = mediaId.match(/^movie-(\d+)/)
+            if (match) tmdbId = parseInt(match[1])
+          }
         }
 
         if (!tmdbId) {
