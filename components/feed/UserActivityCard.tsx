@@ -1152,6 +1152,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           display: flex;
           gap: 8px;
           margin-bottom: 12px;
+          max-width: calc(100% - 70px); /* Leave room for side action icons */
         }
 
         .activity-badge {
@@ -1164,6 +1165,14 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           gap: 6px;
           backdrop-filter: blur(10px);
           -webkit-backdrop-filter: blur(10px);
+          max-width: 100%;
+          overflow: hidden;
+        }
+        
+        .activity-badge span {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
 
         /* Show info */
@@ -2230,10 +2239,16 @@ export const FeedCard: React.FC<FeedCardProps> = ({
               <div className="show-meta">
                 {data.media.year} <span className="meta-dot">•</span>{' '}
                 {data.media.genres.join(' ')} <span className="meta-dot">•</span>{' '}
-                <span style={{ display: 'inline-block', transform: 'translateY(-2px)' }}>
-                  <Icon name="star-gold" size={14} />
-                </span>{' '}
-                {data.media.rating}
+                {data.media.rating > 0 ? (
+                  <>
+                    <span style={{ display: 'inline-block', transform: 'translateY(-2px)' }}>
+                      <Icon name="star-gold" size={14} />
+                    </span>{' '}
+                    {data.media.rating.toFixed(1)}
+                  </>
+                ) : (
+                  <span style={{ opacity: 0.6 }}>New</span>
+                )}
               </div>
 
               {/* Friend Avatars */}
@@ -2556,7 +2571,13 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                   <span>{data.media.genres.join(', ')}</span>
                   <span className="meta-dot">•</span>
                   <span className="back-rating" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                    <Icon name="star-gold" size={14} /> {data.media.rating}
+                    {data.media.rating > 0 ? (
+                      <>
+                        <Icon name="star-gold" size={14} /> {data.media.rating.toFixed(1)}
+                      </>
+                    ) : (
+                      <span style={{ opacity: 0.6 }}>New</span>
+                    )}
                   </span>
                 </div>
 
