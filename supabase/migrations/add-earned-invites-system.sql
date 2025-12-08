@@ -26,7 +26,7 @@ DECLARE
 BEGIN
   -- Count total shows across all watchlists
   SELECT COUNT(*) INTO total_shows
-  FROM user_shows
+  FROM watch_status
   WHERE user_id = target_user_id;
 
   -- Calculate current milestone tier (every 10 shows)
@@ -78,10 +78,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 4. Create trigger on user_shows table
-DROP TRIGGER IF EXISTS check_watchlist_milestone_on_insert ON user_shows;
+-- 4. Create trigger on watch_status table
+DROP TRIGGER IF EXISTS check_watchlist_milestone_on_insert ON watch_status;
 CREATE TRIGGER check_watchlist_milestone_on_insert
-  AFTER INSERT ON user_shows
+  AFTER INSERT ON watch_status
   FOR EACH ROW
   EXECUTE FUNCTION trigger_check_watchlist_milestone();
 
@@ -175,7 +175,7 @@ BEGIN
 
   -- Count total shows
   SELECT COUNT(*) INTO total_shows
-  FROM user_shows
+  FROM watch_status
   WHERE user_id = target_user_id;
 
   -- Calculate progress to next milestone
