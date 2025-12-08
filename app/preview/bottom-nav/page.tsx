@@ -132,143 +132,86 @@ export default function BottomNavPreview() {
         </div>
       )}
 
-      {/* NEW BOTTOM NAV - SVG-based */}
+      {/* NEW BOTTOM NAV - Minimal: just 3 elements */}
       <nav style={{
         position: 'fixed',
         bottom: '24px',
         left: '50%',
         transform: 'translateX(-50%)',
-        zIndex: 100
+        zIndex: 100,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px'
       }}>
-        {/* 
-          Dimensions calculated from inner elements:
-          - HOME/SHOWS buttons: 100px wide, ~48px tall
-          - Plus button: 64px, outer ring ~80px
-          - Padding: 8px around buttons
-          - Total pill width: 8 + 100 + 8 + 64 + 8 + 100 + 8 = 296px → 300px
-          - Pill body height: 8 + 48 + 8 = 64px
-          - Circle extends 8px above/below → total height: 80px
-        */}
-        <div style={{ position: 'relative', width: '296px', height: '80px' }}>
-          {/* SVG outer shape - pill with center circle bump */}
-          <svg 
-            width="296" 
-            height="80" 
-            viewBox="0 0 296 80" 
-            style={{ position: 'absolute', top: 0, left: 0 }}
-          >
-            {/* 
-              Pill body: y=8 to y=72 (64px tall)
-              Circle: center at (148, 40), radius 40 → y=0 to y=80
-              At y=8: x = 148 ± √(1600 - 1024) = 148 ± 24 = 124 and 172
-              At y=72: same intersection points
-            */}
-            <path 
-              d={`
-                M 32, 8
-                L 124, 8
-                A 40,40 0 0 0 148, 0
-                A 40,40 0 0 0 172, 8
-                L 264, 8
-                A 24,24 0 0 1 288, 32
-                L 288, 48
-                A 24,24 0 0 1 264, 72
-                L 172, 72
-                A 40,40 0 0 0 148, 80
-                A 40,40 0 0 0 124, 72
-                L 32, 72
-                A 24,24 0 0 1 8, 48
-                L 8, 32
-                A 24,24 0 0 1 32, 8
-                Z
-              `}
-              fill="rgba(30, 30, 40, 0.85)"
-              stroke="rgba(255, 255, 255, 0.1)"
-              strokeWidth="1"
-            />
-          </svg>
+        {/* HOME Button */}
+        <button
+          onClick={() => handleNavClick('/feed')}
+          style={{
+            width: '100px',
+            background: 'rgba(60, 60, 70, 0.6)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            borderRadius: '24px',
+            padding: '14px 0',
+            color: 'rgba(255, 255, 255, 0.9)',
+            fontSize: '14px',
+            fontWeight: 600,
+            letterSpacing: '1px',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            textAlign: 'center'
+          }}
+        >
+          HOME
+        </button>
 
-          {/* Content layer */}
-          <div style={{
-            position: 'relative',
-            zIndex: 5,
+        {/* Plus Button */}
+        <button
+          onClick={() => handleNavClick('search')}
+          style={{
+            width: '64px',
+            height: '64px',
+            borderRadius: '50%',
+            background: 'rgba(60, 60, 70, 0.6)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            color: 'rgba(255, 255, 255, 0.95)',
+            fontSize: '28px',
+            fontWeight: 300,
+            cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '16px 12px',
-            height: '100%',
-            boxSizing: 'border-box'
-          }}>
-            {/* HOME Button */}
-            <button
-              onClick={() => handleNavClick('/feed')}
-              style={{
-                width: '100px',
-                background: 'rgba(60, 60, 70, 0.6)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                borderRadius: '24px',
-                padding: '12px 0',
-                color: 'rgba(255, 255, 255, 0.9)',
-                fontSize: '14px',
-                fontWeight: 600,
-                letterSpacing: '1px',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                textAlign: 'center'
-              }}
-            >
-              HOME
-            </button>
+            justifyContent: 'center',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          +
+        </button>
 
-            {/* SHOWS Button */}
-            <button
-              onClick={() => handleNavClick('/myshows')}
-              style={{
-                width: '100px',
-                background: 'rgba(60, 60, 70, 0.6)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                borderRadius: '24px',
-                padding: '12px 0',
-                color: 'rgba(255, 255, 255, 0.9)',
-                fontSize: '14px',
-                fontWeight: 600,
-                letterSpacing: '1px',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                textAlign: 'center'
-              }}
-            >
-              SHOWS
-            </button>
-          </div>
-
-          {/* Plus Button - centered */}
-          <button
-            onClick={() => handleNavClick('search')}
-            style={{
-              position: 'absolute',
-              left: '50%',
-              top: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: '64px',
-              height: '64px',
-              borderRadius: '50%',
-              background: 'rgba(60, 60, 70, 0.6)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              color: 'rgba(255, 255, 255, 0.95)',
-              fontSize: '28px',
-              fontWeight: 300,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.2s ease',
-              zIndex: 10
-            }}
-          >
-            +
-          </button>
-        </div>
+        {/* SHOWS Button */}
+        <button
+          onClick={() => handleNavClick('/myshows')}
+          style={{
+            width: '100px',
+            background: 'rgba(60, 60, 70, 0.6)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            borderRadius: '24px',
+            padding: '14px 0',
+            color: 'rgba(255, 255, 255, 0.9)',
+            fontSize: '14px',
+            fontWeight: 600,
+            letterSpacing: '1px',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            textAlign: 'center'
+          }}
+        >
+          SHOWS
+        </button>
       </nav>
     </div>
   )
