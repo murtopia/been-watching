@@ -1041,24 +1041,37 @@ export default function PreviewFeedLivePage() {
               const likeCount = activityLikes?.length || 0
               
               // Fetch user's rating and watch status for this media
+              // Try both exact media_id AND base ID (without season suffix) to handle format mismatches
               let userRating: string | null = null
               let userStatus: string | null = null
               
               if (user && activity.media_id) {
+                // Build list of IDs to check (exact match first, then base ID without season)
+                const idsToCheck = [activity.media_id]
+                if (activity.media_id.includes('-s')) {
+                  // Also check base ID without season suffix (tv-12345-s1 → tv-12345)
+                  const baseId = activity.media_id.replace(/-s\d+$/, '')
+                  idsToCheck.push(baseId)
+                }
+                
+                // Check ratings with both IDs
                 const { data: ratingData } = await supabase
                   .from('ratings')
                   .select('rating')
                   .eq('user_id', user.id)
-                  .eq('media_id', activity.media_id)
+                  .in('media_id', idsToCheck)
+                  .limit(1)
                   .maybeSingle()
                 
                 userRating = ratingData?.rating || null
                 
+                // Check watch_status with both IDs
                 const { data: statusData } = await supabase
                   .from('watch_status')
                   .select('status')
                   .eq('user_id', user.id)
-                  .eq('media_id', activity.media_id)
+                  .in('media_id', idsToCheck)
+                  .limit(1)
                   .maybeSingle()
                 
                 userStatus = statusData?.status || null
@@ -1470,15 +1483,24 @@ export default function PreviewFeedLivePage() {
           const likeCount = activityLikes?.length || 0
           
           // Fetch user's rating and watch status for this media
+          // Try both exact media_id AND base ID (without season suffix) to handle format mismatches
           let userRating: string | null = null
           let userStatus: string | null = null
           
           if (user && item.media?.id) {
+            // Build list of IDs to check (exact match first, then base ID without season)
+            const idsToCheck = [item.media.id]
+            if (item.media.id.includes('-s')) {
+              const baseId = item.media.id.replace(/-s\d+$/, '')
+              idsToCheck.push(baseId)
+            }
+            
             const { data: ratingData } = await supabase
               .from('ratings')
               .select('rating')
               .eq('user_id', user.id)
-              .eq('media_id', item.media.id)
+              .in('media_id', idsToCheck)
+              .limit(1)
               .maybeSingle()
             
             userRating = ratingData?.rating || null
@@ -1487,7 +1509,8 @@ export default function PreviewFeedLivePage() {
               .from('watch_status')
               .select('status')
               .eq('user_id', user.id)
-              .eq('media_id', item.media.id)
+              .in('media_id', idsToCheck)
+              .limit(1)
               .maybeSingle()
             
             userStatus = statusData?.status || null
@@ -1642,9 +1665,16 @@ export default function PreviewFeedLivePage() {
           let userStatus: string | null = null
           
           if (activity.media_id) {
+            // Build list of IDs to check (exact match first, then base ID without season)
+            const idsToCheck = [activity.media_id]
+            if (activity.media_id.includes('-s')) {
+              const baseId = activity.media_id.replace(/-s\d+$/, '')
+              idsToCheck.push(baseId)
+            }
+            
             const [ratingData, statusData] = await Promise.all([
-              supabase.from('ratings').select('rating').eq('user_id', user.id).eq('media_id', activity.media_id).maybeSingle(),
-              supabase.from('watch_status').select('status').eq('user_id', user.id).eq('media_id', activity.media_id).maybeSingle()
+              supabase.from('ratings').select('rating').eq('user_id', user.id).in('media_id', idsToCheck).limit(1).maybeSingle(),
+              supabase.from('watch_status').select('status').eq('user_id', user.id).in('media_id', idsToCheck).limit(1).maybeSingle()
             ])
             userRating = ratingData.data?.rating || null
             userStatus = statusData.data?.status || null
