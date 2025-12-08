@@ -1,58 +1,87 @@
 'use client'
 
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 export default function BottomNav({ onSearchOpen }: { onSearchOpen?: () => void }) {
-  const pathname = usePathname()
   const router = useRouter()
 
-  const tabs = [
-    { id: 'feed', label: '🏠 Feed', path: '/' },
-    { id: 'search', label: '+', path: null },
-    { id: 'myshows', label: '📚 My Shows', path: '/myshows' },
-  ]
-
-  const handleTabClick = (tab: typeof tabs[0]) => {
-    if (tab.id === 'search') {
+  const handleNavClick = (action: string) => {
+    if (action === 'search') {
       onSearchOpen?.()
-    } else if (tab.path) {
-      router.push(tab.path)
+    } else {
+      router.push(action)
     }
   }
 
+  const pillButtonStyle: React.CSSProperties = {
+    width: '100px',
+    background: 'rgba(60, 60, 70, 0.6)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
+    borderRadius: '24px',
+    padding: '14px 0',
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: '14px',
+    fontWeight: 600,
+    letterSpacing: '1px',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    textAlign: 'center'
+  }
+
+  const plusButtonStyle: React.CSSProperties = {
+    width: '64px',
+    height: '64px',
+    borderRadius: '50%',
+    background: 'rgba(60, 60, 70, 0.6)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
+    color: 'rgba(255, 255, 255, 0.95)',
+    fontSize: '28px',
+    fontWeight: 300,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.2s ease'
+  }
+
   return (
-    <nav
-      className="tab-bar"
-      style={{
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)'
-      }}
-    >
-      {tabs.map((tab) => {
-        const isActive = tab.path === pathname
+    <nav style={{
+      position: 'fixed',
+      bottom: '24px',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      zIndex: 100,
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px'
+    }}>
+      {/* HOME Button */}
+      <button
+        onClick={() => handleNavClick('/feed')}
+        style={pillButtonStyle}
+      >
+        HOME
+      </button>
 
-        if (tab.id === 'search') {
-          return (
-            <button
-              key={tab.id}
-              onClick={() => handleTabClick(tab)}
-              className="tab-add"
-            >
-              {tab.label}
-            </button>
-          )
-        }
+      {/* Plus Button */}
+      <button
+        onClick={() => handleNavClick('search')}
+        style={plusButtonStyle}
+      >
+        +
+      </button>
 
-        return (
-          <button
-            key={tab.id}
-            onClick={() => handleTabClick(tab)}
-            className={`tab-item ${isActive ? 'active' : ''}`}
-          >
-            {tab.label}
-          </button>
-        )
-      })}
+      {/* SHOWS Button */}
+      <button
+        onClick={() => handleNavClick('/myshows')}
+        style={pillButtonStyle}
+      >
+        SHOWS
+      </button>
     </nav>
   )
 }
