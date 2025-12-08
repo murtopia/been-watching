@@ -2103,8 +2103,18 @@ export default function PreviewFeedLivePage() {
   const normalizePlatformName = (name: string): string | null => {
     if (!name) return null
     
+    const lowerName = name.toLowerCase()
+    
     // Filter out channel variations (Apple TV Channel, Amazon Channel, Roku Channel, etc.)
-    if (name.toLowerCase().includes('channel')) {
+    if (lowerName.includes('channel')) {
+      return null
+    }
+    
+    // Filter out UK/International-only networks that shouldn't appear for US users
+    // These sometimes appear in TMDB's US results incorrectly
+    const ukNetworks = ['sky atlantic', 'sky', 'itv', 'bbc', 'channel 4', 'channel 5', 'now tv']
+    if (ukNetworks.some(uk => lowerName.includes(uk))) {
+      console.log(`Filtering out UK network: ${name}`)
       return null
     }
     
@@ -2188,6 +2198,29 @@ export default function PreviewFeedLivePage() {
           if (daysSinceRelease >= 0 && daysSinceRelease <= 120) {
             console.log(`fetchWatchProviders: Movie "${mediaId}" is recent (${Math.round(daysSinceRelease)} days old), showing "In Theaters"`)
             return ['In Theaters']
+          }
+        }
+        
+        // For TV shows with no streaming, try to get the network from TMDB details
+        if (mediaType === 'tv') {
+          try {
+            const detailsResponse = await fetch(`/api/tmdb/tv/${tmdbId}`)
+            if (detailsResponse.ok) {
+              const details = await detailsResponse.json()
+              const networks = details.networks || []
+              // Get the first US network, or first network if none are US
+              const primaryNetwork = networks.find((n: any) => 
+                ['NBC', 'CBS', 'ABC', 'FOX', 'The CW', 'FX', 'AMC', 'HBO', 'Showtime', 'Starz', 'Peacock', 'Netflix', 'Hulu', 'Disney+', 'Apple TV+', 'Amazon Prime Video', 'Max', 'Paramount+']
+                  .some(us => n.name?.includes(us))
+              ) || networks[0]
+              
+              if (primaryNetwork?.name) {
+                console.log(`fetchWatchProviders: Using TV network "${primaryNetwork.name}" for ${mediaId}`)
+                return [primaryNetwork.name]
+              }
+            }
+          } catch (e) {
+            console.log('Error fetching TV network details:', e)
           }
         }
         
