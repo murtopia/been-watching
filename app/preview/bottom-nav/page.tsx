@@ -142,7 +142,21 @@ export default function BottomNavPreview() {
       }}>
         {/* Outer container wrapper */}
         <div style={{ position: 'relative' }}>
-          {/* Main pill container */}
+          {/* Center circle outline - BEHIND the pill, only top/bottom arcs visible */}
+          <div style={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '80px',
+            height: '80px',
+            borderRadius: '50%',
+            background: 'rgba(30, 30, 40, 0.8)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            zIndex: 1
+          }} />
+
+          {/* Main pill container - ON TOP to cover circle's inner border */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -153,7 +167,8 @@ export default function BottomNavPreview() {
             border: '1px solid rgba(255, 255, 255, 0.1)',
             borderRadius: '40px',
             padding: '8px',
-            position: 'relative'
+            position: 'relative',
+            zIndex: 5
           }}>
             {/* HOME Button */}
             <button
@@ -200,32 +215,6 @@ export default function BottomNavPreview() {
               SHOWS
             </button>
           </div>
-
-          {/* Mask to hide pill border where circle meets it */}
-          <div style={{
-            position: 'absolute',
-            left: '50%',
-            top: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '70px',
-            height: '100%',
-            background: 'rgba(30, 30, 40, 0.8)',
-            zIndex: 2
-          }} />
-
-          {/* Center circle outline - joins with pill */}
-          <div style={{
-            position: 'absolute',
-            left: '50%',
-            top: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '80px',
-            height: '80px',
-            borderRadius: '50%',
-            background: 'rgba(30, 30, 40, 0.8)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            zIndex: 1
-          }} />
 
           {/* Plus Button */}
           <button
