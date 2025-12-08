@@ -85,7 +85,7 @@ export default function Footer({ variant = 'full' }: FooterProps) {
             color: colors.textSecondary,
             lineHeight: '1.6'
           }}>
-            Track what you've been watching. Share your favorites. Discover what's next.
+            Track. Share. Discover what's next.
           </p>
         </div>
 
@@ -205,16 +205,9 @@ export default function Footer({ variant = 'full' }: FooterProps) {
         }}>
           <div style={{
             fontSize: '0.8125rem',
-            color: colors.textSecondary,
-            marginBottom: '0.5rem'
-          }}>
-            © {currentYear} Been Watching. All rights reserved.
-          </div>
-          <div style={{
-            fontSize: '0.8125rem',
             color: colors.textSecondary
           }}>
-            Made with ❤️ for TV lovers
+            © {currentYear} Been Watching. All rights reserved.
           </div>
         </div>
       </div>

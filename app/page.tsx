@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import ThemeToggle from '@/components/theme/ThemeToggle'
 import Footer from '@/components/navigation/Footer'
 
 export default function LandingPage() {
@@ -18,6 +17,10 @@ export default function LandingPage() {
   const [validatingCode, setValidatingCode] = useState(false)
   const [codeError, setCodeError] = useState('')
 
+  const isDark = resolvedTheme === 'dark'
+  const cardBg = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.6)'
+  const cardBorder = isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)'
+
   useEffect(() => {
     checkAuth()
   }, [])
@@ -25,7 +28,6 @@ export default function LandingPage() {
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
-      // User is logged in, redirect to feed
       router.push('/feed')
     } else {
       setLoading(false)
@@ -50,7 +52,6 @@ export default function LandingPage() {
       if (error) throw error
 
       if (data === true) {
-        // Valid code - store in session and redirect to signup
         sessionStorage.setItem('vip_code', vipCode.trim().toUpperCase())
         router.push('/auth?signup=true&vip=true')
       } else {
@@ -64,7 +65,6 @@ export default function LandingPage() {
     }
   }
 
-  // Show loading while checking auth
   if (loading) {
     return (
       <div style={{
@@ -92,100 +92,107 @@ export default function LandingPage() {
       background: colors.background,
       color: colors.textPrimary
     }}>
-      {/* Header */}
+      {/* Header - consistent with app header style */}
       <header style={{
         padding: '1rem 1.5rem',
-        background: colors.cardBg,
+        background: cardBg,
+        borderBottom: cardBorder,
         backdropFilter: 'blur(20px)',
-        border: colors.cardBorder,
-        borderBottomLeftRadius: '12px',
-        borderBottomRightRadius: '12px',
-        maxWidth: '600px',
-        margin: '0 auto',
+        WebkitBackdropFilter: 'blur(20px)',
         position: 'sticky',
         top: 0,
-        zIndex: 100
+        zIndex: 100,
+        width: '100%'
       }}>
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          gap: '0.75rem'
+          gap: '0.75rem',
+          maxWidth: '398px',
+          margin: '0 auto'
         }}>
-          <h1 style={{
-            background: colors.brandGradient,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            fontSize: '1.25rem',
-            fontWeight: 700,
-            margin: 0,
+          {/* Logo + Alpha badge */}
+          <div style={{
             display: 'flex',
             alignItems: 'center',
             gap: '0.5rem'
           }}>
-            Been Watching
-            <span style={{
-              display: 'inline-block',
-              background: `rgba(233, 77, 136, ${resolvedTheme === 'dark' ? '0.2' : '0.15'})`,
-              color: resolvedTheme === 'dark' ? colors.brandPink : '#d4356f',
-              border: `1px solid ${colors.brandPink}`,
-              padding: '0.25rem 0.75rem',
-              borderRadius: '12px',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              WebkitBackgroundClip: 'unset',
-              WebkitTextFillColor: 'unset'
-            }}>
-              Alpha
-            </span>
-          </h1>
-
-          <div style={{
-            display: 'flex',
-            gap: '0.75rem',
-            alignItems: 'center'
-          }}>
-            <ThemeToggle />
-            <button
-              onClick={() => router.push('/auth')}
+            <img
+              src="/bw-logo.png"
+              alt="Been Watching"
               style={{
-                padding: '0.5rem 1rem',
-                background: colors.brandGradient,
-                color: 'white',
-                border: 'none',
+                height: '40px',
+                width: 'auto'
+              }}
+            />
+            <h1 style={{
+              background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              fontSize: '1.25rem',
+              fontWeight: '700',
+              margin: 0,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}>
+              Been Watching
+              <span style={{
+                display: 'inline-block',
+                background: `rgba(233, 77, 136, ${isDark ? '0.2' : '0.15'})`,
+                color: isDark ? colors.brandPink : '#d4356f',
+                border: `1px solid ${colors.brandPink}`,
+                padding: '0.15rem 0.5rem',
                 borderRadius: '8px',
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)'
-                e.currentTarget.style.boxShadow = `0 4px 12px ${colors.brandPink}4D`
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow = 'none'
-              }}
-            >
-              Sign In
-            </button>
+                fontSize: '0.625rem',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                WebkitBackgroundClip: 'unset',
+                WebkitTextFillColor: 'unset'
+              }}>
+                Alpha
+              </span>
+            </h1>
           </div>
+
+          {/* Sign In button */}
+          <button
+            onClick={() => router.push('/auth')}
+            style={{
+              padding: '0.5rem 1rem',
+              background: colors.brandGradient,
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)'
+              e.currentTarget.style.boxShadow = `0 4px 12px ${colors.brandPink}4D`
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = 'none'
+            }}
+          >
+            Sign In
+          </button>
         </div>
       </header>
 
-      {/* Hero Section with Logo */}
-      <section style={{
-        textAlign: 'center',
-        padding: '1rem 2rem 2rem'
+      {/* Main Content - mobile first width */}
+      <main style={{
+        maxWidth: '398px',
+        margin: '0 auto',
+        padding: '2rem 1.5rem'
       }}>
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          padding: '2rem'
-        }}>
+        {/* Hero Section */}
+        <section style={{ textAlign: 'center', marginBottom: '2rem' }}>
           {/* Logo */}
           <div style={{
             display: 'flex',
@@ -209,286 +216,186 @@ export default function LandingPage() {
             />
           </div>
 
-          <h1 style={{
-            fontSize: '3.5rem',
+          <h2 style={{
+            fontSize: '2rem',
             fontWeight: 700,
             background: colors.brandGradient,
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
-            marginBottom: '1rem'
+            marginBottom: '0.75rem',
+            lineHeight: 1.2
           }}>
             Track Shows with Friends
-          </h1>
+          </h2>
           <p style={{
-            fontSize: '1.25rem',
+            fontSize: '1rem',
             color: colors.textSecondary,
-            marginBottom: '1.5rem',
-            lineHeight: 1.6
+            lineHeight: 1.5
           }}>
-            Track what you've been watching. Share your favorites. Discover what's next.
+            Track. Share. Discover what's next.
           </p>
-        </div>
-      </section>
+        </section>
 
-      {/* Features Section */}
-      <section style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        padding: '2rem'
-      }}>
+        {/* Join Waitlist Card - Primary CTA */}
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: '1.5rem',
-          marginBottom: '1.5rem'
+          background: colors.cardBg,
+          backdropFilter: 'blur(20px)',
+          border: colors.cardBorder,
+          borderRadius: '20px',
+          padding: '2rem',
+          marginBottom: '1rem',
+          boxShadow: colors.shadowLg
         }}>
-          {[
-            {
-              icon: '📺',
-              title: 'Track Everything',
-              description: 'Movies and TV shows, organized by season. Keep track of what you want to watch, what you\'re watching, and what you\'ve watched.'
-            },
-            {
-              icon: '⭐',
-              title: 'Rate & Review',
-              description: 'Love it, like it, or meh? Share your quick takes and see what your friends think.'
-            },
-            {
-              icon: '👥',
-              title: 'Social Feed',
-              description: 'See what your friends are watching, comment on their takes, and discover your next binge.'
-            },
-            {
-              icon: '💬',
-              title: 'Share Your Thoughts',
-              description: 'Leave comments on shows, @mention friends, and start conversations about what you\'re watching.'
-            },
-            {
-              icon: '🎯',
-              title: 'Taste Matching',
-              description: 'Find friends with similar taste and discover shows you\'ll love based on their recommendations.'
-            },
-            {
-              icon: '🏆',
-              title: 'Top 3 Shows',
-              description: 'Showcase your all-time favorites on your profile and see what shows define your friends.'
-            }
-          ].map((feature, index) => (
-            <div
-              key={index}
-              style={{
-                background: colors.cardBg,
-                backdropFilter: 'blur(20px)',
-                border: colors.cardBorder,
-                borderRadius: '16px',
-                padding: '2rem',
-                textAlign: 'left',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                cursor: 'default'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)'
-                e.currentTarget.style.boxShadow = `0 10px 40px ${colors.brandPink}33`
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow = 'none'
-              }}
-            >
-              <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>
-                {feature.icon}
-              </div>
-              <h3 style={{
-                fontSize: '1.125rem',
-                fontWeight: 600,
-                color: colors.textPrimary,
-                marginBottom: '0.5rem'
-              }}>
-                {feature.title}
-              </h3>
-              <p style={{
-                fontSize: '0.875rem',
-                color: colors.textSecondary,
-                lineHeight: 1.6
-              }}>
-                {feature.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        padding: '2rem'
-      }}>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: '2rem',
-          margin: '1.5rem 0 4rem'
-        }}>
-          {/* Join Waitlist Card */}
-          <div style={{
-            background: colors.cardBg,
-            backdropFilter: 'blur(20px)',
-            border: colors.cardBorder,
-            borderRadius: '20px',
-            padding: '2.5rem',
-            boxShadow: colors.shadowLg
+          <h3 style={{
+            fontSize: '1.25rem',
+            fontWeight: 700,
+            color: colors.textPrimary,
+            marginBottom: '0.75rem'
           }}>
-            <h2 style={{
-              fontSize: '1.5rem',
+            Join the Waitlist
+          </h3>
+          <p style={{
+            fontSize: '0.875rem',
+            color: colors.textSecondary,
+            marginBottom: '1.25rem',
+            lineHeight: 1.5
+          }}>
+            We're currently in private alpha. Join the waitlist to get early access.
+          </p>
+          <button
+            onClick={() => router.push('/waitlist')}
+            style={{
+              width: '100%',
+              padding: '0.875rem',
+              background: colors.brandGradient,
+              border: 'none',
+              borderRadius: '12px',
+              color: '#fff',
+              fontSize: '1rem',
               fontWeight: 700,
-              color: colors.textPrimary,
-              marginBottom: '1rem'
-            }}>
-              Join the Waitlist
-            </h2>
-            <p style={{
-              fontSize: '0.9375rem',
-              color: colors.textSecondary,
-              marginBottom: '1.5rem',
-              lineHeight: 1.6
-            }}>
-              We're currently in private alpha. Join the waitlist to get early access when we open up.
-            </p>
-            <button
-              onClick={() => router.push('/waitlist')}
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)'
+              e.currentTarget.style.boxShadow = `0 10px 25px ${colors.brandPink}4D`
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = 'none'
+            }}
+          >
+            Join Waitlist
+          </button>
+        </div>
+
+        {/* VIP Code Entry Card */}
+        <div style={{
+          background: colors.cardBg,
+          backdropFilter: 'blur(20px)',
+          border: colors.cardBorder,
+          borderRadius: '20px',
+          padding: '2rem',
+          boxShadow: colors.shadowLg
+        }}>
+          <h3 style={{
+            fontSize: '1.25rem',
+            fontWeight: 700,
+            color: colors.textPrimary,
+            marginBottom: '0.75rem'
+          }}>
+            Got a VIP Code?
+          </h3>
+          <p style={{
+            fontSize: '0.875rem',
+            color: colors.textSecondary,
+            marginBottom: '1.25rem',
+            lineHeight: 1.5
+          }}>
+            Enter your code to skip the waitlist.
+          </p>
+          <form onSubmit={handleVipCodeSubmit}>
+            <input
+              type="text"
+              value={vipCode}
+              onChange={(e) => {
+                setVipCode(e.target.value.toUpperCase())
+                setCodeError('')
+              }}
+              placeholder="Enter VIP Code"
+              disabled={validatingCode}
               style={{
                 width: '100%',
-                padding: '1rem',
-                background: colors.brandGradient,
-                border: 'none',
+                padding: '0.875rem',
+                marginBottom: '0.75rem',
+                background: colors.background,
+                border: codeError ? '2px solid #ef4444' : colors.cardBorder,
                 borderRadius: '12px',
-                color: '#fff',
+                color: colors.textPrimary,
+                fontSize: '1rem',
+                fontWeight: 600,
+                textAlign: 'center',
+                letterSpacing: '0.1em',
+                outline: 'none',
+                transition: 'all 0.2s',
+                opacity: validatingCode ? 0.6 : 1,
+                boxSizing: 'border-box'
+              }}
+              onFocus={(e) => {
+                if (!codeError) {
+                  e.currentTarget.style.borderColor = colors.brandPink
+                }
+              }}
+              onBlur={(e) => {
+                if (!codeError) {
+                  e.currentTarget.style.borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'
+                }
+              }}
+            />
+            {codeError && (
+              <p style={{
+                color: '#ef4444',
+                fontSize: '0.875rem',
+                marginBottom: '0.75rem',
+                textAlign: 'center'
+              }}>
+                {codeError}
+              </p>
+            )}
+            <button
+              type="submit"
+              disabled={validatingCode || !vipCode.trim()}
+              style={{
+                width: '100%',
+                padding: '0.875rem',
+                background: validatingCode || !vipCode.trim() ? colors.textSecondary : 'transparent',
+                border: `2px solid ${colors.brandPink}`,
+                borderRadius: '12px',
+                color: validatingCode || !vipCode.trim() ? colors.background : colors.brandPink,
                 fontSize: '1rem',
                 fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'all 0.2s'
+                cursor: validatingCode || !vipCode.trim() ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s',
+                opacity: validatingCode || !vipCode.trim() ? 0.6 : 1
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)'
-                e.currentTarget.style.boxShadow = `0 10px 25px ${colors.brandPink}4D`
+                if (!validatingCode && vipCode.trim()) {
+                  e.currentTarget.style.background = `${colors.brandPink}1A`
+                  e.currentTarget.style.transform = 'translateY(-2px)'
+                }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow = 'none'
+                if (!validatingCode && vipCode.trim()) {
+                  e.currentTarget.style.background = 'transparent'
+                  e.currentTarget.style.transform = 'translateY(0)'
+                }
               }}
             >
-              Join Waitlist
+              {validatingCode ? 'Validating...' : 'Continue'}
             </button>
-          </div>
-
-          {/* VIP Code Entry Card */}
-          <div style={{
-            background: colors.cardBg,
-            backdropFilter: 'blur(20px)',
-            border: colors.cardBorder,
-            borderRadius: '20px',
-            padding: '2.5rem',
-            boxShadow: colors.shadowLg
-          }}>
-            <h2 style={{
-              fontSize: '1.5rem',
-              fontWeight: 700,
-              color: colors.textPrimary,
-              marginBottom: '1rem'
-            }}>
-              Got a VIP Code?
-            </h2>
-            <p style={{
-              fontSize: '0.9375rem',
-              color: colors.textSecondary,
-              marginBottom: '1.5rem',
-              lineHeight: 1.6
-            }}>
-              Enter your VIP code to skip the waitlist and get instant access.
-            </p>
-            <form onSubmit={handleVipCodeSubmit}>
-              <input
-                type="text"
-                value={vipCode}
-                onChange={(e) => {
-                  setVipCode(e.target.value.toUpperCase())
-                  setCodeError('')
-                }}
-                placeholder="Enter VIP Code"
-                disabled={validatingCode}
-                style={{
-                  width: '100%',
-                  padding: '1rem',
-                  marginBottom: '0.75rem',
-                  background: colors.background,
-                  border: codeError ? '2px solid #ef4444' : colors.cardBorder,
-                  borderRadius: '12px',
-                  color: colors.textPrimary,
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  textAlign: 'center',
-                  letterSpacing: '0.1em',
-                  outline: 'none',
-                  transition: 'all 0.2s',
-                  opacity: validatingCode ? 0.6 : 1
-                }}
-                onFocus={(e) => {
-                  if (!codeError) {
-                    e.currentTarget.style.borderColor = colors.brandPink
-                  }
-                }}
-                onBlur={(e) => {
-                  if (!codeError) {
-                    e.currentTarget.style.borderColor = colors.cardBorder.split(' ')[2]
-                  }
-                }}
-              />
-              {codeError && (
-                <p style={{
-                  color: '#ef4444',
-                  fontSize: '0.875rem',
-                  marginBottom: '0.75rem',
-                  textAlign: 'center'
-                }}>
-                  {codeError}
-                </p>
-              )}
-              <button
-                type="submit"
-                disabled={validatingCode || !vipCode.trim()}
-                style={{
-                  width: '100%',
-                  padding: '1rem',
-                  background: validatingCode || !vipCode.trim() ? colors.textSecondary : 'transparent',
-                  border: `2px solid ${colors.brandPink}`,
-                  borderRadius: '12px',
-                  color: validatingCode || !vipCode.trim() ? colors.background : colors.brandPink,
-                  fontSize: '1rem',
-                  fontWeight: 700,
-                  cursor: validatingCode || !vipCode.trim() ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.2s',
-                  opacity: validatingCode || !vipCode.trim() ? 0.6 : 1
-                }}
-                onMouseEnter={(e) => {
-                  if (!validatingCode && vipCode.trim()) {
-                    e.currentTarget.style.background = `${colors.brandPink}1A`
-                    e.currentTarget.style.transform = 'translateY(-2px)'
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!validatingCode && vipCode.trim()) {
-                    e.currentTarget.style.background = 'transparent'
-                    e.currentTarget.style.transform = 'translateY(0)'
-                  }
-                }}
-              >
-                {validatingCode ? 'Validating...' : 'Continue'}
-              </button>
-            </form>
-          </div>
+          </form>
         </div>
-      </section>
+      </main>
 
       {/* Footer */}
       <Footer variant="full" />
@@ -496,12 +403,6 @@ export default function LandingPage() {
       <style jsx>{`
         @keyframes spin {
           to { transform: rotate(360deg); }
-        }
-
-        @media (max-width: 768px) {
-          h1 {
-            font-size: 2.5rem !important;
-          }
         }
       `}</style>
     </div>

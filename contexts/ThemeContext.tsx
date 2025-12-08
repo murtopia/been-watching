@@ -16,8 +16,8 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [themeMode, setThemeModeState] = useState<ThemeMode>('dark')
-  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>('dark')
+  const [themeMode, setThemeModeState] = useState<ThemeMode>('auto')
+  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>('dark') // Will be updated by useEffect
   const [userId, setUserId] = useState<string | null>(null)
   const supabase = createClient()
 
