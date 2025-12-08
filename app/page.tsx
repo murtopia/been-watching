@@ -618,96 +618,39 @@ export default function LandingPage() {
                   </button>
                 </form>
 
-                <p style={{
-                  marginTop: '1.5rem',
-                  textAlign: 'center',
-                  fontSize: '0.875rem',
-                  color: colors.textSecondary
-                }}>
-                  Already have an invite code?{' '}
-                  <button
-                    onClick={() => {
-                      closeWaitlistModal()
-                      router.push('/auth')
-                    }}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: colors.brandPink,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      padding: 0
-                    }}
-                  >
-                    Sign up here
-                  </button>
-                </p>
               </>
             ) : (
               /* Success state */
-              <div style={{ textAlign: 'center' }}>
-                <div style={{
-                  width: '64px',
-                  height: '64px',
-                  background: colors.brandGradient,
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 1.5rem',
-                  fontSize: '2rem'
-                }}>
-                  ✓
-                </div>
-
+              <div style={{ textAlign: 'center', padding: '1rem 0' }}>
                 <h2 style={{
-                  fontSize: '1.5rem',
+                  fontSize: '1.75rem',
                   fontWeight: 700,
-                  color: colors.textPrimary,
+                  background: colors.brandGradient,
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
                   marginBottom: '0.75rem'
                 }}>
-                  You're on the list!
+                  Success!
                 </h2>
-
-                <div style={{
-                  background: isDark ? 'rgba(233, 77, 136, 0.1)' : 'rgba(233, 77, 136, 0.1)',
-                  border: '1px solid rgba(233, 77, 136, 0.3)',
-                  borderRadius: '12px',
-                  padding: '1.5rem',
-                  marginBottom: '1rem'
-                }}>
-                  <p style={{ color: colors.textSecondary, fontSize: '0.875rem', marginBottom: '0.25rem' }}>
-                    Your position
-                  </p>
-                  <div style={{
-                    fontSize: '2.5rem',
-                    fontWeight: 700,
-                    background: colors.brandGradient,
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent'
-                  }}>
-                    #{waitlistPosition}
-                  </div>
-                </div>
 
                 <p style={{
                   color: colors.textSecondary,
-                  fontSize: '0.875rem',
-                  marginBottom: '1.5rem',
+                  fontSize: '1rem',
+                  marginBottom: '2rem',
                   lineHeight: 1.5
                 }}>
-                  We'll send you an invite code when it's your turn!
+                  You're on the list. We'll be in touch soon!
                 </p>
 
                 <button
                   onClick={closeWaitlistModal}
                   style={{
-                    padding: '0.75rem 2rem',
-                    background: 'transparent',
-                    border: cardBorder,
+                    padding: '0.875rem 2.5rem',
+                    background: colors.brandGradient,
+                    border: 'none',
                     borderRadius: '12px',
-                    color: colors.textPrimary,
-                    fontSize: '0.875rem',
+                    color: '#fff',
+                    fontSize: '1rem',
                     fontWeight: 600,
                     cursor: 'pointer'
                   }}
