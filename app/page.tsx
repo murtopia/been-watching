@@ -80,22 +80,20 @@ export default function LandingPage() {
     setWaitlistLoading(true)
 
     try {
-      const { data, error } = await supabase
-        .from('waitlist')
-        .insert({
+      const response = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           email: waitlistEmail.toLowerCase().trim(),
           name: waitlistName.trim() || null
         })
-        .select('position')
-        .single()
+      })
 
-      if (error) {
-        if (error.code === '23505') {
-          setWaitlistError('This email is already on the waitlist!')
-        } else {
-          setWaitlistError(error.message)
-        }
-      } else if (data) {
+      const data = await response.json()
+
+      if (!response.ok) {
+        setWaitlistError(data.error || 'An error occurred')
+      } else {
         setWaitlistSuccess(true)
         setWaitlistPosition(data.position)
       }
