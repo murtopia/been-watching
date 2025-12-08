@@ -91,6 +91,43 @@ export async function awardProfileCompletionInvite(userId: string): Promise<bool
 }
 
 /**
+ * Get user's invite earning progress
+ */
+export interface InviteProgress {
+  invitesRemaining: number
+  invitesUsed: number
+  profileInviteEarned: boolean
+  watchlistMilestone: number
+  referralInvitesEarned: number
+  totalShows: number
+  showsUntilNextInvite: number
+  nextMilestone: number
+}
+
+export async function getInviteProgress(userId: string): Promise<InviteProgress | null> {
+  const supabase = createClient()
+
+  const { data, error } = await supabase
+    .rpc('get_invite_progress', { target_user_id: userId })
+
+  if (error) {
+    console.error('Error getting invite progress:', error)
+    return null
+  }
+
+  return {
+    invitesRemaining: data.invites_remaining,
+    invitesUsed: data.invites_used,
+    profileInviteEarned: data.profile_invite_earned,
+    watchlistMilestone: data.watchlist_milestone,
+    referralInvitesEarned: data.referral_invites_earned,
+    totalShows: data.total_shows,
+    showsUntilNextInvite: data.shows_until_next_invite,
+    nextMilestone: data.next_milestone
+  }
+}
+
+/**
  * Get user-friendly labels for each completion step
  */
 export function getCompletionStepLabel(step: keyof ProfileCompletionStatus): string {

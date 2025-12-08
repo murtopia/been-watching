@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import { checkProfileCompletion, awardProfileCompletionInvite, getCompletionStepLabel, ProfileCompletionStatus } from '@/utils/profileCompletion'
+import { checkProfileCompletion, awardProfileCompletionInvite, getCompletionStepLabel, ProfileCompletionStatus, getInviteProgress, InviteProgress } from '@/utils/profileCompletion'
 import { Share2, Copy, Check } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 
@@ -21,6 +21,7 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
   const router = useRouter()
   const colors = useThemeColors()
   const [completionStatus, setCompletionStatus] = useState<ProfileCompletionStatus | null>(null)
+  const [inviteProgress, setInviteProgress] = useState<InviteProgress | null>(null)
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
   const [checking, setChecking] = useState(false)
@@ -32,8 +33,14 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
     if (userId) {
       loadCompletionStatus()
       loadInviteToken()
+      loadInviteProgress()
     }
   }, [userId])
+
+  const loadInviteProgress = async () => {
+    const progress = await getInviteProgress(userId)
+    setInviteProgress(progress)
+  }
 
   const loadCompletionStatus = async () => {
     setLoading(true)
@@ -669,15 +676,32 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
           borderRadius: '8px',
           textAlign: 'center',
           fontSize: '0.9rem',
-          color: colors.textPrimary
+          color: colors.textPrimary,
+          marginBottom: '1rem'
         }}>
           <span style={{ fontWeight: '700' }}>{invitesRemaining}</span> invite{invitesRemaining !== 1 ? 's' : ''} remaining
         </div>
+
+        {/* How to earn more */}
+        {inviteProgress && (
+          <div style={{
+            fontSize: '0.75rem',
+            color: colors.textSecondary,
+            textAlign: 'center',
+            lineHeight: '1.5'
+          }}>
+            <span style={{ fontWeight: '500' }}>Earn more:</span> Add {inviteProgress.showsUntilNextInvite} more show{inviteProgress.showsUntilNextInvite !== 1 ? 's' : ''} for +1 invite
+          </div>
+        )}
       </div>
     )
   }
 
-  // State 3: Invite Used (invites = 0, already earned)
+  // State 3: No invites - show how to earn more
+  const showsUntilNext = inviteProgress?.showsUntilNextInvite ?? 10
+  const totalShows = inviteProgress?.totalShows ?? 0
+  const progressToNext = showsUntilNext === 0 ? 100 : ((10 - showsUntilNext) / 10) * 100
+
   return (
     <div style={{
       padding: '1.5rem',
@@ -691,23 +715,82 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
         marginBottom: '0.5rem',
         color: colors.textPrimary
       }}>
-        ⏳ Invite Used
+        🎯 Earn More Invites
       </h3>
       <p style={{
         color: colors.textSecondary,
-        marginBottom: '1rem',
+        marginBottom: '1.5rem',
         fontSize: '0.9rem',
         lineHeight: '1.6'
       }}>
-        You've shared your invite! Waiting for your friend to join.
+        Keep adding shows to earn more invites for your friends!
       </p>
-      <p style={{
+
+      {/* Progress to next invite */}
+      <div style={{
+        padding: '1rem',
+        background: 'linear-gradient(135deg, rgba(233, 77, 136, 0.1) 0%, rgba(242, 113, 33, 0.1) 100%)',
+        border: '1px solid rgba(233, 77, 136, 0.2)',
+        borderRadius: '12px',
+        marginBottom: '1rem'
+      }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '0.75rem'
+        }}>
+          <span style={{ fontSize: '0.875rem', color: colors.textSecondary }}>
+            Progress to next invite
+          </span>
+          <span style={{ fontSize: '0.875rem', fontWeight: '600', color: colors.textPrimary }}>
+            {totalShows} / {inviteProgress?.nextMilestone ?? 10} shows
+          </span>
+        </div>
+        <div style={{
+          height: '8px',
+          background: colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+          borderRadius: '4px',
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            height: '100%',
+            width: `${progressToNext}%`,
+            background: colors.brandGradient,
+            transition: 'width 0.3s ease'
+          }} />
+        </div>
+        <p style={{
+          marginTop: '0.75rem',
+          fontSize: '0.8rem',
+          color: colors.textSecondary,
+          textAlign: 'center'
+        }}>
+          {showsUntilNext === 0 
+            ? '🎉 You just earned an invite! Refresh to claim it.'
+            : `Add ${showsUntilNext} more show${showsUntilNext !== 1 ? 's' : ''} to earn your next invite`
+          }
+        </p>
+      </div>
+
+      {/* How to earn invites */}
+      <div style={{
+        fontSize: '0.8rem',
         color: colors.textSecondary,
-        fontSize: '0.9rem',
         lineHeight: '1.6'
       }}>
-        Want more invites? Stay tuned for special invite drops! 🎁
-      </p>
+        <div style={{ fontWeight: '600', marginBottom: '0.5rem', color: colors.textPrimary }}>
+          Ways to earn invites:
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+          <span style={{ color: colors.brandPink }}>•</span>
+          <span>Add 10 shows to your watchlists → +1 invite</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ color: colors.brandPink }}>•</span>
+          <span>When a friend you invited joins → +1 invite</span>
+        </div>
+      </div>
     </div>
   )
 }
