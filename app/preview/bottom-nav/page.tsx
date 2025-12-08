@@ -201,7 +201,19 @@ export default function BottomNavPreview() {
             </button>
           </div>
 
-          {/* Center circle ring - wraps around plus button */}
+          {/* Mask to hide pill border where circle meets it */}
+          <div style={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '70px',
+            height: '100%',
+            background: 'rgba(30, 30, 40, 0.8)',
+            zIndex: 2
+          }} />
+
+          {/* Center circle outline - joins with pill */}
           <div style={{
             position: 'absolute',
             left: '50%',
@@ -211,10 +223,8 @@ export default function BottomNavPreview() {
             height: '80px',
             borderRadius: '50%',
             background: 'rgba(30, 30, 40, 0.8)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
             border: '1px solid rgba(255, 255, 255, 0.1)',
-            zIndex: 5
+            zIndex: 1
           }} />
 
           {/* Plus Button */}
@@ -229,8 +239,6 @@ export default function BottomNavPreview() {
               height: '64px',
               borderRadius: '50%',
               background: 'rgba(60, 60, 70, 0.6)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
               border: '1px solid rgba(255, 255, 255, 0.08)',
               color: 'rgba(255, 255, 255, 0.95)',
               fontSize: '28px',
