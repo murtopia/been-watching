@@ -508,8 +508,8 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Admin Link (only shown for admin users) */}
-      {profile?.is_admin && (
+      {/* Admin Link (shown for any admin role: owner, admin, or analyst) */}
+      {profile?.admin_role && (
         <div style={{
           padding: '1.5rem',
           background: colors.cardBg,
