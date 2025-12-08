@@ -140,65 +140,84 @@ export default function BottomNavPreview() {
         transform: 'translateX(-50%)',
         zIndex: 100
       }}>
-        {/* Outer Pill Container */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          background: 'rgba(30, 30, 40, 0.8)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          borderRadius: '40px',
-          padding: '8px',
-          position: 'relative'
-        }}>
-          {/* HOME Button - Fixed width to match SHOWS */}
-          <button
-            onClick={() => handleNavClick('/feed')}
-            style={{
-              width: '100px', // Fixed width for equal sizing
-              background: 'rgba(60, 60, 70, 0.6)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              borderRadius: '24px',
-              padding: '14px 0',
-              color: 'rgba(255, 255, 255, 0.9)',
-              fontSize: '14px',
-              fontWeight: 600,
-              letterSpacing: '1px',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              textAlign: 'center'
-            }}
-          >
-            HOME
-          </button>
+        {/* Outer container wrapper */}
+        <div style={{ position: 'relative' }}>
+          {/* Main pill container */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: 'rgba(30, 30, 40, 0.8)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '40px',
+            padding: '8px',
+            position: 'relative'
+          }}>
+            {/* HOME Button */}
+            <button
+              onClick={() => handleNavClick('/feed')}
+              style={{
+                width: '100px',
+                background: 'rgba(60, 60, 70, 0.6)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '24px',
+                padding: '14px 0',
+                color: 'rgba(255, 255, 255, 0.9)',
+                fontSize: '14px',
+                fontWeight: 600,
+                letterSpacing: '1px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                textAlign: 'center'
+              }}
+            >
+              HOME
+            </button>
 
-          {/* Spacer for plus button */}
-          <div style={{ width: '64px' }} />
+            {/* Spacer for plus button */}
+            <div style={{ width: '56px' }} />
 
-          {/* SHOWS Button - Fixed width to match HOME */}
-          <button
-            onClick={() => handleNavClick('/myshows')}
-            style={{
-              width: '100px', // Fixed width for equal sizing
-              background: 'rgba(60, 60, 70, 0.6)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              borderRadius: '24px',
-              padding: '14px 0',
-              color: 'rgba(255, 255, 255, 0.9)',
-              fontSize: '14px',
-              fontWeight: 600,
-              letterSpacing: '1px',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              textAlign: 'center'
-            }}
-          >
-            SHOWS
-          </button>
+            {/* SHOWS Button */}
+            <button
+              onClick={() => handleNavClick('/myshows')}
+              style={{
+                width: '100px',
+                background: 'rgba(60, 60, 70, 0.6)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '24px',
+                padding: '14px 0',
+                color: 'rgba(255, 255, 255, 0.9)',
+                fontSize: '14px',
+                fontWeight: 600,
+                letterSpacing: '1px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                textAlign: 'center'
+              }}
+            >
+              SHOWS
+            </button>
+          </div>
 
-          {/* Plus Button - Absolutely positioned in center, breaks bounds top & bottom */}
+          {/* Center circle ring - wraps around plus button */}
+          <div style={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '80px',
+            height: '80px',
+            borderRadius: '50%',
+            background: 'rgba(30, 30, 40, 0.8)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            zIndex: 5
+          }} />
+
+          {/* Plus Button */}
           <button
             onClick={() => handleNavClick('search')}
             style={{
@@ -209,10 +228,10 @@ export default function BottomNavPreview() {
               width: '64px',
               height: '64px',
               borderRadius: '50%',
-              background: 'rgba(70, 70, 85, 0.9)',
+              background: 'rgba(60, 60, 70, 0.6)',
               backdropFilter: 'blur(10px)',
               WebkitBackdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
               color: 'rgba(255, 255, 255, 0.95)',
               fontSize: '28px',
               fontWeight: 300,
@@ -220,7 +239,6 @@ export default function BottomNavPreview() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)',
               transition: 'all 0.2s ease',
               zIndex: 10
             }}
