@@ -1,7 +1,7 @@
 # Feed System - Complete Documentation
 
-**Last Updated:** January 2025
-**Status:** Partially Implemented - Ready for Completion
+**Last Updated:** December 2025
+**Status:** Implemented - Live in Production
 **Architecture:** Next.js 15 (App Router) + Supabase PostgreSQL
 
 ---
@@ -571,6 +571,72 @@ Main feed page component.
 - `checkMovieReleases()` - Check theatrical releases
 - `checkStreamingAvailability()` - Check streaming changes
 - `createNotification()` - Store notification records
+
+---
+
+## Streaming Platform Display
+
+### Overview
+
+All cards display streaming platform information on the back side, helping users know where they can watch content.
+
+### Platform Sources
+
+**Activity Cards (Card 1):**
+- Fetched from TMDB Watch Providers API during activity load
+- Filtered by admin allowlist (`admin_settings.streaming_platforms_allowlist`)
+- Shows primary platforms only (no sub-channels)
+
+**Recommendation Cards (Cards 2, 3, 8):**
+- Fetched in parallel after recommendation data loads
+- Same filtering as activity cards
+- Enriched before feed construction
+
+### Special Badges
+
+**"In Theaters" Badge:**
+- Displayed when:
+  - Media is a movie (not TV)
+  - Released within the last 120 days
+  - No streaming providers available yet
+- Automatically replaced with streaming platform once available
+
+**"New" Rating Badge:**
+- Displayed when TMDB rating is 0 (not enough votes)
+- Shows "New" instead of "★ 0" for better UX
+
+---
+
+## Feed Deduplication
+
+### Two-Layer Deduplication System
+
+The feed uses a robust two-layer system to prevent duplicate shows:
+
+**Layer 1: Bucket-Level Deduplication (Before Feed Construction)**
+```
+Priority Order:
+1. Activities (highest) - User posts are always shown
+2. Card 2 (Because You Liked)
+3. Card 3 (Friends Loved)
+4. Card 4 (Coming Soon)
+5. Card 5 (Now Streaming)
+6. Card 8 (You Might Like) - lowest priority
+```
+
+If a show appears in multiple buckets, it's removed from lower-priority buckets.
+
+**Layer 2: Feed-Building Deduplication**
+- Tracks `shownMediaIds` as cards are added to feed
+- Prevents any show from appearing twice in same session
+- Applies to both initial load and infinite scroll
+
+### Media ID Normalization
+
+All media IDs are normalized before comparison:
+- Format: `{type}-{tmdb_id}` (e.g., `tv-12345`, `movie-67890`)
+- Season suffix stripped: `tv-12345-s1` → `tv-12345`
+- Prevents same show with different seasons from duplicating
 
 ---
 

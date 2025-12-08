@@ -1,8 +1,8 @@
 # Enhanced Feed: Algorithm Strategy
 
-**Version:** 1.0
-**Last Updated:** January 2025
-**Status:** In Development
+**Version:** 1.1
+**Last Updated:** December 2025
+**Status:** Implemented - Live in Production
 
 ## Overview
 
@@ -86,12 +86,21 @@ const FEED_DISTRIBUTION = {
    - Pick highest-scoring cards up to target count
    - If not enough cards, redistribute slots to other categories
    ↓
-5. Interleave cards to avoid monotony:
-   - Avoid 5+ friend activity cards in a row
-   - Space out recommendations evenly
-   - Insert follow suggestions at strategic points
+5. Deduplicate across buckets (Layer 1):
+   - Remove shows that appear in multiple buckets
+   - Priority: Activities > Card2 > Card3 > Card4 > Card5 > Card8
+   - Normalize media IDs (strip season suffix)
    ↓
-6. Apply impression tracking:
+6. Interleave cards using 13-card pattern:
+   - Pattern: 1,1,2,1,3,1,7,1,8,1,2,3,8
+   - Where: 1=Activity, 2=BecauseYouLiked, 3=FriendsLoved, 7=FindFriends, 8=YouMightLike
+   - Bonus cards (4,5) inserted every 4th position
+   ↓
+7. Apply deduplication during build (Layer 2):
+   - Track shownMediaIds as cards are added
+   - Skip any show already in feed
+   ↓
+8. Apply impression tracking:
    - 2-day cooldown: Don't show same recommendation card if shown in last 48 hours
    - Max 2 impressions: Cards 2, 3, 8 shown max 2 times total, then never again
    - Card 4: No max (keep showing every 2 days until released)

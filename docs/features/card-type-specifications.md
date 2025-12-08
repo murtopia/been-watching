@@ -1,8 +1,8 @@
 # Enhanced Feed: Card Type Specifications
 
-**Version:** 1.0
-**Last Updated:** January 2025
-**Status:** In Development
+**Version:** 1.1
+**Last Updated:** December 2025
+**Status:** Implemented - Live in Production
 
 ## Overview
 
@@ -671,7 +671,7 @@ interface Card4Data {
 ## Card 5: Now Streaming
 
 ### Purpose
-Notify users when shows they set reminders for (from Card 4) have been released and are now available to stream.
+Notify users when shows they set reminders for (from Card 4) have been released and are now available to stream. Also notifies users when theatrical movies they watched become available for streaming.
 
 ### Display Rules
 
@@ -680,13 +680,34 @@ Notify users when shows they set reminders for (from Card 4) have been released 
 2. The `air_date` for that season has arrived or passed
 3. User hasn't dismissed this card yet
 
-**Trigger Flow:**
+**OR (Automatic Theatrical Movie Reminder):**
+1. User marked a movie as "watched" that was released in the last 120 days
+2. Movie had no streaming providers at the time (was in theaters)
+3. Movie is now available on a streaming service
+4. User hasn't dismissed this card yet
+
+**Trigger Flows:**
+
+*Flow 1: Explicit Reminder (TV Seasons)*
 ```
 Card 4: User taps bell → Saved to show_reminders table
                 ↓
         Air date arrives
                 ↓
 Card 5 appears in feed + In-app notification created
+```
+
+*Flow 2: Automatic Reminder (Theatrical Movies)*
+```
+User marks movie as "watched" (while in theaters)
+                ↓
+System auto-creates reminder (season_number = -1 flag)
+                ↓
+System periodically checks TMDB for streaming availability
+                ↓
+Movie hits streaming (Netflix, etc.)
+                ↓
+Card 5 appears in feed + Bell notification created
 ```
 
 **In-App Notification:**
