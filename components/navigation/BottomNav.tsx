@@ -1,9 +1,11 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 export default function BottomNav({ onSearchOpen }: { onSearchOpen?: () => void }) {
   const router = useRouter()
+  const colors = useThemeColors()
 
   const handleNavClick = (action: string) => {
     if (action === 'search') {
@@ -15,13 +17,13 @@ export default function BottomNav({ onSearchOpen }: { onSearchOpen?: () => void 
 
   const pillButtonStyle: React.CSSProperties = {
     width: '100px',
-    background: 'rgba(60, 60, 70, 0.6)',
+    background: colors.glassBg,
     backdropFilter: 'blur(20px)',
     WebkitBackdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255, 255, 255, 0.08)',
+    border: colors.glassBorder,
     borderRadius: '24px',
     padding: '14px 0',
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: colors.isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.8)',
     fontSize: '14px',
     fontWeight: 600,
     letterSpacing: '1px',
@@ -34,11 +36,11 @@ export default function BottomNav({ onSearchOpen }: { onSearchOpen?: () => void 
     width: '64px',
     height: '64px',
     borderRadius: '50%',
-    background: 'rgba(60, 60, 70, 0.6)',
+    background: colors.glassBg,
     backdropFilter: 'blur(20px)',
     WebkitBackdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255, 255, 255, 0.08)',
-    color: 'rgba(255, 255, 255, 0.95)',
+    border: colors.glassBorder,
+    color: colors.isDark ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.85)',
     fontSize: '28px',
     fontWeight: 300,
     cursor: 'pointer',
@@ -63,6 +65,16 @@ export default function BottomNav({ onSearchOpen }: { onSearchOpen?: () => void 
       <button
         onClick={() => handleNavClick('/feed')}
         style={pillButtonStyle}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.05)'
+          e.currentTarget.style.background = colors.isDark 
+            ? 'rgba(255, 255, 255, 0.1)' 
+            : 'rgba(255, 255, 255, 0.8)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)'
+          e.currentTarget.style.background = colors.glassBg
+        }}
       >
         HOME
       </button>
@@ -71,16 +83,36 @@ export default function BottomNav({ onSearchOpen }: { onSearchOpen?: () => void 
       <button
         onClick={() => handleNavClick('search')}
         style={plusButtonStyle}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.1)'
+          e.currentTarget.style.background = colors.isDark 
+            ? 'rgba(255, 255, 255, 0.1)' 
+            : 'rgba(255, 255, 255, 0.8)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)'
+          e.currentTarget.style.background = colors.glassBg
+        }}
       >
         +
       </button>
 
-      {/* SHOWS Button */}
+      {/* MY SHOWS Button */}
       <button
         onClick={() => handleNavClick('/myshows')}
         style={pillButtonStyle}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.05)'
+          e.currentTarget.style.background = colors.isDark 
+            ? 'rgba(255, 255, 255, 0.1)' 
+            : 'rgba(255, 255, 255, 0.8)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)'
+          e.currentTarget.style.background = colors.glassBg
+        }}
       >
-        SHOWS
+        MY SHOWS
       </button>
     </nav>
   )

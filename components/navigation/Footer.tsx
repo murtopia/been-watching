@@ -21,9 +21,10 @@ export default function Footer({ variant = 'full' }: FooterProps) {
         paddingBottom: '6rem' // Extra space for BottomNav
       }}>
         <div style={{
-          background: colors.cardBg,
+          background: colors.glassBg,
           backdropFilter: 'blur(20px)',
-          border: colors.cardBorder,
+          WebkitBackdropFilter: 'blur(20px)',
+          border: colors.glassBorder,
           borderRadius: '20px',
           padding: '2rem',
           boxShadow: colors.shadowLg,
@@ -56,9 +57,10 @@ export default function Footer({ variant = 'full' }: FooterProps) {
       padding: '0 1.5rem'
     }}>
       <div style={{
-        background: colors.cardBg,
+        background: colors.glassBg,
         backdropFilter: 'blur(20px)',
-        border: colors.cardBorder,
+        WebkitBackdropFilter: 'blur(20px)',
+        border: colors.glassBorder,
         borderRadius: '20px',
         padding: '2.5rem',
         boxShadow: colors.shadowLg

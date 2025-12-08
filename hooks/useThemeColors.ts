@@ -29,6 +29,7 @@ export function useThemeColors() {
 
     // Border Colors
     cardBorder: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #f0f0f0',
+    glassBorder: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)',
     borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#f0f0f0',
     dividerColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#f0f0f0',
 
