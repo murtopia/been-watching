@@ -27,7 +27,6 @@ export default function AvatarUploadModal({
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const cameraInputRef = useRef<HTMLInputElement>(null)
   const imageRef = useRef<HTMLImageElement>(null)
   const supabase = createClient()
 
@@ -492,19 +491,11 @@ export default function AvatarUploadModal({
           </div>
         )}
 
-        {/* Hidden file inputs - one for library, one for camera */}
+        {/* Hidden file input */}
         <input
           ref={fileInputRef}
           type="file"
           accept="image/*"
-          onChange={handleFileSelect}
-          style={{ display: 'none' }}
-        />
-        <input
-          ref={cameraInputRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
           onChange={handleFileSelect}
           style={{ display: 'none' }}
         />
@@ -517,47 +508,24 @@ export default function AvatarUploadModal({
         }}>
           {!selectedFile ? (
             <>
-              {/* Two buttons side by side for photo options */}
-              <div style={{ display: 'flex', gap: '0.75rem' }}>
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                  style={{
-                    flex: 1,
-                    padding: '1rem',
-                    background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '12px',
-                    fontSize: '0.9rem',
-                    fontWeight: '600',
-                    cursor: uploading ? 'not-allowed' : 'pointer',
-                    opacity: uploading ? 0.6 : 1,
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  🖼️ Photo Library
-                </button>
-                <button
-                  onClick={() => cameraInputRef.current?.click()}
-                  disabled={uploading}
-                  style={{
-                    flex: 1,
-                    padding: '1rem',
-                    background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '12px',
-                    fontSize: '0.9rem',
-                    fontWeight: '600',
-                    cursor: uploading ? 'not-allowed' : 'pointer',
-                    opacity: uploading ? 0.6 : 1,
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  📷 Take Photo
-                </button>
-              </div>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                style={{
+                  padding: '1rem',
+                  background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  cursor: uploading ? 'not-allowed' : 'pointer',
+                  opacity: uploading ? 0.6 : 1,
+                  transition: 'all 0.2s'
+                }}
+              >
+                📸 Add Photo
+              </button>
 
               {currentAvatarUrl && (
                 <button
