@@ -132,7 +132,7 @@ export default function BottomNavPreview() {
         </div>
       )}
 
-      {/* NEW BOTTOM NAV */}
+      {/* NEW BOTTOM NAV - SVG-based */}
       <nav style={{
         position: 'fixed',
         bottom: '24px',
@@ -140,58 +140,73 @@ export default function BottomNavPreview() {
         transform: 'translateX(-50%)',
         zIndex: 100
       }}>
-        {/* Outer container wrapper */}
-        <div style={{ position: 'relative' }}>
-          {/* Center circle outline - BEHIND the pill, only top/bottom arcs visible */}
-          <div style={{
-            position: 'absolute',
-            left: '50%',
-            top: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '80px',
-            height: '80px',
-            borderRadius: '50%',
-            background: 'rgba(30, 30, 40, 0.8)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            zIndex: 1
-          }} />
+        <div style={{ position: 'relative', width: '300px', height: '90px' }}>
+          {/* SVG outer shape - pill with center circle bump */}
+          <svg 
+            width="300" 
+            height="90" 
+            viewBox="0 0 300 90" 
+            style={{ position: 'absolute', top: 0, left: 0 }}
+          >
+            <defs>
+              <clipPath id="navShape">
+                <path d={`
+                  M 30,10
+                  L 110,10
+                  A 40,40 0 0 1 150,0
+                  A 40,40 0 0 1 190,10
+                  L 270,10
+                  A 25,25 0 0 1 295,35
+                  L 295,55
+                  A 25,25 0 0 1 270,80
+                  L 190,80
+                  A 40,40 0 0 1 150,90
+                  A 40,40 0 0 1 110,80
+                  L 30,80
+                  A 25,25 0 0 1 5,55
+                  L 5,35
+                  A 25,25 0 0 1 30,10
+                  Z
+                `} />
+              </clipPath>
+            </defs>
+            {/* Background fill with blur effect simulation */}
+            <path 
+              d={`
+                M 30,10
+                L 110,10
+                A 40,40 0 0 1 150,0
+                A 40,40 0 0 1 190,10
+                L 270,10
+                A 25,25 0 0 1 295,35
+                L 295,55
+                A 25,25 0 0 1 270,80
+                L 190,80
+                A 40,40 0 0 1 150,90
+                A 40,40 0 0 1 110,80
+                L 30,80
+                A 25,25 0 0 1 5,55
+                L 5,35
+                A 25,25 0 0 1 30,10
+                Z
+              `}
+              fill="rgba(30, 30, 40, 0.85)"
+              stroke="rgba(255, 255, 255, 0.1)"
+              strokeWidth="1"
+            />
+          </svg>
 
-          {/* Main pill container - ON TOP to cover circle's inner border */}
+          {/* Content layer */}
           <div style={{
+            position: 'relative',
+            zIndex: 5,
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
-            background: 'rgba(30, 30, 40, 0.8)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: '40px',
-            padding: '8px',
-            position: 'relative',
-            zIndex: 5
+            justifyContent: 'space-between',
+            padding: '18px 14px',
+            height: '100%',
+            boxSizing: 'border-box'
           }}>
-            {/* Mask to hide pill's TOP border where circle extends */}
-            <div style={{
-              position: 'absolute',
-              left: '50%',
-              top: '-1px',
-              transform: 'translateX(-50%)',
-              width: '70px',
-              height: '10px',
-              background: 'rgba(30, 30, 40, 0.8)',
-              zIndex: 10
-            }} />
-            {/* Mask to hide pill's BOTTOM border where circle extends */}
-            <div style={{
-              position: 'absolute',
-              left: '50%',
-              bottom: '-1px',
-              transform: 'translateX(-50%)',
-              width: '70px',
-              height: '10px',
-              background: 'rgba(30, 30, 40, 0.8)',
-              zIndex: 10
-            }} />
             {/* HOME Button */}
             <button
               onClick={() => handleNavClick('/feed')}
@@ -212,9 +227,6 @@ export default function BottomNavPreview() {
             >
               HOME
             </button>
-
-            {/* Spacer for plus button */}
-            <div style={{ width: '56px' }} />
 
             {/* SHOWS Button */}
             <button
@@ -238,7 +250,7 @@ export default function BottomNavPreview() {
             </button>
           </div>
 
-          {/* Plus Button */}
+          {/* Plus Button - centered */}
           <button
             onClick={() => handleNavClick('search')}
             style={{
