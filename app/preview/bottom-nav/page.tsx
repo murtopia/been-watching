@@ -153,29 +153,59 @@ export default function BottomNavPreview() {
           padding: '8px',
           position: 'relative'
         }}>
-          {/* HOME Button */}
+          {/* HOME Button - Fixed width to match SHOWS */}
           <button
             onClick={() => handleNavClick('/feed')}
             style={{
+              width: '100px', // Fixed width for equal sizing
               background: 'rgba(60, 60, 70, 0.6)',
               border: '1px solid rgba(255, 255, 255, 0.08)',
               borderRadius: '24px',
-              padding: '14px 28px',
+              padding: '14px 0',
               color: 'rgba(255, 255, 255, 0.9)',
               fontSize: '14px',
               fontWeight: 600,
               letterSpacing: '1px',
               cursor: 'pointer',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.2s ease',
+              textAlign: 'center'
             }}
           >
             HOME
           </button>
 
-          {/* Plus Button - Elevated */}
+          {/* Spacer for plus button */}
+          <div style={{ width: '64px' }} />
+
+          {/* SHOWS Button - Fixed width to match HOME */}
+          <button
+            onClick={() => handleNavClick('/myshows')}
+            style={{
+              width: '100px', // Fixed width for equal sizing
+              background: 'rgba(60, 60, 70, 0.6)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '24px',
+              padding: '14px 0',
+              color: 'rgba(255, 255, 255, 0.9)',
+              fontSize: '14px',
+              fontWeight: 600,
+              letterSpacing: '1px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              textAlign: 'center'
+            }}
+          >
+            SHOWS
+          </button>
+
+          {/* Plus Button - Absolutely positioned in center, breaks bounds top & bottom */}
           <button
             onClick={() => handleNavClick('search')}
             style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
               width: '64px',
               height: '64px',
               borderRadius: '50%',
@@ -190,32 +220,12 @@ export default function BottomNavPreview() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              marginTop: '-20px', // Breaks out of container
-              marginBottom: '-8px',
               boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.2s ease',
+              zIndex: 10
             }}
           >
             +
-          </button>
-
-          {/* SHOWS Button */}
-          <button
-            onClick={() => handleNavClick('/myshows')}
-            style={{
-              background: 'rgba(60, 60, 70, 0.6)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              borderRadius: '24px',
-              padding: '14px 28px',
-              color: 'rgba(255, 255, 255, 0.9)',
-              fontSize: '14px',
-              fontWeight: 600,
-              letterSpacing: '1px',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            SHOWS
           </button>
         </div>
       </nav>
