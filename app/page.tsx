@@ -419,30 +419,35 @@ export default function LandingPage() {
               style={{
                 width: '100%',
                 padding: '0.875rem',
-                background: validatingCode || !vipCode.trim() ? colors.textSecondary : 'transparent',
-                border: `2px solid ${colors.brandPink}`,
+                background: validatingCode || !vipCode.trim() 
+                  ? (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)')
+                  : colors.brandGradient,
+                border: validatingCode || !vipCode.trim() 
+                  ? `2px solid ${isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)'}`
+                  : 'none',
                 borderRadius: '12px',
-                color: validatingCode || !vipCode.trim() ? colors.background : colors.brandPink,
+                color: validatingCode || !vipCode.trim() 
+                  ? (isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.3)')
+                  : '#fff',
                 fontSize: '1rem',
                 fontWeight: 700,
                 cursor: validatingCode || !vipCode.trim() ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s',
-                opacity: validatingCode || !vipCode.trim() ? 0.6 : 1
+                transition: 'all 0.2s'
               }}
               onMouseEnter={(e) => {
                 if (!validatingCode && vipCode.trim()) {
-                  e.currentTarget.style.background = `${colors.brandPink}1A`
                   e.currentTarget.style.transform = 'translateY(-2px)'
+                  e.currentTarget.style.boxShadow = `0 10px 25px ${colors.brandPink}4D`
                 }
               }}
               onMouseLeave={(e) => {
                 if (!validatingCode && vipCode.trim()) {
-                  e.currentTarget.style.background = 'transparent'
                   e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = 'none'
                 }
               }}
             >
-              {validatingCode ? 'Validating...' : 'Continue'}
+              {validatingCode ? 'Validating...' : 'Redeem Code'}
             </button>
           </form>
         </div>
