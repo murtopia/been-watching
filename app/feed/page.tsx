@@ -2119,11 +2119,21 @@ export default function PreviewFeedLivePage() {
     }
     
     // Normalize common platform name variations
-    const normalized = name
+    let normalized = name
       .replace(/\s*Plus\s*$/i, '+')  // "Paramount Plus" -> "Paramount+"
       .replace(/\s*plus\s*$/i, '+')  // lowercase variant
       .replace(/\s+/g, ' ')           // Normalize whitespace
       .trim()
+    
+    // Normalize Apple TV variations
+    if (normalized.toLowerCase().includes('apple tv')) {
+      normalized = 'Apple TV+'
+    }
+    
+    // Normalize Amazon variations
+    if (normalized.toLowerCase().includes('amazon') && normalized.toLowerCase().includes('video')) {
+      normalized = 'Prime Video'
+    }
     
     return normalized
   }
@@ -2228,7 +2238,9 @@ export default function PreviewFeedLivePage() {
       }
 
       const platformNames = streamingServices.map((p: any) => p.provider_name || p.name).filter(Boolean)
+      console.log(`fetchWatchProviders: Raw platforms from TMDB for ${mediaId}:`, platformNames)
       const filteredPlatforms = filterPrimaryPlatforms(platformNames)
+      console.log(`fetchWatchProviders: After normalization:`, filteredPlatforms)
       
       // Check admin allowlist
       let allowedPlatforms: string[] = []
