@@ -402,7 +402,7 @@ export default function ProfilePage() {
         background: colors.cardBg,
         border: colors.cardBorder,
         borderRadius: '12px',
-        margin: '70px auto 0.5rem',
+        margin: '82px auto 0.5rem',
         maxWidth: '600px',
         backdropFilter: 'blur(20px)'
       }}>

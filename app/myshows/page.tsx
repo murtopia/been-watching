@@ -503,7 +503,7 @@ export default function MyShowsPage() {
       <AppHeader profile={profile} hideOnScroll />
 
       {/* My Shows Section */}
-      <div style={{ maxWidth: '600px', margin: '0 auto', background: colors.cardBg, padding: '2rem 1.5rem', borderRadius: '12px', border: colors.cardBorder, backdropFilter: 'blur(20px)', marginTop: '70px' }}>
+      <div style={{ maxWidth: '600px', margin: '0 auto', background: colors.cardBg, padding: '2rem 1.5rem', borderRadius: '12px', border: colors.cardBorder, backdropFilter: 'blur(20px)', marginTop: '82px' }}>
         <h2 style={{ textAlign: 'center', marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: '700', color: colors.textPrimary }}>My Shows</h2>
 
         {/* Top 3 Shows */}
