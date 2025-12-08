@@ -1,8 +1,8 @@
 # Been Watching - Admin Console Status Report
 
-**Last Updated:** November 4, 2024
-**Status:** Production Ready (95% Complete)
-**Version:** 0.1.5 Alpha
+**Last Updated:** December 8, 2024
+**Status:** Production Ready (97% Complete)
+**Version:** 0.1.6 Alpha
 
 ---
 
@@ -128,10 +128,17 @@ The Been Watching admin console is **fully functional and production-ready** for
 
 ---
 
-### 6. **Invites** (`/admin/invites`)
+### 6. **Invites & Waitlist** (`/admin/invites`)
 **Status:** ✅ Complete
 
-**Features:**
+**Sub-Pages (Tab Navigation):**
+- **Codes** (`/admin/invites`) - Invite code management
+- **Waitlist** (`/admin/invites/waitlist`) - Waitlist signup management
+
+**Navigation:**
+- `InvitesNav.tsx` component provides tab navigation between Codes and Waitlist
+
+#### Codes Tab Features:
 - Create limited invite codes (5 uses)
 - Create unlimited master codes
 - View all invite codes with stats
@@ -141,18 +148,32 @@ The Been Watching admin console is **fully functional and production-ready** for
 - Copy codes to clipboard
 - Active/inactive status indicators
 
+#### Waitlist Tab Features:
+- View all waitlist signups (name, email, position, date)
+- Search/filter by email or name
+- Select individual or multiple entries
+- **Send Invite** - Generates unique `BW-XXXXXXXX` code and marks as invited
+- **Delete** - Remove spam or invalid entries
+- **Bulk Actions** - Invite or delete multiple entries at once
+- **Export CSV** - Download entire waitlist
+
+**Stats Shown (Waitlist):**
+- Total signups
+- Pending (not yet invited)
+- Invited (code sent, not yet converted)
+- Converted (signed up as user)
+
 **Database:**
-- Uses `admin_master_code_stats` view
+- Uses `admin_master_code_stats` view for codes
+- Uses `waitlist` table for signups
 - RPC functions: `create_bwalpha_code()`, `deactivate_master_code()`
-- Tracks signups and usage per code
+- API route: `/api/admin/waitlist` for invite/delete actions
 
-**Stats Shown:**
-- Total invite codes created
-- Total signups via invites
-- Active codes count
-
-**Recent Fixes:**
-- Fixed React key error (changed from `invite.id` to `invite.code`)
+**Recent Updates (December 2024):**
+- Added `InvitesNav` component with Codes/Waitlist tabs
+- Created `/admin/invites/waitlist` page with full management features
+- Added `WaitlistTable` client component with interactive features
+- Created `/api/admin/waitlist` route for server-side operations
 
 ---
 
@@ -331,9 +352,13 @@ export function requirePermission(
 │   └── bans/page.tsx             # Ban list
 │
 ├── invites/
-│   ├── page.tsx                  # Invite codes management
+│   ├── page.tsx                  # Invite codes management (Codes tab)
+│   ├── InvitesNav.tsx            # Tab navigation (Codes/Waitlist) ✨ NEW
 │   ├── InviteCodeManager.tsx     # Code creation component
-│   └── InviteRow.tsx             # Invite code row component
+│   ├── InviteRow.tsx             # Invite code row component
+│   └── waitlist/                 # ✨ NEW
+│       ├── page.tsx              # Waitlist management page
+│       └── WaitlistTable.tsx     # Interactive table component
 │
 ├── messaging/
 │   ├── page.tsx                  # Messaging overview
@@ -376,6 +401,25 @@ export function requirePermission(
 ---
 
 ## 🚀 Recent Changes (This Session)
+
+### **December 8, 2024**
+
+1. ✅ **Added Waitlist Management Page**
+   - New `/admin/invites/waitlist` page
+   - Created `InvitesNav.tsx` for Codes/Waitlist tab navigation
+   - `WaitlistTable.tsx` client component with full interactivity
+   - Stats dashboard: Total, Pending, Invited, Converted
+   - Search/filter by email or name
+   - Select and bulk actions support
+   - Send invite (generates `BW-XXXXXXXX` codes)
+   - Delete entries (individual or bulk)
+   - Export to CSV functionality
+
+2. ✅ **Added Waitlist Admin API**
+   - Created `/api/admin/waitlist` route
+   - Supports `invite` and `delete` actions
+   - Admin authentication required
+   - Generates unique invite codes on demand
 
 ### **November 4, 2024**
 

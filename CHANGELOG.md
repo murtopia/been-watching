@@ -9,11 +9,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### In Progress
 - Avatar upload functionality (modal and UI complete, storage integration pending)
-- Admin System section (health checks, error logs, API performance)
 - Enhanced filtering on My Shows page
 - Statistics dashboard
 
-### Recently Completed (2025-10-30)
+### Recently Completed (2024-12-08)
+- ✅ **Landing Page Simplification**
+  - Removed 6 feature cards for cleaner design
+  - Added Alpha badge next to logo
+  - Sign In button in header (no theme switcher)
+  - Content constrained to mobile-first width (398px)
+  - Waitlist CTA moved above VIP code entry
+- ✅ **Waitlist Modal**
+  - Waitlist form now opens in modal overlay (not separate page)
+  - Server-side API route `/api/waitlist` bypasses RLS
+  - Simple success message (no position number shown)
+- ✅ **Footer Updates**
+  - Shorter tagline: "Track. Share. Discover what's next."
+  - Removed "Made with heart for TV lovers" line
+- ✅ **Theme Default**
+  - Changed default from `'dark'` to `'auto'` (respects system preference)
+- ✅ **Admin Waitlist Management** (`/admin/invites/waitlist`)
+  - New `InvitesNav` component with Codes/Waitlist tabs
+  - Stats dashboard: Total, Pending, Invited, Converted
+  - Searchable table with all waitlist signups
+  - Send invite action (generates `BW-XXXXXXXX` codes)
+  - Delete entries (individual or bulk)
+  - Export to CSV
+  - API route `/api/admin/waitlist` for server-side operations
+
+### Previously Completed (2025-10-30)
 - ✅ Complete Moderation section of admin console
 - ✅ User reporting system with 3-dot menu pattern
 - ✅ ReportModal component with 6 report categories

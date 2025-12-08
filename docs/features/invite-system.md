@@ -448,6 +448,79 @@ git push
 
 ---
 
+## 🎫 WAITLIST MANAGEMENT
+
+### Overview
+
+Users without invite codes can join the waitlist via a modal on the landing page. Admins can then manage these signups and send invite codes.
+
+### User Flow (Landing Page)
+
+1. User visits landing page (`/`)
+2. Clicks "Join Waitlist" button
+3. Modal opens with name (optional) and email fields
+4. On submit, entry added to `waitlist` table via `/api/waitlist`
+5. Success message shown (no position number displayed)
+
+### Admin Flow (`/admin/invites/waitlist`)
+
+**Viewing Waitlist:**
+- Stats dashboard: Total, Pending, Invited, Converted
+- Searchable table with all signups
+- Columns: Position, Email, Name, Date Joined, Status
+
+**Sending Invites:**
+1. Select one or more waitlist entries
+2. Click "Invite" button
+3. System generates unique `BW-XXXXXXXX` codes
+4. Codes added to `master_codes` table (1 use each)
+5. Waitlist entries updated with `invited_at` and `invite_code`
+6. Admin can copy codes to share manually (email integration planned)
+
+**Status Flow:**
+```
+Pending → Invited → Converted
+   ↓
+ Deleted
+```
+
+**Bulk Actions:**
+- Select multiple entries via checkboxes
+- Bulk invite (sends codes to all selected)
+- Bulk delete (removes spam/invalid entries)
+
+**Export:**
+- CSV export with all fields
+- Includes: email, name, position, date, status, invite code
+
+### Database
+
+**Table: `waitlist`**
+```sql
+id                    UUID PRIMARY KEY
+email                 VARCHAR(255) UNIQUE NOT NULL
+name                  VARCHAR(255)
+position              INTEGER (auto-assigned via trigger)
+invited_at            TIMESTAMPTZ
+invite_code           VARCHAR(50)
+converted_to_user_id  UUID REFERENCES profiles(id)
+created_at            TIMESTAMPTZ DEFAULT NOW()
+```
+
+### API Routes
+
+**Public: `/api/waitlist` (POST)**
+- Adds new waitlist entry
+- Uses service role to bypass RLS
+- Returns success (no position shown to user)
+
+**Admin: `/api/admin/waitlist` (POST)**
+- Actions: `invite`, `delete`
+- Requires admin authentication
+- Generates invite codes and updates entries
+
+---
+
 ## ✅ READY TO CONTINUE?
 
 **Current Status**: 80% complete

@@ -75,6 +75,11 @@ Tracks all launch invite codes:
 Collects emails from people without codes:
 - Auto-assigns position numbers
 - Tracks who gets converted to users
+- **Admin Management:** `/admin/invites/waitlist`
+  - View all signups with search/filter
+  - Send invites (generates `BW-XXXXXXXX` codes)
+  - Delete spam entries
+  - Export to CSV
 
 ### New Profile Columns
 
