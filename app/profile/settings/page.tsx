@@ -95,7 +95,7 @@ export default function SettingsPage() {
       icon: Palette,
       title: 'Appearance',
       description: 'Theme, display options',
-      href: '/profile/settings/preferences',
+      href: '/profile/settings/appearance',
       color: '#8b5cf6'
     },
     {

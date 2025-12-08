@@ -17,6 +17,31 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 const THEME_STORAGE_KEY = 'been-watching-theme'
 
+// Safe localStorage helpers (handles private browsing, etc.)
+const getStoredTheme = (): ThemeMode | null => {
+  try {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(THEME_STORAGE_KEY)
+      if (stored && ['auto', 'light', 'dark'].includes(stored)) {
+        return stored as ThemeMode
+      }
+    }
+  } catch (e) {
+    // localStorage not available (private browsing, etc.)
+  }
+  return null
+}
+
+const setStoredTheme = (mode: ThemeMode) => {
+  try {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(THEME_STORAGE_KEY, mode)
+    }
+  } catch (e) {
+    // localStorage not available
+  }
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [themeMode, setThemeModeState] = useState<ThemeMode>('auto')
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>('dark') // Will be updated by useEffect
@@ -28,8 +53,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const loadTheme = async () => {
       // First, check localStorage for a saved preference (works for all users)
-      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) as ThemeMode | null
-      if (savedTheme && ['auto', 'light', 'dark'].includes(savedTheme)) {
+      const savedTheme = getStoredTheme()
+      if (savedTheme) {
         setThemeModeState(savedTheme)
       }
 
@@ -49,7 +74,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         if (profile?.theme_preference) {
           setThemeModeState(profile.theme_preference as ThemeMode)
           // Sync localStorage with database preference
-          localStorage.setItem(THEME_STORAGE_KEY, profile.theme_preference)
+          setStoredTheme(profile.theme_preference as ThemeMode)
         } else if (savedTheme) {
           // User has no DB preference but has localStorage - sync to DB
           await supabase
@@ -94,7 +119,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setThemeModeState(mode)
 
     // Always save to localStorage (works for all users, including pre-login)
-    localStorage.setItem(THEME_STORAGE_KEY, mode)
+    setStoredTheme(mode)
 
     // Also save to database if user is logged in
     if (userId) {
