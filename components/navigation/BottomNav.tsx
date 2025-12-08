@@ -97,7 +97,7 @@ export default function BottomNav({ onSearchOpen }: { onSearchOpen?: () => void 
         +
       </button>
 
-      {/* MY SHOWS Button */}
+      {/* SHOWS Button */}
       <button
         onClick={() => handleNavClick('/myshows')}
         style={pillButtonStyle}
@@ -112,7 +112,7 @@ export default function BottomNav({ onSearchOpen }: { onSearchOpen?: () => void 
           e.currentTarget.style.background = colors.glassBg
         }}
       >
-        MY SHOWS
+        SHOWS
       </button>
     </nav>
   )
