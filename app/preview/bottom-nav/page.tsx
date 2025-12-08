@@ -170,6 +170,28 @@ export default function BottomNavPreview() {
             position: 'relative',
             zIndex: 5
           }}>
+            {/* Mask to hide pill's TOP border where circle extends */}
+            <div style={{
+              position: 'absolute',
+              left: '50%',
+              top: '-1px',
+              transform: 'translateX(-50%)',
+              width: '70px',
+              height: '10px',
+              background: 'rgba(30, 30, 40, 0.8)',
+              zIndex: 10
+            }} />
+            {/* Mask to hide pill's BOTTOM border where circle extends */}
+            <div style={{
+              position: 'absolute',
+              left: '50%',
+              bottom: '-1px',
+              transform: 'translateX(-50%)',
+              width: '70px',
+              height: '10px',
+              background: 'rgba(30, 30, 40, 0.8)',
+              zIndex: 10
+            }} />
             {/* HOME Button */}
             <button
               onClick={() => handleNavClick('/feed')}
