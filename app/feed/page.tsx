@@ -683,11 +683,43 @@ async function fetchNowStreaming(
       // Fetch media details
       const { data: media } = await supabase
         .from('media')
-        .select('id, title, poster_path, overview, media_type, tmdb_data')
+        .select('id, title, poster_path, overview, release_date, media_type, tmdb_data')
         .eq('id', reminder.media_id)
         .single()
       
       if (!media) continue
+      
+      // For theatrical movies (season_number = -1), verify streaming is actually available
+      if (reminder.season_number === -1) {
+        const mediaType = media.media_type || (media.id.startsWith('movie-') ? 'movie' : 'tv')
+        
+        // Check TMDB for streaming providers
+        let tmdbId: number | null = null
+        const match = media.id.match(/^(?:movie|tv)-(\d+)/)
+        if (match) tmdbId = parseInt(match[1])
+        
+        if (tmdbId) {
+          try {
+            const response = await fetch(`/api/tmdb/${mediaType}/${tmdbId}/watch/providers`)
+            if (response.ok) {
+              const data = await response.json()
+              const providers = data.results?.US || {}
+              const streamingServices = providers.flatrate || []
+              
+              // If no streaming yet, skip this reminder (check again later)
+              if (streamingServices.length === 0) {
+                console.log(`⏳ "${media.title}" not yet streaming, will check again later`)
+                continue
+              }
+              
+              console.log(`🎉 "${media.title}" is now streaming!`)
+            }
+          } catch (err) {
+            console.error('Error checking streaming for:', media.title, err)
+            continue // Skip if we can't verify
+          }
+        }
+      }
       
       results.push({
         type: 'now_streaming',
@@ -698,11 +730,27 @@ async function fetchNowStreaming(
         } as NowStreamingData
       })
       
-      // Mark as notified (will also trigger bell notification)
+      // Mark as notified
       await supabase
         .from('show_reminders')
         .update({ notified_at: new Date().toISOString() })
         .eq('id', reminder.id)
+      
+      // Create bell notification for user
+      const isTheatricalMovie = reminder.season_number === -1
+      const notificationMessage = isTheatricalMovie
+        ? `"${media.title}" is now available to stream!`
+        : `"${media.title}" Season ${reminder.season_number} is now streaming!`
+      
+      await supabase.from('notifications').insert({
+        user_id: userId,
+        type: 'release',
+        message: notificationMessage,
+        action_url: `/show/${media.id}`,
+        read: false
+      })
+      
+      console.log(`🔔 Created bell notification: ${notificationMessage}`)
     }
     
     return results
@@ -2595,6 +2643,66 @@ export default function PreviewFeedLivePage() {
             status: status
           }, { onConflict: 'user_id,media_id' })
         console.log('Set status to:', status)
+        
+        // AUTO-REMINDER: For movies marked as "watched" that are still in theaters
+        // Create a reminder to notify when it becomes available for streaming
+        if (status === 'watched' && mediaType === 'movie') {
+          try {
+            // Get movie's release date
+            const feedItem = feedItems.find(item => {
+              const itemMediaId = item.data?.activity?.media_id || item.data?.media?.id
+              return itemMediaId === mediaId
+            })
+            
+            const releaseDate = feedItem?.data?.media?.release_date || 
+                               feedItem?.data?.media?.tmdb_data?.release_date ||
+                               feedItem?.data?.activity?.media?.release_date
+            
+            if (releaseDate) {
+              const releaseDateObj = new Date(releaseDate)
+              const daysSinceRelease = (Date.now() - releaseDateObj.getTime()) / (1000 * 60 * 60 * 24)
+              
+              // Only create reminder for movies released in the last 120 days
+              if (daysSinceRelease >= 0 && daysSinceRelease <= 120) {
+                // Check if movie has streaming providers yet
+                const streamingPlatforms = await fetchWatchProviders(mediaId, 'movie', releaseDate)
+                
+                // Only create reminder if NOT yet streaming (or only "In Theaters")
+                if (streamingPlatforms.length === 0 || 
+                    (streamingPlatforms.length === 1 && streamingPlatforms[0] === 'In Theaters')) {
+                  
+                  // Check if reminder already exists
+                  const { data: existingReminder } = await supabase
+                    .from('show_reminders')
+                    .select('id')
+                    .eq('user_id', user.id)
+                    .eq('media_id', mediaId)
+                    .is('season_number', null)
+                    .maybeSingle()
+                  
+                  if (!existingReminder) {
+                    // Create reminder with season_number = -1 flag for theatrical movie
+                    // Set air_date to release date + 90 days as estimated streaming window
+                    const estimatedStreamingDate = new Date(releaseDateObj)
+                    estimatedStreamingDate.setDate(estimatedStreamingDate.getDate() + 90)
+                    
+                    await supabase.from('show_reminders').insert({
+                      user_id: user.id,
+                      media_id: mediaId,
+                      season_number: -1, // Flag for theatrical movie
+                      air_date: estimatedStreamingDate.toISOString().split('T')[0]
+                    })
+                    
+                    console.log(`🔔 Auto-created streaming reminder for theatrical movie: ${mediaTitle}`)
+                  }
+                }
+              }
+            }
+          } catch (reminderErr) {
+            console.error('Error creating auto-reminder:', reminderErr)
+            // Don't fail the main status update if reminder fails
+          }
+        }
       }
       
       // Track status change
