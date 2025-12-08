@@ -4,6 +4,7 @@ import { checkAdminAccess } from '@/utils/admin/permissions'
 import { Gift, CheckCircle, Clock } from 'lucide-react'
 import InviteCodeManager from './InviteCodeManager'
 import InviteRow from './InviteRow'
+import InvitesNav from './InvitesNav'
 
 export default async function AdminInvitesPage() {
   // Check if user has admin access
@@ -28,12 +29,14 @@ export default async function AdminInvitesPage() {
     <div style={{ padding: '2rem', maxWidth: '1600px', margin: '0 auto' }}>
       <div style={{ marginBottom: '2rem' }}>
         <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
-          Invite Codes Management
+          Invites & Waitlist
         </h1>
         <p style={{ color: '#888' }}>
-          Manage and track all invite codes
+          Manage invite codes and waitlist signups
         </p>
       </div>
+
+      <InvitesNav />
 
       {/* Stats */}
       <div style={{
