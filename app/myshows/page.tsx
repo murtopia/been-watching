@@ -18,7 +18,7 @@ import { trackMediaRated, trackWatchStatusChanged, trackMyShowsViewed } from '@/
 export default function MyShowsPage() {
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
-  const [activeTab, setActiveTab] = useState<'want' | 'watching' | 'watched'>('want')
+  const [activeTab, setActiveTab] = useState<'want' | 'watching' | 'watched'>('watching')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [mediaItems, setMediaItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
