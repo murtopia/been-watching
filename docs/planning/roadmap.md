@@ -421,6 +421,14 @@ const mentions = text.match(/@[\w_]+/g)
 
 ## Additional Ideas (From Nick)
 
+### Custom Lists / Categories (Future)
+- Allow users to create custom lists beyond the default watchlists
+- Examples: "Top 10 Holiday Movies", "Top 10 Action", "Guilty Pleasures", "Comfort Shows"
+- Could be public or private
+- Shareable with friends
+- Potential for community-curated lists
+- **Added:** December 2025
+
 ### Social Sharing
 - Share shows, top three, or profile to IG stories
 - Pre-designed share graphics

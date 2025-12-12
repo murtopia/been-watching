@@ -9,76 +9,29 @@ import AppHeader from '@/components/navigation/AppHeader'
 export default function SearchPreview() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
   const colors = useThemeColors()
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       setUser(data.user)
+      
+      if (data.user) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single()
+        
+        setProfile(profileData)
+      }
     })
   }, [])
 
   const handleSelectMedia = async (media: any, rating?: string, status?: string) => {
-    if (!user) {
-      console.log('No user logged in - would prompt login')
-      return
-    }
-
-    const supabase = createClient()
-    
-    // Determine media_id format
-    let mediaId: string
-    if (typeof media.id === 'string' && media.id.startsWith('tv-')) {
-      // Already formatted (season-specific)
-      mediaId = media.id
-    } else {
-      // Need to format
-      mediaId = media.media_type === 'movie' ? `movie-${media.id}` : `tv-${media.id}`
-    }
-
-    // Save rating if provided
-    if (rating !== undefined) {
-      if (rating === null) {
-        await supabase
-          .from('ratings')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('media_id', mediaId)
-      } else {
-        await supabase
-          .from('ratings')
-          .upsert({
-            user_id: user.id,
-            media_id: mediaId,
-            rating: rating,
-            media_title: media.title || media.name,
-            media_poster: media.poster_path,
-            media_type: media.media_type
-          }, { onConflict: 'user_id,media_id' })
-      }
-    }
-
-    // Save status if provided
-    if (status !== undefined) {
-      if (status === null) {
-        await supabase
-          .from('watch_status')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('media_id', mediaId)
-      } else {
-        await supabase
-          .from('watch_status')
-          .upsert({
-            user_id: user.id,
-            media_id: mediaId,
-            status: status,
-            media_title: media.title || media.name,
-            media_poster: media.poster_path,
-            media_type: media.media_type
-          }, { onConflict: 'user_id,media_id' })
-      }
-    }
+    // The SearchModalEnhanced now handles saving directly
+    console.log('Media selected:', media.title, 'Rating:', rating, 'Status:', status)
   }
 
   return (
@@ -90,7 +43,7 @@ export default function SearchPreview() {
       <AppHeader showThemeToggle />
       
       <div style={{
-        maxWidth: '600px',
+        maxWidth: '398px',
         margin: '0 auto',
         padding: '100px 20px 120px'
       }}>
@@ -109,7 +62,7 @@ export default function SearchPreview() {
           marginBottom: '2rem',
           fontSize: '0.95rem'
         }}>
-          Testing the enhanced search with trending suggestions.
+          Redesigned search with ShowDetailCard integration.
         </p>
 
         {/* Info Card */}
@@ -121,7 +74,7 @@ export default function SearchPreview() {
           border: colors.glassBorder
         }}>
           <h2 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1rem' }}>
-            ✨ New Features
+            ✨ New Design
           </h2>
           <ul style={{ 
             listStyle: 'none', 
@@ -132,16 +85,20 @@ export default function SearchPreview() {
             gap: '0.75rem'
           }}>
             <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', color: colors.textSecondary, fontSize: '0.9rem' }}>
-              <span style={{ color: colors.brandPink }}>🔥</span>
-              <span>Shows <strong style={{ color: colors.textPrimary }}>trending content</strong> when search is empty</span>
+              <span style={{ color: colors.brandPink }}>📝</span>
+              <span><strong style={{ color: colors.textPrimary }}>"Add or Rate a Show"</strong> header with close icon</span>
             </li>
             <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', color: colors.textSecondary, fontSize: '0.9rem' }}>
-              <span style={{ color: colors.brandPink }}>✓</span>
-              <span><strong style={{ color: colors.textPrimary }}>Excludes shows</strong> you already have in any watchlist</span>
+              <span style={{ color: colors.brandPink }}>🔥</span>
+              <span><strong style={{ color: colors.textPrimary }}>6 trending cards</strong> in 3x2 grid</span>
             </li>
             <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', color: colors.textSecondary, fontSize: '0.9rem' }}>
               <span style={{ color: colors.brandPink }}>🎬</span>
-              <span>Filter trending by <strong style={{ color: colors.textPrimary }}>All / TV / Movies</strong></span>
+              <span>Tap card opens <strong style={{ color: colors.textPrimary }}>ShowDetailCard modal</strong></span>
+            </li>
+            <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', color: colors.textSecondary, fontSize: '0.9rem' }}>
+              <span style={{ color: colors.brandPink }}>✓</span>
+              <span>Modal <strong style={{ color: colors.textPrimary }}>stays open</strong> after rating/adding</span>
             </li>
           </ul>
         </div>
@@ -221,10 +178,11 @@ export default function SearchPreview() {
             flexDirection: 'column',
             gap: '0.5rem'
           }}>
-            <li>Open modal → should see "Trending This Week" section</li>
-            <li>Shows you've added should NOT appear in trending</li>
-            <li>Filter tabs should filter trending content too</li>
-            <li>Type to search → trending hides, search results appear</li>
+            <li>Open modal → see 6 trending cards in grid</li>
+            <li>Tap a card → ShowDetailCard opens</li>
+            <li>Rate or add to watchlist → modal stays open</li>
+            <li>Close detail card → back to search modal</li>
+            <li>Type to search → grid shows results</li>
             <li>Clear search → trending returns</li>
           </ol>
         </div>
@@ -236,8 +194,8 @@ export default function SearchPreview() {
         onClose={() => setSearchOpen(false)}
         onSelectMedia={handleSelectMedia}
         user={user}
+        profile={profile}
       />
     </div>
   )
 }
-
