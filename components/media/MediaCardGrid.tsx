@@ -45,7 +45,7 @@ export default function MediaCardGrid({
   posterSize = variant === 'grid' ? 'w342' : 'w185',
   className = ''
 }: MediaCardGridProps) {
-  const gridClassName = variant === 'grid' ? 'shows-grid' : 'media-card-list-container'
+  const gridClassName = variant === 'grid' ? 'shows-grid' : variant === 'compact' ? '' : 'media-card-list-container'
 
   return (
     <div className={`${gridClassName} ${className}`}>

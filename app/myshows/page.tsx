@@ -503,8 +503,49 @@ export default function MyShowsPage() {
       <AppHeader profile={profile} hideOnScroll />
 
       {/* My Shows Section */}
-      <div style={{ maxWidth: '600px', margin: '0 auto', background: colors.cardBg, padding: '2rem 1.5rem', borderRadius: '12px', border: colors.cardBorder, backdropFilter: 'blur(20px)', marginTop: '82px' }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: '700', color: colors.textPrimary }}>My Shows</h2>
+      <div style={{ maxWidth: '398px', margin: '0 auto', background: colors.cardBg, padding: '1.5rem 1rem', borderRadius: '12px', border: colors.cardBorder, backdropFilter: 'blur(20px)', marginTop: '82px' }}>
+        {/* Title + View Toggle Row */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+          <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700', color: colors.textPrimary }}>My Shows</h2>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button
+              onClick={() => setViewMode('grid')}
+              style={{
+                width: '36px',
+                height: '36px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: viewMode === 'grid' ? colors.brandBlue : colors.cardBg,
+                color: viewMode === 'grid' ? 'white' : colors.textSecondary,
+                border: colors.cardBorder,
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+              aria-label="Grid view"
+            >
+              <Grid3x3 size={18} />
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              style={{
+                width: '36px',
+                height: '36px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: viewMode === 'list' ? colors.brandBlue : colors.cardBg,
+                color: viewMode === 'list' ? 'white' : colors.textSecondary,
+                border: colors.cardBorder,
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+              aria-label="List view"
+            >
+              <List size={18} />
+            </button>
+          </div>
+        </div>
 
         {/* Top 3 Shows */}
         <div style={{
@@ -747,51 +788,6 @@ export default function MyShowsPage() {
           </button>
         </div>
 
-        {/* View Toggle */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          gap: '0.5rem',
-          marginBottom: '1rem'
-        }}>
-          <button
-            onClick={() => setViewMode('grid')}
-            style={{
-              width: '44px',
-              height: '44px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: viewMode === 'grid' ? colors.brandBlue : colors.cardBg,
-              color: viewMode === 'grid' ? 'white' : colors.textPrimary,
-              border: colors.cardBorder,
-              borderRadius: '8px',
-              cursor: 'pointer'
-            }}
-            aria-label="Grid view"
-          >
-            <Grid3x3 size={20} />
-          </button>
-          <button
-            onClick={() => setViewMode('list')}
-            style={{
-              width: '44px',
-              height: '44px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: viewMode === 'list' ? colors.brandBlue : colors.cardBg,
-              color: viewMode === 'list' ? 'white' : colors.textPrimary,
-              border: colors.cardBorder,
-              borderRadius: '8px',
-              cursor: 'pointer'
-            }}
-            aria-label="List view"
-          >
-            <List size={20} />
-          </button>
-        </div>
-
         {/* Content */}
         <div>
           {loading ? (
@@ -801,10 +797,10 @@ export default function MyShowsPage() {
           ) : mediaItems.length > 0 ? (
             <MediaCardGrid
               items={mediaItems}
-              variant={viewMode}
+              variant={viewMode === 'list' ? 'compact' : 'grid'}
               onCardClick={(item) => handlePosterClick(item)}
               showActions={false}
-              showOverview={viewMode === 'list'}
+              showOverview={false}
               posterSize={viewMode === 'grid' ? 'w342' : 'w185'}
             />
           ) : (
