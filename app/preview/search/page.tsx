@@ -84,10 +84,10 @@ export default function SearchPreview() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: colors.pageBg,
+      background: colors.bgGradient,
       color: colors.textPrimary
     }}>
-      <AppHeader showLogo showThemeToggle />
+      <AppHeader showThemeToggle />
       
       <div style={{
         maxWidth: '600px',

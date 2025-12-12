@@ -57,7 +57,7 @@ function CompactRow({
   overview?: string
   currentRating?: string | null
   getRatingIcon: (size?: number) => React.ReactNode
-  onClick?: () => void
+  onClick?: (e: React.MouseEvent) => void
   onImageError: () => void
   colors: any
 }) {
