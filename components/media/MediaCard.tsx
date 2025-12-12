@@ -35,135 +35,6 @@ interface MediaCardProps {
   posterSize?: 'w185' | 'w342' | 'w500'
 }
 
-// Separate component for compact row to manage its own hover state
-function CompactRow({
-  posterUrl,
-  cleanTitle,
-  displayTitle,
-  metaText,
-  networkName,
-  overview,
-  currentRating,
-  getRatingIcon,
-  onClick,
-  onImageError,
-  colors
-}: {
-  posterUrl: string
-  cleanTitle: string
-  displayTitle: string
-  metaText: string
-  networkName?: string
-  overview?: string
-  currentRating?: string | null
-  getRatingIcon: (size?: number) => React.ReactNode
-  onClick?: (e: React.MouseEvent) => void
-  onImageError: () => void
-  colors: any
-}) {
-  const [isExpanded, setIsExpanded] = useState(false)
-
-  return (
-    <div
-      onClick={onClick}
-      onMouseEnter={() => setIsExpanded(true)}
-      onMouseLeave={() => setIsExpanded(false)}
-      onTouchStart={() => setIsExpanded(true)}
-      onTouchEnd={() => setTimeout(() => setIsExpanded(false), 2000)}
-      style={{
-        display: 'flex',
-        alignItems: isExpanded ? 'flex-start' : 'center',
-        gap: '0.625rem',
-        padding: isExpanded ? '0.5rem 0' : '0.375rem 0',
-        borderBottom: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
-        cursor: onClick ? 'pointer' : 'default',
-        transition: 'all 0.15s ease',
-        background: isExpanded 
-          ? (colors.isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)') 
-          : 'transparent',
-        borderRadius: isExpanded ? '6px' : '0',
-        marginLeft: isExpanded ? '-0.5rem' : '0',
-        marginRight: isExpanded ? '-0.5rem' : '0',
-        paddingLeft: isExpanded ? '0.5rem' : '0',
-        paddingRight: isExpanded ? '0.5rem' : '0'
-      }}
-    >
-      {/* Poster - grows on expand */}
-      <img
-        src={posterUrl}
-        alt={cleanTitle}
-        onError={onImageError}
-        style={{
-          width: isExpanded ? '40px' : '24px',
-          height: isExpanded ? '60px' : '36px',
-          objectFit: 'cover',
-          borderRadius: isExpanded ? '4px' : '3px',
-          flexShrink: 0,
-          transition: 'all 0.15s ease'
-        }}
-      />
-      
-      {/* Content */}
-      <div style={{
-        flex: 1,
-        minWidth: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: isExpanded ? '0.25rem' : '0'
-      }}>
-        {/* Title + Meta */}
-        <div style={{
-          fontSize: '0.8125rem',
-          color: colors.textPrimary,
-          whiteSpace: isExpanded ? 'normal' : 'nowrap',
-          overflow: isExpanded ? 'visible' : 'hidden',
-          textOverflow: isExpanded ? 'clip' : 'ellipsis',
-          lineHeight: isExpanded ? '1.3' : '1'
-        }}>
-          <span style={{ fontWeight: '500' }}>{displayTitle}</span>
-          <span style={{ color: colors.textSecondary }}>{metaText}</span>
-        </div>
-        
-        {/* Expanded info */}
-        {isExpanded && (
-          <div style={{
-            fontSize: '0.75rem',
-            color: colors.textSecondary,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.125rem'
-          }}>
-            {networkName && (
-              <span>{networkName}</span>
-            )}
-            {overview && (
-              <span style={{
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                lineHeight: '1.35',
-                opacity: 0.8
-              }}>
-                {overview}
-              </span>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Rating Icon */}
-      <div style={{ 
-        flexShrink: 0,
-        alignSelf: isExpanded ? 'flex-start' : 'center',
-        marginTop: isExpanded ? '0.125rem' : '0'
-      }}>
-        {getRatingIcon(isExpanded ? 20 : 16)}
-      </div>
-    </div>
-  )
-}
-
 export default function MediaCard({
   media,
   variant = 'feed',
@@ -256,37 +127,63 @@ export default function MediaCard({
       ? `${cleanTitle} - S${extractedSeasonNumber}` 
       : cleanTitle
     const metaText = year ? ` • ${year}` : ''
-    
-    // Get network name if available
-    const networkName = media.tmdb_data?.networks?.[0]?.name || media.networks?.[0]?.name
 
     // Get rating icon
-    const getRatingIcon = (size: number = 16) => {
+    const getRatingIcon = () => {
       if (!currentRating) return null
       const iconId = currentRating === 'love' ? 'heart-active' 
         : currentRating === 'like' ? 'thumbs-up-active' 
         : 'meh-face-active'
       return (
-        <svg width={size} height={size} style={{ flexShrink: 0 }}>
+        <svg width="16" height="16" style={{ flexShrink: 0 }}>
           <use xlinkHref={`/icons/feed-sprite.svg#${iconId}`} />
         </svg>
       )
     }
 
     return (
-      <CompactRow
-        posterUrl={posterUrl}
-        cleanTitle={cleanTitle}
-        displayTitle={displayTitle}
-        metaText={metaText}
-        networkName={networkName}
-        overview={media.overview}
-        currentRating={currentRating}
-        getRatingIcon={getRatingIcon}
+      <div
         onClick={handleCardClick}
-        onImageError={handleImageError}
-        colors={colors}
-      />
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.625rem',
+          padding: '0.375rem 0',
+          borderBottom: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+          cursor: onClick ? 'pointer' : 'default'
+        }}
+      >
+        {/* Tiny Poster */}
+        <img
+          src={posterUrl}
+          alt={cleanTitle}
+          onError={handleImageError}
+          style={{
+            width: '24px',
+            height: '36px',
+            objectFit: 'cover',
+            borderRadius: '3px',
+            flexShrink: 0
+          }}
+        />
+        
+        {/* Title + Meta on one line */}
+        <div style={{
+          flex: 1,
+          minWidth: 0,
+          fontSize: '0.8125rem',
+          color: colors.textPrimary,
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis'
+        }}>
+          <span style={{ fontWeight: '500' }}>{displayTitle}</span>
+          <span style={{ color: colors.textSecondary }}>{metaText}</span>
+        </div>
+
+        {/* Rating Icon */}
+        {getRatingIcon()}
+      </div>
     )
   }
 
