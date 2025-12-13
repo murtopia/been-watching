@@ -513,7 +513,7 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
                     </div>
                     
                     <div className="shows-grid">
-                      {displayItems.slice(0, 6).map((item) => {
+                      {(query.trim() ? displayItems.slice(0, 20) : displayItems.slice(0, 6)).map((item) => {
                         const mediaId = `${item.media_type}-${item.id}`
                         const itemRating = userRatings[mediaId]
                         
