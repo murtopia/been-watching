@@ -7,6 +7,7 @@ import { createClient } from '@/utils/supabase/client'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { trackSearchPerformed } from '@/utils/analytics'
 import Icon from '@/components/ui/Icon'
+import { FeedCard, FeedCardData } from '@/components/feed/UserActivityCard'
 
 interface SearchModalEnhancedProps {
   isOpen: boolean
@@ -16,7 +17,7 @@ interface SearchModalEnhancedProps {
   profile?: any
 }
 
-export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, user }: SearchModalEnhancedProps) {
+export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, user, profile }: SearchModalEnhancedProps) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<any[]>([])
   const [trending, setTrending] = useState<any[]>([])
@@ -27,8 +28,9 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
   const [userStatuses, setUserStatuses] = useState<Record<string, string>>({})
   
   const [selectedItem, setSelectedItem] = useState<any>(null)
+  const [selectedCardData, setSelectedCardData] = useState<FeedCardData | null>(null)
   const [isFlipped, setIsFlipped] = useState(false)
-  const [pressedIcon, setPressedIcon] = useState<string | null>(null)
+  const [cardLoading, setCardLoading] = useState(false)
   
   const colors = useThemeColors()
   const debouncedQuery = useDebounce(query, 500)
@@ -117,6 +119,7 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
       setQuery('')
       setResults([])
       setSelectedItem(null)
+      setSelectedCardData(null)
       setIsFlipped(false)
     }
     return () => { document.body.style.overflow = 'unset' }
@@ -158,55 +161,177 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
     return !userWatchlistIds.has(mediaId)
   })
 
-  const handlePosterClick = (item: any) => {
+  // Build FeedCardData from TMDB item
+  const buildCardData = async (item: any): Promise<FeedCardData> => {
+    const mediaType = item.media_type || 'movie'
+    const mediaId = `${mediaType}-${item.id}`
+    
+    // Fetch full details from TMDB
+    const detailsRes = await fetch(`/api/tmdb/${mediaType}/${item.id}?append_to_response=credits`)
+    const details = await detailsRes.json()
+    
+    // Fetch show comments from database
+    const supabase = createClient()
+    const { data: showComments } = await supabase
+      .from('show_comments')
+      .select(`
+        id,
+        comment_text,
+        created_at,
+        user_id,
+        profiles:user_id (
+          id,
+          username,
+          display_name,
+          avatar_url
+        )
+      `)
+      .eq('media_id', mediaId)
+      .order('created_at', { ascending: false })
+      .limit(10)
+
+    // Get friends activity (simplified - just counts)
+    const { data: friendsWatching } = await supabase
+      .from('watch_status')
+      .select('user_id')
+      .eq('media_id', mediaId)
+      .eq('status', 'watching')
+      .limit(10)
+
+    const { data: friendsWant } = await supabase
+      .from('watch_status')
+      .select('user_id')
+      .eq('media_id', mediaId)
+      .eq('status', 'want')
+      .limit(10)
+
+    const { data: friendsWatched } = await supabase
+      .from('watch_status')
+      .select('user_id')
+      .eq('media_id', mediaId)
+      .eq('status', 'watched')
+      .limit(10)
+
+    // Get ratings counts
+    const { data: ratings } = await supabase
+      .from('ratings')
+      .select('rating')
+      .eq('media_id', mediaId)
+
+    const ratingCounts = { meh: 0, like: 0, love: 0 }
+    ratings?.forEach((r: any) => {
+      if (r.rating in ratingCounts) ratingCounts[r.rating as keyof typeof ratingCounts]++
+    })
+
+    const currentUserRating = userRatings[mediaId] as 'meh' | 'like' | 'love' | undefined
+
+    return {
+      id: mediaId,
+      media: {
+        id: mediaId,
+        title: details.title || details.name || item.title || item.name,
+        year: parseInt((details.release_date || details.first_air_date || '')?.substring(0, 4)) || 0,
+        genres: details.genres?.map((g: any) => g.name) || [],
+        rating: details.vote_average || 0,
+        posterUrl: details.poster_path ? `https://image.tmdb.org/t/p/w500${details.poster_path}` : '',
+        synopsis: details.overview || '',
+        creator: details.created_by?.[0]?.name || details.production_companies?.[0]?.name || '',
+        cast: details.credits?.cast?.slice(0, 6).map((c: any) => c.name) || [],
+        network: details.networks?.[0]?.name,
+        streamingPlatforms: details.networks?.map((n: any) => n.name) || [],
+        mediaType: mediaType === 'tv' ? 'TV' : 'Movie'
+      },
+      friends: {
+        avatars: [],
+        count: 0,
+        text: ''
+      },
+      stats: {
+        likeCount: 0,
+        commentCount: showComments?.length || 0,
+        userLiked: false
+      },
+      friendsActivity: {
+        watching: { count: friendsWatching?.length || 0, avatars: [] },
+        wantToWatch: { count: friendsWant?.length || 0, avatars: [] },
+        watched: { count: friendsWatched?.length || 0, avatars: [] },
+        ratings: {
+          meh: ratingCounts.meh,
+          like: ratingCounts.like,
+          love: ratingCounts.love,
+          userRating: currentUserRating
+        }
+      },
+      comments: [],
+      showComments: showComments?.map((c: any) => ({
+        id: c.id,
+        user: {
+          id: c.profiles?.id,
+          name: c.profiles?.display_name || c.profiles?.username || 'User',
+          avatar: c.profiles?.avatar_url,
+          username: c.profiles?.username
+        },
+        text: c.comment_text,
+        timestamp: new Date(c.created_at).toLocaleDateString(),
+        likes: 0,
+        userLiked: false
+      })) || []
+    }
+  }
+
+  const handlePosterClick = async (item: any) => {
     setSelectedItem(item)
+    setCardLoading(true)
     setIsFlipped(true)
+    
+    try {
+      const cardData = await buildCardData(item)
+      setSelectedCardData(cardData)
+    } catch (error) {
+      console.error('Error building card data:', error)
+    } finally {
+      setCardLoading(false)
+    }
   }
 
   const handleFlipBack = () => {
     setIsFlipped(false)
-    setPressedIcon(null)
-    setTimeout(() => setSelectedItem(null), 300)
+    setTimeout(() => {
+      setSelectedItem(null)
+      setSelectedCardData(null)
+    }, 300)
   }
 
-  // Handle rating
-  const handleRate = async (rating: string) => {
-    if (!user || !selectedItem) return
+  // Handle rating from FeedCard
+  const handleRate = async (mediaId: string, rating: 'meh' | 'like' | 'love' | null) => {
+    if (!user) return
     
-    const mediaId = `${selectedItem.media_type}-${selectedItem.id}`
     const supabase = createClient()
     
-    const currentRating = userRatings[mediaId]
-    const newRating = currentRating === rating ? null : rating
-    
     try {
-      if (newRating === null) {
+      if (rating === null) {
         await supabase.from('ratings').delete().eq('user_id', user.id).eq('media_id', mediaId)
         setUserRatings(prev => { const u = { ...prev }; delete u[mediaId]; return u })
       } else {
         await supabase.from('ratings').upsert({
           user_id: user.id,
           media_id: mediaId,
-          rating: newRating
+          rating: rating
         }, { onConflict: 'user_id,media_id' })
-        setUserRatings(prev => ({ ...prev, [mediaId]: newRating }))
+        setUserRatings(prev => ({ ...prev, [mediaId]: rating }))
       }
       
-      onSelectMedia(selectedItem, newRating ?? undefined, userStatuses[mediaId] ?? undefined)
+      onSelectMedia(selectedItem, rating ?? undefined, userStatuses[mediaId] ?? undefined)
     } catch (error) {
       console.error('Error saving rating:', error)
     }
   }
 
-  // Handle status
-  const handleStatus = async (status: string) => {
+  // Handle status from FeedCard
+  const handleStatus = async (mediaId: string, status: 'want' | 'watching' | 'watched' | null) => {
     if (!user || !selectedItem) return
     
-    const mediaId = `${selectedItem.media_type}-${selectedItem.id}`
     const supabase = createClient()
-    
-    const currentStatus = userStatuses[mediaId]
-    const newStatus = currentStatus === status ? null : status
     
     try {
       await supabase.from('media').upsert({
@@ -219,7 +344,7 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
         vote_average: selectedItem.vote_average
       }, { onConflict: 'id' })
       
-      if (newStatus === null) {
+      if (status === null) {
         await supabase.from('watch_status').delete().eq('user_id', user.id).eq('media_id', mediaId)
         setUserStatuses(prev => { const u = { ...prev }; delete u[mediaId]; return u })
         setUserWatchlistIds(prev => { const n = new Set(prev); n.delete(mediaId); return n })
@@ -227,15 +352,33 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
         await supabase.from('watch_status').upsert({
           user_id: user.id,
           media_id: mediaId,
-          status: newStatus
+          status: status
         }, { onConflict: 'user_id,media_id' })
-        setUserStatuses(prev => ({ ...prev, [mediaId]: newStatus }))
+        setUserStatuses(prev => ({ ...prev, [mediaId]: status }))
         setUserWatchlistIds(prev => new Set([...prev, mediaId]))
       }
       
-      onSelectMedia(selectedItem, userRatings[mediaId] ?? undefined, newStatus ?? undefined)
+      onSelectMedia(selectedItem, userRatings[mediaId] ?? undefined, status ?? undefined)
     } catch (error) {
       console.error('Error saving status:', error)
+    }
+  }
+
+  // Handle show comment submission
+  const handleSubmitShowComment = async (mediaId: string, text: string) => {
+    if (!user) return
+    
+    const supabase = createClient()
+    await supabase.from('show_comments').insert({
+      user_id: user.id,
+      media_id: mediaId,
+      comment_text: text
+    })
+    
+    // Refresh card data
+    if (selectedItem) {
+      const cardData = await buildCardData(selectedItem)
+      setSelectedCardData(cardData)
     }
   }
 
@@ -243,7 +386,6 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
 
   const displayItems = query.trim() ? results : filteredTrending
   const selectedMediaId = selectedItem ? `${selectedItem.media_type}-${selectedItem.id}` : null
-  const currentRating = selectedMediaId ? userRatings[selectedMediaId] : undefined
   const currentStatus = selectedMediaId ? userStatuses[selectedMediaId] : undefined
 
   return (
@@ -286,169 +428,6 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
 
         .search-card-back {
           transform: rotateY(180deg);
-          background: #0a0a0a;
-        }
-
-        /* Back card styles matching activity card */
-        .close-btn {
-          position: absolute;
-          top: 20px;
-          right: 12px;
-          border: none;
-          background: transparent;
-          padding: 0;
-          cursor: pointer;
-          z-index: 10;
-          transition: all 0.2s;
-        }
-
-        .close-btn:active {
-          transform: scale(0.9);
-        }
-
-        .back-content {
-          padding: 0 16px 20px 16px;
-          padding-top: 50px;
-          height: 100%;
-          overflow-y: auto;
-          box-sizing: border-box;
-        }
-
-        .back-title {
-          font-size: 22px;
-          font-weight: 700;
-          margin-bottom: 6px;
-          letter-spacing: -0.5px;
-          color: white;
-        }
-
-        .back-meta {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          flex-wrap: wrap;
-          margin-bottom: 12px;
-          font-size: 14px;
-          color: rgba(255, 255, 255, 0.9);
-        }
-
-        .meta-dot {
-          opacity: 0.5;
-        }
-
-        .back-badges {
-          display: flex;
-          gap: 6px;
-          flex-wrap: wrap;
-          margin-bottom: 14px;
-        }
-
-        .back-badge {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 4px;
-          padding: 8px 14px;
-          background: rgba(255, 255, 255, 0.1);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          border-radius: 10px;
-          font-size: 12px;
-          font-weight: 600;
-          color: white;
-        }
-
-        .back-synopsis {
-          font-size: 14px;
-          line-height: 1.5;
-          color: rgba(255, 255, 255, 0.8);
-          margin-bottom: 20px;
-          display: -webkit-box;
-          -webkit-line-clamp: 4;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-
-        .action-modal-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 12px;
-          padding: 16px;
-          background: rgba(20, 20, 20, 0.85);
-          backdrop-filter: blur(30px);
-          -webkit-backdrop-filter: blur(30px);
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          border-radius: 16px;
-        }
-
-        .action-modal-item {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 6px;
-          cursor: pointer;
-          transition: transform 0.2s;
-        }
-
-        .action-modal-item:active {
-          transform: scale(0.95);
-        }
-
-        .action-modal-icon {
-          width: 48px;
-          height: 48px;
-          border-radius: 50%;
-          background: rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.2s;
-        }
-
-        .action-modal-icon:hover {
-          background: rgba(255, 255, 255, 0.15);
-          border-color: rgba(255, 255, 255, 0.3);
-        }
-
-        .action-modal-icon.pressed {
-          background: rgba(255, 59, 92, 0.3) !important;
-          border-color: #FF3B5C !important;
-        }
-
-        .action-modal-icon.active {
-          background: rgba(255, 59, 92, 0.2) !important;
-          border-color: #FF3B5C !important;
-        }
-
-        .action-modal-label {
-          font-size: 10px;
-          font-weight: 500;
-          opacity: 0.8;
-          text-align: center;
-          line-height: 1.2;
-          color: white;
-        }
-
-        .action-modal-divider {
-          grid-column: 1 / -1;
-          height: 1px;
-          background: rgba(255, 255, 255, 0.1);
-          margin: 2px 0;
-        }
-
-        .watchlist-badge {
-          position: absolute;
-          top: -2px;
-          right: -2px;
-          width: 14px;
-          height: 14px;
-          border-radius: 50%;
-          background: #FF3B5C;
-          display: flex;
-          align-items: center;
-          justify-content: center;
         }
       `}</style>
 
@@ -478,12 +457,7 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
                 justifyContent: 'space-between',
                 flexShrink: 0
               }}>
-                <h2 style={{ 
-                  margin: 0, 
-                  fontSize: '1.125rem', 
-                  fontWeight: '700', 
-                  color: colors.textPrimary 
-                }}>
+                <h2 style={{ margin: 0, fontSize: '1.125rem', fontWeight: '700', color: colors.textPrimary }}>
                   Add or Rate a Show
                 </h2>
                 <button
@@ -497,15 +471,7 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
               {/* Search Input */}
               <div style={{ padding: '0 1.25rem 1rem', flexShrink: 0 }}>
                 <div style={{ position: 'relative' }}>
-                  <Search style={{ 
-                    position: 'absolute', 
-                    left: '1rem', 
-                    top: '50%', 
-                    transform: 'translateY(-50%)', 
-                    width: '18px', 
-                    height: '18px', 
-                    color: colors.textSecondary 
-                  }} />
+                  <Search style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', width: '18px', height: '18px', color: colors.textSecondary }} />
                   <input
                     type="text"
                     value={query}
@@ -526,17 +492,7 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
                   {query && (
                     <button
                       onClick={() => { setQuery(''); setResults([]); }}
-                      style={{
-                        position: 'absolute',
-                        right: '0.75rem',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: '0.25rem',
-                        display: 'flex'
-                      }}
+                      style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', display: 'flex' }}
                     >
                       <Icon name="close" size={18} color={colors.textSecondary} />
                     </button>
@@ -597,108 +553,37 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
               </div>
             </div>
 
-            {/* BACK - Activity Card Style */}
+            {/* BACK - FeedCard */}
             <div className="search-card-face search-card-back">
-              {selectedItem && (
-                <>
-                  <button className="close-btn" onClick={handleFlipBack}>
-                    <Icon name="close" variant="circle" size={42} />
-                  </button>
-
-                  <div className="back-content">
-                    {/* Title Section */}
-                    <h1 className="back-title">
-                      {selectedItem.title || selectedItem.name}
-                    </h1>
-                    <div className="back-meta">
-                      <span>{(selectedItem.release_date || selectedItem.first_air_date)?.substring(0, 4)}</span>
-                      {selectedItem.vote_average > 0 && (
-                        <>
-                          <span className="meta-dot">•</span>
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                            <Icon name="star-gold" size={14} /> {selectedItem.vote_average.toFixed(1)}
-                          </span>
-                        </>
-                      )}
-                    </div>
-
-                    {/* Badges */}
-                    <div className="back-badges">
-                      <div className="back-badge">{selectedItem.media_type === 'tv' ? 'TV' : 'Movie'}</div>
-                    </div>
-
-                    {/* Synopsis */}
-                    {selectedItem.overview && (
-                      <p className="back-synopsis">{selectedItem.overview}</p>
-                    )}
-
-                    {/* Action Grid - Matching activity card style */}
-                    <div className="action-modal-grid">
-                      {/* Rating Icons */}
-                      <div className="action-modal-item" onClick={() => handleRate('meh')} onTouchStart={() => setPressedIcon('meh')} onTouchEnd={() => setPressedIcon(null)}>
-                        <div className={`action-modal-icon ${currentRating === 'meh' ? 'active' : ''} ${pressedIcon === 'meh' ? 'pressed' : ''}`}>
-                          <Icon name="meh-face" state={currentRating === 'meh' ? 'active' : 'default'} size={20} color="white" />
-                        </div>
-                        <div className="action-modal-label">Meh</div>
-                      </div>
-
-                      <div className="action-modal-item" onClick={() => handleRate('like')} onTouchStart={() => setPressedIcon('like')} onTouchEnd={() => setPressedIcon(null)}>
-                        <div className={`action-modal-icon ${currentRating === 'like' ? 'active' : ''} ${pressedIcon === 'like' ? 'pressed' : ''}`}>
-                          <Icon name="thumbs-up" state={currentRating === 'like' ? 'active' : 'default'} size={20} color="white" />
-                        </div>
-                        <div className="action-modal-label">Like</div>
-                      </div>
-
-                      <div className="action-modal-item" onClick={() => handleRate('love')} onTouchStart={() => setPressedIcon('love')} onTouchEnd={() => setPressedIcon(null)}>
-                        <div className={`action-modal-icon ${currentRating === 'love' ? 'active' : ''} ${pressedIcon === 'love' ? 'pressed' : ''}`}>
-                          <Icon name="heart" state={currentRating === 'love' ? 'active' : 'default'} size={20} color="white" />
-                        </div>
-                        <div className="action-modal-label">Love</div>
-                      </div>
-
-                      {/* Divider */}
-                      <div className="action-modal-divider"></div>
-
-                      {/* Watchlist Icons */}
-                      <div className="action-modal-item" onClick={() => handleStatus('want')} onTouchStart={() => setPressedIcon('want')} onTouchEnd={() => setPressedIcon(null)}>
-                        <div className={`action-modal-icon ${currentStatus === 'want' ? 'active' : ''} ${pressedIcon === 'want' ? 'pressed' : ''}`} style={{ position: 'relative' }}>
-                          <Icon name="bookmark" state={currentStatus === 'want' ? 'active' : 'default'} size={20} color="white" />
-                          {currentStatus !== 'want' && (
-                            <div className="watchlist-badge">
-                              <Icon name="plus-small" size={10} color="white" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="action-modal-label">Want To</div>
-                      </div>
-
-                      <div className="action-modal-item" onClick={() => handleStatus('watching')} onTouchStart={() => setPressedIcon('watching')} onTouchEnd={() => setPressedIcon(null)}>
-                        <div className={`action-modal-icon ${currentStatus === 'watching' ? 'active' : ''} ${pressedIcon === 'watching' ? 'pressed' : ''}`} style={{ position: 'relative' }}>
-                          <Icon name="play" state={currentStatus === 'watching' ? 'active' : 'default'} size={20} color="white" />
-                          {currentStatus !== 'watching' && (
-                            <div className="watchlist-badge">
-                              <Icon name="plus-small" size={10} color="white" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="action-modal-label">Watching</div>
-                      </div>
-
-                      <div className="action-modal-item" onClick={() => handleStatus('watched')} onTouchStart={() => setPressedIcon('watched')} onTouchEnd={() => setPressedIcon(null)}>
-                        <div className={`action-modal-icon ${currentStatus === 'watched' ? 'active' : ''} ${pressedIcon === 'watched' ? 'pressed' : ''}`} style={{ position: 'relative' }}>
-                          <Icon name="check" state={currentStatus === 'watched' ? 'active' : 'default'} size={20} color="white" />
-                          {currentStatus !== 'watched' && (
-                            <div className="watchlist-badge">
-                              <Icon name="plus-small" size={10} color="white" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="action-modal-label">Watched</div>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
+              {cardLoading ? (
+                <div style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  background: '#0a0a0a',
+                  borderRadius: '24px'
+                }}>
+                  <div style={{ width: '40px', height: '40px', border: `3px solid ${colors.brandPink}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                </div>
+              ) : selectedCardData ? (
+                <FeedCard
+                  variant="b"
+                  data={selectedCardData}
+                  initialFlipped={true}
+                  initialUserStatus={currentStatus as 'want' | 'watching' | 'watched' | undefined}
+                  onFlip={handleFlipBack}
+                  onRate={handleRate}
+                  onSetStatus={handleStatus}
+                  onSubmitShowComment={handleSubmitShowComment}
+                  currentUser={profile ? {
+                    id: user?.id,
+                    name: profile.display_name || profile.username || '',
+                    avatar: profile.avatar_url || ''
+                  } : undefined}
+                />
+              ) : null}
             </div>
           </div>
         </div>
