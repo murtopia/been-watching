@@ -15,6 +15,7 @@
 
 import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { createClient } from '@/utils/supabase/client'
+import { useThemeColors } from '@/hooks/useThemeColors'
 import { UserActivityCard, FeedCard, BADGE_PRESETS, FeedCardData } from '@/components/feed/UserActivityCard'
 import { FollowSuggestionsCard } from '@/components/feed/FollowSuggestionsCard'
 import BottomNav from '@/components/navigation/BottomNav'
@@ -855,6 +856,7 @@ async function fetchYouMightLike(
 }
 
 export default function PreviewFeedLivePage() {
+  const colors = useThemeColors()
   const [feedItems, setFeedItems] = useState<FeedItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -3013,11 +3015,11 @@ export default function PreviewFeedLivePage() {
     return (
       <div style={{ 
         minHeight: '100vh', 
-        background: '#1a1a1a', 
+        background: colors.bgGradient, 
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'center',
-        color: 'white'
+        color: colors.textPrimary
       }}>
         <div>Loading feed...</div>
       </div>
@@ -3028,11 +3030,11 @@ export default function PreviewFeedLivePage() {
     return (
       <div style={{ 
         minHeight: '100vh', 
-        background: '#1a1a1a', 
+        background: colors.bgGradient, 
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'center',
-        color: 'white',
+        color: colors.textPrimary,
         flexDirection: 'column',
         gap: '16px'
       }}>
@@ -3046,17 +3048,17 @@ export default function PreviewFeedLivePage() {
     return (
       <div style={{ 
         minHeight: '100vh', 
-        background: '#1a1a1a', 
+        background: colors.bgGradient, 
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'center',
-        color: 'white',
+        color: colors.textPrimary,
         flexDirection: 'column',
         gap: '16px',
         padding: '20px'
       }}>
         <div style={{ fontSize: '18px' }}>No activities in your feed yet.</div>
-        <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px', textAlign: 'center' }}>
+        <div style={{ color: colors.textSecondary, fontSize: '14px', textAlign: 'center' }}>
           Follow some friends or wait for activity!
         </div>
         
@@ -3065,7 +3067,7 @@ export default function PreviewFeedLivePage() {
   }
 
   return (
-    <div style={{ background: '#1a1a1a', minHeight: '100vh', paddingTop: '90px', paddingBottom: '120px' }}>
+    <div style={{ background: colors.bgGradient, minHeight: '100vh', paddingTop: '90px', paddingBottom: '120px' }}>
       <style>{`
         .card-snap-wrapper {
           scroll-snap-align: center;
