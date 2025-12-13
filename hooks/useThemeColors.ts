@@ -16,12 +16,8 @@ export function useThemeColors() {
 
   return {
     // Background Colors
-    background: isDark
-      ? 'linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 100%)'
-      : 'linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%)',
-    bgGradient: isDark
-      ? 'linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 100%)'
-      : 'linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%)',
+    background: isDark ? '#1a1a1a' : '#ffffff',
+    bgGradient: isDark ? '#1a1a1a' : '#ffffff',
     cardBg: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.95)',
     cardBgHover: isDark ? 'rgba(255, 255, 255, 0.08)' : '#f8f9fa',
     surfaceBg: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
