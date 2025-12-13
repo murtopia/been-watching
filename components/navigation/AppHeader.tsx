@@ -102,7 +102,7 @@ export default function AppHeader({
 
   // Theme-based colors
   const isDark = resolvedTheme === 'dark'
-  const cardBg = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.6)'
+  const cardBg = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.75)'
   const cardBorder = isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)'
   const backdropBlur = 'blur(20px)'
   

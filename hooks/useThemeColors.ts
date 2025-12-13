@@ -25,7 +25,7 @@ export function useThemeColors() {
     cardBg: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.95)',
     cardBgHover: isDark ? 'rgba(255, 255, 255, 0.08)' : '#f8f9fa',
     surfaceBg: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
-    glassBg: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.6)',
+    glassBg: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.75)',
 
     // Border Colors
     cardBorder: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #f0f0f0',
@@ -78,8 +78,8 @@ export function useThemeColors() {
     activeOverlay: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
 
     // Effects
-    backdropBlur: isDark ? 'blur(20px)' : 'none',
-    backdropBlurStrong: 'blur(20px)',  // Always blur for glassmorphic effect
+    backdropBlur: 'blur(20px)',  // Always blur for glassmorphic effect
+    backdropBlurStrong: 'blur(20px)',
 
     // Shadows
     shadowSm: isDark
@@ -93,7 +93,7 @@ export function useThemeColors() {
       : '0 20px 60px rgba(0, 0, 0, 0.08)',
 
     // Navigation Colors (for BottomNav)
-    navContainer: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.6)',
+    navContainer: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.75)',
     navButton: isDark ? 'rgba(255, 255, 255, 0.10)' : 'rgba(0, 0, 0, 0.06)',
     navButtonActive: isDark ? 'rgba(255, 255, 255, 0.18)' : 'rgba(0, 0, 0, 0.12)',
     navText: isDark ? 'rgba(255, 255, 255, 0.9)' : '#000000',
@@ -112,10 +112,10 @@ export function useThemeColors() {
     }),
 
     getCardStyle: () => ({
-      background: isDark ? 'rgba(255, 255, 255, 0.05)' : '#ffffff',
-      border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #f0f0f0',
+      background: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.75)',
+      border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)',
       borderRadius: '12px',
-      backdropFilter: isDark ? 'blur(20px)' : 'none'
+      backdropFilter: 'blur(20px)'
     })
   }
 }
