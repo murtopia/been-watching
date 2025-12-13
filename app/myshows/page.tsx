@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import BottomNav from '@/components/navigation/BottomNav'
 import AppHeader from '@/components/navigation/AppHeader'
-import SearchModal from '@/components/search/SearchModal'
+import SearchModalEnhanced from '@/components/search/SearchModalEnhanced'
 import ShowDetailCard from '@/components/media/ShowDetailCard'
 import MediaCardGrid from '@/components/media/MediaCardGrid'
 import TopShowModal from '@/components/profile/TopShowModal'
@@ -813,11 +813,12 @@ export default function MyShowsPage() {
         </div>
       </div>
 
-      <SearchModal
+      <SearchModalEnhanced
         isOpen={searchOpen}
         onClose={() => setSearchOpen(false)}
         onSelectMedia={handleMediaSelect}
         user={user}
+        profile={profile}
       />
 
       <ShowDetailCard

@@ -5,7 +5,7 @@ import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import BottomNav from '@/components/navigation/BottomNav'
 import AppHeader from '@/components/navigation/AppHeader'
-import SearchModal from '@/components/search/SearchModal'
+import SearchModalEnhanced from '@/components/search/SearchModalEnhanced'
 import MediaDetailModal from '@/components/media/MediaDetailModal'
 import AvatarUploadModal from '@/components/profile/AvatarUploadModal'
 import UserCard from '@/components/friends/UserCard'
@@ -785,11 +785,12 @@ export default function ProfilePage() {
         )}
       </div>
 
-      <SearchModal
+      <SearchModalEnhanced
         isOpen={searchOpen}
         onClose={() => setSearchOpen(false)}
         onSelectMedia={handleMediaSelect}
         user={user}
+        profile={profile}
       />
 
       <MediaDetailModal

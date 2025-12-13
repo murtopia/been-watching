@@ -19,7 +19,7 @@ import { UserActivityCard, FeedCard, BADGE_PRESETS, FeedCardData } from '@/compo
 import { FollowSuggestionsCard } from '@/components/feed/FollowSuggestionsCard'
 import BottomNav from '@/components/navigation/BottomNav'
 import AppHeader from '@/components/navigation/AppHeader'
-import SearchModal from '@/components/search/SearchModal'
+import SearchModalEnhanced from '@/components/search/SearchModalEnhanced'
 import { 
   activityToUserActivityCardData, 
   recommendationToFeedCardData,
@@ -3540,11 +3540,12 @@ export default function PreviewFeedLivePage() {
       <BottomNav onSearchOpen={() => setSearchOpen(true)} />
 
       {/* Search Modal */}
-      <SearchModal 
+      <SearchModalEnhanced 
         isOpen={searchOpen} 
         onClose={() => setSearchOpen(false)}
         onSelectMedia={handleMediaSelect}
         user={user}
+        profile={profile}
       />
     </div>
   )
