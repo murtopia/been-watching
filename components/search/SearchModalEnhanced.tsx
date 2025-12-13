@@ -501,7 +501,7 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
               </div>
 
               {/* Content Area */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '0 1.25rem 1.25rem' }}>
+              <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', padding: '0 1.25rem 1.25rem' }}>
                 {loading ? (
                   <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem 0' }}>
                     <div style={{ width: '32px', height: '32px', border: `3px solid ${colors.brandPink}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />

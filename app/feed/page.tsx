@@ -3067,7 +3067,7 @@ export default function PreviewFeedLivePage() {
   }
 
   return (
-    <div style={{ background: colors.bgGradient, minHeight: '100vh', paddingTop: '90px', paddingBottom: '120px' }}>
+    <div style={{ background: colors.bgGradient, minHeight: '100vh', paddingTop: '90px', paddingBottom: '120px', overflowX: 'hidden' }}>
       <style>{`
         .card-snap-wrapper {
           scroll-snap-align: center;
