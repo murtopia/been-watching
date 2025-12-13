@@ -16,8 +16,8 @@ export function useThemeColors() {
 
   return {
     // Background Colors
-    background: isDark ? '#1a1a1a' : '#ffffff',
-    bgGradient: isDark ? '#1a1a1a' : '#ffffff',
+    background: isDark ? '#000000' : '#ffffff',
+    bgGradient: isDark ? '#000000' : '#ffffff',
     cardBg: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.95)',
     cardBgHover: isDark ? 'rgba(255, 255, 255, 0.08)' : '#f8f9fa',
     surfaceBg: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
