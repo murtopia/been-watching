@@ -5,6 +5,8 @@ import { Icon } from '@/components/ui/Icon';
 
 export default function GoldThemePreview() {
   const [selectedGold, setSelectedGold] = useState<'electric' | 'bright'>('electric');
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [goldIcons, setGoldIcons] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   
@@ -14,43 +16,63 @@ export default function GoldThemePreview() {
   };
   
   const currentGold = goldColors[selectedGold];
+  const iconColor = goldIcons ? currentGold : 'white';
+  
+  // Theme colors
+  const theme = {
+    bg: isDarkMode ? '#000000' : '#ffffff',
+    cardBg: isDarkMode ? '#1a1a1a' : '#f5f5f5',
+    cardGradient: isDarkMode 
+      ? 'linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%)' 
+      : 'linear-gradient(180deg, #e0e0e0 0%, #f5f5f5 100%)',
+    text: isDarkMode ? 'white' : '#1a1a1a',
+    textMuted: isDarkMode ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)',
+    textFaint: isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
+    glassBg: isDarkMode ? 'rgba(20, 20, 25, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+    buttonBg: isDarkMode ? 'rgba(60, 60, 60, 0.4)' : 'rgba(200, 200, 200, 0.6)',
+    buttonBorder: isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)',
+  };
   
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#000000',
+      background: theme.bg,
       padding: '20px',
       paddingBottom: '120px',
+      transition: 'background 0.3s',
     }}>
-      {/* Color Picker */}
+      {/* Control Panel */}
       <div style={{
         position: 'fixed',
         top: '20px',
         left: '20px',
         right: '20px',
         zIndex: 100,
-        background: 'rgba(20, 20, 25, 0.95)',
+        background: theme.glassBg,
         backdropFilter: 'blur(20px)',
         borderRadius: '16px',
         padding: '16px',
         border: `1px solid ${currentGold}40`,
+        transition: 'background 0.3s',
       }}>
         <h2 style={{ 
-          color: 'white', 
+          color: theme.text, 
           margin: '0 0 12px 0',
           fontSize: '16px',
           fontWeight: 600,
         }}>
           Gold Accent Preview
         </h2>
-        <div style={{ display: 'flex', gap: '12px' }}>
+        
+        {/* Gold Color Selection */}
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
           <button
             onClick={() => setSelectedGold('electric')}
             style={{
               flex: 1,
               padding: '12px',
               borderRadius: '12px',
-              border: selectedGold === 'electric' ? `2px solid ${goldColors.electric}` : '2px solid rgba(255,255,255,0.1)',
+              border: selectedGold === 'electric' ? `2px solid ${goldColors.electric}` : `2px solid ${theme.buttonBorder}`,
               background: selectedGold === 'electric' ? `${goldColors.electric}20` : 'transparent',
               cursor: 'pointer',
               transition: 'all 0.2s',
@@ -63,9 +85,9 @@ export default function GoldThemePreview() {
               background: goldColors.electric,
               marginBottom: '8px',
             }} />
-            <span style={{ color: 'white', fontSize: '12px' }}>Electric Gold</span>
+            <span style={{ color: theme.text, fontSize: '12px' }}>Electric Gold</span>
             <br />
-            <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '10px' }}>#FFC125</span>
+            <span style={{ color: theme.textMuted, fontSize: '10px' }}>#FFC125</span>
           </button>
           <button
             onClick={() => setSelectedGold('bright')}
@@ -73,7 +95,7 @@ export default function GoldThemePreview() {
               flex: 1,
               padding: '12px',
               borderRadius: '12px',
-              border: selectedGold === 'bright' ? `2px solid ${goldColors.bright}` : '2px solid rgba(255,255,255,0.1)',
+              border: selectedGold === 'bright' ? `2px solid ${goldColors.bright}` : `2px solid ${theme.buttonBorder}`,
               background: selectedGold === 'bright' ? `${goldColors.bright}20` : 'transparent',
               cursor: 'pointer',
               transition: 'all 0.2s',
@@ -86,16 +108,71 @@ export default function GoldThemePreview() {
               background: goldColors.bright,
               marginBottom: '8px',
             }} />
-            <span style={{ color: 'white', fontSize: '12px' }}>Bright Gold</span>
+            <span style={{ color: theme.text, fontSize: '12px' }}>Bright Gold</span>
             <br />
-            <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '10px' }}>#FFD700</span>
+            <span style={{ color: theme.textMuted, fontSize: '10px' }}>#FFD700</span>
+          </button>
+        </div>
+
+        {/* Mode Toggles */}
+        <div style={{ display: 'flex', gap: '12px' }}>
+          {/* Light/Dark Mode Toggle */}
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            style={{
+              flex: 1,
+              padding: '10px 16px',
+              borderRadius: '10px',
+              border: `1px solid ${currentGold}60`,
+              background: isDarkMode ? `${currentGold}15` : `${currentGold}25`,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              transition: 'all 0.2s',
+            }}
+          >
+            <span style={{ fontSize: '16px' }}>{isDarkMode ? '🌙' : '☀️'}</span>
+            <span style={{ color: theme.text, fontSize: '12px', fontWeight: 500 }}>
+              {isDarkMode ? 'Dark Mode' : 'Light Mode'}
+            </span>
+          </button>
+
+          {/* Icon Color Toggle */}
+          <button
+            onClick={() => setGoldIcons(!goldIcons)}
+            style={{
+              flex: 1,
+              padding: '10px 16px',
+              borderRadius: '10px',
+              border: `1px solid ${currentGold}60`,
+              background: goldIcons ? `${currentGold}25` : `${currentGold}15`,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              transition: 'all 0.2s',
+            }}
+          >
+            <div style={{
+              width: '16px',
+              height: '16px',
+              borderRadius: '50%',
+              background: goldIcons ? currentGold : (isDarkMode ? 'white' : '#333'),
+              border: `2px solid ${currentGold}`,
+            }} />
+            <span style={{ color: theme.text, fontSize: '12px', fontWeight: 500 }}>
+              {goldIcons ? 'Gold Icons' : 'White Icons'}
+            </span>
           </button>
         </div>
       </div>
 
       {/* Sample Card */}
       <div style={{
-        marginTop: '140px',
+        marginTop: '200px',
         maxWidth: '398px',
         marginLeft: 'auto',
         marginRight: 'auto',
@@ -104,21 +181,23 @@ export default function GoldThemePreview() {
         <div style={{
           borderRadius: '24px',
           overflow: 'hidden',
-          background: '#1a1a1a',
+          background: theme.cardBg,
           border: `1px solid ${currentGold}30`,
+          transition: 'background 0.3s',
         }}>
           {/* Card Image Area */}
           <div style={{
             height: '500px',
-            background: 'linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%)',
+            background: theme.cardGradient,
             position: 'relative',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            transition: 'background 0.3s',
           }}>
             <div style={{
               textAlign: 'center',
-              color: 'rgba(255,255,255,0.3)',
+              color: theme.textFaint,
             }}>
               <div style={{ fontSize: '48px', marginBottom: '8px' }}>🎬</div>
               <div>Sample Show Poster</div>
@@ -142,7 +221,7 @@ export default function GoldThemePreview() {
                     width: '42px',
                     height: '42px',
                     borderRadius: '50%',
-                    background: 'rgba(60, 60, 60, 0.4)',
+                    background: theme.buttonBg,
                     backdropFilter: 'blur(10px)',
                     border: `1.5px solid ${currentGold}`,
                     display: 'flex',
@@ -155,14 +234,15 @@ export default function GoldThemePreview() {
                   <Icon 
                     name="heart-nav" 
                     state={isLiked ? 'active' : 'default'} 
-                    size={24} 
+                    size={24}
+                    color={isLiked ? undefined : iconColor}
                   />
                 </button>
                 <div style={{ 
-                  color: 'white', 
+                  color: theme.text, 
                   fontSize: '12px', 
                   marginTop: '4px',
-                  textShadow: '0 1px 3px rgba(0,0,0,0.8)',
+                  textShadow: isDarkMode ? '0 1px 3px rgba(0,0,0,0.8)' : 'none',
                 }}>
                   {isLiked ? 1 : 0}
                 </div>
@@ -176,7 +256,7 @@ export default function GoldThemePreview() {
                     width: '42px',
                     height: '42px',
                     borderRadius: '50%',
-                    background: 'rgba(60, 60, 60, 0.4)',
+                    background: theme.buttonBg,
                     backdropFilter: 'blur(10px)',
                     border: `1.5px solid ${currentGold}`,
                     display: 'flex',
@@ -186,7 +266,7 @@ export default function GoldThemePreview() {
                     transition: 'all 0.2s',
                   }}
                 >
-                  <Icon name="plus" state="default" size={24} />
+                  <Icon name="plus" state="default" size={24} color={iconColor} />
                 </button>
               </div>
 
@@ -197,7 +277,7 @@ export default function GoldThemePreview() {
                     width: '42px',
                     height: '42px',
                     borderRadius: '50%',
-                    background: 'rgba(60, 60, 60, 0.4)',
+                    background: theme.buttonBg,
                     backdropFilter: 'blur(10px)',
                     border: `1.5px solid ${currentGold}`,
                     display: 'flex',
@@ -207,13 +287,13 @@ export default function GoldThemePreview() {
                     transition: 'all 0.2s',
                   }}
                 >
-                  <Icon name="comment" state="default" size={24} />
+                  <Icon name="comment" state="default" size={24} color={iconColor} />
                 </button>
                 <div style={{ 
-                  color: 'white', 
+                  color: theme.text, 
                   fontSize: '12px', 
                   marginTop: '4px',
-                  textShadow: '0 1px 3px rgba(0,0,0,0.8)',
+                  textShadow: isDarkMode ? '0 1px 3px rgba(0,0,0,0.8)' : 'none',
                 }}>
                   0
                 </div>
@@ -226,7 +306,7 @@ export default function GoldThemePreview() {
                     width: '42px',
                     height: '42px',
                     borderRadius: '50%',
-                    background: 'rgba(60, 60, 60, 0.4)',
+                    background: theme.buttonBg,
                     backdropFilter: 'blur(10px)',
                     border: `1.5px solid ${currentGold}`,
                     display: 'flex',
@@ -236,7 +316,7 @@ export default function GoldThemePreview() {
                     opacity: 0.4,
                   }}
                 >
-                  <Icon name="share" state="default" size={24} />
+                  <Icon name="share" state="default" size={24} color={iconColor} />
                 </button>
               </div>
             </div>
@@ -249,7 +329,7 @@ export default function GoldThemePreview() {
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              background: 'rgba(0,0,0,0.6)',
+              background: isDarkMode ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.8)',
               backdropFilter: 'blur(10px)',
               padding: '6px 12px 6px 6px',
               borderRadius: '20px',
@@ -267,7 +347,7 @@ export default function GoldThemePreview() {
               }}>
                 👤
               </div>
-              <span style={{ color: 'white', fontSize: '13px', fontWeight: 500 }}>
+              <span style={{ color: theme.text, fontSize: '13px', fontWeight: 500 }}>
                 Sample User
               </span>
             </div>
@@ -282,7 +362,7 @@ export default function GoldThemePreview() {
                 width: '32px',
                 height: '32px',
                 borderRadius: '50%',
-                background: 'rgba(60, 60, 60, 0.6)',
+                background: theme.buttonBg,
                 backdropFilter: 'blur(10px)',
                 border: `1px solid ${currentGold}40`,
                 display: 'flex',
@@ -290,7 +370,7 @@ export default function GoldThemePreview() {
                 justifyContent: 'center',
                 cursor: 'pointer',
               }}>
-                <Icon name="menu-dots" size={20} color="white" />
+                <Icon name="menu-dots" size={20} color={iconColor} />
               </button>
             </div>
           </div>
@@ -312,11 +392,11 @@ export default function GoldThemePreview() {
               }}>
                 HBO
               </span>
-              <span style={{ color: 'rgba(255,255,255,0.3)' }}>•</span>
-              <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px' }}>Drama</span>
+              <span style={{ color: theme.textFaint }}>•</span>
+              <span style={{ color: theme.textMuted, fontSize: '12px' }}>Drama</span>
             </div>
             <h3 style={{ 
-              color: 'white', 
+              color: theme.text, 
               margin: '0 0 4px 0',
               fontSize: '18px',
               fontWeight: 600,
@@ -324,7 +404,7 @@ export default function GoldThemePreview() {
               Sample Show Title
             </h3>
             <p style={{ 
-              color: 'rgba(255,255,255,0.5)', 
+              color: theme.textMuted, 
               margin: 0,
               fontSize: '13px',
             }}>
@@ -342,14 +422,15 @@ export default function GoldThemePreview() {
 
         {/* Additional UI Elements */}
         <div style={{
-          background: 'rgba(20, 20, 25, 0.8)',
+          background: isDarkMode ? 'rgba(20, 20, 25, 0.8)' : 'rgba(255, 255, 255, 0.9)',
           backdropFilter: 'blur(20px)',
           borderRadius: '16px',
           padding: '20px',
           border: `1px solid ${currentGold}30`,
+          transition: 'background 0.3s',
         }}>
           <h3 style={{ 
-            color: 'white', 
+            color: theme.text, 
             margin: '0 0 16px 0',
             fontSize: '16px',
           }}>
@@ -378,8 +459,8 @@ export default function GoldThemePreview() {
               padding: '8px 16px',
               borderRadius: '20px',
               background: 'transparent',
-              border: '1px solid rgba(255,255,255,0.2)',
-              color: 'rgba(255,255,255,0.6)',
+              border: `1px solid ${theme.buttonBorder}`,
+              color: theme.textMuted,
               fontSize: '13px',
               cursor: 'pointer',
             }}>
@@ -389,8 +470,8 @@ export default function GoldThemePreview() {
               padding: '8px 16px',
               borderRadius: '20px',
               background: 'transparent',
-              border: '1px solid rgba(255,255,255,0.2)',
-              color: 'rgba(255,255,255,0.6)',
+              border: `1px solid ${theme.buttonBorder}`,
+              color: theme.textMuted,
               fontSize: '13px',
               cursor: 'pointer',
             }}>
@@ -400,11 +481,11 @@ export default function GoldThemePreview() {
 
           {/* Rating Stars */}
           <div style={{ marginBottom: '20px' }}>
-            <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px', marginRight: '8px' }}>
+            <span style={{ color: theme.textMuted, fontSize: '13px', marginRight: '8px' }}>
               Rating:
             </span>
             <span style={{ color: currentGold, fontSize: '16px' }}>★★★★</span>
-            <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '16px' }}>★</span>
+            <span style={{ color: theme.textFaint, fontSize: '16px' }}>★</span>
           </div>
 
           {/* Progress Bar */}
@@ -414,7 +495,7 @@ export default function GoldThemePreview() {
               justifyContent: 'space-between',
               marginBottom: '8px',
             }}>
-              <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px' }}>
+              <span style={{ color: theme.textMuted, fontSize: '13px' }}>
                 Season Progress
               </span>
               <span style={{ color: currentGold, fontSize: '13px', fontWeight: 500 }}>
@@ -423,7 +504,7 @@ export default function GoldThemePreview() {
             </div>
             <div style={{
               height: '4px',
-              background: 'rgba(255,255,255,0.1)',
+              background: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
               borderRadius: '2px',
               overflow: 'hidden',
             }}>
@@ -454,10 +535,10 @@ export default function GoldThemePreview() {
           width: '100px',
           height: '48px',
           borderRadius: '24px',
-          background: 'rgba(30, 30, 35, 0.8)',
+          background: isDarkMode ? 'rgba(30, 30, 35, 0.8)' : 'rgba(255, 255, 255, 0.9)',
           backdropFilter: 'blur(20px)',
           border: `1px solid ${currentGold}50`,
-          color: 'white',
+          color: theme.text,
           fontSize: '13px',
           fontWeight: 600,
           letterSpacing: '0.5px',
@@ -465,6 +546,7 @@ export default function GoldThemePreview() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          transition: 'all 0.3s',
         }}>
           HOME
         </button>
@@ -474,15 +556,16 @@ export default function GoldThemePreview() {
           width: '56px',
           height: '56px',
           borderRadius: '50%',
-          background: 'rgba(30, 30, 35, 0.8)',
+          background: isDarkMode ? 'rgba(30, 30, 35, 0.8)' : 'rgba(255, 255, 255, 0.9)',
           backdropFilter: 'blur(20px)',
           border: `1.5px solid ${currentGold}`,
-          color: 'white',
+          color: goldIcons ? currentGold : theme.text,
           fontSize: '24px',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          transition: 'all 0.3s',
         }}>
           +
         </button>
@@ -492,10 +575,10 @@ export default function GoldThemePreview() {
           width: '100px',
           height: '48px',
           borderRadius: '24px',
-          background: 'rgba(30, 30, 35, 0.8)',
+          background: isDarkMode ? 'rgba(30, 30, 35, 0.8)' : 'rgba(255, 255, 255, 0.9)',
           backdropFilter: 'blur(20px)',
           border: `1px solid ${currentGold}50`,
-          color: 'white',
+          color: theme.text,
           fontSize: '13px',
           fontWeight: 600,
           letterSpacing: '0.5px',
@@ -503,6 +586,7 @@ export default function GoldThemePreview() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          transition: 'all 0.3s',
         }}>
           SHOWS
         </button>
