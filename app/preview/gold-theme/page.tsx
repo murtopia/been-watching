@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Icon } from '@/components/icons/Icon';
+import { Icon } from '@/components/ui/Icon';
 
 export default function GoldThemePreview() {
   const [selectedGold, setSelectedGold] = useState<'electric' | 'bright'>('electric');
