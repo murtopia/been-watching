@@ -421,6 +421,7 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
           position: relative;
           transform-style: preserve-3d;
           transition: transform 0.5s ease;
+          touch-action: manipulation;
         }
 
         .search-card.flipped {
@@ -460,7 +461,6 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
           justifyContent: 'center',
           zIndex: 9999,
           padding: '1rem',
-          touchAction: 'none',
           overscrollBehavior: 'contain'
         }}
         onClick={onClose}
@@ -522,7 +522,7 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
               </div>
 
               {/* Content Area */}
-              <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', touchAction: 'pan-y', padding: '0 1.25rem 1.25rem' }}>
+              <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', touchAction: 'manipulation', padding: '0 1.25rem 1.25rem' }}>
                 {loading ? (
                   <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem 0' }}>
                     <div style={{ width: '32px', height: '32px', border: `3px solid ${colors.brandPink}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
