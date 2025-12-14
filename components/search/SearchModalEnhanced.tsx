@@ -611,6 +611,7 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
 
         .search-card-back {
           transform: rotateY(180deg);
+          background: #0a0a0a;
         }
       `}</style>
 
