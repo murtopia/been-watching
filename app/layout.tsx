@@ -16,6 +16,13 @@ export const metadata: Metadata = {
   description: "Track and share what you've been watching with friends",
 };
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
