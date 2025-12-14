@@ -7,6 +7,7 @@ export default function GoldThemePreview() {
   const [selectedGold, setSelectedGold] = useState<'electric' | 'bright'>('electric');
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [goldIcons, setGoldIcons] = useState(false);
+  const [goldGlass, setGoldGlass] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   
@@ -17,6 +18,11 @@ export default function GoldThemePreview() {
   
   const currentGold = goldColors[selectedGold];
   const iconColor = goldIcons ? currentGold : 'white';
+  
+  // Gold glass background - subtle gold tint
+  const goldGlassBg = isDarkMode 
+    ? `rgba(${parseInt(currentGold.slice(1,3), 16)}, ${parseInt(currentGold.slice(3,5), 16)}, ${parseInt(currentGold.slice(5,7), 16)}, 0.15)`
+    : `rgba(${parseInt(currentGold.slice(1,3), 16)}, ${parseInt(currentGold.slice(3,5), 16)}, ${parseInt(currentGold.slice(5,7), 16)}, 0.2)`;
   
   // Theme colors
   const theme = {
@@ -29,7 +35,9 @@ export default function GoldThemePreview() {
     textMuted: isDarkMode ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)',
     textFaint: isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
     glassBg: isDarkMode ? 'rgba(20, 20, 25, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-    buttonBg: isDarkMode ? 'rgba(60, 60, 60, 0.4)' : 'rgba(200, 200, 200, 0.6)',
+    buttonBg: goldGlass 
+      ? goldGlassBg 
+      : (isDarkMode ? 'rgba(60, 60, 60, 0.4)' : 'rgba(200, 200, 200, 0.6)'),
     buttonBorder: isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)',
   };
   
@@ -114,8 +122,8 @@ export default function GoldThemePreview() {
           </button>
         </div>
 
-        {/* Mode Toggles */}
-        <div style={{ display: 'flex', gap: '12px' }}>
+        {/* Mode Toggles - Row 1 */}
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
           {/* Light/Dark Mode Toggle */}
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
@@ -123,8 +131,8 @@ export default function GoldThemePreview() {
               flex: 1,
               padding: '10px 16px',
               borderRadius: '10px',
-              border: `1px solid ${currentGold}60`,
-              background: isDarkMode ? `${currentGold}15` : `${currentGold}25`,
+              border: `1.5px solid ${isDarkMode ? currentGold : `${currentGold}60`}`,
+              background: isDarkMode ? `${currentGold}15` : 'transparent',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -133,12 +141,38 @@ export default function GoldThemePreview() {
               transition: 'all 0.2s',
             }}
           >
-            <span style={{ fontSize: '16px' }}>{isDarkMode ? '🌙' : '☀️'}</span>
+            <span style={{ fontSize: '16px' }}>🌙</span>
             <span style={{ color: theme.text, fontSize: '12px', fontWeight: 500 }}>
-              {isDarkMode ? 'Dark Mode' : 'Light Mode'}
+              Dark
             </span>
           </button>
 
+          {/* Light Mode Toggle */}
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            style={{
+              flex: 1,
+              padding: '10px 16px',
+              borderRadius: '10px',
+              border: `1.5px solid ${!isDarkMode ? currentGold : `${currentGold}60`}`,
+              background: !isDarkMode ? `${currentGold}15` : 'transparent',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              transition: 'all 0.2s',
+            }}
+          >
+            <span style={{ fontSize: '16px' }}>☀️</span>
+            <span style={{ color: theme.text, fontSize: '12px', fontWeight: 500 }}>
+              Light
+            </span>
+          </button>
+        </div>
+
+        {/* Mode Toggles - Row 2 */}
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
           {/* Icon Color Toggle */}
           <button
             onClick={() => setGoldIcons(!goldIcons)}
@@ -146,8 +180,8 @@ export default function GoldThemePreview() {
               flex: 1,
               padding: '10px 16px',
               borderRadius: '10px',
-              border: `1px solid ${currentGold}60`,
-              background: goldIcons ? `${currentGold}25` : `${currentGold}15`,
+              border: `1.5px solid ${goldIcons ? currentGold : `${currentGold}60`}`,
+              background: goldIcons ? `${currentGold}15` : 'transparent',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -160,11 +194,101 @@ export default function GoldThemePreview() {
               width: '16px',
               height: '16px',
               borderRadius: '50%',
-              background: goldIcons ? currentGold : (isDarkMode ? 'white' : '#333'),
+              background: currentGold,
               border: `2px solid ${currentGold}`,
             }} />
             <span style={{ color: theme.text, fontSize: '12px', fontWeight: 500 }}>
-              {goldIcons ? 'Gold Icons' : 'White Icons'}
+              Gold Icons
+            </span>
+          </button>
+
+          {/* White Icons Toggle */}
+          <button
+            onClick={() => setGoldIcons(!goldIcons)}
+            style={{
+              flex: 1,
+              padding: '10px 16px',
+              borderRadius: '10px',
+              border: `1.5px solid ${!goldIcons ? currentGold : `${currentGold}60`}`,
+              background: !goldIcons ? `${currentGold}15` : 'transparent',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              transition: 'all 0.2s',
+            }}
+          >
+            <div style={{
+              width: '16px',
+              height: '16px',
+              borderRadius: '50%',
+              background: isDarkMode ? 'white' : '#333',
+              border: `2px solid ${currentGold}`,
+            }} />
+            <span style={{ color: theme.text, fontSize: '12px', fontWeight: 500 }}>
+              White Icons
+            </span>
+          </button>
+        </div>
+
+        {/* Mode Toggles - Row 3: Gold Glass */}
+        <div style={{ display: 'flex', gap: '12px' }}>
+          {/* Gold Glass Toggle */}
+          <button
+            onClick={() => setGoldGlass(!goldGlass)}
+            style={{
+              flex: 1,
+              padding: '10px 16px',
+              borderRadius: '10px',
+              border: `1.5px solid ${goldGlass ? currentGold : `${currentGold}60`}`,
+              background: goldGlass ? `${currentGold}15` : 'transparent',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              transition: 'all 0.2s',
+            }}
+          >
+            <div style={{
+              width: '16px',
+              height: '16px',
+              borderRadius: '50%',
+              background: `linear-gradient(135deg, ${currentGold}40, ${currentGold}20)`,
+              border: `2px solid ${currentGold}`,
+            }} />
+            <span style={{ color: theme.text, fontSize: '12px', fontWeight: 500 }}>
+              Gold Glass Fill
+            </span>
+          </button>
+
+          {/* Grey Glass Toggle */}
+          <button
+            onClick={() => setGoldGlass(!goldGlass)}
+            style={{
+              flex: 1,
+              padding: '10px 16px',
+              borderRadius: '10px',
+              border: `1.5px solid ${!goldGlass ? currentGold : `${currentGold}60`}`,
+              background: !goldGlass ? `${currentGold}15` : 'transparent',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              transition: 'all 0.2s',
+            }}
+          >
+            <div style={{
+              width: '16px',
+              height: '16px',
+              borderRadius: '50%',
+              background: isDarkMode ? 'rgba(60, 60, 60, 0.6)' : 'rgba(200, 200, 200, 0.8)',
+              border: `2px solid ${currentGold}`,
+            }} />
+            <span style={{ color: theme.text, fontSize: '12px', fontWeight: 500 }}>
+              Grey Glass Fill
             </span>
           </button>
         </div>
@@ -172,7 +296,7 @@ export default function GoldThemePreview() {
 
       {/* Sample Card */}
       <div style={{
-        marginTop: '200px',
+        marginTop: '280px',
         maxWidth: '398px',
         marginLeft: 'auto',
         marginRight: 'auto',
@@ -182,7 +306,7 @@ export default function GoldThemePreview() {
           borderRadius: '24px',
           overflow: 'hidden',
           background: theme.cardBg,
-          border: `1px solid ${currentGold}30`,
+          border: `1.5px solid ${currentGold}`,
           transition: 'background 0.3s',
         }}>
           {/* Card Image Area */}
@@ -329,11 +453,11 @@ export default function GoldThemePreview() {
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              background: isDarkMode ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.8)',
+              background: goldGlass ? goldGlassBg : (isDarkMode ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.8)'),
               backdropFilter: 'blur(10px)',
               padding: '6px 12px 6px 6px',
               borderRadius: '20px',
-              border: `1px solid ${currentGold}40`,
+              border: `1.5px solid ${currentGold}`,
             }}>
               <div style={{
                 width: '28px',
@@ -364,7 +488,7 @@ export default function GoldThemePreview() {
                 borderRadius: '50%',
                 background: theme.buttonBg,
                 backdropFilter: 'blur(10px)',
-                border: `1px solid ${currentGold}40`,
+                border: `1.5px solid ${currentGold}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -422,11 +546,11 @@ export default function GoldThemePreview() {
 
         {/* Additional UI Elements */}
         <div style={{
-          background: isDarkMode ? 'rgba(20, 20, 25, 0.8)' : 'rgba(255, 255, 255, 0.9)',
+          background: goldGlass ? goldGlassBg : (isDarkMode ? 'rgba(20, 20, 25, 0.8)' : 'rgba(255, 255, 255, 0.9)'),
           backdropFilter: 'blur(20px)',
           borderRadius: '16px',
           padding: '20px',
-          border: `1px solid ${currentGold}30`,
+          border: `1.5px solid ${currentGold}`,
           transition: 'background 0.3s',
         }}>
           <h3 style={{ 
@@ -446,8 +570,8 @@ export default function GoldThemePreview() {
             <button style={{
               padding: '8px 16px',
               borderRadius: '20px',
-              background: `${currentGold}20`,
-              border: `1px solid ${currentGold}`,
+              background: goldGlass ? goldGlassBg : `${currentGold}20`,
+              border: `1.5px solid ${currentGold}`,
               color: currentGold,
               fontSize: '13px',
               fontWeight: 500,
@@ -459,7 +583,7 @@ export default function GoldThemePreview() {
               padding: '8px 16px',
               borderRadius: '20px',
               background: 'transparent',
-              border: `1px solid ${theme.buttonBorder}`,
+              border: `1.5px solid ${currentGold}50`,
               color: theme.textMuted,
               fontSize: '13px',
               cursor: 'pointer',
@@ -470,7 +594,7 @@ export default function GoldThemePreview() {
               padding: '8px 16px',
               borderRadius: '20px',
               background: 'transparent',
-              border: `1px solid ${theme.buttonBorder}`,
+              border: `1.5px solid ${currentGold}50`,
               color: theme.textMuted,
               fontSize: '13px',
               cursor: 'pointer',
@@ -535,9 +659,9 @@ export default function GoldThemePreview() {
           width: '100px',
           height: '48px',
           borderRadius: '24px',
-          background: isDarkMode ? 'rgba(30, 30, 35, 0.8)' : 'rgba(255, 255, 255, 0.9)',
+          background: goldGlass ? goldGlassBg : (isDarkMode ? 'rgba(30, 30, 35, 0.8)' : 'rgba(255, 255, 255, 0.9)'),
           backdropFilter: 'blur(20px)',
-          border: `1px solid ${currentGold}50`,
+          border: `1.5px solid ${currentGold}`,
           color: theme.text,
           fontSize: '13px',
           fontWeight: 600,
@@ -556,7 +680,7 @@ export default function GoldThemePreview() {
           width: '56px',
           height: '56px',
           borderRadius: '50%',
-          background: isDarkMode ? 'rgba(30, 30, 35, 0.8)' : 'rgba(255, 255, 255, 0.9)',
+          background: goldGlass ? goldGlassBg : (isDarkMode ? 'rgba(30, 30, 35, 0.8)' : 'rgba(255, 255, 255, 0.9)'),
           backdropFilter: 'blur(20px)',
           border: `1.5px solid ${currentGold}`,
           color: goldIcons ? currentGold : theme.text,
@@ -575,9 +699,9 @@ export default function GoldThemePreview() {
           width: '100px',
           height: '48px',
           borderRadius: '24px',
-          background: isDarkMode ? 'rgba(30, 30, 35, 0.8)' : 'rgba(255, 255, 255, 0.9)',
+          background: goldGlass ? goldGlassBg : (isDarkMode ? 'rgba(30, 30, 35, 0.8)' : 'rgba(255, 255, 255, 0.9)'),
           backdropFilter: 'blur(20px)',
-          border: `1px solid ${currentGold}50`,
+          border: `1.5px solid ${currentGold}`,
           color: theme.text,
           fontSize: '13px',
           fontWeight: 600,
