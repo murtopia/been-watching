@@ -443,6 +443,7 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
           display: flex;
           flex-direction: column;
           box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+          height: 100%;
           min-height: 0;
         }
 
@@ -464,6 +465,12 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
           overscrollBehavior: 'contain'
         }}
         onClick={onClose}
+        onTouchMove={(e) => {
+          // Only prevent if touch is on backdrop, not on card content
+          if (e.target === e.currentTarget) {
+            e.preventDefault()
+          }
+        }}
       >
         <div className="search-card-container" onClick={(e) => e.stopPropagation()}>
           <div className={`search-card ${isFlipped ? 'flipped' : ''}`}>
