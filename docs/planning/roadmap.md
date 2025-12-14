@@ -1,6 +1,6 @@
 # Been Watching - Product Roadmap
 
-**Last Updated:** January 23, 2025
+**Last Updated:** December 14, 2025
 **Current Version:** v0.2.0 (Alpha)
 **Status:** Private Alpha Testing → Beta Expansion
 
@@ -324,11 +324,21 @@ const mentions = text.match(/@[\w_]+/g)
 
 #### 8. Advanced Search & Filters
 
-**Status:** Basic search works
+**Status:** Enhanced search modal complete ✅ (December 2025)
 **Complexity:** Medium
 **Estimated Time:** 3-4 days
 
-**Improvements:**
+**Completed (December 2025):**
+- ✅ Redesigned search modal with "Add or Rate a Show" header
+- ✅ Trending suggestions when search is empty (6 items, 3x2 grid)
+- ✅ Watchlist filtering (excludes shows user already has)
+- ✅ Full-modal flip to show details (matches activity feed cards)
+- ✅ Up to 20 search results
+- ✅ iOS-safe scrolling with custom JS scroll system
+- ✅ Fixed modal size (398x645px, matches feed cards)
+- ✅ See: `docs/features/search-improvements-status.md`
+
+**Future Improvements:**
 - Filter by genre
 - Filter by year range
 - Filter by streaming service
