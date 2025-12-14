@@ -583,7 +583,7 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
           height: 100%;
           position: relative;
           transform-style: preserve-3d;
-          transition: transform 0.5s ease;
+          transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .search-card.flipped {
@@ -601,17 +601,23 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
         }
 
         .search-card-front {
-          background: ${colors.isDark ? 'rgba(20, 20, 25, 0.98)' : 'rgba(255, 255, 255, 0.98)'};
+          background: ${colors.isDark ? 'rgba(20, 20, 25, 1)' : 'rgba(255, 255, 255, 1)'};
           display: flex;
           flex-direction: column;
           box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
           height: 100%;
           min-height: 0;
+          z-index: 2;
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
         }
 
         .search-card-back {
           transform: rotateY(180deg);
           background: #0a0a0a;
+          z-index: 1;
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
         }
       `}</style>
 
