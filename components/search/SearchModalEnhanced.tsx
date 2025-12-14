@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Search } from 'lucide-react'
 import { useDebounce } from '@/hooks/useDebounce'
 import { createClient } from '@/utils/supabase/client'
@@ -34,6 +34,169 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
   
   const colors = useThemeColors()
   const debouncedQuery = useDebounce(query, 500)
+
+  // Refs for JS-based scroll (same pattern as FeedCard)
+  const contentScrollRef = useRef<HTMLDivElement>(null)
+  const contentInnerRef = useRef<HTMLDivElement>(null)
+  const scrollOffsetRef = useRef<number>(0)
+  const touchStartY = useRef<number>(0)
+  const scrollStartY = useRef<number>(0)
+  const velocityY = useRef<number>(0)
+  const lastTouchY = useRef<number>(0)
+  const lastMoveTime = useRef<number>(0)
+  const momentumRAF = useRef<number | null>(null)
+
+  // Helper to apply scroll transform directly to DOM (GPU accelerated)
+  const applyScrollTransform = useCallback((offset: number) => {
+    if (contentInnerRef.current) {
+      contentInnerRef.current.style.transform = `translate3d(0, -${offset}px, 0)`
+    }
+    scrollOffsetRef.current = offset
+  }, [])
+
+  // Helper to calculate max scroll based on actual content height
+  const getMaxScroll = useCallback(() => {
+    if (!contentScrollRef.current || !contentInnerRef.current) return 0
+    const containerHeight = contentScrollRef.current.clientHeight
+    const contentHeight = contentInnerRef.current.scrollHeight
+    return Math.max(0, contentHeight - containerHeight)
+  }, [])
+
+  // Reset scroll when modal closes or query changes
+  useEffect(() => {
+    scrollOffsetRef.current = 0
+    applyScrollTransform(0)
+  }, [isOpen, query, applyScrollTransform])
+
+  // Touch handlers for scroll
+  const handleTouchStart = useCallback((e: TouchEvent) => {
+    // Cancel any ongoing momentum
+    if (momentumRAF.current) {
+      cancelAnimationFrame(momentumRAF.current)
+      momentumRAF.current = null
+    }
+    touchStartY.current = e.touches[0].clientY
+    scrollStartY.current = scrollOffsetRef.current
+    lastTouchY.current = e.touches[0].clientY
+    lastMoveTime.current = Date.now()
+    velocityY.current = 0
+  }, [])
+
+  const handleTouchMove = useCallback((e: TouchEvent) => {
+    if (!contentScrollRef.current || !contentInnerRef.current) return
+    
+    // Prevent page scroll
+    e.preventDefault()
+    e.stopPropagation()
+    
+    const now = Date.now()
+    const touchY = e.touches[0].clientY
+    const deltaYFromStart = touchStartY.current - touchY
+    const maxScroll = getMaxScroll()
+    
+    // Calculate velocity
+    const dt = now - lastMoveTime.current
+    if (dt > 0) {
+      const dy = lastTouchY.current - touchY
+      velocityY.current = 0.8 * velocityY.current + 0.2 * (dy / dt)
+    }
+    
+    // Calculate new offset with rubber-band effect
+    const newOffset = scrollStartY.current + deltaYFromStart
+    let finalOffset: number
+    if (newOffset < 0) {
+      finalOffset = newOffset * 0.3 // Rubber band at top
+    } else if (newOffset > maxScroll) {
+      finalOffset = maxScroll + (newOffset - maxScroll) * 0.3 // Rubber band at bottom
+    } else {
+      finalOffset = newOffset
+    }
+    
+    applyScrollTransform(finalOffset)
+    lastTouchY.current = touchY
+    lastMoveTime.current = now
+  }, [getMaxScroll, applyScrollTransform])
+
+  const handleTouchEnd = useCallback(() => {
+    const maxScroll = getMaxScroll()
+    const currentOffset = scrollOffsetRef.current
+    
+    // Bounce back if over-scrolled
+    if (currentOffset < 0 || currentOffset > maxScroll) {
+      const targetOffset = currentOffset < 0 ? 0 : maxScroll
+      if (contentInnerRef.current) {
+        contentInnerRef.current.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+        applyScrollTransform(targetOffset)
+        setTimeout(() => {
+          if (contentInnerRef.current) {
+            contentInnerRef.current.style.transition = ''
+          }
+        }, 300)
+      }
+      return
+    }
+    
+    // Apply momentum
+    let velocity = velocityY.current * 16.67
+    if (Math.abs(velocity) < 0.5) return
+    
+    velocity = Math.max(-50, Math.min(50, velocity))
+    
+    const animateMomentum = () => {
+      if (Math.abs(velocity) < 0.3) {
+        momentumRAF.current = null
+        return
+      }
+      
+      const maxScroll = getMaxScroll()
+      const currentOffset = scrollOffsetRef.current
+      
+      if ((currentOffset <= 0 && velocity < 0) || (currentOffset >= maxScroll && velocity > 0)) {
+        const targetOffset = currentOffset <= 0 ? 0 : maxScroll
+        if (contentInnerRef.current) {
+          contentInnerRef.current.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+          applyScrollTransform(targetOffset)
+          setTimeout(() => {
+            if (contentInnerRef.current) {
+              contentInnerRef.current.style.transition = ''
+            }
+          }, 300)
+        }
+        return
+      }
+      
+      applyScrollTransform(currentOffset + velocity)
+      velocity *= 0.92
+      momentumRAF.current = requestAnimationFrame(animateMomentum)
+    }
+    
+    momentumRAF.current = requestAnimationFrame(animateMomentum)
+  }, [getMaxScroll, applyScrollTransform])
+
+  // Mouse wheel support for desktop
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault()
+    const maxScroll = getMaxScroll()
+    const newOffset = scrollOffsetRef.current + e.deltaY
+    const clampedOffset = Math.max(0, Math.min(newOffset, maxScroll))
+    applyScrollTransform(clampedOffset)
+  }, [getMaxScroll, applyScrollTransform])
+
+  // Attach native touch listeners with { passive: false }
+  useEffect(() => {
+    const element = contentScrollRef.current
+    if (!element || !isOpen) return
+    
+    element.addEventListener('touchstart', handleTouchStart, { passive: true })
+    element.addEventListener('touchmove', handleTouchMove, { passive: false })
+    element.addEventListener('touchend', handleTouchEnd, { passive: true })
+    
+    return () => {
+      element.removeEventListener('touchstart', handleTouchStart)
+      element.removeEventListener('touchmove', handleTouchMove)
+      element.removeEventListener('touchend', handleTouchEnd)
+    }
+  }, [isOpen, handleTouchStart, handleTouchMove, handleTouchEnd])
 
   // Fetch user data
   useEffect(() => {
@@ -421,7 +584,6 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
           position: relative;
           transform-style: preserve-3d;
           transition: transform 0.5s ease;
-          touch-action: manipulation;
         }
 
         .search-card.flipped {
@@ -465,12 +627,6 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
           overscrollBehavior: 'contain'
         }}
         onClick={onClose}
-        onTouchMove={(e) => {
-          // Only prevent if touch is on backdrop, not on card content
-          if (e.target === e.currentTarget) {
-            e.preventDefault()
-          }
-        }}
       >
         <div className="search-card-container" onClick={(e) => e.stopPropagation()}>
           <div className={`search-card ${isFlipped ? 'flipped' : ''}`}>
@@ -528,8 +684,26 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
                 </div>
               </div>
 
-              {/* Content Area */}
-              <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', touchAction: 'manipulation', padding: '0 1.25rem 1.25rem' }}>
+              {/* Content Area - JS-based scroll */}
+              <div 
+                ref={contentScrollRef}
+                onWheel={handleWheel}
+                style={{ 
+                  flex: 1, 
+                  minHeight: 0, 
+                  overflow: 'hidden',
+                  touchAction: 'none',
+                  position: 'relative'
+                }}
+              >
+                <div 
+                  ref={contentInnerRef}
+                  style={{
+                    padding: '0 1.25rem 1.25rem',
+                    willChange: 'transform',
+                    transform: 'translate3d(0, 0, 0)'
+                  }}
+                >
                 {loading ? (
                   <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem 0' }}>
                     <div style={{ width: '32px', height: '32px', border: `3px solid ${colors.brandPink}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
@@ -578,6 +752,7 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
                     Start typing to search
                   </div>
                 )}
+                </div>
               </div>
             </div>
 
