@@ -1268,8 +1268,8 @@ export const FeedCard: React.FC<FeedCardProps> = ({
         }
 
         .action-btn {
-          width: 40px;
-          height: 40px;
+          width: 42px;
+          height: 42px;
           border-radius: 50%;
           background: rgba(60, 60, 60, 0.4);
           backdrop-filter: blur(10px);
