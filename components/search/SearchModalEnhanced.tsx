@@ -110,19 +110,37 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
     fetchTrending()
   }, [isOpen])
 
-  // Reset on close
+  // iOS-safe scroll lock - prevents zoom and horizontal scroll issues
   useEffect(() => {
     if (isOpen) {
+      // Save scroll position and lock body
+      const scrollY = window.scrollY
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${scrollY}px`
+      document.body.style.width = '100%'
       document.body.style.overflow = 'hidden'
     } else {
-      document.body.style.overflow = 'unset'
+      // Restore scroll position
+      const scrollY = document.body.style.top
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      document.body.style.overflow = ''
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY) * -1)
+      }
       setQuery('')
       setResults([])
       setSelectedItem(null)
       setSelectedCardData(null)
       setIsFlipped(false)
     }
-    return () => { document.body.style.overflow = 'unset' }
+    return () => {
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      document.body.style.overflow = ''
+    }
   }, [isOpen])
 
   const searchMedia = useCallback(async (searchQuery: string) => {
