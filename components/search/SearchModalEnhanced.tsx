@@ -648,7 +648,7 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
                   onClick={onClose}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', display: 'flex' }}
                 >
-                  <Icon name="close" variant="circle" size={28} />
+                  <Icon name="close" variant="circle" size={42} />
                 </button>
               </div>
 
