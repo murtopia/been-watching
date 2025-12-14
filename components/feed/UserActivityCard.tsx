@@ -1811,6 +1811,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           font-weight: 700;
           margin-bottom: 6px;
           letter-spacing: -0.5px;
+          padding-right: 60px; /* Prevent overlap with close button */
         }
 
         .back-meta {
