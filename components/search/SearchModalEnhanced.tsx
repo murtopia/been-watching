@@ -442,6 +442,7 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
           display: flex;
           flex-direction: column;
           box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+          min-height: 0;
         }
 
         .search-card-back {
@@ -458,7 +459,9 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 9999,
-          padding: '1rem'
+          padding: '1rem',
+          touchAction: 'none',
+          overscrollBehavior: 'contain'
         }}
         onClick={onClose}
       >
@@ -519,7 +522,7 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
               </div>
 
               {/* Content Area */}
-              <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', padding: '0 1.25rem 1.25rem' }}>
+              <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', touchAction: 'pan-y', padding: '0 1.25rem 1.25rem' }}>
                 {loading ? (
                   <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem 0' }}>
                     <div style={{ width: '32px', height: '32px', border: `3px solid ${colors.brandPink}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
