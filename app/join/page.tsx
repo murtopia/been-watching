@@ -1,8 +1,5 @@
 'use client'
 
-// Skip static generation - this page needs runtime env vars
-export const dynamic = 'force-dynamic'
-
 import { useEffect, useState, Suspense } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
