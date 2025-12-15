@@ -21,23 +21,23 @@ export default function Footer({ variant = 'full' }: FooterProps) {
         paddingBottom: '6rem' // Extra space for BottomNav
       }}>
         <div style={{
-          background: colors.goldGlassBg,
+          background: colors.glassBg,
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
-          border: colors.goldBorder,
+          border: colors.glassBorder,
           borderRadius: '20px',
           padding: '2rem',
           boxShadow: colors.shadowLg,
           textAlign: 'center'
         }}>
           <div style={{ marginBottom: '1rem', fontSize: '0.8125rem' }}>
-            <a href="/privacy" style={{ color: colors.brandPink, textDecoration: 'none', margin: '0 0.75rem', fontWeight: '600' }}>
+            <a href="/privacy" style={{ color: colors.textPrimary, textDecoration: 'none', margin: '0 0.75rem', fontWeight: '600' }}>
               Privacy
             </a>
-            <a href="/terms" style={{ color: colors.brandPink, textDecoration: 'none', margin: '0 0.75rem', fontWeight: '600' }}>
+            <a href="/terms" style={{ color: colors.textPrimary, textDecoration: 'none', margin: '0 0.75rem', fontWeight: '600' }}>
               Terms
             </a>
-            <a href="/ccpa" style={{ color: colors.brandPink, textDecoration: 'none', margin: '0 0.75rem', fontWeight: '600' }}>
+            <a href="/ccpa" style={{ color: colors.textPrimary, textDecoration: 'none', margin: '0 0.75rem', fontWeight: '600' }}>
               Do Not Sell My Info
             </a>
           </div>
@@ -57,10 +57,10 @@ export default function Footer({ variant = 'full' }: FooterProps) {
       padding: '0 1.5rem'
     }}>
       <div style={{
-        background: colors.goldGlassBg,
+        background: colors.glassBg,
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        border: colors.goldBorder,
+        border: colors.glassBorder,
         borderRadius: '20px',
         padding: '2.5rem',
         boxShadow: colors.shadowLg
@@ -69,7 +69,7 @@ export default function Footer({ variant = 'full' }: FooterProps) {
         <div style={{
           textAlign: 'center',
           paddingBottom: '1.5rem',
-          borderBottom: colors.goldBorder,
+          borderBottom: colors.glassBorder,
           marginBottom: '1.5rem'
         }}>
           <h2 style={{
@@ -191,7 +191,7 @@ export default function Footer({ variant = 'full' }: FooterProps) {
                 </a>
               </li>
               <li style={{ marginBottom: '0.5rem' }}>
-                <a href="/ccpa" style={{ color: colors.brandPink, textDecoration: 'none', fontSize: '0.875rem', fontWeight: '600' }}>
+                <a href="/ccpa" style={{ color: colors.textPrimary, textDecoration: 'none', fontSize: '0.875rem', fontWeight: '600' }}>
                   CCPA Opt-Out
                 </a>
               </li>
@@ -201,7 +201,7 @@ export default function Footer({ variant = 'full' }: FooterProps) {
 
         {/* Bottom Bar */}
         <div style={{
-          borderTop: colors.goldBorder,
+          borderTop: colors.glassBorder,
           paddingTop: '1.5rem',
           textAlign: 'center'
         }}>
