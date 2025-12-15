@@ -1,11 +1,21 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 
-// Use service role to bypass RLS
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// Lazy-initialize to avoid build errors when env vars aren't available
+let supabaseAdmin: SupabaseClient | null = null
+
+function getSupabaseAdmin() {
+  if (!supabaseAdmin) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error('Supabase environment variables are not configured')
+    }
+    supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    )
+  }
+  return supabaseAdmin
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,7 +29,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert into waitlist using admin client (bypasses RLS)
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await getSupabaseAdmin()
       .from('waitlist')
       .insert({
         email: email.toLowerCase().trim(),
