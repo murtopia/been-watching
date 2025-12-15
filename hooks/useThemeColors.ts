@@ -21,6 +21,7 @@ export function useThemeColors() {
     // Gold Theme Tokens
     goldAccent,
     goldBorder: `1px solid ${goldAccent}`,
+    goldBorderThin: `0.5px solid ${goldAccent}`,
     goldGlassBg: isDark 
       ? 'rgba(255, 193, 37, 0.15)'  // Gold tint for dark mode
       : 'rgba(255, 193, 37, 0.2)',   // Gold tint for light mode

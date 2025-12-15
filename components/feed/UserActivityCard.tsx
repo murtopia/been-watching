@@ -1056,7 +1056,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           -webkit-backface-visibility: hidden;
           border-radius: 16px;
           overflow: hidden; /* Ensure content is clipped to card bounds */
-          border: ${colors.goldBorder};
+          border: ${colors.goldBorderThin};
           box-sizing: border-box;
         }
 
