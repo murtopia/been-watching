@@ -17,10 +17,10 @@ export default function BottomNav({ onSearchOpen }: { onSearchOpen?: () => void 
 
   const pillButtonStyle: React.CSSProperties = {
     width: '100px',
-    background: colors.glassBg,
+    background: colors.goldGlassBg,
     backdropFilter: 'blur(20px)',
     WebkitBackdropFilter: 'blur(20px)',
-    border: colors.glassBorder,
+    border: colors.goldBorder,
     borderRadius: '24px',
     padding: '14px 0',
     color: colors.isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.8)',
@@ -36,10 +36,10 @@ export default function BottomNav({ onSearchOpen }: { onSearchOpen?: () => void 
     width: '64px',
     height: '64px',
     borderRadius: '50%',
-    background: colors.glassBg,
+    background: colors.goldGlassBg,
     backdropFilter: 'blur(20px)',
     WebkitBackdropFilter: 'blur(20px)',
-    border: colors.glassBorder,
+    border: colors.goldBorder,
     color: colors.isDark ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.85)',
     fontSize: '28px',
     fontWeight: 300,
@@ -68,12 +68,12 @@ export default function BottomNav({ onSearchOpen }: { onSearchOpen?: () => void 
         onMouseEnter={(e) => {
           e.currentTarget.style.transform = 'scale(1.05)'
           e.currentTarget.style.background = colors.isDark 
-            ? 'rgba(255, 255, 255, 0.1)' 
-            : 'rgba(255, 255, 255, 0.8)'
+            ? 'rgba(255, 193, 37, 0.25)' 
+            : 'rgba(255, 193, 37, 0.3)'
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.transform = 'scale(1)'
-          e.currentTarget.style.background = colors.glassBg
+          e.currentTarget.style.background = colors.goldGlassBg
         }}
       >
         HOME
@@ -86,12 +86,12 @@ export default function BottomNav({ onSearchOpen }: { onSearchOpen?: () => void 
         onMouseEnter={(e) => {
           e.currentTarget.style.transform = 'scale(1.1)'
           e.currentTarget.style.background = colors.isDark 
-            ? 'rgba(255, 255, 255, 0.1)' 
-            : 'rgba(255, 255, 255, 0.8)'
+            ? 'rgba(255, 193, 37, 0.25)' 
+            : 'rgba(255, 193, 37, 0.3)'
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.transform = 'scale(1)'
-          e.currentTarget.style.background = colors.glassBg
+          e.currentTarget.style.background = colors.goldGlassBg
         }}
       >
         +
@@ -104,12 +104,12 @@ export default function BottomNav({ onSearchOpen }: { onSearchOpen?: () => void 
         onMouseEnter={(e) => {
           e.currentTarget.style.transform = 'scale(1.05)'
           e.currentTarget.style.background = colors.isDark 
-            ? 'rgba(255, 255, 255, 0.1)' 
-            : 'rgba(255, 255, 255, 0.8)'
+            ? 'rgba(255, 193, 37, 0.25)' 
+            : 'rgba(255, 193, 37, 0.3)'
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.transform = 'scale(1)'
-          e.currentTarget.style.background = colors.glassBg
+          e.currentTarget.style.background = colors.goldGlassBg
         }}
       >
         SHOWS

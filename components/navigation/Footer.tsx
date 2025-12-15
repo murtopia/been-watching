@@ -21,10 +21,10 @@ export default function Footer({ variant = 'full' }: FooterProps) {
         paddingBottom: '6rem' // Extra space for BottomNav
       }}>
         <div style={{
-          background: colors.glassBg,
+          background: colors.goldGlassBg,
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
-          border: colors.glassBorder,
+          border: colors.goldBorder,
           borderRadius: '20px',
           padding: '2rem',
           boxShadow: colors.shadowLg,
@@ -57,10 +57,10 @@ export default function Footer({ variant = 'full' }: FooterProps) {
       padding: '0 1.5rem'
     }}>
       <div style={{
-        background: colors.glassBg,
+        background: colors.goldGlassBg,
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        border: colors.glassBorder,
+        border: colors.goldBorder,
         borderRadius: '20px',
         padding: '2.5rem',
         boxShadow: colors.shadowLg
@@ -69,7 +69,7 @@ export default function Footer({ variant = 'full' }: FooterProps) {
         <div style={{
           textAlign: 'center',
           paddingBottom: '1.5rem',
-          borderBottom: `1px solid ${colors.borderColor}`,
+          borderBottom: colors.goldBorder,
           marginBottom: '1.5rem'
         }}>
           <h2 style={{
@@ -201,7 +201,7 @@ export default function Footer({ variant = 'full' }: FooterProps) {
 
         {/* Bottom Bar */}
         <div style={{
-          borderTop: `1px solid ${colors.borderColor}`,
+          borderTop: colors.goldBorder,
           paddingTop: '1.5rem',
           textAlign: 'center'
         }}>

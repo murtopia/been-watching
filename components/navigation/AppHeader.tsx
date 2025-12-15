@@ -6,6 +6,7 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import ThemeToggle from '@/components/theme/ThemeToggle'
 import NotificationDropdown from '@/components/notifications/NotificationDropdown'
 import Icon from '@/components/ui/Icon'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface AppHeaderProps {
   profile?: any
@@ -101,14 +102,15 @@ export default function AppHeader({
   }
 
   // Theme-based colors
+  const colors = useThemeColors()
   const isDark = resolvedTheme === 'dark'
-  const cardBg = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.75)'
-  const cardBorder = isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)'
+  const cardBg = colors.goldGlassBg
+  const cardBorder = colors.goldBorder
   const backdropBlur = 'blur(20px)'
   
-  // Bell color - gold when notifications exist
+  // Bell color - gold when notifications exist, white otherwise
   const bellColor = notificationCount > 0 
-    ? '#F5A623' 
+    ? colors.goldAccent 
     : (isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.7)')
 
   return (

@@ -598,6 +598,8 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
           -webkit-backface-visibility: hidden;
           border-radius: 24px;
           overflow: hidden;
+          border: ${colors.goldBorder};
+          box-sizing: border-box;
         }
 
         .search-card-front {

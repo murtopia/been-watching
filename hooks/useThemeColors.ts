@@ -14,7 +14,18 @@ export function useThemeColors() {
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
 
+  // Gold accent color (Electric Gold)
+  const goldAccent = '#FFC125'
+
   return {
+    // Gold Theme Tokens
+    goldAccent,
+    goldBorder: `1.5px solid ${goldAccent}`,
+    goldGlassBg: isDark 
+      ? 'rgba(255, 193, 37, 0.15)'  // Gold tint for dark mode
+      : 'rgba(255, 193, 37, 0.2)',   // Gold tint for light mode
+    goldDivider: `linear-gradient(90deg, transparent, ${goldAccent}60, transparent)`,
+
     // Background Colors
     background: isDark ? '#000000' : '#ffffff',
     bgGradient: isDark ? '#000000' : '#ffffff',

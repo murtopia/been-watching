@@ -20,6 +20,7 @@ import { Icon } from '@/components/ui/Icon'
 import { ShareButton } from '@/components/sharing/ShareButton'
 import YouTubeModal from '@/components/media/YouTubeModal'
 import { getAvatarProps } from '@/utils/avatarUtils'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 // ============================================================================
 // TypeScript Interfaces
@@ -433,6 +434,9 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   onFlip,
   initialFlipped = false,
 }) => {
+  // Theme colors for gold styling
+  const colors = useThemeColors()
+  
   // Determine if this is legacy data format
   const isLegacyData = 'user' in data && 'activityBadges' in data
   const legacyData = isLegacyData ? (data as UserActivityCardData) : null
@@ -1052,6 +1056,8 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           -webkit-backface-visibility: hidden;
           border-radius: 16px;
           overflow: hidden; /* Ensure content is clipped to card bounds */
+          border: ${colors.goldBorder};
+          box-sizing: border-box;
         }
 
         .card-front {
@@ -1234,10 +1240,10 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           width: 40px;
           height: 40px;
           border-radius: 50%;
-          background: rgba(60, 60, 60, 0.4);
+          background: ${colors.goldGlassBg};
           backdrop-filter: blur(10px);
           -webkit-backdrop-filter: blur(10px);
-          border: 1.5px solid rgba(255, 255, 255, 0.2);
+          border: ${colors.goldBorder};
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1271,10 +1277,10 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           width: 42px;
           height: 42px;
           border-radius: 50%;
-          background: rgba(60, 60, 60, 0.4);
+          background: ${colors.goldGlassBg};
           backdrop-filter: blur(10px);
           -webkit-backdrop-filter: blur(10px);
-          border: 1.5px solid rgba(255, 255, 255, 0.2);
+          border: ${colors.goldBorder};
           display: flex;
           align-items: center;
           justify-content: center;
