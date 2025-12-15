@@ -1,13 +1,23 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-// Admin client to bypass RLS
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// Lazy-initialize admin client to avoid build errors when env vars aren't available
+let supabaseAdmin: SupabaseClient | null = null
+
+function getSupabaseAdmin() {
+  if (!supabaseAdmin) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error('Supabase environment variables are not configured')
+    }
+    supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    )
+  }
+  return supabaseAdmin
+}
 
 // Generate a random invite code
 function generateInviteCode(): string {
@@ -46,7 +56,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user is admin
-    const { data: profile } = await supabaseAdmin
+    const { data: profile } = await getSupabaseAdmin()
       .from('profiles')
       .select('is_admin, admin_role')
       .eq('id', user.id)
@@ -64,7 +74,7 @@ export async function POST(request: NextRequest) {
 
     switch (action) {
       case 'delete': {
-        const { error } = await supabaseAdmin
+        const { error } = await getSupabaseAdmin()
           .from('waitlist')
           .delete()
           .in('id', ids)
@@ -88,7 +98,7 @@ export async function POST(request: NextRequest) {
           
           // Create the invite code in master_codes table
           updates.push(
-            supabaseAdmin
+            getSupabaseAdmin()
               .from('master_codes')
               .insert({
                 code,
@@ -100,7 +110,7 @@ export async function POST(request: NextRequest) {
 
           // Update the waitlist entry
           updates.push(
-            supabaseAdmin
+            getSupabaseAdmin()
               .from('waitlist')
               .update({
                 invited_at: new Date().toISOString(),
