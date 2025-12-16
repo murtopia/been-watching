@@ -508,7 +508,7 @@ export default function MyShowsPage() {
       {/* My Shows Section - no container box, content floats on background */}
       <div style={{ maxWidth: '398px', margin: '0 auto', padding: '1.5rem 0', marginTop: '82px' }}>
         {/* Title + View Toggle Row */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700', color: colors.textPrimary }}>My Lists</h2>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button
@@ -549,6 +549,9 @@ export default function MyShowsPage() {
             </button>
           </div>
         </div>
+
+        {/* Gold divider line */}
+        <div style={{ height: '1px', background: colors.goldAccent, marginBottom: '1.5rem' }} />
 
         {/* Top 3 Shows - no container, floats on background */}
         <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0', color: colors.textPrimary }}>My Top 3 Shows</h3>
@@ -687,7 +690,7 @@ export default function MyShowsPage() {
         {/* Tabs */}
         <div style={{
           display: 'flex',
-          borderBottom: colors.cardBorder,
+          borderBottom: colors.goldBorder,
           marginBottom: '1.5rem'
         }}>
           <button
