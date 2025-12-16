@@ -240,44 +240,21 @@ export default function LandingPage() {
       }}>
         {/* Hero Section */}
         <section style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          {/* Logo */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            marginBottom: '1.5rem'
-          }}>
-            <img
-              src={resolvedTheme === 'dark' ? '/BW-Logo-dark.png' : '/BW-Logo-light.png'}
-              alt="Been Watching Logo"
-              style={{
-                width: '120px',
-                height: '120px',
-                transition: 'transform 0.3s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'scale(1.05) rotate(2deg)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'scale(1) rotate(0deg)'
-              }}
-            />
-          </div>
-
           <h2 style={{
-            fontSize: '2rem',
+            fontSize: '1.75rem',
             fontWeight: 700,
             color: colors.textPrimary,
             marginBottom: '0.75rem',
-            lineHeight: 1.2
+            lineHeight: 1.3
           }}>
-            Track Shows with Friends
+            Shows are better with friends.
           </h2>
           <p style={{
             fontSize: '1rem',
             color: colors.textSecondary,
-            lineHeight: 1.5
+            lineHeight: 1.6
           }}>
-            Track. Share. Discover what's next.
+            Track what you're watching, connect with friends, and discover what's next.
           </p>
         </section>
 
