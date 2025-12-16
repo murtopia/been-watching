@@ -48,11 +48,15 @@ export default function ProfilePage() {
   }, [])
 
   useEffect(() => {
-    if (user) {
-      loadFollowData()
-      loadSuggestedFriends()
-      loadCounts()
+    const loadAllData = async () => {
+      if (user) {
+        const followingList = await loadFollowData()
+        loadCounts()
+        // Now load suggestions with the fresh following list
+        loadSuggestedFriends(followingList)
+      }
     }
+    loadAllData()
   }, [user])
 
   const checkUser = async () => {
@@ -115,16 +119,15 @@ export default function ProfilePage() {
     setCounts({ wantCount: wantCount || 0, watchingCount: watchingCount || 0, watchedCount: watchedCount || 0 })
   }
 
-  const loadFollowData = async () => {
+  const loadFollowData = async (): Promise<any[]> => {
     // Load following
     const { data: followingData } = await supabase
       .from('follows')
       .select('following_id, profiles!follows_following_id_fkey(*)')
       .eq('follower_id', user.id)
 
-    if (followingData) {
-      setFollowing(followingData.map(f => f.profiles))
-    }
+    const followingList = followingData ? followingData.map(f => f.profiles) : []
+    setFollowing(followingList)
 
     // Load followers
     const { data: followersData } = await supabase
@@ -135,20 +138,25 @@ export default function ProfilePage() {
     if (followersData) {
       setFollowers(followersData.map(f => f.profiles))
     }
+    
+    return followingList
   }
 
-  const loadSuggestedFriends = async () => {
+  const loadSuggestedFriends = async (followingList?: any[]) => {
     if (!user) return
 
+    // Use provided following list or fall back to state
+    const currentFollowing = followingList || following
+    
     // Get current following IDs for filtering
-    const followingIds = new Set(following.map(f => f.id))
+    const followingIds = new Set(currentFollowing.map((f: any) => f.id))
     followingIds.add(user.id) // Also exclude self
 
     try {
       // Strategy 1: Friends of friends (people your friends follow that you don't)
       const friendsOfFriendsSet = new Set<string>()
       
-      for (const friend of following) {
+      for (const friend of currentFollowing) {
         // Get who each of your friends follows
         const { data: theirFollowing } = await supabase
           .from('follows')
@@ -307,8 +315,8 @@ export default function ProfilePage() {
           target_id: userId
         })
 
-      loadFollowData()
-      loadSuggestedFriends()
+      const followingList = await loadFollowData()
+      loadSuggestedFriends(followingList)
     }
   }
 
@@ -320,7 +328,8 @@ export default function ProfilePage() {
       .eq('following_id', userId)
 
     if (!error) {
-      loadFollowData()
+      const followingList = await loadFollowData()
+      loadSuggestedFriends(followingList)
     }
   }
 
@@ -677,7 +686,7 @@ export default function ProfilePage() {
               transition: 'all 0.2s'
             }}
           >
-            Discover <span style={{ marginLeft: '0.25rem', display: 'inline-flex', verticalAlign: 'middle' }}><Icon name="search-default" size={16} /></span>
+            Discover <span style={{ marginLeft: '0.25rem', display: 'inline-flex', verticalAlign: 'middle' }}><Icon name="search" size={16} /></span>
           </button>
         </div>
 
