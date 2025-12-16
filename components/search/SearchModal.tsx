@@ -238,7 +238,7 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
           }}>
             {loading ? (
               <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}>
-                <div style={{ width: '32px', height: '32px', border: `4px solid ${colors.brandPink}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                <div style={{ width: '32px', height: '32px', border: `4px solid ${colors.goldAccent}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
               </div>
             ) : results.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -386,7 +386,7 @@ function TVShowWithSeasons({ show, onSelect, user }: { show: any; onSelect: (med
     <div>
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}>
-          <div style={{ width: '24px', height: '24px', border: `3px solid ${colors.brandPink}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+          <div style={{ width: '24px', height: '24px', border: `3px solid ${colors.goldAccent}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
         </div>
       ) : (
         seasons.map((season) => (

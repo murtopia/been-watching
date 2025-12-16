@@ -618,7 +618,7 @@ export default function ProfilePage() {
   if (loading || !profile) {
     return (
       <div style={{ minHeight: '100vh', background: softBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ width: '32px', height: '32px', border: `4px solid ${colors.brandPink}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+        <div style={{ width: '32px', height: '32px', border: `4px solid ${colors.goldAccent}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
       </div>
     )
   }

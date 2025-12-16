@@ -715,7 +715,7 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
                 >
                 {loading ? (
                   <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem 0' }}>
-                    <div style={{ width: '32px', height: '32px', border: `3px solid ${colors.brandPink}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                    <div style={{ width: '32px', height: '32px', border: `3px solid ${colors.goldAccent}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
                   </div>
                 ) : displayItems.length > 0 ? (
                   <div>
@@ -754,7 +754,7 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
                   </div>
                 ) : trendingLoading ? (
                   <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem 0' }}>
-                    <div style={{ width: '32px', height: '32px', border: `3px solid ${colors.brandPink}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                    <div style={{ width: '32px', height: '32px', border: `3px solid ${colors.goldAccent}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
                   </div>
                 ) : (
                   <div style={{ textAlign: 'center', padding: '3rem 0', color: colors.textTertiary, fontSize: '0.9rem' }}>
@@ -777,7 +777,7 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
                   background: '#0a0a0a',
                   borderRadius: '24px'
                 }}>
-                  <div style={{ width: '40px', height: '40px', border: `3px solid ${colors.brandPink}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                  <div style={{ width: '40px', height: '40px', border: `3px solid ${colors.goldAccent}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
                 </div>
               ) : selectedCardData ? (
                 <FeedCard

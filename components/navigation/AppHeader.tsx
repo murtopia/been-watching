@@ -177,9 +177,7 @@ export default function AppHeader({
             }}
           />
           <h1 style={{
-            background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
+            color: colors.textPrimary,
             fontSize: '1.25rem',
             fontWeight: '700',
             margin: 0

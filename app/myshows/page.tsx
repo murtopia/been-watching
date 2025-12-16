@@ -789,7 +789,7 @@ export default function MyShowsPage() {
         <div>
           {loading ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem 0' }}>
-              <div style={{ width: '32px', height: '32px', border: `4px solid ${colors.brandPink}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+              <div style={{ width: '32px', height: '32px', border: `4px solid ${colors.goldAccent}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
             </div>
           ) : mediaItems.length > 0 ? (
             <MediaCardGrid

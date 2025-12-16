@@ -1,0 +1,176 @@
+# Gold Theme & Profile/Friends Update
+
+**Last Updated:** December 16, 2025
+**Status:** Complete
+
+---
+
+## Overview
+
+Major visual refresh replacing pink/orange gradients with Electric Gold (#FFC125) accent color throughout the app, plus improvements to the profile page Friends section.
+
+---
+
+## ✅ Gold Theme Implementation
+
+### Color System Updates (`hooks/useThemeColors.ts`)
+- **Primary Accent:** Electric Gold `#FFC125`
+- **Gold Borders:** `goldBorder` (1px), `goldBorderThin` (0.5px)
+- **Gold Glass:** `goldGlassBg` with subtle gold tint
+- **Dividers:** Changed to subtle gray `rgba(255, 255, 255, 0.2)`
+
+### Components Updated
+| Component | Changes |
+|-----------|---------|
+| `AppHeader` | Grey glass fill, gold border, **white text** (removed gradient) |
+| `Footer` | Grey glass fill, gold border |
+| `BottomNav` | Gold glass fill, gold borders, renamed "SHOWS" → "LISTS" |
+| `FeedCard` | 0.5px gold border, gold glass action buttons |
+| `SearchModalEnhanced` | Gold border on modal |
+| `InviteSection` | Gold accents, gold share button, gold bullets |
+| **Loading Spinners** | Changed from pink to gold across all pages |
+
+### Files with Spinner Updates
+- `app/profile/page.tsx`
+- `app/myshows/page.tsx`
+- `components/search/SearchModalEnhanced.tsx`
+- `components/search/SearchModal.tsx`
+- `components/profile/TopShowModal.tsx`
+- `components/media/MediaDetailModal.tsx`
+
+---
+
+## ✅ Profile Page Redesign (`app/profile/page.tsx`)
+
+### Visual Changes
+- **Background:** Softer dark `#0d0d0d` instead of pure black
+- **Width:** Mobile-first `398px` max-width
+- **Containers:** Removed glassmorphic boxes, content floats on background
+- **Avatar "+":** Changed from blue to gold
+- **Tabs:** Gold active state (was pink)
+- **Dividers:** Subtle gray dividers between sections
+- **Admin Section:** Removed "Admin" heading, centered button with equal spacing
+
+### Friends Tab System
+- **Following / Followers / Discover** tabs with gold active state
+- **Requests tab** appears conditionally for private accounts with pending requests
+- When 4 tabs visible, "Discover" shows only search icon (no text)
+
+---
+
+## ✅ UserCard Component Redesign (`components/friends/UserCard.tsx`)
+
+### New Layout
+```
+[Avatar] [ Name                   Button  Menu ]
+         [ @username                           ]
+         [ 69% match  [avatars] 5 mutual       ]
+```
+
+### Features
+- **Button alignment:** Top row with name/username (was spanning all 3 lines)
+- **Full width bottom row:** Taste match + mutual friends no longer wrap
+- **Follow button states:**
+  - Gold: Follow, Follow Back (action buttons)
+  - Gray: Following, Mutual, Requested (status indicators)
+- **Overlapping avatars:** Up to 3 mutual friends shown
+- **Clickable mutual friends:** Opens MutualFriendsModal
+
+### Taste Match Colors
+- **Green (`#22c55e`):** Good/Great/Exceptional (50%+)
+- **Yellow (`#eab308`):** Fair (30-49%)
+- **Red (`#ef4444`):** Poor (0-29%)
+
+---
+
+## ✅ MutualFriendsModal (`components/friends/MutualFriendsModal.tsx`)
+
+### Features
+- **Fixed size:** 400px height for consistency
+- **Scroll lock:** Body scrolling disabled when open
+- **Scroll containment:** `overscrollBehavior: contain` prevents scroll chaining
+- **Gold border:** Matches theme
+- **Backdrop blur:** Visual separation from page
+
+---
+
+## ✅ My Lists Page (`app/myshows/page.tsx`)
+
+### Renamed
+- Page title: "My Shows" → "My Lists"
+- Bottom nav: "SHOWS" → "LISTS"
+
+### Visual Changes
+- **Background:** Softer dark `#0d0d0d`
+- **No container box:** Content floats on background
+- **Top 3 Shows:** Gold border (was orange glow)
+- **Tabs:** Gold active state (was blue)
+- **Default tab:** "Watching" (was "Want to Watch")
+
+---
+
+## ✅ Performance Improvements
+
+### Parallel Data Loading (`app/profile/page.tsx`)
+- Taste matches and mutual friends load in parallel
+- Progressive UI updates as each user's data arrives
+- Fixed stale state overwrite bug in `loadSuggestedFriends`
+
+```typescript
+// Before: Sequential loading
+for (const userId of uniqueUserIds) {
+  const match = await getTasteMatchBetweenUsers(...)
+  // slow
+}
+
+// After: Parallel loading with progressive updates
+const loadPromises = uniqueUserIds.map(async (userId) => {
+  const [matchResult, mutuals] = await Promise.all([...])
+  setTasteMatches(prev => new Map(prev).set(userId, matchResult.score))
+})
+await Promise.all(loadPromises)
+```
+
+---
+
+## 🎨 Design Tokens Reference
+
+```typescript
+// Gold accents
+goldAccent: '#FFC125'
+goldBorder: '1px solid #FFC125'
+goldBorderThin: '0.5px solid #FFC125'
+goldGlassBg: 'rgba(255, 193, 37, 0.15)' // dark mode
+
+// Dividers
+dividerColor: 'rgba(255, 255, 255, 0.2)' // dark mode
+
+// Text (header)
+textPrimary: '#ffffff' // "Been Watching" text is now white
+```
+
+---
+
+## 📁 Key Files Modified
+
+- `hooks/useThemeColors.ts` - Gold color tokens
+- `components/navigation/AppHeader.tsx` - White text, grey glass
+- `components/navigation/BottomNav.tsx` - Gold styling, "LISTS" label
+- `components/navigation/Footer.tsx` - Gold styling
+- `components/feed/UserActivityCard.tsx` - Gold borders, 42px buttons
+- `components/friends/UserCard.tsx` - Redesigned layout
+- `components/friends/MutualFriendsModal.tsx` - Scroll lock, fixed size
+- `components/profile/InviteSection.tsx` - Gold accents, updated copy
+- `app/profile/page.tsx` - Mobile redesign, parallel loading
+- `app/myshows/page.tsx` - Gold accents, renamed to "My Lists"
+
+---
+
+## 🧪 Testing Notes
+
+- Test all loading spinners (should be gold, not pink)
+- Test UserCard layout with long names and 69%+ match (shouldn't wrap)
+- Test MutualFriendsModal scroll on mobile (page shouldn't scroll)
+- Test follow button states (gold for actions, gray for status)
+- Verify "Been Watching" header text is white (not gradient)
+
