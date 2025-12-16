@@ -179,36 +179,25 @@ export default function ProfilePage() {
     // Get unique IDs
     const uniqueUserIds = [...new Set(allUsers.map((u: any) => u.id))]
 
-    // Load taste matches for all following/followers
+    // Load taste matches and mutual friends in parallel, updating progressively
     if (uniqueUserIds.length > 0) {
-      const newTasteMatches = new Map<string, number>()
-      for (const userId of uniqueUserIds) {
-        try {
-          const match = await getTasteMatchBetweenUsers(user.id, userId)
-          if (match?.score) {
-            newTasteMatches.set(userId, match.score)
-          }
-        } catch (e) {
-          // Ignore errors for individual taste match calculations
+      // Process all users in parallel for faster loading
+      const loadPromises = uniqueUserIds.map(async (userId) => {
+        // Load taste match and mutual friends for this user in parallel
+        const [matchResult, mutuals] = await Promise.all([
+          getTasteMatchBetweenUsers(user.id, userId).catch(() => null),
+          getMutualFriends(userId)
+        ])
+
+        // Update state progressively as each user's data loads
+        if (matchResult?.score) {
+          setTasteMatches(prev => new Map(prev).set(userId, matchResult.score))
         }
-      }
-      setTasteMatches(prev => {
-        const merged = new Map(prev)
-        newTasteMatches.forEach((score, id) => merged.set(id, score))
-        return merged
+        setMutualFriends(prev => new Map(prev).set(userId, mutuals))
       })
 
-      // Load mutual friends for all following/followers
-      const newMutualFriends = new Map<string, any[]>()
-      for (const userId of uniqueUserIds) {
-        const mutuals = await getMutualFriends(userId)
-        newMutualFriends.set(userId, mutuals)
-      }
-      setMutualFriends(prev => {
-        const merged = new Map(prev)
-        newMutualFriends.forEach((friends, id) => merged.set(id, friends))
-        return merged
-      })
+      // Wait for all to complete (but UI updates progressively)
+      await Promise.all(loadPromises)
     }
     
     return followingList
@@ -279,10 +268,12 @@ export default function ProfilePage() {
             .in('id', similarUsers.map(u => u.userId))
 
           if (tasteProfiles) {
-            // Create taste match map
-            const matches = new Map<string, number>(tasteMatches)
-            similarUsers.forEach(u => matches.set(u.userId, u.score))
-            setTasteMatches(matches)
+            // Merge taste matches using functional update to avoid overwriting
+            setTasteMatches(prev => {
+              const merged = new Map(prev)
+              similarUsers.forEach(u => merged.set(u.userId, u.score))
+              return merged
+            })
             
             suggestedProfiles = [...suggestedProfiles, ...tasteProfiles]
           }
