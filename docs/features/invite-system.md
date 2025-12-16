@@ -338,7 +338,6 @@ const handleInviteCodeSubmit = (code: string) => {
    - ✅ Master code `current_uses` incremented
 
 ### Test Case 3: Security Tests
-- ❌ Try to use expired token (7+ days old) → "Invite Expired"
 - ❌ Try to use already-used token → "Invite Already Used"
 - ❌ Try to redeem invite when inviter has 0 remaining → Error
 - ❌ Try to access `/join?code=invalid` → "Invalid Invite Code"
@@ -346,7 +345,7 @@ const handleInviteCodeSubmit = (code: string) => {
 
 ### Test Case 4: Edge Cases
 - User clicks invite link while already logged in → Redirect to /feed
-- User clicks invite link, doesn't sign up, link expires → Can't use later
+- User clicks invite link, doesn't sign up immediately → Link still works later (no expiration)
 - User generates new token → Old token revoked automatically
 - User has 1 invite, shares link, 2 people click → First signs up succeeds, second fails
 
@@ -357,8 +356,7 @@ const handleInviteCodeSubmit = (code: string) => {
 ### Before (Insecure)
 ❌ `/join/murtopia` - Username enumeration possible
 ❌ Anyone can check if username exists
-❌ Invite link never expires
-❌ Can be shared publicly after use
+❌ Could be shared publicly after use (no one-time protection)
 ❌ SessionStorage race conditions
 
 ### After (Secure)

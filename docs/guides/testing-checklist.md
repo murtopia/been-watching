@@ -50,9 +50,9 @@
 - [ ] **Click on invited user**
 - [ ] **Verify navigates to their profile**
 
-### Expired Invite Links
+### Used Invite Links
 - [ ] **After invite is used, share same link to another person**
-- [ ] **Verify they see "Invite link no longer available"**
+- [ ] **Verify they see "Invite link already used"**
 - [ ] **Verify waitlist CTA appears**
 
 ---

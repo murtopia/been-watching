@@ -589,9 +589,11 @@ const mentions = text.match(/@[\w_]+/g)
 - Soft launch on social media (Twitter, Instagram)
 - Target: TV/movie podcasters, film Twitter
 
-**Invite System Ideas (from Nick):**
-- Reward system: earn additional invites after rating X shows
-- Staggered invite release: existing users get 5 invites, but new invitees don't get invites immediately (wait for next release wave)
+**Invite System (Implemented):**
+- Users earn +1 invite for completing profile (avatar, bio, top 3, watchlists)
+- Users earn +1 invite for every 20 shows added to watchlists (repeating)
+- Invite tokens never expire (one-time use only)
+- Staggered invite release: existing users get invites, new invitees must earn via profile completion
 
 ### Phase 3: Public Beta (March 2025)
 - Remove hard invite requirement
