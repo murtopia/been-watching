@@ -677,7 +677,7 @@ export default function ProfilePage() {
               transition: 'all 0.2s'
             }}
           >
-            Discover <Icon name="search-default" size={16} style={{ marginLeft: '0.25rem' }} />
+            Discover <span style={{ marginLeft: '0.25rem', display: 'inline-flex', verticalAlign: 'middle' }}><Icon name="search-default" size={16} /></span>
           </button>
         </div>
 
