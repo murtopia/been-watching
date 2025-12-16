@@ -9,6 +9,7 @@
 -- ============================================
 -- 1. Update create_user_invite_token to not set expiration
 -- ============================================
+DROP FUNCTION IF EXISTS create_user_invite_token(UUID);
 CREATE OR REPLACE FUNCTION create_user_invite_token(user_id UUID)
 RETURNS JSONB AS $$
 DECLARE
@@ -75,6 +76,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- ============================================
 -- 2. Update validate_invite_token to skip expiration check
 -- ============================================
+DROP FUNCTION IF EXISTS validate_invite_token(TEXT);
 CREATE OR REPLACE FUNCTION validate_invite_token(invite_token TEXT)
 RETURNS JSONB AS $$
 DECLARE
@@ -143,6 +145,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- ============================================
 -- 3. Update redeem_invite_token to NOT give referral bonus
 -- ============================================
+DROP FUNCTION IF EXISTS redeem_invite_token(TEXT, UUID);
 CREATE OR REPLACE FUNCTION redeem_invite_token(
   invite_token TEXT,
   referee_user_id UUID
@@ -207,6 +210,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- ============================================
 -- 4. Update check_watchlist_invite_milestone to use 20 shows
 -- ============================================
+DROP FUNCTION IF EXISTS check_watchlist_invite_milestone(UUID);
 CREATE OR REPLACE FUNCTION check_watchlist_invite_milestone(p_user_id UUID)
 RETURNS BOOLEAN AS $$
 DECLARE
@@ -251,6 +255,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- ============================================
 -- 5. Update get_invite_progress to use 20 shows
 -- ============================================
+DROP FUNCTION IF EXISTS get_invite_progress(UUID);
 CREATE OR REPLACE FUNCTION get_invite_progress(p_user_id UUID)
 RETURNS JSONB AS $$
 DECLARE
