@@ -383,28 +383,27 @@ export default function ProfilePage() {
     }
   }
 
+  // Softer dark background (not pure black) - matches My Lists
+  const softBg = colors.isDark ? '#0d0d0d' : colors.bgGradient
+
   if (loading || !profile) {
     return (
-      <div style={{ minHeight: '100vh', background: colors.bgGradient, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ minHeight: '100vh', background: softBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ width: '32px', height: '32px', border: `4px solid ${colors.brandPink}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
       </div>
     )
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: colors.bgGradient, paddingBottom: '100px' }}>
+    <div style={{ minHeight: '100vh', background: softBg, paddingBottom: '100px' }}>
       {/* Header */}
       <AppHeader profile={profile} hideOnScroll />
 
-      {/* Profile Info */}
+      {/* Profile Info - no container box, floats on background */}
       <div style={{
-        padding: '1.5rem',
-        background: colors.cardBg,
-        border: colors.cardBorder,
-        borderRadius: '12px',
-        margin: '82px auto 0.5rem',
-        maxWidth: '600px',
-        backdropFilter: 'blur(20px)'
+        padding: '1.5rem 0',
+        margin: '82px auto 0',
+        maxWidth: '398px'
       }}>
         <div style={{
           display: 'flex',
@@ -444,7 +443,7 @@ export default function ProfilePage() {
               width: '20px',
               height: '20px',
               borderRadius: '50%',
-              background: colors.brandBlue,
+              background: colors.goldAccent,
               border: '2px solid white',
               display: 'flex',
               alignItems: 'center',
@@ -486,12 +485,14 @@ export default function ProfilePage() {
           </button>
         </div>
 
+        {/* Divider */}
+        <div style={{ height: '1px', background: colors.dividerColor, margin: '1rem 0' }} />
+
         {/* Stats Row */}
         <div style={{
           display: 'flex',
           justifyContent: 'space-around',
-          paddingTop: '1rem',
-          borderTop: `1px solid ${colors.borderColor}`
+          paddingBottom: '1.5rem'
         }}>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '1.5rem', fontWeight: '700', color: colors.textPrimary }}>{counts.wantCount}</div>
@@ -506,18 +507,17 @@ export default function ProfilePage() {
             <div style={{ fontSize: '0.875rem', color: colors.textSecondary }}>Watched</div>
           </div>
         </div>
+
+        {/* Divider after stats */}
+        <div style={{ height: '1px', background: colors.dividerColor }} />
       </div>
 
       {/* Admin Link (shown for any admin role: owner, admin, or analyst) */}
       {profile?.admin_role && (
         <div style={{
-          padding: '1.5rem',
-          background: colors.cardBg,
-          border: colors.cardBorder,
-          borderRadius: '12px',
-          margin: '0.5rem auto',
-          maxWidth: '600px',
-          backdropFilter: 'blur(20px)'
+          padding: '1.5rem 0',
+          margin: '0 auto',
+          maxWidth: '398px'
         }}>
           <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0', color: colors.textPrimary }}>Admin</h3>
           <a
@@ -536,11 +536,13 @@ export default function ProfilePage() {
           >
             🔧 Go to Admin Dashboard
           </a>
+          {/* Divider after admin */}
+          <div style={{ height: '1px', background: colors.dividerColor, marginTop: '1.5rem' }} />
         </div>
       )}
 
       {/* Invites Section */}
-      <div style={{ margin: '0.5rem auto', maxWidth: '600px' }}>
+      <div style={{ margin: '0 auto', maxWidth: '398px' }}>
         <InviteSection
           key={inviteSectionKey}
           userId={user?.id}
@@ -559,22 +561,23 @@ export default function ProfilePage() {
         <ReferralDashboard userId={user?.id} />
       </div>
 
-      {/* Friends Section */}
+      {/* Divider before Friends */}
+      <div style={{ maxWidth: '398px', margin: '1.5rem auto 0' }}>
+        <div style={{ height: '1px', background: colors.dividerColor }} />
+      </div>
+
+      {/* Friends Section - no container box */}
       <div style={{
-        padding: '1.5rem',
-        background: colors.cardBg,
-        border: colors.cardBorder,
-        borderRadius: '12px',
-        margin: '0.5rem auto',
-        maxWidth: '600px',
-        backdropFilter: 'blur(20px)'
+        padding: '1.5rem 0',
+        margin: '0 auto',
+        maxWidth: '398px'
       }}>
         <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0', color: colors.textPrimary }}>Friends</h3>
 
         {/* Three-Tab System: Following / Followers / Discover */}
         <div style={{
           display: 'flex',
-          borderBottom: `1px solid ${colors.borderColor}`,
+          borderBottom: `1px solid ${colors.dividerColor}`,
           marginBottom: '1.5rem'
         }}>
           <button
@@ -584,8 +587,8 @@ export default function ProfilePage() {
               padding: '0.75rem',
               background: 'none',
               border: 'none',
-              borderBottom: friendsTab === 'following' ? `3px solid ${colors.brandPink}` : '3px solid transparent',
-              color: friendsTab === 'following' ? colors.brandPink : colors.textSecondary,
+              borderBottom: friendsTab === 'following' ? `2px solid ${colors.goldAccent}` : '2px solid transparent',
+              color: friendsTab === 'following' ? colors.goldAccent : colors.textSecondary,
               fontWeight: friendsTab === 'following' ? '700' : '400',
               cursor: 'pointer',
               fontSize: '0.9rem',
@@ -601,8 +604,8 @@ export default function ProfilePage() {
               padding: '0.75rem',
               background: 'none',
               border: 'none',
-              borderBottom: friendsTab === 'followers' ? `3px solid ${colors.brandPink}` : '3px solid transparent',
-              color: friendsTab === 'followers' ? colors.brandPink : colors.textSecondary,
+              borderBottom: friendsTab === 'followers' ? `2px solid ${colors.goldAccent}` : '2px solid transparent',
+              color: friendsTab === 'followers' ? colors.goldAccent : colors.textSecondary,
               fontWeight: friendsTab === 'followers' ? '700' : '400',
               cursor: 'pointer',
               fontSize: '0.9rem',
@@ -618,8 +621,8 @@ export default function ProfilePage() {
               padding: '0.75rem',
               background: 'none',
               border: 'none',
-              borderBottom: friendsTab === 'discover' ? `3px solid ${colors.brandPink}` : '3px solid transparent',
-              color: friendsTab === 'discover' ? colors.brandPink : colors.textSecondary,
+              borderBottom: friendsTab === 'discover' ? `2px solid ${colors.goldAccent}` : '2px solid transparent',
+              color: friendsTab === 'discover' ? colors.goldAccent : colors.textSecondary,
               fontWeight: friendsTab === 'discover' ? '700' : '400',
               cursor: 'pointer',
               fontSize: '0.9rem',
