@@ -66,6 +66,8 @@ export default function UserCard({
   const buttonState = getFollowButtonState()
 
   // Button styles based on variant
+  // Gold = action buttons (Follow, Follow Back)
+  // Gray = no-action states (Following, Mutual)
   const getButtonStyles = () => {
     const base = {
       padding: '0.5rem 1rem',
@@ -80,12 +82,15 @@ export default function UserCard({
 
     switch (buttonState.variant) {
       case 'mutual':
+        // Gray - no action (already following each other)
         return {
           ...base,
-          background: colors.goldAccent,
-          color: '#000000'
+          background: colors.cardBg,
+          color: colors.textSecondary,
+          border: colors.cardBorder
         }
       case 'following':
+        // Gray - no action (already following)
         return {
           ...base,
           background: colors.cardBg,
@@ -93,12 +98,14 @@ export default function UserCard({
           border: colors.cardBorder
         }
       case 'followBack':
+        // Gold - action button
         return {
           ...base,
           background: colors.goldAccent,
           color: '#000000'
         }
       default:
+        // Gold - action button (Follow)
         return {
           ...base,
           background: colors.goldAccent,
