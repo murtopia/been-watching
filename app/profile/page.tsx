@@ -13,6 +13,7 @@ import MutualFriendsModal from '@/components/friends/MutualFriendsModal'
 import Footer from '@/components/navigation/Footer'
 import InviteSection from '@/components/profile/InviteSection'
 import ReferralDashboard from '@/components/profile/ReferralDashboard'
+import { Icon } from '@/components/ui/Icon'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { getTasteMatchBetweenUsers, findSimilarUsers } from '@/utils/tasteMatch'
 import { safeFormatDate } from '@/utils/dateFormatting'
@@ -139,45 +140,95 @@ export default function ProfilePage() {
   const loadSuggestedFriends = async () => {
     if (!user) return
 
+    // Get current following IDs for filtering
+    const followingIds = new Set(following.map(f => f.id))
+    followingIds.add(user.id) // Also exclude self
+
     try {
-      // Use taste match algorithm to find similar users
-      const similarUsers = await findSimilarUsers(user.id, {
-        limit: 10,
-        minScore: 30,
-        excludeUserIds: following.map(f => f.id)
-      })
-
-      // Get full profile data for similar users
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('*')
-        .in('id', similarUsers.map(u => u.userId))
-
-      if (profiles) {
-        // Create taste match map
-        const matches = new Map<string, number>()
-        similarUsers.forEach(u => matches.set(u.userId, u.score))
-        setTasteMatches(matches)
-
-        // Load mutual friends for each suggested user
-        for (const profile of profiles) {
-          const mutuals = await getMutualFriends(profile.id)
-          setMutualFriends(prev => new Map(prev).set(profile.id, mutuals))
+      // Strategy 1: Friends of friends (people your friends follow that you don't)
+      const friendsOfFriendsSet = new Set<string>()
+      
+      for (const friend of following) {
+        // Get who each of your friends follows
+        const { data: theirFollowing } = await supabase
+          .from('follows')
+          .select('following_id')
+          .eq('follower_id', friend.id)
+          .limit(20)
+        
+        if (theirFollowing) {
+          theirFollowing.forEach(f => {
+            if (!followingIds.has(f.following_id)) {
+              friendsOfFriendsSet.add(f.following_id)
+            }
+          })
         }
-
-        setSuggestedFriends(profiles)
       }
+
+      const friendsOfFriendsIds = Array.from(friendsOfFriendsSet).slice(0, 15)
+      
+      // Get profiles for friends of friends
+      let suggestedProfiles: any[] = []
+      
+      if (friendsOfFriendsIds.length > 0) {
+        const { data: fofProfiles } = await supabase
+          .from('profiles')
+          .select('*')
+          .in('id', friendsOfFriendsIds)
+        
+        if (fofProfiles) {
+          suggestedProfiles = fofProfiles
+        }
+      }
+
+      // Strategy 2: Add taste-matched users if we need more suggestions
+      if (suggestedProfiles.length < 10) {
+        const existingIds = new Set(suggestedProfiles.map(p => p.id))
+        const excludeIds = [...followingIds, ...existingIds]
+        
+        const similarUsers = await findSimilarUsers(user.id, {
+          limit: 10 - suggestedProfiles.length,
+          minScore: 20,
+          excludeUserIds: excludeIds
+        })
+
+        if (similarUsers.length > 0) {
+          const { data: tasteProfiles } = await supabase
+            .from('profiles')
+            .select('*')
+            .in('id', similarUsers.map(u => u.userId))
+
+          if (tasteProfiles) {
+            // Create taste match map
+            const matches = new Map<string, number>(tasteMatches)
+            similarUsers.forEach(u => matches.set(u.userId, u.score))
+            setTasteMatches(matches)
+            
+            suggestedProfiles = [...suggestedProfiles, ...tasteProfiles]
+          }
+        }
+      }
+
+      // Final filter to ensure no one we're following is included
+      const finalSuggestions = suggestedProfiles.filter(p => !followingIds.has(p.id))
+
+      // Load mutual friends for each suggested user
+      for (const profile of finalSuggestions) {
+        const mutuals = await getMutualFriends(profile.id)
+        setMutualFriends(prev => new Map(prev).set(profile.id, mutuals))
+      }
+
+      setSuggestedFriends(finalSuggestions)
     } catch (error) {
       console.error('Error loading suggested friends:', error)
-      // Fallback to simple suggestions
+      // Fallback: just get some users we're not following
       const { data } = await supabase
         .from('profiles')
         .select('*')
-        .neq('id', user.id)
-        .limit(5)
+        .limit(20)
 
       if (data) {
-        const filtered = data.filter(p => !following.some(f => f.id === p.id))
+        const filtered = data.filter(p => !followingIds.has(p.id)).slice(0, 10)
         setSuggestedFriends(filtered)
       }
     }
@@ -626,7 +677,7 @@ export default function ProfilePage() {
               transition: 'all 0.2s'
             }}
           >
-            Discover 🔍
+            Discover <Icon name="search-default" size={16} style={{ marginLeft: '0.25rem' }} />
           </button>
         </div>
 
