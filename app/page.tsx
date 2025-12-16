@@ -247,14 +247,14 @@ export default function LandingPage() {
             marginBottom: '0.75rem',
             lineHeight: 1.3
           }}>
-            Shows are better with friends.
+            What Have You Been Watching?
           </h2>
           <p style={{
             fontSize: '1rem',
             color: colors.textSecondary,
             lineHeight: 1.6
           }}>
-            Track what you're watching, connect with friends, and discover what's next.
+            Track your shows, find out what your friends are watching, and never miss a great show again.
           </p>
         </section>
 
