@@ -509,7 +509,7 @@ export default function MyShowsPage() {
       <div style={{ maxWidth: '398px', margin: '0 auto', padding: '1.5rem 1rem', marginTop: '82px' }}>
         {/* Title + View Toggle Row */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-          <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700', color: colors.textPrimary }}>My Shows</h2>
+          <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700', color: colors.textPrimary }}>My Lists</h2>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button
               onClick={() => setViewMode('grid')}
@@ -550,41 +550,33 @@ export default function MyShowsPage() {
           </div>
         </div>
 
-        {/* Top 3 Shows */}
+        {/* Top 3 Shows - no container, floats on background */}
+        <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0', color: colors.textPrimary }}>My Top 3 Shows</h3>
         <div style={{
-          padding: '1.5rem',
-          background: colors.cardBg,
-          borderRadius: '12px',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: '0.75rem',
           marginBottom: '2rem'
         }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0', color: colors.textPrimary }}>My Top 3 Shows</h3>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: '0.75rem'
-          }}>
-            {[1, 2, 3].map((slot) => {
-              const show = topShows[slot - 1]
-              const hasShow = show?.poster_path
-              return (
-                <div
-                  key={slot}
-                  style={{
-                    position: 'relative',
-                    aspectRatio: '2/3',
-                    border: hasShow ? 'none' : (colors.isDark ? '2px dashed rgba(255, 255, 255, 0.2)' : '2px dashed #ddd'),
-                    borderRadius: '12px',
-                    overflow: 'hidden',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: colors.cardBg,
-                    boxShadow: hasShow
-                      ? '0 0 20px 2px rgba(242, 113, 33, 0.4), 0 4px 12px rgba(0, 0, 0, 0.1)'
-                      : 'none',
-                    transition: 'all 0.3s ease'
-                  }}
-                >
+          {[1, 2, 3].map((slot) => {
+            const show = topShows[slot - 1]
+            const hasShow = show?.poster_path
+            return (
+              <div
+                key={slot}
+                style={{
+                  position: 'relative',
+                  aspectRatio: '2/3',
+                  border: hasShow ? colors.goldBorderThin : (colors.isDark ? '2px dashed rgba(255, 255, 255, 0.2)' : '2px dashed #ddd'),
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: hasShow ? 'transparent' : colors.cardBg,
+                  transition: 'all 0.3s ease'
+                }}
+              >
                   {show?.poster_path ? (
                     <>
                       {/* Clickable poster image - opens detail modal */}
@@ -689,8 +681,7 @@ export default function MyShowsPage() {
                   )}
                 </div>
               )
-            })}
-          </div>
+          })}
         </div>
 
         {/* Tabs */}
