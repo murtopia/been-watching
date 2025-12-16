@@ -506,7 +506,7 @@ export default function MyShowsPage() {
       <AppHeader profile={profile} hideOnScroll />
 
       {/* My Shows Section - no container box, content floats on background */}
-      <div style={{ maxWidth: '398px', margin: '0 auto', padding: '1.5rem 1rem', marginTop: '82px' }}>
+      <div style={{ maxWidth: '398px', margin: '0 auto', padding: '1.5rem 0', marginTop: '82px' }}>
         {/* Title + View Toggle Row */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
           <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700', color: colors.textPrimary }}>My Lists</h2>
