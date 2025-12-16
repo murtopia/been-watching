@@ -171,6 +171,39 @@ export default function ProfilePage() {
         })))
       }
     }
+
+    // Load taste matches and mutual friends for following and followers
+    const allUserIds = [
+      ...followingList.map((f: any) => f.id),
+      ...(followersData?.map(f => f.profiles?.id) || [])
+    ].filter(Boolean)
+
+    // Get unique IDs
+    const uniqueUserIds = [...new Set(allUserIds)]
+
+    // Load taste matches for all following/followers
+    const newTasteMatches = new Map<string, number>(tasteMatches)
+    for (const userId of uniqueUserIds) {
+      if (!newTasteMatches.has(userId)) {
+        try {
+          const match = await getTasteMatchBetweenUsers(user.id, userId)
+          if (match?.score) {
+            newTasteMatches.set(userId, match.score)
+          }
+        } catch (e) {
+          // Ignore errors for individual taste match calculations
+        }
+      }
+    }
+    setTasteMatches(newTasteMatches)
+
+    // Load mutual friends for all following/followers
+    for (const userId of uniqueUserIds) {
+      if (!mutualFriends.has(userId)) {
+        const mutuals = await getMutualFriends(userId)
+        setMutualFriends(prev => new Map(prev).set(userId, mutuals))
+      }
+    }
     
     return followingList
   }
