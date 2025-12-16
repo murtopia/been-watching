@@ -7,6 +7,11 @@
 -- 3. Remove referral bonus (no +1 when friend joins)
 
 -- ============================================
+-- 0. Allow NULL in expires_at column (tokens can now never expire)
+-- ============================================
+ALTER TABLE invite_tokens ALTER COLUMN expires_at DROP NOT NULL;
+
+-- ============================================
 -- 1. Update create_user_invite_token to not set expiration
 -- ============================================
 DROP FUNCTION IF EXISTS create_user_invite_token(UUID);
