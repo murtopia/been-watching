@@ -254,7 +254,7 @@ export default function LandingPage() {
             color: colors.textSecondary,
             lineHeight: 1.6
           }}>
-            Track your shows, find out what your friends are watching, and never miss a great show again.
+            Track your shows, find out what your friends are watching, and never miss a great show.
           </p>
         </section>
 
