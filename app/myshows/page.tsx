@@ -550,8 +550,8 @@ export default function MyShowsPage() {
           </div>
         </div>
 
-        {/* Gold divider line */}
-        <div style={{ height: '1px', background: colors.goldAccent, marginBottom: '1.5rem' }} />
+        {/* Divider line */}
+        <div style={{ height: '1px', background: colors.dividerColor, marginBottom: '1.5rem' }} />
 
         {/* Top 3 Shows - no container, floats on background */}
         <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0', color: colors.textPrimary }}>My Top 3 Shows</h3>
@@ -690,7 +690,7 @@ export default function MyShowsPage() {
         {/* Tabs */}
         <div style={{
           display: 'flex',
-          borderBottom: colors.goldBorder,
+          borderBottom: `1px solid ${colors.dividerColor}`,
           marginBottom: '1.5rem'
         }}>
           <button
