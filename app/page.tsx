@@ -140,13 +140,32 @@ export default function LandingPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: `linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.85) 100%), url('/landing-bg.webp')`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundAttachment: 'fixed',
-      backgroundRepeat: 'no-repeat',
+      position: 'relative',
       color: colors.textPrimary
     }}>
+      {/* Fixed background image - works on mobile */}
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundImage: `url('/landing-bg.webp')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        zIndex: -2
+      }} />
+      {/* Fixed overlay - lighter for more background visibility */}
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.65) 100%)',
+        zIndex: -1
+      }} />
       {/* Header - consistent with app header style */}
       <header style={{
         padding: '1rem 1.5rem',
