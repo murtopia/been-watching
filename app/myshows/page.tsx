@@ -497,13 +497,16 @@ export default function MyShowsPage() {
     }
   }
 
+  // Softer dark background (not pure black) - approx rgba(255,255,255,0.05) on black
+  const softBg = colors.isDark ? '#0d0d0d' : colors.bgGradient
+
   return (
-    <div style={{ minHeight: '100vh', background: colors.bgGradient, paddingBottom: '100px' }}>
+    <div style={{ minHeight: '100vh', background: softBg, paddingBottom: '100px' }}>
       {/* Header */}
       <AppHeader profile={profile} hideOnScroll />
 
-      {/* My Shows Section */}
-      <div style={{ maxWidth: '398px', margin: '0 auto', background: colors.cardBg, padding: '1.5rem 1rem', borderRadius: '12px', border: colors.cardBorder, backdropFilter: 'blur(20px)', marginTop: '82px' }}>
+      {/* My Shows Section - no container box, content floats on background */}
+      <div style={{ maxWidth: '398px', margin: '0 auto', padding: '1.5rem 1rem', marginTop: '82px' }}>
         {/* Title + View Toggle Row */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
           <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700', color: colors.textPrimary }}>My Shows</h2>
@@ -516,7 +519,7 @@ export default function MyShowsPage() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: viewMode === 'grid' ? colors.brandBlue : colors.cardBg,
+                background: viewMode === 'grid' ? colors.goldAccent : colors.cardBg,
                 color: viewMode === 'grid' ? 'white' : colors.textSecondary,
                 border: colors.cardBorder,
                 borderRadius: '8px',
@@ -534,7 +537,7 @@ export default function MyShowsPage() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: viewMode === 'list' ? colors.brandBlue : colors.cardBg,
+                background: viewMode === 'list' ? colors.goldAccent : colors.cardBg,
                 color: viewMode === 'list' ? 'white' : colors.textSecondary,
                 border: colors.cardBorder,
                 borderRadius: '8px',
@@ -612,7 +615,7 @@ export default function MyShowsPage() {
                         width: '24px',
                         height: '24px',
                         borderRadius: '50%',
-                        background: colors.brandBlue,
+                        background: colors.goldAccent,
                         color: 'white',
                         display: 'flex',
                         alignItems: 'center',
@@ -671,7 +674,7 @@ export default function MyShowsPage() {
                         width: '24px',
                         height: '24px',
                         borderRadius: '50%',
-                        background: colors.brandBlue,
+                        background: colors.goldAccent,
                         color: 'white',
                         display: 'flex',
                         alignItems: 'center',
@@ -703,7 +706,7 @@ export default function MyShowsPage() {
               padding: '0.75rem',
               background: 'none',
               border: 'none',
-              borderBottom: activeTab === 'want' ? `2px solid ${colors.brandBlue}` : '2px solid transparent',
+              borderBottom: activeTab === 'want' ? `2px solid ${colors.goldAccent}` : '2px solid transparent',
               cursor: 'pointer',
               display: 'flex',
               flexDirection: 'column',
@@ -720,7 +723,7 @@ export default function MyShowsPage() {
             </div>
             <div style={{
               fontSize: '0.9rem',
-              color: activeTab === 'want' ? colors.brandBlue : colors.textSecondary,
+              color: activeTab === 'want' ? colors.goldAccent : colors.textSecondary,
               fontWeight: activeTab === 'want' ? '600' : '400'
             }}>
               Want to Watch
@@ -733,7 +736,7 @@ export default function MyShowsPage() {
               padding: '0.75rem',
               background: 'none',
               border: 'none',
-              borderBottom: activeTab === 'watching' ? `2px solid ${colors.brandBlue}` : '2px solid transparent',
+              borderBottom: activeTab === 'watching' ? `2px solid ${colors.goldAccent}` : '2px solid transparent',
               cursor: 'pointer',
               display: 'flex',
               flexDirection: 'column',
@@ -750,7 +753,7 @@ export default function MyShowsPage() {
             </div>
             <div style={{
               fontSize: '0.9rem',
-              color: activeTab === 'watching' ? colors.brandBlue : colors.textSecondary,
+              color: activeTab === 'watching' ? colors.goldAccent : colors.textSecondary,
               fontWeight: activeTab === 'watching' ? '600' : '400'
             }}>
               Watching
@@ -763,7 +766,7 @@ export default function MyShowsPage() {
               padding: '0.75rem',
               background: 'none',
               border: 'none',
-              borderBottom: activeTab === 'watched' ? `2px solid ${colors.brandBlue}` : '2px solid transparent',
+              borderBottom: activeTab === 'watched' ? `2px solid ${colors.goldAccent}` : '2px solid transparent',
               cursor: 'pointer',
               display: 'flex',
               flexDirection: 'column',
@@ -780,7 +783,7 @@ export default function MyShowsPage() {
             </div>
             <div style={{
               fontSize: '0.9rem',
-              color: activeTab === 'watched' ? colors.brandBlue : colors.textSecondary,
+              color: activeTab === 'watched' ? colors.goldAccent : colors.textSecondary,
               fontWeight: activeTab === 'watched' ? '600' : '400'
             }}>
               Watched
