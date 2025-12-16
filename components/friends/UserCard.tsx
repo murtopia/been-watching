@@ -139,7 +139,6 @@ export default function UserCard({
     <div
       style={{
         display: 'flex',
-        alignItems: 'center',
         gap: '0.75rem',
         padding: '0.75rem',
         cursor: onClick ? 'pointer' : 'default',
@@ -157,7 +156,7 @@ export default function UserCard({
         }
       }}
     >
-      {/* Avatar - spans all 3 lines */}
+      {/* Avatar */}
       <div
         style={{
           width: '52px',
@@ -181,126 +180,130 @@ export default function UserCard({
         )}
       </div>
 
-      {/* Content - Three lines */}
+      {/* Content Area */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        {/* Line 1: Display Name */}
-        <div
-          style={{
-            fontSize: '0.95rem',
-            fontWeight: '600',
-            color: colors.textPrimary,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            marginBottom: '0.125rem'
-          }}
-          title={user.display_name}
-        >
-          {user.display_name}
-        </div>
-
-        {/* Line 2: @username */}
-        <div
-          style={{
-            fontSize: '0.8rem',
-            color: colors.textSecondary,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            marginBottom: '0.25rem'
-          }}
-          title={`@${user.username}`}
-        >
-          @{user.username}
-        </div>
-
-        {/* Line 3: Taste Match % + Mutual Friends */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.75rem' }}>
-          {/* Taste Match */}
-          {tasteMatch && tasteMatchScore !== undefined && (
-            <span style={{ color: tasteMatch.color, fontWeight: '600' }}>
-              {tasteMatchScore}% match
-            </span>
-          )}
-
-          {/* Mutual Friends - overlapping avatars */}
-          {mutualFriends.length > 0 && (
-            <div 
-              style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '0.25rem',
-                cursor: onMutualFriendsClick ? 'pointer' : 'default'
+        {/* Top Row: Name/Username + Button/Menu */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+          {/* Name & Username */}
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div
+              style={{
+                fontSize: '0.95rem',
+                fontWeight: '600',
+                color: colors.textPrimary,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                marginBottom: '0.125rem'
               }}
-              onClick={handleMutualClick}
+              title={user.display_name}
             >
-              {/* Overlapping avatars (show up to 3) */}
-              <div style={{ display: 'flex', marginRight: '0.25rem' }}>
-                {mutualFriends.slice(0, 3).map((friend, index) => (
-                  <div
-                    key={friend.id}
-                    style={{
-                      width: '18px',
-                      height: '18px',
-                      borderRadius: '50%',
-                      background: friend.avatar_url ? 'transparent' : colors.goldAccent,
-                      border: `1.5px solid ${colors.isDark ? '#000' : '#fff'}`,
-                      marginLeft: index > 0 ? '-6px' : 0,
-                      overflow: 'hidden',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '0.5rem',
-                      fontWeight: '700',
-                      color: '#000',
-                      zIndex: 3 - index
-                    }}
-                  >
-                    {friend.avatar_url ? (
-                      <img src={friend.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      friend.display_name?.[0]?.toUpperCase() || '?'
-                    )}
-                  </div>
-                ))}
-              </div>
-              <span style={{ color: colors.textSecondary }}>
-                {mutualFriends.length} mutual
-              </span>
+              {user.display_name}
             </div>
-          )}
+            <div
+              style={{
+                fontSize: '0.8rem',
+                color: colors.textSecondary,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}
+              title={`@${user.username}`}
+            >
+              @{user.username}
+            </div>
+          </div>
+
+          {/* Button + Menu (aligned to top) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                if (isFollowing) {
+                  onUnfollow(user.id)
+                } else if (isPending && onCancelRequest) {
+                  onCancelRequest(user.id)
+                } else {
+                  onFollow(user.id)
+                }
+              }}
+              style={getButtonStyles()}
+            >
+              {buttonState.label}
+            </button>
+            <div onClick={(e) => e.stopPropagation()}>
+              <DropdownMenu
+                size={16}
+                items={[
+                  {
+                    label: 'Report User',
+                    onClick: () => setShowReportModal(true),
+                    danger: true
+                  }
+                ]}
+              />
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Follow Button - pushed to the right */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation()
-          if (isFollowing) {
-            onUnfollow(user.id)
-          } else if (isPending && onCancelRequest) {
-            onCancelRequest(user.id)
-          } else {
-            onFollow(user.id)
-          }
-        }}
-        style={getButtonStyles()}
-      >
-        {buttonState.label}
-      </button>
+        {/* Bottom Row: Taste Match + Mutual Friends (full width) */}
+        {(tasteMatch || mutualFriends.length > 0) && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.75rem', marginTop: '0.375rem' }}>
+            {/* Taste Match */}
+            {tasteMatch && tasteMatchScore !== undefined && (
+              <span style={{ color: tasteMatch.color, fontWeight: '600', whiteSpace: 'nowrap' }}>
+                {tasteMatchScore}% match
+              </span>
+            )}
 
-      {/* Three-dot menu */}
-      <div onClick={(e) => e.stopPropagation()}>
-        <DropdownMenu
-          size={16}
-          items={[
-            {
-              label: 'Report User',
-              onClick: () => setShowReportModal(true),
-              danger: true
-            }
-          ]}
-        />
+            {/* Mutual Friends - overlapping avatars */}
+            {mutualFriends.length > 0 && (
+              <div 
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '0.25rem',
+                  cursor: onMutualFriendsClick ? 'pointer' : 'default'
+                }}
+                onClick={handleMutualClick}
+              >
+                {/* Overlapping avatars (show up to 3) */}
+                <div style={{ display: 'flex', marginRight: '0.25rem' }}>
+                  {mutualFriends.slice(0, 3).map((friend, index) => (
+                    <div
+                      key={friend.id}
+                      style={{
+                        width: '18px',
+                        height: '18px',
+                        borderRadius: '50%',
+                        background: friend.avatar_url ? 'transparent' : colors.goldAccent,
+                        border: `1.5px solid ${colors.isDark ? '#000' : '#fff'}`,
+                        marginLeft: index > 0 ? '-6px' : 0,
+                        overflow: 'hidden',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '0.5rem',
+                        fontWeight: '700',
+                        color: '#000',
+                        zIndex: 3 - index
+                      }}
+                    >
+                      {friend.avatar_url ? (
+                        <img src={friend.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        friend.display_name?.[0]?.toUpperCase() || '?'
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <span style={{ color: colors.textSecondary, whiteSpace: 'nowrap' }}>
+                  {mutualFriends.length} mutual
+                </span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Report Modal */}
