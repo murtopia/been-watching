@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Icon } from '@/components/ui/Icon'
 
@@ -24,6 +25,30 @@ export default function MutualFriendsModal({
   onFriendClick
 }: MutualFriendsModalProps) {
   const colors = useThemeColors()
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      // Save current scroll position and lock
+      const scrollY = window.scrollY
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${scrollY}px`
+      document.body.style.left = '0'
+      document.body.style.right = '0'
+      document.body.style.overflow = 'hidden'
+      
+      return () => {
+        // Restore scroll position
+        document.body.style.position = ''
+        document.body.style.top = ''
+        document.body.style.left = ''
+        document.body.style.right = ''
+        document.body.style.overflow = ''
+        window.scrollTo(0, scrollY)
+      }
+    }
+  }, [isOpen])
 
   if (!isOpen) return null
 
@@ -38,13 +63,22 @@ export default function MutualFriendsModal({
         position: 'fixed',
         inset: 0,
         background: 'rgba(0, 0, 0, 0.7)',
+        backdropFilter: 'blur(4px)',
+        WebkitBackdropFilter: 'blur(4px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 1000,
-        padding: '1rem'
+        padding: '1rem',
+        touchAction: 'none'
       }}
       onClick={onClose}
+      onTouchMove={(e) => {
+        // Prevent background scroll on touch
+        if (scrollRef.current && !scrollRef.current.contains(e.target as Node)) {
+          e.preventDefault()
+        }
+      }}
     >
       <div
         style={{
@@ -52,11 +86,13 @@ export default function MutualFriendsModal({
           borderRadius: '16px',
           width: '100%',
           maxWidth: '340px',
+          height: '400px', // Fixed height for consistency
           maxHeight: '70vh',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          border: colors.goldBorder
+          border: colors.goldBorder,
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -93,11 +129,18 @@ export default function MutualFriendsModal({
         </div>
 
         {/* Friends List */}
-        <div style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: '0.5rem 0'
-        }}>
+        <div 
+          ref={scrollRef}
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            padding: '0.5rem 0',
+            WebkitOverflowScrolling: 'touch',
+            overscrollBehavior: 'contain',
+            touchAction: 'pan-y'
+          }}
+        >
           {friends.map((friend) => (
             <div
               key={friend.id}
