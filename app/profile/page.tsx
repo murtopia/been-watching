@@ -22,7 +22,7 @@ import { trackUserLoggedOut, resetUser } from '@/utils/analytics'
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
-  const [friendsTab, setFriendsTab] = useState<'following' | 'followers' | 'discover'>('following')
+  const [friendsTab, setFriendsTab] = useState<'following' | 'followers' | 'requests' | 'discover'>('following')
   const [loading, setLoading] = useState(true)
   const [showAvatarModal, setShowAvatarModal] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
@@ -39,6 +39,9 @@ export default function ProfilePage() {
   const [mutualModalOpen, setMutualModalOpen] = useState(false)
   const [mutualModalFriends, setMutualModalFriends] = useState<any[]>([])
   const [inviteSectionKey, setInviteSectionKey] = useState(0)
+  // Follow request states
+  const [pendingRequests, setPendingRequests] = useState<Set<string>>(new Set()) // User IDs where I have sent pending requests
+  const [incomingRequests, setIncomingRequests] = useState<any[]>([]) // Profiles of users requesting to follow me
   const router = useRouter()
   const supabase = createClient()
   const colors = useThemeColors()
@@ -120,23 +123,53 @@ export default function ProfilePage() {
   }
 
   const loadFollowData = async (): Promise<any[]> => {
-    // Load following
+    // Load accepted following (people I follow who accepted)
     const { data: followingData } = await supabase
       .from('follows')
-      .select('following_id, profiles!follows_following_id_fkey(*)')
+      .select('following_id, status, profiles!follows_following_id_fkey(*)')
       .eq('follower_id', user.id)
+      .eq('status', 'accepted')
 
     const followingList = followingData ? followingData.map(f => f.profiles) : []
     setFollowing(followingList)
 
-    // Load followers
+    // Load accepted followers (people who follow me, accepted)
     const { data: followersData } = await supabase
       .from('follows')
-      .select('follower_id, profiles!follows_follower_id_fkey(*)')
+      .select('follower_id, status, profiles!follows_follower_id_fkey(*)')
       .eq('following_id', user.id)
+      .eq('status', 'accepted')
 
     if (followersData) {
       setFollowers(followersData.map(f => f.profiles))
+    }
+
+    // Load my pending outgoing requests (where I'm waiting for approval)
+    const { data: pendingData } = await supabase
+      .from('follows')
+      .select('following_id')
+      .eq('follower_id', user.id)
+      .eq('status', 'pending')
+
+    if (pendingData) {
+      setPendingRequests(new Set(pendingData.map(p => p.following_id)))
+    }
+
+    // Load incoming follow requests (people wanting to follow me - only if I'm private)
+    if (profile?.is_private) {
+      const { data: incomingData } = await supabase
+        .from('follows')
+        .select('follower_id, created_at, profiles!follows_follower_id_fkey(*)')
+        .eq('following_id', user.id)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+
+      if (incomingData) {
+        setIncomingRequests(incomingData.map(r => ({
+          ...r.profiles,
+          requestedAt: r.created_at
+        })))
+      }
     }
     
     return followingList
@@ -295,25 +328,46 @@ export default function ProfilePage() {
     return followers.some(f => f.id === userId)
   }
 
-  const handleFollow = async (userId: string) => {
+  const handleFollow = async (userId: string, targetIsPrivate?: boolean) => {
+    // Check if target user is private (if not passed, we need to fetch it)
+    let isPrivate = targetIsPrivate
+    if (isPrivate === undefined) {
+      const { data: targetProfile } = await supabase
+        .from('profiles')
+        .select('is_private')
+        .eq('id', userId)
+        .single()
+      isPrivate = targetProfile?.is_private || false
+    }
+
+    // Set status based on whether target is private
+    const followStatus = isPrivate ? 'pending' : 'accepted'
+    const notificationType = isPrivate ? 'follow_request' : 'follow'
+
     const { error } = await supabase
       .from('follows')
       .insert({
         follower_id: user.id,
-        following_id: userId
+        following_id: userId,
+        status: followStatus
       })
 
     if (!error) {
-      // Create notification for the user being followed
+      // Create appropriate notification
       await supabase
         .from('notifications')
         .insert({
           user_id: userId,
           actor_id: user.id,
-          type: 'follow',
+          type: notificationType,
           target_type: 'profile',
           target_id: userId
         })
+
+      // If pending, add to pendingRequests state
+      if (followStatus === 'pending') {
+        setPendingRequests(prev => new Set([...prev, userId]))
+      }
 
       const followingList = await loadFollowData()
       loadSuggestedFriends(followingList)
@@ -333,6 +387,88 @@ export default function ProfilePage() {
     }
   }
 
+  const handleCancelRequest = async (userId: string) => {
+    // Delete the pending follow request
+    const { error } = await supabase
+      .from('follows')
+      .delete()
+      .eq('follower_id', user.id)
+      .eq('following_id', userId)
+      .eq('status', 'pending')
+
+    if (!error) {
+      // Remove from pending requests
+      setPendingRequests(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(userId)
+        return newSet
+      })
+
+      // Also delete the follow_request notification we sent
+      await supabase
+        .from('notifications')
+        .delete()
+        .eq('actor_id', user.id)
+        .eq('user_id', userId)
+        .eq('type', 'follow_request')
+    }
+  }
+
+  // Handle approving an incoming follow request (for private accounts)
+  const handleApproveRequest = async (requesterId: string) => {
+    const { error } = await supabase
+      .from('follows')
+      .update({ status: 'accepted' })
+      .eq('follower_id', requesterId)
+      .eq('following_id', user.id)
+
+    if (!error) {
+      // Create notification for the requester that they were accepted
+      await supabase
+        .from('notifications')
+        .insert({
+          user_id: requesterId,
+          actor_id: user.id,
+          type: 'follow',
+          target_type: 'profile',
+          target_id: requesterId
+        })
+
+      // Delete the follow_request notification
+      await supabase
+        .from('notifications')
+        .delete()
+        .eq('actor_id', requesterId)
+        .eq('user_id', user.id)
+        .eq('type', 'follow_request')
+
+      // Reload follow data to update UI
+      await loadFollowData()
+    }
+  }
+
+  // Handle denying an incoming follow request
+  const handleDenyRequest = async (requesterId: string) => {
+    const { error } = await supabase
+      .from('follows')
+      .delete()
+      .eq('follower_id', requesterId)
+      .eq('following_id', user.id)
+      .eq('status', 'pending')
+
+    if (!error) {
+      // Delete the follow_request notification
+      await supabase
+        .from('notifications')
+        .delete()
+        .eq('actor_id', requesterId)
+        .eq('user_id', user.id)
+        .eq('type', 'follow_request')
+
+      // Remove from incoming requests state
+      setIncomingRequests(prev => prev.filter(r => r.id !== requesterId))
+    }
+  }
 
   const handleDetailModalRate = (rating: string) => {
     if (selectedMedia) {
@@ -631,7 +767,8 @@ export default function ProfilePage() {
       }}>
         <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0', color: colors.textPrimary }}>Friends</h3>
 
-        {/* Three-Tab System: Following / Followers / Discover */}
+        {/* Tab System: Following / Followers / [Requests] / Discover */}
+        {/* Requests tab only shows for private accounts with pending requests */}
         <div style={{
           display: 'flex',
           borderBottom: `1px solid ${colors.dividerColor}`,
@@ -671,6 +808,26 @@ export default function ProfilePage() {
           >
             Followers {followers.length}
           </button>
+          {/* Requests tab - only for private accounts with pending requests */}
+          {profile?.is_private && incomingRequests.length > 0 && (
+            <button
+              onClick={() => setFriendsTab('requests')}
+              style={{
+                flex: 1,
+                padding: '0.75rem',
+                background: 'none',
+                border: 'none',
+                borderBottom: friendsTab === 'requests' ? `2px solid ${colors.goldAccent}` : '2px solid transparent',
+                color: friendsTab === 'requests' ? colors.goldAccent : colors.textSecondary,
+                fontWeight: friendsTab === 'requests' ? '700' : '400',
+                cursor: 'pointer',
+                fontSize: '0.9rem',
+                transition: 'all 0.2s'
+              }}
+            >
+              Requests
+            </button>
+          )}
           <button
             onClick={() => setFriendsTab('discover')}
             style={{
@@ -683,10 +840,18 @@ export default function ProfilePage() {
               fontWeight: friendsTab === 'discover' ? '700' : '400',
               cursor: 'pointer',
               fontSize: '0.9rem',
-              transition: 'all 0.2s'
+              transition: 'all 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
             }}
           >
-            Discover <span style={{ marginLeft: '0.25rem', display: 'inline-flex', verticalAlign: 'middle' }}><Icon name="search" size={16} /></span>
+            {/* Show just icon when 4 tabs, full text when 3 tabs */}
+            {profile?.is_private && incomingRequests.length > 0 ? (
+              <Icon name="search" size={18} />
+            ) : (
+              <>Discover <span style={{ marginLeft: '0.25rem', display: 'inline-flex', verticalAlign: 'middle' }}><Icon name="search" size={16} /></span></>
+            )}
           </button>
         </div>
 
@@ -701,11 +866,13 @@ export default function ProfilePage() {
                     user={friend}
                     currentUserId={user?.id || ''}
                     isFollowing={true}
+                    isPending={false}
                     followsYou={checkIfUserFollowsBack(friend.id)}
                     mutualFriends={mutualFriends.get(friend.id) || []}
                     tasteMatchScore={tasteMatches.get(friend.id)}
                     onFollow={handleFollow}
                     onUnfollow={handleUnfollow}
+                    onCancelRequest={handleCancelRequest}
                     onClick={(username) => router.push(`/${username}`)}
                     onMutualFriendsClick={(friends) => {
                       setMutualModalFriends(friends)
@@ -734,11 +901,13 @@ export default function ProfilePage() {
                     user={follower}
                     currentUserId={user?.id || ''}
                     isFollowing={following.some(f => f.id === follower.id)}
+                    isPending={pendingRequests.has(follower.id)}
                     followsYou={true}
                     mutualFriends={mutualFriends.get(follower.id) || []}
                     tasteMatchScore={tasteMatches.get(follower.id)}
                     onFollow={handleFollow}
                     onUnfollow={handleUnfollow}
+                    onCancelRequest={handleCancelRequest}
                     onClick={(username) => router.push(`/${username}`)}
                     onMutualFriendsClick={(friends) => {
                       setMutualModalFriends(friends)
@@ -752,6 +921,119 @@ export default function ProfilePage() {
                 <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>👤</div>
                 <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem', color: colors.textPrimary }}>No followers yet</div>
                 <div style={{ fontSize: '0.875rem' }}>Share your profile to get followers!</div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Requests Tab - incoming follow requests for private accounts */}
+        {friendsTab === 'requests' && profile?.is_private && (
+          <div>
+            {incomingRequests.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {incomingRequests.map((requester) => (
+                  <div
+                    key={requester.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      padding: '0.75rem',
+                      background: colors.cardBg,
+                      borderRadius: '12px',
+                      border: colors.cardBorder
+                    }}
+                  >
+                    {/* Avatar */}
+                    <div
+                      onClick={() => router.push(`/${requester.username}`)}
+                      style={{
+                        width: '48px',
+                        height: '48px',
+                        borderRadius: '50%',
+                        background: requester.avatar_url ? 'transparent' : colors.goldAccent,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '1rem',
+                        fontWeight: '700',
+                        color: '#000000',
+                        flexShrink: 0,
+                        overflow: 'hidden',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {requester.avatar_url ? (
+                        <img src={requester.avatar_url} alt={requester.display_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        requester.display_name?.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) || '?'
+                      )}
+                    </div>
+
+                    {/* User Info */}
+                    <div
+                      style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}
+                      onClick={() => router.push(`/${requester.username}`)}
+                    >
+                      <div style={{
+                        fontSize: '0.95rem',
+                        fontWeight: '600',
+                        color: colors.textPrimary,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}>
+                        {requester.display_name}
+                      </div>
+                      <div style={{
+                        fontSize: '0.8rem',
+                        color: colors.textSecondary
+                      }}>
+                        @{requester.username}
+                      </div>
+                    </div>
+
+                    {/* Approve/Deny Buttons */}
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button
+                        onClick={() => handleApproveRequest(requester.id)}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          background: colors.goldAccent,
+                          color: '#000000',
+                          border: 'none',
+                          borderRadius: '8px',
+                          fontSize: '0.8rem',
+                          fontWeight: '600',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => handleDenyRequest(requester.id)}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          background: colors.cardBg,
+                          color: colors.textSecondary,
+                          border: colors.cardBorder,
+                          borderRadius: '8px',
+                          fontSize: '0.8rem',
+                          fontWeight: '600',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Deny
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '3rem 1rem', color: colors.textSecondary }}>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✓</div>
+                <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem', color: colors.textPrimary }}>No pending requests</div>
+                <div style={{ fontSize: '0.875rem' }}>You're all caught up!</div>
               </div>
             )}
           </div>
@@ -801,11 +1083,13 @@ export default function ProfilePage() {
                       user={result}
                       currentUserId={user?.id || ''}
                       isFollowing={following.some(f => f.id === result.id)}
+                      isPending={pendingRequests.has(result.id)}
                       followsYou={followers.some(f => f.id === result.id)}
                       mutualFriends={mutualFriends.get(result.id) || []}
                       tasteMatchScore={tasteMatches.get(result.id)}
                       onFollow={handleFollow}
                       onUnfollow={handleUnfollow}
+                      onCancelRequest={handleCancelRequest}
                       onClick={(username) => router.push(`/${username}`)}
                       onMutualFriendsClick={(friends) => {
                         setMutualModalFriends(friends)
@@ -836,11 +1120,13 @@ export default function ProfilePage() {
                       user={friend}
                       currentUserId={user?.id || ''}
                       isFollowing={following.some(f => f.id === friend.id)}
+                      isPending={pendingRequests.has(friend.id)}
                       followsYou={followers.some(f => f.id === friend.id)}
                       mutualFriends={mutualFriends.get(friend.id) || []}
                       tasteMatchScore={tasteMatches.get(friend.id)}
                       onFollow={handleFollow}
                       onUnfollow={handleUnfollow}
+                      onCancelRequest={handleCancelRequest}
                       onClick={(username) => router.push(`/${username}`)}
                       onMutualFriendsClick={(friends) => {
                         setMutualModalFriends(friends)

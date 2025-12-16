@@ -58,6 +58,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
   const [currentUserProfile, setCurrentUserProfile] = useState<any>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [isFollowing, setIsFollowing] = useState(false)
+  const [isPendingFollow, setIsPendingFollow] = useState(false)
   const [followsMe, setFollowsMe] = useState(false)
   const [tasteMatchScore, setTasteMatchScore] = useState<number | null>(null)
   const [activities, setActivities] = useState<Activity[]>([])
@@ -141,25 +142,38 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
       if (user && !isOwnProfile) {
         const { data: followData } = await supabase
           .from('follows')
-          .select('*')
+          .select('*, status')
           .eq('follower_id', user.id)
           .eq('following_id', profileData.id)
           .maybeSingle()
 
-        setIsFollowing(!!followData)
+        // Check if following (accepted) or pending
+        if (followData) {
+          if (followData.status === 'accepted') {
+            setIsFollowing(true)
+            setIsPendingFollow(false)
+          } else if (followData.status === 'pending') {
+            setIsFollowing(false)
+            setIsPendingFollow(true)
+          }
+        } else {
+          setIsFollowing(false)
+          setIsPendingFollow(false)
+        }
 
-        // Check if they follow us back
+        // Check if they follow us back (only count accepted follows)
         const { data: followsBackData } = await supabase
           .from('follows')
           .select('*')
           .eq('follower_id', profileData.id)
           .eq('following_id', user.id)
+          .eq('status', 'accepted')
           .maybeSingle()
 
         setFollowsMe(!!followsBackData)
 
         // Calculate taste match if following
-        if (followData) {
+        if (followData && followData.status === 'accepted') {
           const match = await getTasteMatchBetweenUsers(user.id, profileData.id)
           setTasteMatchScore(match?.score || null)
         }
@@ -331,9 +345,15 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
   const handleFollow = async () => {
     if (!currentUser || !profile) return
 
+    // Determine follow status based on whether target is private
+    const followStatus = profile.is_private ? 'pending' : 'accepted'
+    const notificationType = profile.is_private ? 'follow_request' : 'follow'
+
     // OPTIMISTIC UPDATE - Update UI immediately
-    setIsFollowing(true)
     if (profile.is_private) {
+      setIsPendingFollow(true)
+    } else {
+      setIsFollowing(true)
       setCanViewActivities(true)
     }
 
@@ -343,16 +363,16 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         .insert({
           follower_id: currentUser.id,
           following_id: profile.id,
-          status: 'accepted'
+          status: followStatus
         })
 
-      // Create notification for the user being followed
+      // Create appropriate notification
       await supabase
         .from('notifications')
         .insert({
           user_id: profile.id,
           actor_id: currentUser.id,
-          type: 'follow',
+          type: notificationType,
           target_type: 'profile',
           target_id: profile.id
         })
@@ -412,10 +432,34 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
       // ROLLBACK on error
       setIsFollowing(true)
       setTasteMatchScore(previousTasteMatch)
-      if (profile.is_private) {
-        setCanViewActivities(true)
-        await loadActivities(profile.id)
-      }
+    }
+  }
+
+  const handleCancelRequest = async () => {
+    if (!currentUser || !profile) return
+
+    // OPTIMISTIC UPDATE
+    setIsPendingFollow(false)
+
+    try {
+      await supabase
+        .from('follows')
+        .delete()
+        .eq('follower_id', currentUser.id)
+        .eq('following_id', profile.id)
+        .eq('status', 'pending')
+
+      // Also delete the follow_request notification
+      await supabase
+        .from('notifications')
+        .delete()
+        .eq('actor_id', currentUser.id)
+        .eq('user_id', profile.id)
+        .eq('type', 'follow_request')
+    } catch (error) {
+      console.error('Error canceling follow request:', error)
+      // ROLLBACK on error
+      setIsPendingFollow(true)
     }
   }
 
@@ -552,13 +596,17 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         {!isOwnProfile && (
           <>
             <button
-              onClick={isFollowing ? handleUnfollow : handleFollow}
+              onClick={
+                isFollowing ? handleUnfollow : 
+                isPendingFollow ? handleCancelRequest : 
+                handleFollow
+              }
               disabled={!currentUser}
               style={{
                 padding: '0.5rem 1rem',
-                background: isFollowing ? 'transparent' : colors.brandGradient,
-                color: isFollowing ? colors.brandPink : 'white',
-                border: isFollowing ? `2px solid ${colors.brandPink}` : 'none',
+                background: isFollowing || isPendingFollow ? colors.cardBg : colors.goldAccent,
+                color: isFollowing || isPendingFollow ? colors.textSecondary : '#000000',
+                border: isFollowing || isPendingFollow ? colors.cardBorder : 'none',
                 borderRadius: '8px',
                 fontSize: '0.875rem',
                 fontWeight: '600',
@@ -567,7 +615,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
                 whiteSpace: 'nowrap'
               }}
             >
-              {isFollowing ? 'Following' : 'Follow'}
+              {isFollowing ? 'Following' : isPendingFollow ? 'Requested' : 'Follow'}
             </button>
             <DropdownMenu
               size={18}

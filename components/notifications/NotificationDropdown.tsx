@@ -4,14 +4,17 @@ import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTheme } from '@/contexts/ThemeContext'
 import { formatDistanceToNow } from 'date-fns'
+import { createClient } from '@/utils/supabase/client'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface Notification {
   id: string
-  type: 'follow' | 'like_activity' | 'comment' | 'mentioned' | 'note_liked' | 'note_commented' | 'announcement' | 'feature_release' | 'maintenance' | 'welcome'
+  type: 'follow' | 'follow_request' | 'like_activity' | 'comment' | 'mentioned' | 'note_liked' | 'note_commented' | 'announcement' | 'feature_release' | 'maintenance' | 'welcome'
   actor?: {
     username: string
     display_name: string
     avatar_url?: string
+    id?: string
   }
   target_type?: string
   target_id?: string
@@ -40,9 +43,12 @@ interface NotificationDropdownProps {
 export default function NotificationDropdown({ isOpen, onClose }: NotificationDropdownProps) {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
+  const [processingRequests, setProcessingRequests] = useState<Set<string>>(new Set())
   const router = useRouter()
   const { resolvedTheme } = useTheme()
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const supabase = createClient()
+  const colors = useThemeColors()
 
   const isDark = resolvedTheme === 'dark'
 
@@ -53,6 +59,94 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
   const textSecondary = isDark ? 'rgba(255, 255, 255, 0.6)' : '#666666'
   const hoverBg = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)'
   const unreadBg = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(233, 77, 136, 0.05)'
+
+  // Handle approving a follow request
+  const handleApproveRequest = async (notification: Notification, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!notification.actor?.id) return
+    
+    setProcessingRequests(prev => new Set([...prev, notification.id]))
+    
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      // Update follow status to accepted
+      await supabase
+        .from('follows')
+        .update({ status: 'accepted' })
+        .eq('follower_id', notification.actor.id)
+        .eq('following_id', user.id)
+
+      // Create a notification for the requester that they were accepted
+      await supabase
+        .from('notifications')
+        .insert({
+          user_id: notification.actor.id,
+          actor_id: user.id,
+          type: 'follow',
+          target_type: 'profile',
+          target_id: notification.actor.id
+        })
+
+      // Remove this notification from the list
+      setNotifications(prev => prev.filter(n => n.id !== notification.id))
+
+      // Delete the follow_request notification
+      await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', notification.id)
+    } catch (error) {
+      console.error('Error approving follow request:', error)
+    } finally {
+      setProcessingRequests(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(notification.id)
+        return newSet
+      })
+    }
+  }
+
+  // Handle denying a follow request
+  const handleDenyRequest = async (notification: Notification, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!notification.actor?.id) return
+    
+    setProcessingRequests(prev => new Set([...prev, notification.id]))
+    
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      // Delete the pending follow record
+      await supabase
+        .from('follows')
+        .delete()
+        .eq('follower_id', notification.actor.id)
+        .eq('following_id', user.id)
+        .eq('status', 'pending')
+
+      // Remove this notification from the list
+      setNotifications(prev => prev.filter(n => n.id !== notification.id))
+
+      // Delete the notification
+      await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', notification.id)
+    } catch (error) {
+      console.error('Error denying follow request:', error)
+    } finally {
+      setProcessingRequests(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(notification.id)
+        return newSet
+      })
+    }
+  }
 
   useEffect(() => {
     if (isOpen) {
@@ -198,6 +292,8 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
     switch (notification.type) {
       case 'follow':
         return 'started following you'
+      case 'follow_request':
+        return 'wants to follow you'
       case 'like_activity':
         return 'liked your activity'
       case 'comment':
@@ -419,18 +515,64 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
                       </div>
                     </>
                   ) : (
-                    <div style={{
-                      fontSize: '0.875rem',
-                      color: textPrimary,
-                      marginBottom: '0.25rem',
-                      lineHeight: '1.4'
-                    }}>
-                      <strong>@{notification.actor?.username}</strong>
-                      {' '}
-                      <span style={{ color: textSecondary }}>
-                        {getNotificationText(notification)}
-                      </span>
-                    </div>
+                    <>
+                      <div style={{
+                        fontSize: '0.875rem',
+                        color: textPrimary,
+                        marginBottom: '0.25rem',
+                        lineHeight: '1.4'
+                      }}>
+                        <strong>@{notification.actor?.username}</strong>
+                        {' '}
+                        <span style={{ color: textSecondary }}>
+                          {getNotificationText(notification)}
+                        </span>
+                      </div>
+                      {/* Approve/Deny buttons for follow requests */}
+                      {notification.type === 'follow_request' && (
+                        <div style={{ 
+                          display: 'flex', 
+                          gap: '0.5rem', 
+                          marginTop: '0.5rem',
+                          marginBottom: '0.25rem'
+                        }}>
+                          <button
+                            onClick={(e) => handleApproveRequest(notification, e)}
+                            disabled={processingRequests.has(notification.id)}
+                            style={{
+                              padding: '0.375rem 0.75rem',
+                              background: colors.goldAccent,
+                              color: '#000000',
+                              border: 'none',
+                              borderRadius: '6px',
+                              fontSize: '0.75rem',
+                              fontWeight: '600',
+                              cursor: processingRequests.has(notification.id) ? 'not-allowed' : 'pointer',
+                              opacity: processingRequests.has(notification.id) ? 0.6 : 1
+                            }}
+                          >
+                            {processingRequests.has(notification.id) ? '...' : 'Approve'}
+                          </button>
+                          <button
+                            onClick={(e) => handleDenyRequest(notification, e)}
+                            disabled={processingRequests.has(notification.id)}
+                            style={{
+                              padding: '0.375rem 0.75rem',
+                              background: colors.cardBg,
+                              color: colors.textSecondary,
+                              border: colors.cardBorder,
+                              borderRadius: '6px',
+                              fontSize: '0.75rem',
+                              fontWeight: '600',
+                              cursor: processingRequests.has(notification.id) ? 'not-allowed' : 'pointer',
+                              opacity: processingRequests.has(notification.id) ? 0.6 : 1
+                            }}
+                          >
+                            Deny
+                          </button>
+                        </div>
+                      )}
+                    </>
                   )}
                   <div style={{
                     fontSize: '0.75rem',

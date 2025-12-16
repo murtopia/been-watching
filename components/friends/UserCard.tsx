@@ -18,12 +18,14 @@ interface UserCardProps {
   user: Profile
   currentUserId: string
   isFollowing: boolean
+  isPending?: boolean // True if we've sent a follow request that's pending
   followsYou?: boolean
   mutualFriends?: Profile[]
   tasteMatchScore?: number
   latestActivity?: string
   onFollow: (userId: string) => void
   onUnfollow: (userId: string) => void
+  onCancelRequest?: (userId: string) => void // For canceling pending requests
   onClick?: (username: string) => void
   onMutualFriendsClick?: (friends: Profile[]) => void
 }
@@ -32,12 +34,14 @@ export default function UserCard({
   user,
   currentUserId,
   isFollowing,
+  isPending = false,
   followsYou = false,
   mutualFriends = [],
   tasteMatchScore,
   latestActivity,
   onFollow,
   onUnfollow,
+  onCancelRequest,
   onClick,
   onMutualFriendsClick
 }: UserCardProps) {
@@ -57,6 +61,8 @@ export default function UserCard({
       return { label: 'Mutual', variant: 'mutual' as const }
     } else if (isFollowing) {
       return { label: 'Following', variant: 'following' as const }
+    } else if (isPending) {
+      return { label: 'Requested', variant: 'requested' as const }
     } else if (followsYou) {
       return { label: 'Follow Back', variant: 'followBack' as const }
     }
@@ -67,7 +73,7 @@ export default function UserCard({
 
   // Button styles based on variant
   // Gold = action buttons (Follow, Follow Back)
-  // Gray = no-action states (Following, Mutual)
+  // Gray = no-action states (Following, Mutual, Requested)
   const getButtonStyles = () => {
     const base = {
       padding: '0.5rem 1rem',
@@ -91,6 +97,14 @@ export default function UserCard({
         }
       case 'following':
         // Gray - no action (already following)
+        return {
+          ...base,
+          background: colors.cardBg,
+          color: colors.textSecondary,
+          border: colors.cardBorder
+        }
+      case 'requested':
+        // Gray - pending state (waiting for approval, can cancel)
         return {
           ...base,
           background: colors.cardBg,
@@ -264,6 +278,8 @@ export default function UserCard({
           e.stopPropagation()
           if (isFollowing) {
             onUnfollow(user.id)
+          } else if (isPending && onCancelRequest) {
+            onCancelRequest(user.id)
           } else {
             onFollow(user.id)
           }
