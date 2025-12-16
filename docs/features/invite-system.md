@@ -14,7 +14,7 @@ We're replacing the insecure username-based invite system with a cryptographical
 **Created:**
 - `invite_tokens` table with secure random tokens
 - Token statuses: `active`, `used`, `expired`, `revoked`
-- 7-day expiration, one-time use
+- No expiration (tokens never expire), one-time use
 - Click analytics (privacy-safe)
 
 **Functions Created:**
@@ -27,8 +27,7 @@ We're replacing the insecure username-based invite system with a cryptographical
 
 **Security Features:**
 - ✅ Prevents username enumeration (tokens are random, not usernames)
-- ✅ Prevents replay attacks (one-time use, expires in 7 days)
-- ✅ Automatic cleanup of expired tokens
+- ✅ Prevents replay attacks (one-time use)
 - ✅ Row-level security (RLS) policies
 - ✅ Atomic operations (prevents race conditions)
 
@@ -46,7 +45,6 @@ We're replacing the insecure username-based invite system with a cryptographical
 - **Privacy**: Only shows @username (no avatar, bio, or full name)
 - Error handling for all token states:
   - Invalid/not found
-  - Expired (7 days)
   - Already used
   - Revoked
   - No invites remaining
@@ -105,7 +103,7 @@ We're replacing the insecure username-based invite system with a cryptographical
   - `loadInviteToken()` - Loads user's active token on mount
   - `generateInviteToken()` - Calls database function to create token
 - Share URL format: `beenwatching.com/join?code=xJ9kLmP2qR`
-- Shows token info: "Expires in 7 days • One-time use"
+- Shows token info: "One-time use"
 - Loading states for token generation
 - Auto-generates token on first share/copy
 
@@ -366,7 +364,7 @@ const handleInviteCodeSubmit = (code: string) => {
 ### After (Secure)
 ✅ `/join?code=xJ9kLmP2qR` - Random token, no enumeration
 ✅ Token validation is cryptographically secure
-✅ Tokens expire in 7 days
+✅ Tokens never expire (one-time use only)
 ✅ One-time use (marked as 'used' after redemption)
 ✅ URL parameters prevent race conditions
 ✅ User can revoke/regenerate tokens
@@ -385,7 +383,7 @@ invite_type       TEXT                  -- 'username' or 'vip'
 status            TEXT                  -- 'active', 'used', 'expired', 'revoked'
 used_by_user_id   UUID                  -- Who redeemed it
 used_at           TIMESTAMPTZ
-expires_at        TIMESTAMPTZ           -- 7 days from creation
+expires_at        TIMESTAMPTZ           -- NULL (tokens never expire)
 created_at        TIMESTAMPTZ
 click_count       INTEGER               -- Analytics
 last_clicked_at   TIMESTAMPTZ
