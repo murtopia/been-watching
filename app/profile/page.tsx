@@ -475,13 +475,10 @@ export default function ProfilePage() {
               fontWeight: '600',
               color: colors.textPrimary,
               cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.25rem'
+              whiteSpace: 'nowrap'
             }}
           >
-            ⚙️
+            Settings
           </button>
         </div>
 
@@ -519,7 +516,6 @@ export default function ProfilePage() {
           margin: '0 auto',
           maxWidth: '398px'
         }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: '700', margin: '0 0 1rem 0', color: colors.textPrimary }}>Admin</h3>
           <a
             href="/admin"
             style={{
@@ -534,7 +530,7 @@ export default function ProfilePage() {
               fontSize: '0.9rem'
             }}
           >
-            🔧 Go to Admin Dashboard
+            Go to Admin Dashboard
           </a>
           {/* Divider after admin */}
           <div style={{ height: '1px', background: colors.dividerColor, marginTop: '1.5rem' }} />
