@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useThemeColors } from '@/hooks/useThemeColors'
 import ThemeToggle from '@/components/theme/ThemeToggle'
 import Footer from '@/components/navigation/Footer'
 import { trackUserSignedUp, trackUserLoggedIn, identifyUser } from '@/utils/analytics'
@@ -23,6 +24,7 @@ export default function AuthPage() {
   const supabase = createClient()
   const router = useRouter()
   const { resolvedTheme } = useTheme()
+  const colors = useThemeColors()
   const isDarkMode = resolvedTheme === 'dark'
 
   // Check if already logged in
@@ -299,26 +301,21 @@ export default function AuthPage() {
     setLoading(false)
   }
 
-  const bgColor = isDarkMode ? '#0a0a0a' : '#ffffff'
-  const bgGradient = isDarkMode
-    ? 'linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 100%)'
-    : 'linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%)'
-  const cardBg = isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.95)'
-  const cardBorder = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-  const textPrimary = isDarkMode ? '#ffffff' : '#1a1a1a'
-  const textSecondary = isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)'
-  const inputBg = isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)'
-  const inputBorder = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+  // Use centralized theme colors
+  const textPrimary = colors.textPrimary
+  const textSecondary = colors.textSecondary
+  const inputBg = colors.inputBg
+  const inputBorder = colors.inputBorder
   const inputFocusBg = isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)'
-  const dividerColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-  const oauthButtonBg = isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)'
-  const oauthButtonHoverBg = isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'
+  const dividerColor = colors.dividerColor
+  const oauthButtonBg = colors.inputBg
+  const oauthButtonHoverBg = colors.cardBgHover
 
   return (
     <div
       style={{
         minHeight: '100vh',
-        background: bgGradient,
+        background: colors.background,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -332,14 +329,12 @@ export default function AuthPage() {
         style={{
           width: '100%',
           maxWidth: '420px',
-          background: cardBg,
+          background: colors.cardBg,
           backdropFilter: 'blur(20px)',
-          border: `1px solid ${cardBorder}`,
+          border: colors.goldBorder,
           borderRadius: '24px',
           padding: '3rem',
-          boxShadow: isDarkMode
-            ? '0 20px 60px rgba(0, 0, 0, 0.5)'
-            : '0 20px 60px rgba(0, 0, 0, 0.08)',
+          boxShadow: colors.shadowLg,
         }}
       >
         {/* Top Bar */}
@@ -379,9 +374,7 @@ export default function AuthPage() {
             style={{
               fontSize: '2rem',
               fontWeight: 700,
-              background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
+              color: colors.textPrimary,
               marginBottom: '0.5rem',
             }}
           >
@@ -552,7 +545,7 @@ export default function AuthPage() {
                 transition: 'all 0.2s',
               }}
               onFocus={(e) => {
-                e.target.style.borderColor = 'rgba(233, 77, 136, 0.5)'
+                e.target.style.borderColor = '${colors.goldAccent}'
                 e.target.style.background = inputFocusBg
               }}
               onBlur={(e) => {
@@ -599,7 +592,7 @@ export default function AuthPage() {
                 transition: 'all 0.2s',
               }}
               onFocus={(e) => {
-                e.target.style.borderColor = errorMessage ? '#ef4444' : 'rgba(233, 77, 136, 0.5)'
+                e.target.style.borderColor = errorMessage ? '#ef4444' : '${colors.goldAccent}'
                 e.target.style.background = inputFocusBg
               }}
               onBlur={(e) => {
@@ -637,7 +630,7 @@ export default function AuthPage() {
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: 'rgba(233, 77, 136, 1)',
+                  color: '${colors.goldAccent}',
                   fontSize: '0.875rem',
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -681,7 +674,7 @@ export default function AuthPage() {
                   transition: 'all 0.2s',
                 }}
                 onFocus={(e) => {
-                  e.target.style.borderColor = 'rgba(233, 77, 136, 0.5)'
+                  e.target.style.borderColor = '${colors.goldAccent}'
                   e.target.style.background = inputFocusBg
                 }}
                 onBlur={(e) => {
@@ -697,14 +690,14 @@ export default function AuthPage() {
             <div style={{
               marginBottom: '1.5rem',
               padding: '1rem',
-              background: 'linear-gradient(135deg, rgba(233, 77, 136, 0.1) 0%, rgba(242, 113, 33, 0.1) 100%)',
-              border: '1px solid rgba(233, 77, 136, 0.3)',
+              background: colors.goldGlassBg,
+              border: `1px solid ${colors.goldAccent}40`,
               borderRadius: '12px',
               textAlign: 'center'
             }}>
               <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🎉</div>
               <div style={{ color: textPrimary, fontSize: '0.875rem', fontWeight: 600 }}>
-                Invited by <span style={{ color: '#e94d88' }}>@{inviterUsername}</span>
+                Invited by <span style={{ color: colors.goldAccent }}>@{inviterUsername}</span>
               </div>
               <div style={{ color: textSecondary, fontSize: '0.75rem', marginTop: '0.25rem' }}>
                 No invite code needed!
@@ -725,7 +718,7 @@ export default function AuthPage() {
               >
                 VIP Invite Code
               </label>
-              <input
+                <input
                 type="text"
                 value={inviteCode}
                 onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
@@ -744,7 +737,7 @@ export default function AuthPage() {
                   textTransform: 'uppercase',
                 }}
                 onFocus={(e) => {
-                  e.target.style.borderColor = 'rgba(233, 77, 136, 0.5)'
+                  e.target.style.borderColor = colors.goldAccent
                   e.target.style.background = inputFocusBg
                 }}
                 onBlur={(e) => {
@@ -761,7 +754,7 @@ export default function AuthPage() {
                 Don't have a code?{' '}
                 <a
                   href="/waitlist"
-                  style={{ color: 'rgba(233, 77, 136, 1)', textDecoration: 'none' }}
+                  style={{ color: colors.goldAccent, textDecoration: 'none' }}
                 >
                   Join the waitlist
                 </a>
@@ -778,10 +771,10 @@ export default function AuthPage() {
               padding: '1rem',
               background: loading
                 ? (isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)')
-                : 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+                : colors.goldAccent,
               border: 'none',
               borderRadius: '12px',
-              color: '#fff',
+              color: loading ? '#fff' : '#000',
               fontSize: '1rem',
               fontWeight: 700,
               cursor: loading ? 'not-allowed' : 'pointer',
@@ -792,7 +785,7 @@ export default function AuthPage() {
             onMouseEnter={(e) => {
               if (!loading) {
                 e.currentTarget.style.transform = 'translateY(-2px)'
-                e.currentTarget.style.boxShadow = '0 10px 25px rgba(233, 77, 136, 0.3)'
+                e.currentTarget.style.boxShadow = `0 10px 25px ${colors.goldAccent}4D`
               }
             }}
             onMouseLeave={(e) => {
@@ -863,14 +856,14 @@ export default function AuthPage() {
             By continuing, you agree to our{' '}
             <a
               href="/terms"
-              style={{ color: 'rgba(233, 77, 136, 1)', textDecoration: 'none' }}
+              style={{ color: '${colors.goldAccent}', textDecoration: 'none' }}
             >
               Terms of Service
             </a>{' '}
             and{' '}
             <a
               href="/privacy"
-              style={{ color: 'rgba(233, 77, 136, 1)', textDecoration: 'none' }}
+              style={{ color: '${colors.goldAccent}', textDecoration: 'none' }}
             >
               Privacy Policy
             </a>

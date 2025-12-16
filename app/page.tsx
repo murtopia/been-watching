@@ -129,7 +129,7 @@ export default function LandingPage() {
           width: '3rem',
           height: '3rem',
           border: '4px solid',
-          borderColor: `${colors.brandPink} transparent`,
+          borderColor: `${colors.goldAccent} transparent`,
           borderRadius: '50%',
           animation: 'spin 1s linear infinite'
         }} />
@@ -146,8 +146,8 @@ export default function LandingPage() {
       {/* Header - consistent with app header style */}
       <header style={{
         padding: '1rem 1.5rem',
-        background: cardBg,
-        borderBottom: cardBorder,
+        background: colors.glassBg,
+        borderBottom: colors.goldBorder,
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
         position: 'sticky',
@@ -178,9 +178,7 @@ export default function LandingPage() {
               }}
             />
             <h1 style={{
-              background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
+              color: colors.textPrimary,
               fontSize: '1.25rem',
               fontWeight: '700',
               margin: 0,
@@ -191,17 +189,15 @@ export default function LandingPage() {
               Been Watching
               <span style={{
                 display: 'inline-block',
-                background: `rgba(233, 77, 136, ${isDark ? '0.2' : '0.15'})`,
-                color: isDark ? colors.brandPink : '#d4356f',
-                border: `1px solid ${colors.brandPink}`,
+                background: colors.goldGlassBg,
+                color: colors.goldAccent,
+                border: `1px solid ${colors.goldAccent}`,
                 padding: '0.15rem 0.5rem',
                 borderRadius: '8px',
                 fontSize: '0.625rem',
                 fontWeight: 700,
                 textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                WebkitBackgroundClip: 'unset',
-                WebkitTextFillColor: 'unset'
+                letterSpacing: '0.5px'
               }}>
                 Alpha
               </span>
@@ -213,8 +209,8 @@ export default function LandingPage() {
             onClick={() => router.push('/auth')}
             style={{
               padding: '0.5rem 1rem',
-              background: colors.brandGradient,
-              color: 'white',
+              background: colors.goldAccent,
+              color: '#000000',
               border: 'none',
               borderRadius: '8px',
               fontSize: '0.875rem',
@@ -224,7 +220,7 @@ export default function LandingPage() {
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-2px)'
-              e.currentTarget.style.boxShadow = `0 4px 12px ${colors.brandPink}4D`
+              e.currentTarget.style.boxShadow = `0 4px 12px ${colors.goldAccent}4D`
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'translateY(0)'
@@ -270,9 +266,7 @@ export default function LandingPage() {
           <h2 style={{
             fontSize: '2rem',
             fontWeight: 700,
-            background: colors.brandGradient,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
+            color: colors.textPrimary,
             marginBottom: '0.75rem',
             lineHeight: 1.2
           }}>
@@ -318,10 +312,10 @@ export default function LandingPage() {
             style={{
               width: '100%',
               padding: '0.875rem',
-              background: colors.brandGradient,
+              background: colors.goldAccent,
               border: 'none',
               borderRadius: '12px',
-              color: '#fff',
+              color: '#000',
               fontSize: '1rem',
               fontWeight: 700,
               cursor: 'pointer',
@@ -329,7 +323,7 @@ export default function LandingPage() {
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-2px)'
-              e.currentTarget.style.boxShadow = `0 10px 25px ${colors.brandPink}4D`
+              e.currentTarget.style.boxShadow = `0 10px 25px ${colors.goldAccent}4D`
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'translateY(0)'
@@ -394,7 +388,7 @@ export default function LandingPage() {
               }}
               onFocus={(e) => {
                 if (!codeError) {
-                  e.currentTarget.style.borderColor = colors.brandPink
+                  e.currentTarget.style.borderColor = colors.goldAccent
                 }
               }}
               onBlur={(e) => {
@@ -421,14 +415,14 @@ export default function LandingPage() {
                 padding: '0.875rem',
                 background: validatingCode || !vipCode.trim() 
                   ? (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)')
-                  : colors.brandGradient,
+                  : colors.goldAccent,
                 border: validatingCode || !vipCode.trim() 
                   ? `2px solid ${isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)'}`
                   : 'none',
                 borderRadius: '12px',
                 color: validatingCode || !vipCode.trim() 
                   ? (isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.3)')
-                  : '#fff',
+                  : '#000',
                 fontSize: '1rem',
                 fontWeight: 700,
                 cursor: validatingCode || !vipCode.trim() ? 'not-allowed' : 'pointer',
@@ -437,7 +431,7 @@ export default function LandingPage() {
               onMouseEnter={(e) => {
                 if (!validatingCode && vipCode.trim()) {
                   e.currentTarget.style.transform = 'translateY(-2px)'
-                  e.currentTarget.style.boxShadow = `0 10px 25px ${colors.brandPink}4D`
+                  e.currentTarget.style.boxShadow = `0 10px 25px ${colors.goldAccent}4D`
                 }
               }}
               onMouseLeave={(e) => {
@@ -510,9 +504,7 @@ export default function LandingPage() {
                 <h2 style={{
                   fontSize: '1.5rem',
                   fontWeight: 700,
-                  background: colors.brandGradient,
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
+                  color: colors.textPrimary,
                   marginBottom: '0.5rem',
                   textAlign: 'center'
                 }}>
@@ -609,10 +601,10 @@ export default function LandingPage() {
                     style={{
                       width: '100%',
                       padding: '0.875rem',
-                      background: waitlistLoading ? colors.textSecondary : colors.brandGradient,
+                      background: waitlistLoading ? colors.textSecondary : colors.goldAccent,
                       border: 'none',
                       borderRadius: '12px',
-                      color: '#fff',
+                      color: waitlistLoading ? '#fff' : '#000',
                       fontSize: '1rem',
                       fontWeight: 700,
                       cursor: waitlistLoading ? 'not-allowed' : 'pointer',
@@ -630,9 +622,7 @@ export default function LandingPage() {
                 <h2 style={{
                   fontSize: '1.75rem',
                   fontWeight: 700,
-                  background: colors.brandGradient,
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
+                  color: colors.goldAccent,
                   marginBottom: '0.75rem'
                 }}>
                   Success!
@@ -651,10 +641,10 @@ export default function LandingPage() {
                   onClick={closeWaitlistModal}
                   style={{
                     padding: '0.875rem 2.5rem',
-                    background: colors.brandGradient,
+                    background: colors.goldAccent,
                     border: 'none',
                     borderRadius: '12px',
-                    color: '#fff',
+                    color: '#000',
                     fontSize: '1rem',
                     fontWeight: 600,
                     cursor: 'pointer'
