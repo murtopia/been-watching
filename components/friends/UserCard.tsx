@@ -25,6 +25,7 @@ interface UserCardProps {
   onFollow: (userId: string) => void
   onUnfollow: (userId: string) => void
   onClick?: (username: string) => void
+  onMutualFriendsClick?: (friends: Profile[]) => void
 }
 
 export default function UserCard({
@@ -37,7 +38,8 @@ export default function UserCard({
   latestActivity,
   onFollow,
   onUnfollow,
-  onClick
+  onClick,
+  onMutualFriendsClick
 }: UserCardProps) {
   const colors = useThemeColors()
   const [showReportModal, setShowReportModal] = useState(false)
@@ -66,9 +68,9 @@ export default function UserCard({
   // Button styles based on variant
   const getButtonStyles = () => {
     const base = {
-      padding: '0.375rem 0.75rem',
-      borderRadius: '6px',
-      fontSize: '0.75rem',
+      padding: '0.5rem 1rem',
+      borderRadius: '8px',
+      fontSize: '0.8rem',
       fontWeight: '600' as const,
       cursor: 'pointer',
       transition: 'all 0.2s',
@@ -105,6 +107,13 @@ export default function UserCard({
     }
   }
 
+  const handleMutualClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (mutualFriends.length > 0 && onMutualFriendsClick) {
+      onMutualFriendsClick(mutualFriends)
+    }
+  }
+
   return (
     <div
       style={{
@@ -127,17 +136,17 @@ export default function UserCard({
         }
       }}
     >
-      {/* Avatar - spans both lines */}
+      {/* Avatar - spans all 3 lines */}
       <div
         style={{
-          width: '44px',
-          height: '44px',
+          width: '52px',
+          height: '52px',
           borderRadius: '50%',
           background: user.avatar_url ? 'transparent' : colors.goldAccent,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '0.875rem',
+          fontSize: '1rem',
           fontWeight: '700',
           color: '#000000',
           flexShrink: 0,
@@ -151,49 +160,40 @@ export default function UserCard({
         )}
       </div>
 
-      {/* Content - Two lines */}
+      {/* Content - Three lines */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        {/* Line 1: Display Name, @username, Follow Button */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-          <span
-            style={{
-              fontSize: '0.9rem',
-              fontWeight: '600',
-              color: colors.textPrimary,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            {user.display_name}
-          </span>
-          <span
-            style={{
-              fontSize: '0.75rem',
-              color: colors.textSecondary,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            @{user.username}
-          </span>
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              if (isFollowing) {
-                onUnfollow(user.id)
-              } else {
-                onFollow(user.id)
-              }
-            }}
-            style={getButtonStyles()}
-          >
-            {buttonState.label}
-          </button>
+        {/* Line 1: Display Name */}
+        <div
+          style={{
+            fontSize: '0.95rem',
+            fontWeight: '600',
+            color: colors.textPrimary,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            marginBottom: '0.125rem'
+          }}
+          title={user.display_name}
+        >
+          {user.display_name}
         </div>
 
-        {/* Line 2: Taste Match % + Mutual Friends */}
+        {/* Line 2: @username */}
+        <div
+          style={{
+            fontSize: '0.8rem',
+            color: colors.textSecondary,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            marginBottom: '0.25rem'
+          }}
+          title={`@${user.username}`}
+        >
+          @{user.username}
+        </div>
+
+        {/* Line 3: Taste Match % + Mutual Friends */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.75rem' }}>
           {/* Taste Match */}
           {tasteMatch && tasteMatchScore !== undefined && (
@@ -204,7 +204,15 @@ export default function UserCard({
 
           {/* Mutual Friends - overlapping avatars */}
           {mutualFriends.length > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            <div 
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.25rem',
+                cursor: onMutualFriendsClick ? 'pointer' : 'default'
+              }}
+              onClick={handleMutualClick}
+            >
               {/* Overlapping avatars (show up to 3) */}
               <div style={{ display: 'flex', marginRight: '0.25rem' }}>
                 {mutualFriends.slice(0, 3).map((friend, index) => (
@@ -242,6 +250,21 @@ export default function UserCard({
           )}
         </div>
       </div>
+
+      {/* Follow Button - pushed to the right */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation()
+          if (isFollowing) {
+            onUnfollow(user.id)
+          } else {
+            onFollow(user.id)
+          }
+        }}
+        style={getButtonStyles()}
+      >
+        {buttonState.label}
+      </button>
 
       {/* Three-dot menu */}
       <div onClick={(e) => e.stopPropagation()}>

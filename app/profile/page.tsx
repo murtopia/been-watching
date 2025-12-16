@@ -9,6 +9,7 @@ import SearchModalEnhanced from '@/components/search/SearchModalEnhanced'
 import MediaDetailModal from '@/components/media/MediaDetailModal'
 import AvatarUploadModal from '@/components/profile/AvatarUploadModal'
 import UserCard from '@/components/friends/UserCard'
+import MutualFriendsModal from '@/components/friends/MutualFriendsModal'
 import Footer from '@/components/navigation/Footer'
 import InviteSection from '@/components/profile/InviteSection'
 import ReferralDashboard from '@/components/profile/ReferralDashboard'
@@ -34,6 +35,8 @@ export default function ProfilePage() {
   const [tasteMatches, setTasteMatches] = useState<Map<string, number>>(new Map())
   const [mutualFriends, setMutualFriends] = useState<Map<string, any[]>>(new Map())
   const [counts, setCounts] = useState({ wantCount: 0, watchingCount: 0, watchedCount: 0 })
+  const [mutualModalOpen, setMutualModalOpen] = useState(false)
+  const [mutualModalFriends, setMutualModalFriends] = useState<any[]>([])
   const [inviteSectionKey, setInviteSectionKey] = useState(0)
   const router = useRouter()
   const supabase = createClient()
@@ -644,6 +647,10 @@ export default function ProfilePage() {
                     onFollow={handleFollow}
                     onUnfollow={handleUnfollow}
                     onClick={(username) => router.push(`/${username}`)}
+                    onMutualFriendsClick={(friends) => {
+                      setMutualModalFriends(friends)
+                      setMutualModalOpen(true)
+                    }}
                   />
                 ))}
               </div>
@@ -673,6 +680,10 @@ export default function ProfilePage() {
                     onFollow={handleFollow}
                     onUnfollow={handleUnfollow}
                     onClick={(username) => router.push(`/${username}`)}
+                    onMutualFriendsClick={(friends) => {
+                      setMutualModalFriends(friends)
+                      setMutualModalOpen(true)
+                    }}
                   />
                 ))}
               </div>
@@ -736,6 +747,10 @@ export default function ProfilePage() {
                       onFollow={handleFollow}
                       onUnfollow={handleUnfollow}
                       onClick={(username) => router.push(`/${username}`)}
+                      onMutualFriendsClick={(friends) => {
+                        setMutualModalFriends(friends)
+                        setMutualModalOpen(true)
+                      }}
                     />
                   ))}
                 </div>
@@ -767,6 +782,10 @@ export default function ProfilePage() {
                       onFollow={handleFollow}
                       onUnfollow={handleUnfollow}
                       onClick={(username) => router.push(`/${username}`)}
+                      onMutualFriendsClick={(friends) => {
+                        setMutualModalFriends(friends)
+                        setMutualModalOpen(true)
+                      }}
                     />
                   ))}
                 </div>
@@ -811,6 +830,13 @@ export default function ProfilePage() {
           setProfile({ ...profile, avatar_url: newUrl })
           setInviteSectionKey(prev => prev + 1) // Force InviteSection to refresh
         }}
+      />
+
+      <MutualFriendsModal
+        isOpen={mutualModalOpen}
+        onClose={() => setMutualModalOpen(false)}
+        friends={mutualModalFriends}
+        onFriendClick={(username) => router.push(`/${username}`)}
       />
 
       {/* Minimal Footer */}
