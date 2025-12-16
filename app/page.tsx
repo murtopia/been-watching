@@ -140,7 +140,11 @@ export default function LandingPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: colors.background,
+      background: `linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.85) 100%), url('/landing-bg.webp')`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed',
+      backgroundRepeat: 'no-repeat',
       color: colors.textPrimary
     }}>
       {/* Header - consistent with app header style */}
