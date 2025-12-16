@@ -173,18 +173,16 @@ export default function ProfilePage() {
     }
 
     // Load taste matches and mutual friends for following and followers
-    const allUserIds = [
-      ...followingList.map((f: any) => f.id),
-      ...(followersData?.map(f => f.profiles?.id) || [])
-    ].filter(Boolean)
-
+    const followersList = followersData ? followersData.map(f => f.profiles) : []
+    const allUsers = [...followingList, ...followersList].filter(Boolean)
+    
     // Get unique IDs
-    const uniqueUserIds = [...new Set(allUserIds)]
+    const uniqueUserIds = [...new Set(allUsers.map((u: any) => u.id))]
 
     // Load taste matches for all following/followers
-    const newTasteMatches = new Map<string, number>(tasteMatches)
-    for (const userId of uniqueUserIds) {
-      if (!newTasteMatches.has(userId)) {
+    if (uniqueUserIds.length > 0) {
+      const newTasteMatches = new Map<string, number>()
+      for (const userId of uniqueUserIds) {
         try {
           const match = await getTasteMatchBetweenUsers(user.id, userId)
           if (match?.score) {
@@ -194,15 +192,23 @@ export default function ProfilePage() {
           // Ignore errors for individual taste match calculations
         }
       }
-    }
-    setTasteMatches(newTasteMatches)
+      setTasteMatches(prev => {
+        const merged = new Map(prev)
+        newTasteMatches.forEach((score, id) => merged.set(id, score))
+        return merged
+      })
 
-    // Load mutual friends for all following/followers
-    for (const userId of uniqueUserIds) {
-      if (!mutualFriends.has(userId)) {
+      // Load mutual friends for all following/followers
+      const newMutualFriends = new Map<string, any[]>()
+      for (const userId of uniqueUserIds) {
         const mutuals = await getMutualFriends(userId)
-        setMutualFriends(prev => new Map(prev).set(userId, mutuals))
+        newMutualFriends.set(userId, mutuals)
       }
+      setMutualFriends(prev => {
+        const merged = new Map(prev)
+        newMutualFriends.forEach((friends, id) => merged.set(id, friends))
+        return merged
+      })
     }
     
     return followingList
