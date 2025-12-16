@@ -104,7 +104,7 @@ export default function AppHeader({
   // Theme-based colors
   const colors = useThemeColors()
   const isDark = resolvedTheme === 'dark'
-  const cardBg = colors.goldGlassBg
+  const cardBg = colors.glassBg
   const cardBorder = colors.goldBorder
   const backdropBlur = 'blur(20px)'
   

@@ -24,7 +24,7 @@ export default function Footer({ variant = 'full' }: FooterProps) {
           background: colors.glassBg,
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
-          border: colors.glassBorder,
+          border: colors.goldBorder,
           borderRadius: '20px',
           padding: '2rem',
           boxShadow: colors.shadowLg,
@@ -60,7 +60,7 @@ export default function Footer({ variant = 'full' }: FooterProps) {
         background: colors.glassBg,
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        border: colors.glassBorder,
+        border: colors.goldBorder,
         borderRadius: '20px',
         padding: '2.5rem',
         boxShadow: colors.shadowLg
@@ -69,7 +69,7 @@ export default function Footer({ variant = 'full' }: FooterProps) {
         <div style={{
           textAlign: 'center',
           paddingBottom: '1.5rem',
-          borderBottom: colors.glassBorder,
+          borderBottom: colors.goldBorder,
           marginBottom: '1.5rem'
         }}>
           <h2 style={{
@@ -201,7 +201,7 @@ export default function Footer({ variant = 'full' }: FooterProps) {
 
         {/* Bottom Bar */}
         <div style={{
-          borderTop: colors.glassBorder,
+          borderTop: colors.goldBorder,
           paddingTop: '1.5rem',
           textAlign: 'center'
         }}>
