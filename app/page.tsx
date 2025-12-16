@@ -459,8 +459,9 @@ export default function LandingPage() {
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'rgba(0, 0, 0, 0.6)',
-            backdropFilter: 'blur(4px)',
+            background: 'rgba(0, 0, 0, 0.7)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -471,12 +472,15 @@ export default function LandingPage() {
         >
           <div 
             style={{
-              background: isDark ? '#1a1a2e' : '#ffffff',
+              background: colors.cardBg,
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: colors.goldBorder,
               borderRadius: '20px',
               padding: '2rem',
               maxWidth: '400px',
               width: '100%',
-              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+              boxShadow: colors.shadowLg,
               position: 'relative'
             }}
             onClick={(e) => e.stopPropagation()}

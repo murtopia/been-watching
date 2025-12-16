@@ -73,9 +73,7 @@ export default function Footer({ variant = 'full' }: FooterProps) {
           marginBottom: '1.5rem'
         }}>
           <h2 style={{
-            background: colors.brandGradient,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
+            color: colors.textPrimary,
             fontSize: '1.5rem',
             fontWeight: '700',
             marginBottom: '0.5rem'
