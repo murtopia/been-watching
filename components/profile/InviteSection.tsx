@@ -256,10 +256,9 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
         const newToken = data.token
         setInviteToken(newToken)
 
+        // Copy just the URL (not the full message)
         const shareUrl = `https://beenwatching.com/join?code=${newToken}`
-        const shareMessage = `I just got an invite code to Been Watching, a new social show and movie discovery platform that I think you'd like! Come join me see what I've been watching here: ${shareUrl}`
-
-        await navigator.clipboard.writeText(shareMessage)
+        await navigator.clipboard.writeText(shareUrl)
         setCopied(true)
         setTimeout(() => setCopied(false), 2000)
       } catch (err) {
@@ -269,12 +268,11 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
       return
     }
 
-    // Token already exists, just copy it
+    // Token already exists, copy just the URL
     const shareUrl = `https://beenwatching.com/join?code=${inviteToken}`
-    const shareMessage = `I just got an invite code to Been Watching, a new social show and movie discovery platform that I think you'd like! Come join me see what I've been watching here: ${shareUrl}`
 
     try {
-      await navigator.clipboard.writeText(shareMessage)
+      await navigator.clipboard.writeText(shareUrl)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
@@ -567,8 +565,8 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
         {inviteToken ? (
           <div style={{
             padding: '1rem',
-            background: 'linear-gradient(135deg, rgba(233, 77, 136, 0.1) 0%, rgba(242, 113, 33, 0.1) 100%)',
-            border: '1px solid rgba(233, 77, 136, 0.2)',
+            background: colors.goldGlassBg,
+            border: colors.goldBorder,
             borderRadius: '12px',
             marginBottom: '1rem'
           }}>
@@ -626,8 +624,8 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
             style={{
               flex: 1,
               padding: '0.875rem',
-              background: generatingToken ? colors.textSecondary : colors.brandGradient,
-              color: 'white',
+              background: generatingToken ? colors.textSecondary : colors.goldAccent,
+              color: '#000000',
               border: 'none',
               borderRadius: '8px',
               fontSize: '1rem',
@@ -694,13 +692,13 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
           <div style={{ fontWeight: '600', marginBottom: '0.5rem', color: colors.textPrimary }}>
             Ways to earn invites:
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-            <span style={{ color: colors.brandPink }}>•</span>
-            <span>Complete your profile → +1 invite</span>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.5rem' }}>
+            <span style={{ color: colors.goldAccent }}>•</span>
+            <span>Earn an invite by adding a profile photo, completing your bio, and adding a show to each of your three watchlists.</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ color: colors.brandPink }}>•</span>
-            <span>Add 20 shows to your watchlists → +1 invite (repeating)</span>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+            <span style={{ color: colors.goldAccent }}>•</span>
+            <span>Earn an invite for every 20 shows added to your watchlists.</span>
           </div>
         </div>
 
@@ -753,8 +751,8 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
       {/* Progress to next invite */}
       <div style={{
         padding: '1rem',
-        background: 'linear-gradient(135deg, rgba(233, 77, 136, 0.1) 0%, rgba(242, 113, 33, 0.1) 100%)',
-        border: '1px solid rgba(233, 77, 136, 0.2)',
+        background: colors.goldGlassBg,
+        border: colors.goldBorder,
         borderRadius: '12px',
         marginBottom: '1rem'
       }}>
@@ -780,7 +778,7 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
           <div style={{
             height: '100%',
             width: `${progressToNext}%`,
-            background: colors.brandGradient,
+            background: colors.goldAccent,
             transition: 'width 0.3s ease'
           }} />
         </div>
@@ -806,13 +804,13 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
         <div style={{ fontWeight: '600', marginBottom: '0.5rem', color: colors.textPrimary }}>
           Ways to earn invites:
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-          <span style={{ color: colors.brandPink }}>•</span>
-          <span>Complete your profile → +1 invite</span>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.5rem' }}>
+          <span style={{ color: colors.goldAccent }}>•</span>
+          <span>Earn an invite by adding a profile photo, completing your bio, and adding a show to each of your three watchlists.</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ color: colors.brandPink }}>•</span>
-          <span>Add 20 shows to your watchlists → +1 invite (repeating)</span>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+          <span style={{ color: colors.goldAccent }}>•</span>
+          <span>Earn an invite for every 20 shows added to your watchlists.</span>
         </div>
       </div>
     </div>

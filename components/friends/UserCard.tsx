@@ -1,11 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { useTheme } from '@/contexts/ThemeContext'
+import { useThemeColors } from '@/hooks/useThemeColors'
 import { getTasteMatchLabel } from '@/utils/tasteMatch'
 import DropdownMenu from '../ui/DropdownMenu'
 import ReportModal from '../moderation/ReportModal'
-import { Flag } from 'lucide-react'
 
 interface Profile {
   id: string
@@ -40,8 +39,7 @@ export default function UserCard({
   onUnfollow,
   onClick
 }: UserCardProps) {
-  const { resolvedTheme } = useTheme()
-  const isDark = resolvedTheme === 'dark'
+  const colors = useThemeColors()
   const [showReportModal, setShowReportModal] = useState(false)
 
   const getInitials = (name: string) => {
@@ -51,69 +49,97 @@ export default function UserCard({
 
   const tasteMatch = tasteMatchScore ? getTasteMatchLabel(tasteMatchScore) : null
 
-  // Theme-based colors
-  const cardBg = isDark ? 'rgba(255, 255, 255, 0.05)' : 'white'
-  const cardBgHover = isDark ? 'rgba(255, 255, 255, 0.08)' : '#f8f9fa'
-  const cardBorder = isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #f0f0f0'
-  const backdropBlur = isDark ? 'blur(20px)' : 'none'
-  const textPrimary = isDark ? '#ffffff' : '#1a1a1a'
-  const textSecondary = isDark ? 'rgba(255, 255, 255, 0.6)' : '#666'
-  const textTertiary = isDark ? 'rgba(255, 255, 255, 0.4)' : '#999'
-  const buttonBg = isDark ? 'rgba(255, 255, 255, 0.1)' : 'white'
-  const buttonBgHover = isDark ? 'rgba(255, 255, 255, 0.15)' : '#f8f9fa'
-  const buttonBorder = isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #ddd'
-  const buttonBorderHover = isDark ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid #999'
-  const badgeBg = isDark ? 'rgba(255, 255, 255, 0.15)' : '#e0e0e0'
+  // Determine follow status for single button
+  const getFollowButtonState = () => {
+    if (isFollowing && followsYou) {
+      return { label: 'Mutual', variant: 'mutual' as const }
+    } else if (isFollowing) {
+      return { label: 'Following', variant: 'following' as const }
+    } else if (followsYou) {
+      return { label: 'Follow Back', variant: 'followBack' as const }
+    }
+    return { label: 'Follow', variant: 'default' as const }
+  }
 
-  // Determine follow status
-  let followStatus: 'mutual' | 'following' | 'follows-you' | 'none' = 'none'
-  if (isFollowing && followsYou) followStatus = 'mutual'
-  else if (isFollowing) followStatus = 'following'
-  else if (followsYou) followStatus = 'follows-you'
+  const buttonState = getFollowButtonState()
+
+  // Button styles based on variant
+  const getButtonStyles = () => {
+    const base = {
+      padding: '0.375rem 0.75rem',
+      borderRadius: '6px',
+      fontSize: '0.75rem',
+      fontWeight: '600' as const,
+      cursor: 'pointer',
+      transition: 'all 0.2s',
+      whiteSpace: 'nowrap' as const,
+      border: 'none'
+    }
+
+    switch (buttonState.variant) {
+      case 'mutual':
+        return {
+          ...base,
+          background: colors.goldAccent,
+          color: '#000000'
+        }
+      case 'following':
+        return {
+          ...base,
+          background: colors.cardBg,
+          color: colors.textSecondary,
+          border: colors.cardBorder
+        }
+      case 'followBack':
+        return {
+          ...base,
+          background: colors.goldAccent,
+          color: '#000000'
+        }
+      default:
+        return {
+          ...base,
+          background: colors.goldAccent,
+          color: '#000000'
+        }
+    }
+  }
 
   return (
     <div
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: '1rem',
-        padding: '1rem',
-        background: cardBg,
-        borderRadius: '12px',
-        border: cardBorder,
-        backdropFilter: backdropBlur,
+        gap: '0.75rem',
+        padding: '0.75rem',
         cursor: onClick ? 'pointer' : 'default',
         transition: 'all 0.2s'
       }}
       onClick={() => onClick?.(user.username)}
       onMouseEnter={(e) => {
         if (onClick) {
-          e.currentTarget.style.background = cardBgHover
-          e.currentTarget.style.transform = 'translateY(-2px)'
-          e.currentTarget.style.boxShadow = isDark ? '0 4px 12px rgba(0, 0, 0, 0.3)' : '0 4px 12px rgba(0, 0, 0, 0.08)'
+          e.currentTarget.style.background = colors.cardBgHover
         }
       }}
       onMouseLeave={(e) => {
         if (onClick) {
-          e.currentTarget.style.background = cardBg
-          e.currentTarget.style.transform = 'translateY(0)'
-          e.currentTarget.style.boxShadow = 'none'
+          e.currentTarget.style.background = 'transparent'
         }
       }}
     >
-      {/* Avatar */}
+      {/* Avatar - spans both lines */}
       <div
         style={{
-          width: '60px',
-          height: '60px',
+          width: '44px',
+          height: '44px',
           borderRadius: '50%',
-          background: user.avatar_url ? 'transparent' : 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+          background: user.avatar_url ? 'transparent' : colors.goldAccent,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '1.25rem',
+          fontSize: '0.875rem',
           fontWeight: '700',
-          color: 'white',
+          color: '#000000',
           flexShrink: 0,
           overflow: 'hidden'
         }}
@@ -125,141 +151,110 @@ export default function UserCard({
         )}
       </div>
 
-      {/* User Info */}
+      {/* Content - Two lines */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        {/* Username (bold) and Follow Status Badge */}
+        {/* Line 1: Display Name, @username, Follow Button */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-          <div
+          <span
             style={{
-              fontSize: '1rem',
-              fontWeight: '700',
-              color: textPrimary,
-              cursor: 'pointer',
-              textDecoration: 'none'
+              fontSize: '0.9rem',
+              fontWeight: '600',
+              color: colors.textPrimary,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
             }}
-            onClick={(e) => {
-              e.stopPropagation()
-              onClick?.(user.username)
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.textDecoration = 'underline'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.textDecoration = 'none'
+          >
+            {user.display_name}
+          </span>
+          <span
+            style={{
+              fontSize: '0.75rem',
+              color: colors.textSecondary,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
             }}
           >
             @{user.username}
-          </div>
-          {followStatus !== 'none' && (
-            <span style={{
-              padding: '0.125rem 0.5rem',
-              borderRadius: '12px',
-              fontSize: '0.75rem',
-              fontWeight: '600',
-              background: followStatus === 'mutual' ? 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)' :
-                         followStatus === 'following' ? badgeBg : badgeBg,
-              color: followStatus === 'mutual' ? 'white' : textSecondary
-            }}>
-              {followStatus === 'mutual' ? 'Mutual' : followStatus === 'following' ? 'Following' : 'Follows you'}
+          </span>
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              if (isFollowing) {
+                onUnfollow(user.id)
+              } else {
+                onFollow(user.id)
+              }
+            }}
+            style={getButtonStyles()}
+          >
+            {buttonState.label}
+          </button>
+        </div>
+
+        {/* Line 2: Taste Match % + Mutual Friends */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.75rem' }}>
+          {/* Taste Match */}
+          {tasteMatch && tasteMatchScore !== undefined && (
+            <span style={{ color: tasteMatch.color, fontWeight: '600' }}>
+              {tasteMatchScore}% match
             </span>
           )}
-        </div>
 
-        {/* Display Name */}
-        <div style={{ fontSize: '0.875rem', color: textSecondary, marginBottom: '0.5rem' }}>
-          {user.display_name}
-        </div>
-
-        {/* Mutual Friends */}
-        {mutualFriends.length > 0 && (
-          <div style={{ fontSize: '0.75rem', color: textTertiary, marginBottom: '0.25rem' }}>
-            Mutual: {mutualFriends.slice(0, 3).map((f, i) => (
-              <span key={f.id}>
-                {i > 0 && ', '}
-                <span style={{ color: textSecondary, fontWeight: '600' }}>@{f.username}</span>
+          {/* Mutual Friends - overlapping avatars */}
+          {mutualFriends.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              {/* Overlapping avatars (show up to 3) */}
+              <div style={{ display: 'flex', marginRight: '0.25rem' }}>
+                {mutualFriends.slice(0, 3).map((friend, index) => (
+                  <div
+                    key={friend.id}
+                    style={{
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '50%',
+                      background: friend.avatar_url ? 'transparent' : colors.goldAccent,
+                      border: `1.5px solid ${colors.isDark ? '#000' : '#fff'}`,
+                      marginLeft: index > 0 ? '-6px' : 0,
+                      overflow: 'hidden',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '0.5rem',
+                      fontWeight: '700',
+                      color: '#000',
+                      zIndex: 3 - index
+                    }}
+                  >
+                    {friend.avatar_url ? (
+                      <img src={friend.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      friend.display_name?.[0]?.toUpperCase() || '?'
+                    )}
+                  </div>
+                ))}
+              </div>
+              <span style={{ color: colors.textSecondary }}>
+                {mutualFriends.length} mutual
               </span>
-            ))}
-            {mutualFriends.length > 3 && ` +${mutualFriends.length - 3} more`}
-          </div>
-        )}
-
-        {/* Taste Match */}
-        {tasteMatch && tasteMatchScore && (
-          <div style={{
-            fontSize: '0.75rem',
-            color: tasteMatch.color,
-            fontWeight: '600',
-            marginBottom: '0.25rem'
-          }}>
-            {tasteMatch.emoji} {tasteMatchScore}% {tasteMatch.label}
-          </div>
-        )}
-
-        {/* Latest Activity */}
-        {latestActivity && (
-          <div style={{ fontSize: '0.75rem', color: textTertiary, fontStyle: 'italic' }}>
-            {latestActivity}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Actions */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <button
-          onClick={(e) => {
-            e.stopPropagation() // Prevent card click when clicking button
-            if (isFollowing) {
-              onUnfollow(user.id)
-            } else {
-              onFollow(user.id)
+      {/* Three-dot menu */}
+      <div onClick={(e) => e.stopPropagation()}>
+        <DropdownMenu
+          size={16}
+          items={[
+            {
+              label: 'Report User',
+              onClick: () => setShowReportModal(true),
+              danger: true
             }
-          }}
-          style={{
-            padding: '0.5rem 1.5rem',
-            background: isFollowing ? buttonBg : 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-            color: isFollowing ? textSecondary : 'white',
-            border: isFollowing ? buttonBorder : 'none',
-            borderRadius: '8px',
-            fontSize: '0.875rem',
-            fontWeight: '600',
-            cursor: 'pointer',
-            flexShrink: 0,
-            transition: 'all 0.2s',
-            whiteSpace: 'nowrap'
-          }}
-          onMouseEnter={(e) => {
-            if (isFollowing) {
-              e.currentTarget.style.background = buttonBgHover
-              e.currentTarget.style.borderColor = buttonBorderHover.replace('1px solid ', '')
-            } else {
-              e.currentTarget.style.transform = 'scale(1.05)'
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (isFollowing) {
-              e.currentTarget.style.background = buttonBg
-              e.currentTarget.style.borderColor = buttonBorder.replace('1px solid ', '')
-            } else {
-              e.currentTarget.style.transform = 'scale(1)'
-            }
-          }}
-        >
-          {isFollowing ? 'Following' : followsYou ? 'Follow Back' : 'Follow'}
-        </button>
-
-        <div onClick={(e) => e.stopPropagation()}>
-          <DropdownMenu
-            size={18}
-            items={[
-              {
-                label: 'Report User',
-                icon: <Flag size={14} />,
-                onClick: () => setShowReportModal(true),
-                danger: true
-              }
-            ]}
-          />
-        </div>
+          ]}
+        />
       </div>
 
       {/* Report Modal */}

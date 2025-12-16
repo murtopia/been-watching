@@ -512,7 +512,7 @@ export default function ProfilePage() {
       {/* Admin Link (shown for any admin role: owner, admin, or analyst) */}
       {profile?.admin_role && (
         <div style={{
-          padding: '1.5rem 0',
+          padding: '1rem 0',
           margin: '0 auto',
           maxWidth: '398px'
         }}>
@@ -532,8 +532,6 @@ export default function ProfilePage() {
           >
             Go to Admin Dashboard
           </a>
-          {/* Divider after admin */}
-          <div style={{ height: '1px', background: colors.dividerColor, marginTop: '1.5rem' }} />
         </div>
       )}
 

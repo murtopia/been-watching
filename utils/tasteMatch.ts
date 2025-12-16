@@ -236,11 +236,12 @@ export async function findSimilarUsers(
 
 /**
  * Get taste match category label and emoji
+ * Colors: green for good+, yellow for fair, red for poor
  */
 export function getTasteMatchLabel(score: number): { label: string; emoji: string; color: string } {
-  if (score >= 90) return { label: 'Exceptional Match', emoji: '🔥', color: '#ff0050' }
-  if (score >= 70) return { label: 'Great Match', emoji: '⭐', color: '#ff6b35' }
-  if (score >= 50) return { label: 'Good Match', emoji: '👍', color: '#ffa500' }
-  if (score >= 30) return { label: 'Fair Match', emoji: '✓', color: '#4caf50' }
-  return { label: 'Different Taste', emoji: '•', color: '#999' }
+  if (score >= 90) return { label: 'Exceptional Match', emoji: '🔥', color: '#22c55e' } // Green
+  if (score >= 70) return { label: 'Great Match', emoji: '⭐', color: '#22c55e' } // Green
+  if (score >= 50) return { label: 'Good Match', emoji: '👍', color: '#22c55e' } // Green
+  if (score >= 30) return { label: 'Fair Match', emoji: '✓', color: '#eab308' } // Yellow
+  return { label: 'Poor Match', emoji: '•', color: '#ef4444' } // Red
 }
