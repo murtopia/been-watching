@@ -165,7 +165,7 @@ export default function LandingPage() {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        zIndex: -2
+        zIndex: 0
       }} />
       {/* Fixed overlay - lighter for more background visibility */}
       <div style={{
@@ -175,7 +175,7 @@ export default function LandingPage() {
         right: 0,
         bottom: 0,
         background: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.65) 100%)',
-        zIndex: -1
+        zIndex: 1
       }} />
       {/* Header - consistent with app header style */}
       <header style={{
@@ -186,7 +186,7 @@ export default function LandingPage() {
         WebkitBackdropFilter: 'blur(20px)',
         position: 'sticky',
         top: 0,
-        zIndex: 100,
+        zIndex: 10,
         width: '100%'
       }}>
         <div style={{
@@ -270,7 +270,9 @@ export default function LandingPage() {
       <main style={{
         maxWidth: '398px',
         margin: '0 auto',
-        padding: '2rem 1.5rem'
+        padding: '2rem 1.5rem',
+        position: 'relative',
+        zIndex: 2
       }}>
         {/* Hero Section */}
         <section style={{ textAlign: 'center', marginBottom: '2rem' }}>
@@ -459,7 +461,9 @@ export default function LandingPage() {
       </main>
 
       {/* Footer */}
-      <Footer variant="full" />
+      <div style={{ position: 'relative', zIndex: 2 }}>
+        <Footer variant="full" />
+      </div>
 
       {/* Waitlist Modal */}
       {showWaitlistModal && (
