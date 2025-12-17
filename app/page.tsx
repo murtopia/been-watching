@@ -130,7 +130,7 @@ export default function LandingPage() {
   if (loading) {
     return (
       <div style={{
-        minHeight: '100vh',
+        minHeight: '100svh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -150,7 +150,7 @@ export default function LandingPage() {
 
   return (
     <div style={{
-      minHeight: '100vh',
+      minHeight: '100svh',
       position: 'relative',
       color: colors.textPrimary
     }}>
