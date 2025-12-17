@@ -1108,6 +1108,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           left: 0;
           right: 0;
           padding: 20px;
+          padding-right: 70px; /* Buffer for side action icons */
           padding-bottom: 40px;
           z-index: 3;
           color: white;
@@ -1294,8 +1295,8 @@ export const FeedCard: React.FC<FeedCardProps> = ({
         }
 
         .action-btn.dismiss-btn {
-          width: 36px;
-          height: 36px;
+          width: 42px;
+          height: 42px;
           background: rgba(80, 80, 80, 0.5);
         }
 
@@ -2116,10 +2117,10 @@ export const FeedCard: React.FC<FeedCardProps> = ({
 
         .comment-submit-btn {
           padding: 6px 16px;
-          background: linear-gradient(135deg, #FF006E, #FF8E53);
+          background: ${colors.goldAccent};
           border: none;
           border-radius: 6px;
-          color: white;
+          color: #000;
           font-size: 12px;
           font-weight: 600;
           cursor: pointer;
