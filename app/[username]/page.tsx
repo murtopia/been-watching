@@ -570,7 +570,47 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
     return displayName.split(' ')[0]
   }
 
-  const getActivityInfo = (activity: Activity) => {
+  // Badge styles matching UserActivityCard
+  const ACTIVITY_BADGES = {
+    loved: {
+      text: 'Loved',
+      icon: 'heart',
+      color: 'rgba(255, 59, 92, 0.25)',
+      borderColor: 'rgba(255, 59, 92, 0.5)',
+    },
+    liked: {
+      text: 'Liked',
+      icon: 'thumbs-up',
+      color: 'rgba(59, 130, 246, 0.25)',
+      borderColor: 'rgba(59, 130, 246, 0.5)',
+    },
+    meh: {
+      text: 'Meh',
+      icon: 'meh-face',
+      color: 'rgba(142, 142, 147, 0.25)',
+      borderColor: 'rgba(142, 142, 147, 0.5)',
+    },
+    watching: {
+      text: 'Started Watching',
+      icon: 'play',
+      color: 'rgba(59, 130, 246, 0.25)',
+      borderColor: 'rgba(59, 130, 246, 0.5)',
+    },
+    watched: {
+      text: 'Watched',
+      icon: 'check',
+      color: 'rgba(52, 211, 153, 0.25)',
+      borderColor: 'rgba(52, 211, 153, 0.5)',
+    },
+    want: {
+      text: 'Want to Watch',
+      icon: 'bookmark',
+      color: 'rgba(168, 85, 247, 0.25)',
+      borderColor: 'rgba(168, 85, 247, 0.5)',
+    },
+  }
+
+  const getActivityBadges = (activity: Activity) => {
     // Handle combined activity types (e.g., "rated+status_changed")
     const types = activity.activity_type.split('+')
     const hasRating = types.includes('rated')
@@ -579,55 +619,25 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
     const rating = activity.activity_data?.rating
     const status = activity.activity_data?.status
     
-    // Combined: rated + status changed
-    if (hasRating && hasStatus) {
-      const statusText = status === 'watching' ? 'Started watching' : status === 'watched' ? 'Finished' : 'Added'
-      return {
-        icon: rating === 'love' ? 'heart' : rating === 'like' ? 'thumbs-up' : 'meh-face',
-        text: `${statusText} and rated`,
-        rating,
-        status,
-        isCombined: true
-      }
+    const badges: Array<typeof ACTIVITY_BADGES.loved> = []
+    
+    // Add rating badge
+    if (hasRating && rating) {
+      if (rating === 'love') badges.push(ACTIVITY_BADGES.loved)
+      else if (rating === 'like') badges.push(ACTIVITY_BADGES.liked)
+      else badges.push(ACTIVITY_BADGES.meh)
     }
     
-    // Single: rated
-    if (hasRating) {
-      return {
-        icon: rating === 'love' ? 'heart' : rating === 'like' ? 'thumbs-up' : 'meh-face',
-        text: 'Rated',
-        rating,
-        status: null,
-        isCombined: false
-      }
+    // Add status badge
+    if (hasStatus && status) {
+      if (status === 'watching') badges.push(ACTIVITY_BADGES.watching)
+      else if (status === 'watched') badges.push(ACTIVITY_BADGES.watched)
+      else if (status === 'want') badges.push(ACTIVITY_BADGES.want)
     }
     
-    // Single: status changed
-    if (hasStatus) {
-      const statusText = status === 'watching' ? 'Started watching' : status === 'watched' ? 'Finished' : 'Added to list'
-      return {
-        icon: null, // No icon for status-only
-        text: statusText,
-        rating: null,
-        status,
-        isCombined: false
-      }
-    }
-    
-    // Default
-    return {
-      icon: null,
-      text: 'Updated',
-      rating: null,
-      status: null,
-      isCombined: false
-    }
+    return badges
   }
 
-  const formatActivityText = (activity: Activity) => {
-    const info = getActivityInfo(activity)
-    return `${info.text} ${activity.media?.title}`
-  }
 
   const handleShowClick = (item: any) => {
     // Transform the watch list item to match the media format expected by MediaDetailModal
@@ -1270,77 +1280,100 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
           {activities.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {activities.map((activity) => {
-                const activityInfo = getActivityInfo(activity)
+                const badges = getActivityBadges(activity)
                 return (
                   <div
                     key={activity.id}
                     style={{
                       display: 'flex',
-                      alignItems: 'center',
                       gap: '0.625rem',
-                      padding: '0.375rem 0',
+                      padding: '0.5rem 0',
                       borderBottom: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`
                     }}
                   >
                     {/* Poster thumbnail */}
-                    <div style={{ position: 'relative', flexShrink: 0 }}>
+                    <div style={{ flexShrink: 0 }}>
                       {activity.media?.poster_path ? (
                         <img
                           src={`https://image.tmdb.org/t/p/w92${activity.media.poster_path}`}
                           alt={activity.media?.title || ''}
                           style={{ 
-                            width: '24px', 
-                            height: '36px', 
-                            borderRadius: '2px', 
+                            width: '32px', 
+                            height: '48px', 
+                            borderRadius: '4px', 
                             objectFit: 'cover' 
                           }}
                         />
                       ) : (
                         <div style={{
-                          width: '24px',
-                          height: '36px',
-                          borderRadius: '2px',
+                          width: '32px',
+                          height: '48px',
+                          borderRadius: '4px',
                           background: colors.cardBg,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center'
                         }}>
-                          <span style={{ fontSize: '0.5rem', color: colors.textTertiary }}>?</span>
+                          <span style={{ fontSize: '0.625rem', color: colors.textTertiary }}>?</span>
                         </div>
                       )}
                     </div>
 
-                    {/* Activity content */}
-                    <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ 
-                        fontSize: '0.8125rem', 
-                        fontWeight: '500', 
-                        color: colors.textPrimary,
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
-                      }}>
-                        {activity.media?.title}
-                      </span>
-                      {/* Rating badge for rated activities (including combined) */}
-                      {activityInfo.rating && activityInfo.icon && (
-                        <Icon 
-                          name={activityInfo.icon as any} 
-                          state="active" 
-                          size={16} 
-                        />
+                    {/* Activity content - Two lines */}
+                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '0.375rem' }}>
+                      {/* Line 1: Title + Time */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+                        <span style={{ 
+                          fontSize: '0.875rem', 
+                          fontWeight: '600', 
+                          color: colors.textPrimary,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}>
+                          {activity.media?.title}
+                        </span>
+                        <span style={{ 
+                          fontSize: '0.75rem', 
+                          color: colors.textTertiary,
+                          whiteSpace: 'nowrap',
+                          flexShrink: 0
+                        }}>
+                          {formatTimeAgo(activity.created_at)}
+                        </span>
+                      </div>
+                      
+                      {/* Line 2: Activity badges */}
+                      {badges.length > 0 && (
+                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                          {badges.map((badge, idx) => (
+                            <div
+                              key={idx}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.375rem',
+                                padding: '0.25rem 0.625rem',
+                                borderRadius: '10px',
+                                fontSize: '0.75rem',
+                                fontWeight: '600',
+                                background: badge.color,
+                                border: `1px solid ${badge.borderColor}`,
+                                color: 'white'
+                              }}
+                            >
+                              <Icon 
+                                name={badge.icon as any} 
+                                state="default" 
+                                size={14} 
+                                color="white"
+                              />
+                              {badge.text}
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </div>
-
-                    {/* Time */}
-                    <span style={{ 
-                      fontSize: '0.75rem', 
-                      color: colors.textTertiary,
-                      whiteSpace: 'nowrap',
-                      flexShrink: 0
-                    }}>
-                      {formatTimeAgo(activity.created_at)}
-                    </span>
                   </div>
                 )
               })}
