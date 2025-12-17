@@ -303,9 +303,6 @@ export default function ShowDetailCard({
           max-width: 398px;
           height: auto;
           max-height: 90vh;
-          border: 1px solid #FFC125;
-          border-radius: 16px;
-          overflow: hidden;
         }
       `}</style>
     </>

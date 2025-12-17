@@ -161,7 +161,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
   const [loading, setLoading] = useState(true)
   const [canViewActivities, setCanViewActivities] = useState(false)
   const [topShows, setTopShows] = useState<any[]>([null, null, null])
-  const [activeWatchTab, setActiveWatchTab] = useState<'want' | 'watching' | 'watched'>('want')
+  const [activeWatchTab, setActiveWatchTab] = useState<'want' | 'watching' | 'watched'>('watching')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [watchListItems, setWatchListItems] = useState<any[]>([])
   const [loadingWatchList, setLoadingWatchList] = useState(false)
