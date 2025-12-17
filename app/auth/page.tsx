@@ -5,7 +5,6 @@ import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import ThemeToggle from '@/components/theme/ThemeToggle'
 import Footer from '@/components/navigation/Footer'
 import { trackUserSignedUp, trackUserLoggedIn, identifyUser } from '@/utils/analytics'
 
@@ -30,6 +29,16 @@ export default function AuthPage() {
   // Check if already logged in
   useEffect(() => {
     checkUser()
+  }, [])
+
+  // Set html background to black for iOS overscroll
+  useEffect(() => {
+    document.documentElement.style.backgroundColor = '#000'
+    document.body.style.backgroundColor = '#000'
+    return () => {
+      document.documentElement.style.backgroundColor = ''
+      document.body.style.backgroundColor = ''
+    }
   }, [])
 
   const checkUser = async () => {
@@ -315,7 +324,7 @@ export default function AuthPage() {
     <div
       style={{
         minHeight: '100vh',
-        background: colors.background,
+        position: 'relative',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -324,6 +333,29 @@ export default function AuthPage() {
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       }}
     >
+      {/* Fixed background image */}
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundImage: `url('/landing-bg.webp')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        zIndex: 0
+      }} />
+      {/* Fixed overlay */}
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.65) 100%)',
+        zIndex: 1
+      }} />
       {/* Login Card */}
       <div
         style={{
@@ -335,19 +367,21 @@ export default function AuthPage() {
           borderRadius: '24px',
           padding: '3rem',
           boxShadow: colors.shadowLg,
+          position: 'relative',
+          zIndex: 2,
         }}
       >
         {/* Top Bar */}
         <div
           style={{
             display: 'flex',
-            justifyContent: 'space-between',
+            justifyContent: 'flex-start',
             alignItems: 'center',
             marginBottom: '2rem',
           }}
         >
           <a
-            href="/welcome"
+            href="/"
             style={{
               padding: '0.5rem 1rem',
               background: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
@@ -365,7 +399,6 @@ export default function AuthPage() {
           >
             ← Back
           </a>
-          <ThemeToggle />
         </div>
 
         {/* Logo/Brand */}
@@ -872,7 +905,7 @@ export default function AuthPage() {
       </div>
 
       {/* Full Footer */}
-      <div style={{ marginTop: '3rem', width: '100%' }}>
+      <div style={{ marginTop: '3rem', width: '100%', position: 'relative', zIndex: 2 }}>
         <Footer variant="full" />
       </div>
 
