@@ -1,7 +1,7 @@
 # Gold Theme & Profile/Friends Update
 
 **Last Updated:** December 17, 2025
-**Status:** Complete
+**Status:** Complete (including Admin Area)
 
 ---
 
@@ -212,6 +212,7 @@ textPrimary: '#ffffff' // "Been Watching" text is now white
 
 ## 📁 Key Files Modified
 
+### Core App
 - `hooks/useThemeColors.ts` - Gold color tokens
 - `components/navigation/AppHeader.tsx` - White text, grey glass
 - `components/navigation/BottomNav.tsx` - Gold styling, "LISTS" label
@@ -225,6 +226,63 @@ textPrimary: '#ffffff' // "Been Watching" text is now white
 - `app/page.tsx` - Landing page with background image, gold theme
 - `app/auth/page.tsx` - Auth page with background image, removed theme toggle
 - `public/landing-bg.webp` - Background image for landing/auth pages
+
+### Admin Area (26 files)
+- `app/admin/layout.tsx` - Mobile nav, gold theme
+- `components/admin/MetricCard.tsx` - Gold icons/hovers
+- `app/admin/page.tsx` - Gold dashboard
+- `app/admin/*/Nav.tsx` (6 files) - Gold active states
+- `app/admin/users/*.tsx` (4 files) - Gold user management
+- `app/admin/invites/InviteCodeManager.tsx` - Gold toggles
+- `app/admin/content/ContentOverview.tsx` - Gold cards
+- `app/admin/moderation/ModerationOverview.tsx` - Gold hovers
+- `app/admin/messaging/email/EmailDashboard.tsx` - Gold button
+- `app/admin/*/AnnouncementForm.tsx` (2 files) - Gold forms
+- Design assets pages, streaming-platforms, content/top, content/ratings
+
+---
+
+## ✅ Admin Area Mobile Redesign (`app/admin/`)
+
+### Mobile Navigation (< 768px)
+- **Hamburger menu** in fixed top header bar (56px height)
+- **Slide-in sidebar** from left (280px wide)
+- **Dark backdrop overlay** with blur when menu open
+- **Tap to close** - clicking overlay or nav item closes menu
+- **Current section name** displayed in mobile header
+
+### Desktop Navigation (≥ 768px)
+- **Collapsible sidebar** - click chevron to toggle (240px ↔ 80px)
+- Same behavior as before, no changes
+
+### Gold Theme in Admin
+All pink/gradient colors replaced with gold across 26 files:
+
+| Component | Gold Changes |
+|-----------|-------------|
+| Layout | Gold loading spinner, gold active nav states |
+| MetricCard | Gold icon backgrounds, gold hover shadows |
+| Dashboard | Gold buttons, PostHog section styling |
+| Sub-navs (all 6) | Gold active tab borders and text |
+| User tables | Gold avatar placeholders, admin badges |
+| GrantRoleModal | Gold selected state, submit button |
+| InviteCodeManager | Gold toggle buttons, code display |
+| ContentOverview | Gold card hovers, action buttons |
+| ModerationOverview | Gold hover shadows |
+| EmailDashboard | Gold send button |
+| AnnouncementForm | Gold emoji selection, submit buttons |
+| Design assets pages | Gold toggle buttons |
+
+### Files Modified
+- `app/admin/layout.tsx` (complete rewrite for mobile)
+- `components/admin/MetricCard.tsx`
+- `app/admin/page.tsx`
+- All 6 sub-nav components
+- `UsersTableClient.tsx`, `UserCard.tsx`, `GrantRoleModal.tsx`, `UsersTable.tsx`
+- `InviteCodeManager.tsx`, `ContentOverview.tsx`, `ModerationOverview.tsx`
+- `EmailDashboard.tsx`, both `AnnouncementForm.tsx` files
+- Design assets pages (icons, cards, feed-cards, components)
+- `streaming-platforms/page.tsx`, `content/top/page.tsx`, `content/ratings/page.tsx`
 
 ---
 
@@ -240,4 +298,8 @@ textPrimary: '#ffffff' // "Been Watching" text is now white
 - **Auth page:** No theme toggle visible
 - **Auth page:** "Back" button returns to home page (not /welcome)
 - **Both pages:** Footer widths match
+- **Admin (mobile):** Hamburger menu opens slide-in nav
+- **Admin (mobile):** Overlay closes menu on tap
+- **Admin (mobile):** Header shows current section name
+- **Admin (all):** All accents are gold (not pink)
 
