@@ -650,14 +650,33 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
 
 
   const handleShowClick = (item: any) => {
-    // Transform the watch list item to match the media format expected by MediaDetailModal
-    const mediaData = {
-      ...item.media,
-      // Extract watch status from the item
-      currentStatus: item.status,
-      currentRating: item.user_rating
+    // Transform the watch list item to match what ShowDetailCard expects
+    // This matches the format used in /myshows handlePosterClick
+    const tmdbData = item.media?.tmdb_data || {}
+    const media = {
+      id: item.media?.id,
+      title: item.media?.title,
+      posterUrl: item.media?.poster_path 
+        ? `https://image.tmdb.org/t/p/w500${item.media.poster_path}`
+        : undefined,
+      backdropUrl: tmdbData.backdrop_path
+        ? `https://image.tmdb.org/t/p/w1280${tmdbData.backdrop_path}`
+        : undefined,
+      year: tmdbData.release_date?.substring(0, 4) || tmdbData.first_air_date?.substring(0, 4),
+      genres: tmdbData.genres?.map((g: any) => g.name) || [],
+      rating: tmdbData.vote_average,
+      synopsis: tmdbData.overview,
+      creator: tmdbData.created_by?.[0]?.name || tmdbData.production_companies?.[0]?.name,
+      cast: tmdbData.credits?.cast?.slice(0, 6).map((c: any) => c.name) || [],
+      network: tmdbData.networks?.[0]?.name || tmdbData.production_companies?.[0]?.name,
+      mediaType: item.media?.media_type === 'tv' ? 'TV' : 'Movie',
+      season: tmdbData.season_number,
+      tmdb_id: item.media?.tmdb_id,
+      // Store current rating and status for the card
+      currentRating: item.user_rating,
+      currentStatus: item.status
     }
-    setSelectedMedia(mediaData)
+    setSelectedMedia(media)
     setMediaModalOpen(true)
   }
 
