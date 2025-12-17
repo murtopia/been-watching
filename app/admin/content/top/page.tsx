@@ -482,7 +482,7 @@ export default async function AdminContentTopPage() {
                     padding: '1rem',
                     fontSize: '1rem',
                     fontWeight: 700,
-                    color: colors.goldAccent
+                    color: '#FFC125'
                   }}>
                     {media.score}
                   </td>
