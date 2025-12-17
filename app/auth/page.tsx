@@ -323,7 +323,7 @@ export default function AuthPage() {
   return (
     <div
       style={{
-        minHeight: '100vh',
+        minHeight: '100svh',
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
