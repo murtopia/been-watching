@@ -2150,7 +2150,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
       `}</style>
 
       <div className="card-container" ref={cardRef}>
-        <div className={`card ${isFlipped ? 'flipped' : ''}`}>
+        <div className={`card ${isFlipped ? 'flipped' : ''}`} onDoubleClick={flipCard}>
           {/* FRONT FACE */}
           <div className="card-face card-front">
             {/* Background Image */}
