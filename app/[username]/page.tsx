@@ -649,35 +649,66 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
   }
 
 
-  const handleShowClick = (item: any) => {
-    // Transform the watch list item to match what ShowDetailCard expects
-    // This matches the format used in /myshows handlePosterClick
-    const tmdbData = item.media?.tmdb_data || {}
-    const media = {
-      id: item.media?.id,
-      title: item.media?.title,
-      posterUrl: item.media?.poster_path 
-        ? `https://image.tmdb.org/t/p/w500${item.media.poster_path}`
-        : undefined,
-      backdropUrl: tmdbData.backdrop_path
-        ? `https://image.tmdb.org/t/p/w1280${tmdbData.backdrop_path}`
-        : undefined,
-      year: tmdbData.release_date?.substring(0, 4) || tmdbData.first_air_date?.substring(0, 4),
-      genres: tmdbData.genres?.map((g: any) => g.name) || [],
-      rating: tmdbData.vote_average,
-      synopsis: tmdbData.overview,
-      creator: tmdbData.created_by?.[0]?.name || tmdbData.production_companies?.[0]?.name,
-      cast: tmdbData.credits?.cast?.slice(0, 6).map((c: any) => c.name) || [],
-      network: tmdbData.networks?.[0]?.name || tmdbData.production_companies?.[0]?.name,
-      mediaType: item.media?.media_type === 'tv' ? 'TV' : 'Movie',
-      season: tmdbData.season_number,
-      tmdb_id: item.media?.tmdb_id,
-      // Store current rating and status for the card
-      currentRating: item.user_rating,
-      currentStatus: item.status
+  const handleShowClick = async (item: any) => {
+    // Fetch fresh data from TMDB (stored data may be incomplete)
+    const mediaType = item.media?.media_type || (item.media?.tmdb_data?.first_air_date ? 'tv' : 'movie')
+    const tmdbId = item.media?.tmdb_id
+    
+    if (!tmdbId) {
+      // Fallback to stored data if no tmdb_id
+      const tmdbData = item.media?.tmdb_data || {}
+      const media = {
+        id: item.media?.id,
+        title: item.media?.title,
+        posterUrl: item.media?.poster_path 
+          ? `https://image.tmdb.org/t/p/w500${item.media.poster_path}`
+          : undefined,
+        year: tmdbData.release_date?.substring(0, 4) || tmdbData.first_air_date?.substring(0, 4),
+        genres: tmdbData.genres?.map((g: any) => g.name) || [],
+        rating: tmdbData.vote_average,
+        synopsis: tmdbData.overview,
+        mediaType: mediaType === 'tv' ? 'TV' : 'Movie',
+        currentRating: item.user_rating,
+        currentStatus: item.status
+      }
+      setSelectedMedia(media)
+      setMediaModalOpen(true)
+      return
     }
-    setSelectedMedia(media)
-    setMediaModalOpen(true)
+    
+    try {
+      const response = await fetch(
+        `https://api.themoviedb.org/3/${mediaType}/${tmdbId}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY || '99b89037cac7fea56692934b534ea26a'}&append_to_response=credits`
+      )
+      const tmdbData = await response.json()
+      
+      const media = {
+        id: item.media?.id,
+        title: tmdbData.title || tmdbData.name,
+        posterUrl: tmdbData.poster_path 
+          ? `https://image.tmdb.org/t/p/w500${tmdbData.poster_path}`
+          : undefined,
+        backdropUrl: tmdbData.backdrop_path
+          ? `https://image.tmdb.org/t/p/w1280${tmdbData.backdrop_path}`
+          : undefined,
+        year: tmdbData.release_date?.substring(0, 4) || tmdbData.first_air_date?.substring(0, 4),
+        genres: tmdbData.genres?.map((g: any) => g.name) || [],
+        rating: tmdbData.vote_average,
+        synopsis: tmdbData.overview,
+        creator: tmdbData.created_by?.[0]?.name || tmdbData.production_companies?.[0]?.name,
+        cast: tmdbData.credits?.cast?.slice(0, 6).map((c: any) => c.name) || [],
+        network: tmdbData.networks?.[0]?.name || tmdbData.production_companies?.[0]?.name,
+        mediaType: mediaType === 'tv' ? 'TV' : 'Movie',
+        season: item.media?.tmdb_data?.season_number,
+        tmdb_id: tmdbId,
+        currentRating: item.user_rating,
+        currentStatus: item.status
+      }
+      setSelectedMedia(media)
+      setMediaModalOpen(true)
+    } catch (error) {
+      console.error('Error fetching media details:', error)
+    }
   }
 
   const formatTimeAgo = (dateString: string) => {
@@ -978,30 +1009,42 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
             {topShows.map((show, index) => (
               <div
                 key={index}
-                onClick={() => {
+                onClick={async () => {
                   if (show) {
-                    // Transform top show data to match ShowDetailCard format
-                    const media = {
-                      id: show.id || `${show.media_type}-${show.tmdb_id}`,
-                      title: show.title || show.name,
-                      posterUrl: show.poster_path 
-                        ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
-                        : undefined,
-                      backdropUrl: show.backdrop_path
-                        ? `https://image.tmdb.org/t/p/w1280${show.backdrop_path}`
-                        : undefined,
-                      year: show.release_date?.substring(0, 4) || show.first_air_date?.substring(0, 4),
-                      genres: show.genres?.map((g: any) => typeof g === 'string' ? g : g.name) || [],
-                      rating: show.vote_average,
-                      synopsis: show.overview,
-                      creator: show.created_by?.[0]?.name || show.production_companies?.[0]?.name,
-                      cast: show.credits?.cast?.slice(0, 6).map((c: any) => c.name) || [],
-                      network: show.networks?.[0]?.name || show.production_companies?.[0]?.name,
-                      mediaType: show.media_type === 'tv' ? 'TV' : 'Movie',
-                      tmdb_id: show.tmdb_id
+                    // Fetch fresh data from TMDB (stored data may be incomplete)
+                    const mediaType = show.media_type || (show.first_air_date ? 'tv' : 'movie')
+                    const tmdbId = show.tmdb_id || show.id
+                    
+                    try {
+                      const response = await fetch(
+                        `https://api.themoviedb.org/3/${mediaType}/${tmdbId}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY || '99b89037cac7fea56692934b534ea26a'}&append_to_response=credits`
+                      )
+                      const tmdbData = await response.json()
+                      
+                      const media = {
+                        id: show.id || `${mediaType}-${tmdbId}`,
+                        title: tmdbData.title || tmdbData.name,
+                        posterUrl: tmdbData.poster_path 
+                          ? `https://image.tmdb.org/t/p/w500${tmdbData.poster_path}`
+                          : undefined,
+                        backdropUrl: tmdbData.backdrop_path
+                          ? `https://image.tmdb.org/t/p/w1280${tmdbData.backdrop_path}`
+                          : undefined,
+                        year: tmdbData.release_date?.substring(0, 4) || tmdbData.first_air_date?.substring(0, 4),
+                        genres: tmdbData.genres?.map((g: any) => g.name) || [],
+                        rating: tmdbData.vote_average,
+                        synopsis: tmdbData.overview,
+                        creator: tmdbData.created_by?.[0]?.name || tmdbData.production_companies?.[0]?.name,
+                        cast: tmdbData.credits?.cast?.slice(0, 6).map((c: any) => c.name) || [],
+                        network: tmdbData.networks?.[0]?.name || tmdbData.production_companies?.[0]?.name,
+                        mediaType: mediaType === 'tv' ? 'TV' : 'Movie',
+                        tmdb_id: tmdbId
+                      }
+                      setSelectedMedia(media)
+                      setMediaModalOpen(true)
+                    } catch (error) {
+                      console.error('Error fetching media details:', error)
                     }
-                    setSelectedMedia(media)
-                    setMediaModalOpen(true)
                   }
                 }}
                 style={{
