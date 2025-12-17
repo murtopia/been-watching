@@ -19,7 +19,7 @@ export default function MessagingNav() {
       display: 'flex',
       gap: '0.5rem',
       marginBottom: '2rem',
-      borderBottom: colors.cardBorder,
+      borderBottom: `1px solid ${colors.borderColor}`,
       paddingBottom: '0',
       overflowX: 'auto'
     }}>
@@ -31,9 +31,9 @@ export default function MessagingNav() {
             padding: '0.75rem 1rem',
             fontSize: '0.875rem',
             fontWeight: 600,
-            color: pathname === item.href ? colors.brandPink : colors.textSecondary,
+            color: pathname === item.href ? colors.goldAccent : colors.textSecondary,
             textDecoration: 'none',
-            borderBottom: pathname === item.href ? `2px solid ${colors.brandPink}` : '2px solid transparent',
+            borderBottom: pathname === item.href ? `2px solid ${colors.goldAccent}` : '2px solid transparent',
             transition: 'all 0.2s',
             whiteSpace: 'nowrap'
           }}

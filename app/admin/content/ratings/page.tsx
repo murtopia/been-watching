@@ -117,7 +117,7 @@ export default async function AdminContentRatingsPage() {
   // Helper to get rating color
   const getRatingColor = (rating: string) => {
     const colors: Record<string, string> = {
-      'love': '#E94D88',
+      'love': '#FF2D55',
       'like': '#4CAF50',
       'meh': '#FFC107'
     }

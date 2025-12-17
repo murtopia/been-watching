@@ -271,7 +271,7 @@ export default function FeedCardsPreviewPage() {
             onClick={() => setSelectedTheme('dark')}
             style={{
               padding: '0.5rem 1rem',
-              background: selectedTheme === 'dark' ? colors.brandPink : 'transparent',
+              background: selectedTheme === 'dark' ? colors.goldAccent : 'transparent',
               color: selectedTheme === 'dark' ? 'white' : colors.textSecondary,
               border: 'none',
               borderRadius: '6px',
@@ -286,7 +286,7 @@ export default function FeedCardsPreviewPage() {
             onClick={() => setSelectedTheme('light')}
             style={{
               padding: '0.5rem 1rem',
-              background: selectedTheme === 'light' ? colors.brandPink : 'transparent',
+              background: selectedTheme === 'light' ? colors.goldAccent : 'transparent',
               color: selectedTheme === 'light' ? 'white' : colors.textSecondary,
               border: 'none',
               borderRadius: '6px',

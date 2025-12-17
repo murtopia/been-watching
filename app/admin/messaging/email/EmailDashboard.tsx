@@ -108,10 +108,10 @@ export default function EmailDashboard({ settings, campaigns }: EmailDashboardPr
             disabled={sending}
             style={{
               padding: '0.75rem 1.5rem',
-              background: sending ? colors.textSecondary : colors.brandPink,
+              background: sending ? colors.textSecondary : colors.goldAccent,
               border: 'none',
               borderRadius: '8px',
-              color: 'white',
+              color: '#000',
               fontSize: '0.875rem',
               fontWeight: 600,
               cursor: sending ? 'not-allowed' : 'pointer',

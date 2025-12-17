@@ -119,9 +119,7 @@ export default function AdminDashboard() {
         <h1 style={{
           fontSize: '2rem',
           fontWeight: 700,
-          background: colors.brandGradient,
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
+          color: colors.textPrimary,
           margin: 0,
           marginBottom: '0.5rem'
         }}>
@@ -276,14 +274,14 @@ export default function AdminDashboard() {
       <div style={{
         marginTop: '3rem',
         padding: '1.5rem',
-        background: colors.isDark ? 'rgba(233, 77, 136, 0.1)' : 'rgba(233, 77, 136, 0.05)',
-        border: `1px solid ${colors.brandPink}`,
+        background: colors.goldGlassBg,
+        border: colors.goldBorder,
         borderRadius: '12px'
       }}>
         <h3 style={{
           fontSize: '1rem',
           fontWeight: 600,
-          color: colors.brandPink,
+          color: colors.goldAccent,
           margin: '0 0 0.5rem 0',
           display: 'flex',
           alignItems: 'center',
@@ -304,7 +302,7 @@ export default function AdminDashboard() {
             target="_blank"
             rel="noopener noreferrer"
             style={{
-              color: colors.brandPink,
+              color: colors.goldAccent,
               textDecoration: 'underline',
               fontWeight: 500
             }}
@@ -371,7 +369,7 @@ function QuickActionLink({
         gap: '0.75rem',
         padding: '1rem',
         background: colors.cardBg,
-        border: colors.cardBorder,
+        border: isHovered ? colors.goldBorder : colors.cardBorder,
         borderRadius: '8px',
         color: colors.textPrimary,
         textDecoration: 'none',
@@ -379,13 +377,12 @@ function QuickActionLink({
         fontWeight: 500,
         transition: 'all 0.2s',
         cursor: 'pointer',
-        transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
-        borderColor: isHovered ? colors.brandPink : colors.cardBorder.split(' ')[2]
+        transform: isHovered ? 'translateY(-2px)' : 'translateY(0)'
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <Icon size={18} />
+      <Icon size={18} style={{ color: isHovered ? colors.goldAccent : colors.textSecondary }} />
       {label}
     </a>
   )

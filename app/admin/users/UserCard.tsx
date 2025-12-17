@@ -54,13 +54,13 @@ export default function UserCard({ user }: UserCardProps) {
             width: '48px',
             height: '48px',
             borderRadius: '50%',
-            background: colors.brandPink,
+            background: colors.goldAccent,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             fontSize: '1.5rem',
             fontWeight: 'bold',
-            color: 'white'
+            color: '#000'
           }}>
             {user.username?.[0]?.toUpperCase() || 'U'}
           </div>
@@ -78,8 +78,8 @@ export default function UserCard({ user }: UserCardProps) {
             </h3>
             {user.is_admin && (
               <span style={{
-                background: colors.brandPink,
-                color: 'white',
+                background: colors.goldAccent,
+                color: '#000',
                 padding: '0.125rem 0.5rem',
                 borderRadius: '9999px',
                 fontSize: '0.75rem',
@@ -105,19 +105,19 @@ export default function UserCard({ user }: UserCardProps) {
         borderRadius: '8px'
       }}>
         <StatItem
-          icon={<Star size={16} color={colors.brandPink} />}
+          icon={<Star size={16} color={colors.goldAccent} />}
           label="Ratings"
           value={user.stats.ratings}
           colors={colors}
         />
         <StatItem
-          icon={<Activity size={16} color={colors.brandPink} />}
+          icon={<Activity size={16} color={colors.goldAccent} />}
           label="Activities"
           value={user.stats.activities}
           colors={colors}
         />
         <StatItem
-          icon={<TrendingUp size={16} color={colors.brandPink} />}
+          icon={<TrendingUp size={16} color={colors.goldAccent} />}
           label="Likes"
           value={user.stats.likesReceived}
           colors={colors}

@@ -278,7 +278,7 @@ export default function AnnouncementForm() {
                   style={{
                     padding: '0.5rem',
                     background: icon === emoji ? 'rgba(233, 77, 136, 0.2)' : colors.cardBg,
-                    border: `1px solid ${icon === emoji ? colors.brandPink : colors.cardBorder.split(' ')[2]}`,
+                    border: `1px solid ${icon === emoji ? colors.goldAccent : colors.cardBorder.split(' ')[2]}`,
                     borderRadius: '6px',
                     fontSize: '1.25rem',
                     cursor: 'pointer'
@@ -428,7 +428,7 @@ export default function AnnouncementForm() {
                   <button
                     style={{
                       padding: '0.5rem 1rem',
-                      background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+                      background: colors.goldAccent,
                       border: 'none',
                       borderRadius: '8px',
                       color: '#fff',
@@ -516,7 +516,7 @@ export default function AnnouncementForm() {
             padding: '1rem',
             background: sending || !title.trim() || !message.trim()
               ? colors.textSecondary
-              : colors.brandPink,
+              : colors.goldAccent,
             border: 'none',
             borderRadius: '8px',
             color: '#fff',
@@ -618,7 +618,7 @@ export default function AnnouncementForm() {
                 onClick={confirmSend}
                 style={{
                   padding: '0.5rem 1rem',
-                  background: colors.brandPink,
+                  background: colors.goldAccent,
                   border: 'none',
                   borderRadius: '8px',
                   color: '#fff',

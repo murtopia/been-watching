@@ -26,7 +26,7 @@ export default function ModerationOverview({ stats }: ModerationOverviewProps) {
       value: stats.pendingReports,
       subtitle: `${stats.totalReports} total`,
       href: '/admin/moderation/reports',
-      color: stats.pendingReports > 0 ? '#E94D88' : '#4CAF50',
+      color: stats.pendingReports > 0 ? '#ef4444' : '#4CAF50',
       icon: '🚨'
     },
     {
@@ -121,7 +121,7 @@ export default function ModerationOverview({ stats }: ModerationOverviewProps) {
               transition: 'all 0.2s',
               cursor: 'pointer',
               transform: hoveredCard === card.id ? 'translateY(-2px)' : 'none',
-              boxShadow: hoveredCard === card.id ? `0 8px 20px ${colors.brandPink}1A` : 'none'
+              boxShadow: hoveredCard === card.id ? `0 8px 20px ${colors.goldAccent}1A` : 'none'
             }}>
               <div style={{
                 display: 'flex',

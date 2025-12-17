@@ -225,7 +225,7 @@ export default function CardPreviewPage() {
                     ? colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'
                     : colors.cardBg,
                   border: selectedCard.id === card.id
-                    ? `2px solid ${colors.brandPink}`
+                    ? `2px solid ${colors.goldAccent}`
                     : colors.cardBorder,
                   borderRadius: '12px',
                   padding: '1rem',
@@ -479,7 +479,7 @@ export default function CardPreviewPage() {
               <div style={{
                 fontSize: '1.5rem',
                 fontWeight: 700,
-                color: colors.brandPink
+                color: colors.goldAccent
               }}>
                 {selectedCard.distribution}
               </div>

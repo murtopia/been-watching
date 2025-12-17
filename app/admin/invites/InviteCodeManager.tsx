@@ -86,8 +86,8 @@ export default function InviteCodeManager() {
             onClick={() => setNewCodeType('limited')}
             style={{
               padding: '0.5rem 1rem',
-              background: newCodeType === 'limited' ? colors.brandPink : colors.cardBg,
-              color: newCodeType === 'limited' ? 'white' : colors.textPrimary,
+              background: newCodeType === 'limited' ? colors.goldAccent : colors.cardBg,
+              color: newCodeType === 'limited' ? '#000' : colors.textPrimary,
               border: newCodeType === 'limited' ? 'none' : colors.cardBorder,
               borderRadius: '8px',
               cursor: 'pointer',
@@ -102,8 +102,8 @@ export default function InviteCodeManager() {
             onClick={() => setNewCodeType('unlimited')}
             style={{
               padding: '0.5rem 1rem',
-              background: newCodeType === 'unlimited' ? colors.brandPink : colors.cardBg,
-              color: newCodeType === 'unlimited' ? 'white' : colors.textPrimary,
+              background: newCodeType === 'unlimited' ? colors.goldAccent : colors.cardBg,
+              color: newCodeType === 'unlimited' ? '#000' : colors.textPrimary,
               border: newCodeType === 'unlimited' ? 'none' : colors.cardBorder,
               borderRadius: '8px',
               cursor: 'pointer',
@@ -122,8 +122,8 @@ export default function InviteCodeManager() {
           disabled={creatingCode}
           style={{
             padding: '0.5rem 1rem',
-            background: colors.brandPink,
-            color: 'white',
+            background: colors.goldAccent,
+            color: '#000',
             border: 'none',
             borderRadius: '8px',
             cursor: creatingCode ? 'not-allowed' : 'pointer',
@@ -164,7 +164,7 @@ export default function InviteCodeManager() {
             <code style={{
               fontSize: '1.25rem',
               fontWeight: 'bold',
-              color: colors.brandPink,
+              color: colors.goldAccent,
               fontFamily: 'monospace'
             }}>
               {newCode}

@@ -152,8 +152,8 @@ export default function IconLibraryPage() {
               onClick={() => setSelectedTheme('dark')}
               style={{
                 padding: '0.5rem 1rem',
-                background: selectedTheme === 'dark' ? colors.brandPink : 'transparent',
-                color: selectedTheme === 'dark' ? 'white' : colors.textSecondary,
+                background: selectedTheme === 'dark' ? colors.goldAccent : 'transparent',
+                color: selectedTheme === 'dark' ? '#000' : colors.textSecondary,
                 border: 'none',
                 borderRadius: '6px',
                 fontSize: '0.875rem',
@@ -168,8 +168,8 @@ export default function IconLibraryPage() {
               onClick={() => setSelectedTheme('light')}
               style={{
                 padding: '0.5rem 1rem',
-                background: selectedTheme === 'light' ? colors.brandPink : 'transparent',
-                color: selectedTheme === 'light' ? 'white' : colors.textSecondary,
+                background: selectedTheme === 'light' ? colors.goldAccent : 'transparent',
+                color: selectedTheme === 'light' ? '#000' : colors.textSecondary,
                 border: 'none',
                 borderRadius: '6px',
                 fontSize: '0.875rem',
@@ -254,7 +254,7 @@ export default function IconLibraryPage() {
                     <code style={{
                       fontSize: '0.875rem',
                       fontWeight: 600,
-                      color: colors.brandPink,
+                      color: colors.goldAccent,
                       fontFamily: 'monospace'
                     }}>
                       {icon.displayName || icon.name}

@@ -189,13 +189,13 @@ export default function GrantRoleModal({ user, currentUserRole, onClose, onSucce
                   width: '48px',
                   height: '48px',
                   borderRadius: '50%',
-                  background: colors.brandPink,
+                  background: colors.goldAccent,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: '1.5rem',
                   fontWeight: '600',
-                  color: 'white',
+                  color: '#000',
                 }}>
                   {user.username[0].toUpperCase()}
                 </div>
@@ -248,11 +248,11 @@ export default function GrantRoleModal({ user, currentUserRole, onClose, onSucce
                       display: 'flex',
                       gap: '1rem',
                       padding: '1rem',
-                      border: isSelected ? `2px solid ${colors.brandPink}` : `1px solid ${colors.isDark ? '#333' : '#e5e5e5'}`,
+                      border: isSelected ? `2px solid ${colors.goldAccent}` : `1px solid ${colors.isDark ? '#333' : '#e5e5e5'}`,
                       borderRadius: '8px',
                       cursor: option.disabled ? 'not-allowed' : 'pointer',
                       opacity: option.disabled ? 0.5 : 1,
-                      background: isSelected ? (colors.isDark ? 'rgba(236, 72, 153, 0.15)' : 'rgba(236, 72, 153, 0.08)') : (colors.isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)'),
+                      background: isSelected ? colors.goldGlassBg : (colors.isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)'),
                       transition: 'all 0.2s',
                     }}
                   >
@@ -265,7 +265,7 @@ export default function GrantRoleModal({ user, currentUserRole, onClose, onSucce
                       disabled={option.disabled}
                       style={{
                         marginTop: '0.25rem',
-                        accentColor: colors.brandPink,
+                        accentColor: colors.goldAccent,
                         cursor: option.disabled ? 'not-allowed' : 'pointer',
                       }}
                     />
@@ -406,8 +406,8 @@ export default function GrantRoleModal({ user, currentUserRole, onClose, onSucce
                 padding: '0.625rem 1.5rem',
                 fontSize: '0.875rem',
                 fontWeight: '600',
-                color: 'white',
-                background: colors.brandPink,
+                color: '#000',
+                background: colors.goldAccent,
                 border: 'none',
                 borderRadius: '8px',
                 cursor: (loading || selectedRole === (user.admin_role || 'none')) ? 'not-allowed' : 'pointer',
@@ -416,11 +416,11 @@ export default function GrantRoleModal({ user, currentUserRole, onClose, onSucce
               }}
               onMouseEnter={(e) => {
                 if (!loading && selectedRole !== (user.admin_role || 'none')) {
-                  e.currentTarget.style.background = '#d91b7a'
+                  e.currentTarget.style.filter = 'brightness(0.9)'
                 }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = colors.brandPink
+                e.currentTarget.style.filter = 'brightness(1)'
               }}
             >
               {loading ? 'Updating...' : 'Update Role'}

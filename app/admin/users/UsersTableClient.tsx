@@ -185,7 +185,7 @@ export default function UsersTableClient({ userRole, canManageUsers }: UsersTabl
                       {user.avatar_url ? (
                         <img src={user.avatar_url} alt={user.username} style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
                       ) : (
-                        <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: colors.brandPink, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.125rem', fontWeight: '600', color: 'white', flexShrink: 0 }}>
+                        <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: colors.goldAccent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.125rem', fontWeight: '600', color: '#000', flexShrink: 0 }}>
                           {user.username[0].toUpperCase()}
                         </div>
                       )}
@@ -238,9 +238,9 @@ export default function UsersTableClient({ userRole, canManageUsers }: UsersTabl
                           padding: '0.5rem 0.75rem',
                           fontSize: '0.75rem',
                           fontWeight: '600',
-                          color: colors.brandPink,
+                          color: colors.goldAccent,
                           background: 'transparent',
-                          border: `1px solid ${colors.brandPink}`,
+                          border: `1px solid ${colors.goldAccent}`,
                           borderRadius: '6px',
                           cursor: 'pointer',
                           whiteSpace: 'nowrap',

@@ -305,7 +305,7 @@ export default function ComponentShowcasePage() {
             onClick={() => setSelectedCategory(null)}
             style={{
               padding: '0.5rem 0.75rem',
-              background: selectedCategory === null ? colors.brandPink : colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+              background: selectedCategory === null ? colors.goldAccent : colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
               color: selectedCategory === null ? 'white' : colors.textSecondary,
               border: 'none',
               borderRadius: '6px',
@@ -323,7 +323,7 @@ export default function ComponentShowcasePage() {
               onClick={() => setSelectedCategory(category)}
               style={{
                 padding: '0.5rem 0.75rem',
-                background: selectedCategory === category ? colors.brandPink : colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+                background: selectedCategory === category ? colors.goldAccent : colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
                 color: selectedCategory === category ? 'white' : colors.textSecondary,
                 border: 'none',
                 borderRadius: '6px',

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import ContentNav from './ContentNav'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface Stats {
   totalActivities: number
@@ -14,6 +15,7 @@ interface Stats {
 }
 
 export default function ContentOverview({ stats }: { stats: Stats }) {
+  const colors = useThemeColors()
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
   const [hoveredButton, setHoveredButton] = useState<string | null>(null)
 
@@ -73,14 +75,14 @@ export default function ContentOverview({ stats }: { stats: Stats }) {
         <h1 style={{
           fontSize: '2rem',
           fontWeight: 700,
-          color: 'var(--text-primary)',
+          color: colors.textPrimary,
           margin: '0 0 0.5rem 0'
         }}>
           Engagement
         </h1>
         <p style={{
           fontSize: '1rem',
-          color: 'var(--text-secondary)',
+          color: colors.textSecondary,
           margin: 0
         }}>
           Monitor user activity, ratings, trending media, and search behavior
@@ -104,8 +106,8 @@ export default function ContentOverview({ stats }: { stats: Stats }) {
           >
             <div
               style={{
-                background: 'var(--card-bg)',
-                border: hoveredCard === section.href ? '1px solid var(--brand-pink)' : 'var(--border)',
+                background: colors.cardBg,
+                border: hoveredCard === section.href ? colors.goldBorder : colors.cardBorder,
                 borderRadius: '12px',
                 padding: '1.5rem',
                 transition: 'all 0.2s',
@@ -114,7 +116,7 @@ export default function ContentOverview({ stats }: { stats: Stats }) {
                 display: 'flex',
                 flexDirection: 'column',
                 transform: hoveredCard === section.href ? 'translateY(-4px)' : 'translateY(0)',
-                boxShadow: hoveredCard === section.href ? '0 4px 12px rgba(233, 77, 136, 0.15)' : 'none'
+                boxShadow: hoveredCard === section.href ? `0 4px 12px ${colors.goldAccent}20` : 'none'
               }}
               onMouseEnter={() => setHoveredCard(section.href)}
               onMouseLeave={() => setHoveredCard(null)}
@@ -133,7 +135,7 @@ export default function ContentOverview({ stats }: { stats: Stats }) {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  background: 'var(--background)',
+                  background: colors.background,
                   borderRadius: '8px'
                 }}>
                   {section.icon}
@@ -141,7 +143,7 @@ export default function ContentOverview({ stats }: { stats: Stats }) {
                 <h2 style={{
                   fontSize: '1.25rem',
                   fontWeight: 600,
-                  color: 'var(--text-primary)',
+                  color: colors.textPrimary,
                   margin: 0
                 }}>
                   {section.title}
@@ -151,7 +153,7 @@ export default function ContentOverview({ stats }: { stats: Stats }) {
               {/* Description */}
               <p style={{
                 fontSize: '0.875rem',
-                color: 'var(--text-secondary)',
+                color: colors.textSecondary,
                 margin: '0 0 1.5rem 0',
                 flex: 1
               }}>
@@ -164,13 +166,13 @@ export default function ContentOverview({ stats }: { stats: Stats }) {
                 gridTemplateColumns: section.stats.length > 1 ? '1fr 1fr' : '1fr',
                 gap: '1rem',
                 paddingTop: '1rem',
-                borderTop: 'var(--border)'
+                borderTop: `1px solid ${colors.borderColor}`
               }}>
                 {section.stats.map((stat, idx) => (
                   <div key={idx}>
                     <div style={{
                       fontSize: '0.75rem',
-                      color: 'var(--text-secondary)',
+                      color: colors.textSecondary,
                       marginBottom: '0.25rem'
                     }}>
                       {stat.label}
@@ -178,7 +180,7 @@ export default function ContentOverview({ stats }: { stats: Stats }) {
                     <div style={{
                       fontSize: '1.5rem',
                       fontWeight: 700,
-                      color: 'var(--text-primary)'
+                      color: colors.textPrimary
                     }}>
                       {stat.value}
                     </div>
@@ -194,14 +196,14 @@ export default function ContentOverview({ stats }: { stats: Stats }) {
       <div style={{
         marginTop: '2rem',
         padding: '1.5rem',
-        background: 'var(--card-bg)',
-        border: 'var(--border)',
+        background: colors.cardBg,
+        border: colors.cardBorder,
         borderRadius: '12px'
       }}>
         <h3 style={{
           fontSize: '1rem',
           fontWeight: 600,
-          color: 'var(--text-primary)',
+          color: colors.textPrimary,
           margin: '0 0 1rem 0'
         }}>
           Quick Access
@@ -215,10 +217,10 @@ export default function ContentOverview({ stats }: { stats: Stats }) {
             <button
               style={{
                 padding: '0.75rem 1.5rem',
-                background: 'linear-gradient(135deg, #E94D88 0%, #C2185B 100%)',
+                background: colors.goldAccent,
                 border: 'none',
                 borderRadius: '8px',
-                color: 'white',
+                color: '#000',
                 fontSize: '0.875rem',
                 fontWeight: 600,
                 cursor: 'pointer',
@@ -236,9 +238,9 @@ export default function ContentOverview({ stats }: { stats: Stats }) {
               style={{
                 padding: '0.75rem 1.5rem',
                 background: 'transparent',
-                border: `1px solid ${hoveredButton === 'top' ? 'var(--brand-pink)' : 'var(--border-color)'}`,
+                border: `1px solid ${hoveredButton === 'top' ? colors.goldAccent : colors.borderColor}`,
                 borderRadius: '8px',
-                color: hoveredButton === 'top' ? 'var(--brand-pink)' : 'var(--text-primary)',
+                color: hoveredButton === 'top' ? colors.goldAccent : colors.textPrimary,
                 fontSize: '0.875rem',
                 fontWeight: 600,
                 cursor: 'pointer',

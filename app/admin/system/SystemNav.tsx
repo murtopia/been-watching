@@ -2,9 +2,11 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 export default function SystemNav() {
   const pathname = usePathname()
+  const colors = useThemeColors()
 
   const navItems = [
     { label: 'Overview', href: '/admin/system', exact: true },
@@ -24,8 +26,8 @@ export default function SystemNav() {
 
   return (
     <div style={{
-      background: 'var(--card-bg)',
-      border: 'var(--border)',
+      background: colors.cardBg,
+      border: colors.cardBorder,
       borderRadius: '12px',
       padding: '0.5rem',
       marginBottom: '2rem',
@@ -46,11 +48,11 @@ export default function SystemNav() {
             whiteSpace: 'nowrap',
             transition: 'all 0.2s',
             background: isActive(item.href, item.exact)
-              ? 'linear-gradient(135deg, #E94D88 0%, #C2185B 100%)'
+              ? colors.goldAccent
               : 'transparent',
             color: isActive(item.href, item.exact)
-              ? 'white'
-              : 'var(--text-secondary)',
+              ? '#000000'
+              : colors.textSecondary,
             border: isActive(item.href, item.exact)
               ? 'none'
               : '1px solid transparent'

@@ -29,8 +29,8 @@ export default function MetricCard({
 
   const getTrendColor = () => {
     if (!trend) return colors.textSecondary
-    if (trend.value > 0) return '#10b981' // Green
-    if (trend.value < 0) return '#ef4444' // Red
+    if (trend.value > 0) return colors.success
+    if (trend.value < 0) return colors.error
     return colors.textSecondary
   }
 
@@ -61,13 +61,15 @@ export default function MetricCard({
       onMouseEnter={(e) => {
         if (onClick) {
           e.currentTarget.style.transform = 'translateY(-2px)'
-          e.currentTarget.style.boxShadow = `0 8px 20px ${colors.brandPink}1A`
+          e.currentTarget.style.boxShadow = `0 8px 20px ${colors.goldAccent}1A`
+          e.currentTarget.style.borderColor = colors.goldAccent
         }
       }}
       onMouseLeave={(e) => {
         if (onClick) {
           e.currentTarget.style.transform = 'translateY(0)'
           e.currentTarget.style.boxShadow = 'none'
+          e.currentTarget.style.borderColor = colors.borderColor
         }
       }}
     >
@@ -89,11 +91,11 @@ export default function MetricCard({
             width: '36px',
             height: '36px',
             borderRadius: '8px',
-            background: colors.isDark ? 'rgba(233, 77, 136, 0.1)' : 'rgba(233, 77, 136, 0.08)',
+            background: colors.goldGlassBg,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: colors.brandPink
+            color: colors.goldAccent
           }}>
             <Icon size={20} />
           </div>

@@ -246,13 +246,13 @@ export default function UsersTable({ users }: { users: User[] }) {
                           width: '32px',
                           height: '32px',
                           borderRadius: '50%',
-                          background: colors.brandPink,
+                          background: colors.goldAccent,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           fontSize: '0.875rem',
                           fontWeight: 'bold',
-                          color: 'white'
+                          color: '#000'
                         }}>
                           {user.username[0]?.toUpperCase()}
                         </div>
@@ -292,8 +292,8 @@ export default function UsersTable({ users }: { users: User[] }) {
                   <td style={cellStyle}>
                     {user.is_admin ? (
                       <span style={{
-                        background: colors.brandPink,
-                        color: 'white',
+                        background: colors.goldAccent,
+                        color: '#000',
                         padding: '0.25rem 0.5rem',
                         borderRadius: '4px',
                         fontSize: '0.75rem',
