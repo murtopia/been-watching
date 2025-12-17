@@ -6,6 +6,7 @@ import { createClient } from '@/utils/supabase/client'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import Footer from '@/components/navigation/Footer'
+import { Icon } from '@/components/icons/Icon'
 
 export default function LandingPage() {
   const router = useRouter()
@@ -496,13 +497,11 @@ export default function LandingPage() {
                 right: '1rem',
                 background: 'none',
                 border: 'none',
-                fontSize: '1.5rem',
                 cursor: 'pointer',
-                color: colors.textSecondary,
-                padding: '0.25rem'
+                padding: 0
               }}
             >
-              ×
+              <Icon name="close-c-default" size={32} color={colors.textSecondary} />
             </button>
 
             {!waitlistSuccess ? (
@@ -523,7 +522,7 @@ export default function LandingPage() {
                   marginBottom: '1.5rem',
                   lineHeight: 1.5
                 }}>
-                  Be among the first to track what you've been watching.
+                  Be one of the first to join Been Watching to track and share shows with your friends.
                 </p>
 
                 <form onSubmit={handleWaitlistSubmit}>
