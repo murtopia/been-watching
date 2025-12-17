@@ -16,6 +16,98 @@ import { trackUserFollowed, trackUserUnfollowed, trackProfileViewed } from '@/ut
 import DropdownMenu from '@/components/ui/DropdownMenu'
 import ReportModal from '@/components/moderation/ReportModal'
 
+// Activity grouping window - 5 minutes
+// Groups rating + status changes that happen close together
+const ACTIVITY_GROUP_WINDOW_MS = 5 * 60 * 1000
+
+// Group activities by user_id + media_id within time window
+// Combines "rated" and "status_changed" activities into a single item
+function groupActivities(activities: any[]): any[] {
+  if (!activities || activities.length === 0) return []
+  
+  const grouped: Map<string, any[]> = new Map()
+  
+  for (const activity of activities) {
+    // Use activity_group_id if available (database-level grouping)
+    // Otherwise fall back to user_id + media_id (for historical activities)
+    const groupKey = activity.activity_group_id 
+      ? `group-${activity.activity_group_id}`
+      : `${activity.user_id}-${activity.media_id}`
+    
+    if (!grouped.has(groupKey)) {
+      grouped.set(groupKey, [])
+    }
+    grouped.get(groupKey)!.push(activity)
+  }
+  
+  // For each group, combine activities within the time window
+  const result: any[] = []
+  
+  for (const [, groupActivities] of grouped) {
+    // Sort by created_at desc
+    groupActivities.sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )
+    
+    // Go through activities and combine those within the time window
+    let i = 0
+    while (i < groupActivities.length) {
+      const primary = groupActivities[i]
+      const combinedActivities = [primary]
+      
+      // Look for related activities within the time window
+      let j = i + 1
+      while (j < groupActivities.length) {
+        const other = groupActivities[j]
+        const timeDiff = Math.abs(
+          new Date(primary.created_at).getTime() - 
+          new Date(other.created_at).getTime()
+        )
+        
+        if (timeDiff <= ACTIVITY_GROUP_WINDOW_MS) {
+          combinedActivities.push(other)
+          j++
+        } else {
+          break
+        }
+      }
+      
+      if (combinedActivities.length > 1) {
+        // Merge activity_data from all combined activities
+        const mergedData: any = {}
+        for (const act of combinedActivities) {
+          Object.assign(mergedData, act.activity_data)
+        }
+        mergedData.combined_activities = combinedActivities.map(a => ({
+          type: a.activity_type,
+          data: a.activity_data
+        }))
+        
+        // Combine multiple activities into one
+        const combined = {
+          ...primary,
+          id: primary.id,
+          activity_type: combinedActivities.map(a => a.activity_type).join('+'),
+          activity_data: mergedData,
+          created_at: primary.created_at
+        }
+        result.push(combined)
+        i = j // Skip the combined activities
+      } else {
+        result.push(primary)
+        i++
+      }
+    }
+  }
+  
+  // Sort final result by created_at desc
+  result.sort((a, b) => 
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  )
+  
+  return result
+}
+
 interface Profile {
   id: string
   username: string
@@ -278,7 +370,9 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         }
       }
 
-      setActivities(validActivities)
+      // Apply activity grouping to combine related activities within time window
+      const groupedActivities = groupActivities(validActivities)
+      setActivities(groupedActivities)
     } catch (error) {
       console.error('Error loading activities:', error)
     }
@@ -477,28 +571,56 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
   }
 
   const getActivityInfo = (activity: Activity) => {
-    switch (activity.activity_type) {
-      case 'rated':
-        const rating = activity.activity_data?.rating
-        return {
-          icon: rating === 'love' ? 'heart' : rating === 'like' ? 'thumbs-up' : 'meh-face',
-          text: 'Rated',
-          rating
-        }
-      case 'status_changed':
-        const status = activity.activity_data?.status
-        const statusText = status === 'watching' ? 'Started watching' : status === 'watched' ? 'Finished' : 'Added to list'
-        return {
-          icon: status === 'watching' ? 'play' : status === 'watched' ? 'check' : 'plus',
-          text: statusText,
-          status
-        }
-      default:
-        return {
-          icon: 'activity',
-          text: 'Updated',
-          status: null
-        }
+    // Handle combined activity types (e.g., "rated+status_changed")
+    const types = activity.activity_type.split('+')
+    const hasRating = types.includes('rated')
+    const hasStatus = types.includes('status_changed')
+    
+    const rating = activity.activity_data?.rating
+    const status = activity.activity_data?.status
+    
+    // Combined: rated + status changed
+    if (hasRating && hasStatus) {
+      const statusText = status === 'watching' ? 'Started watching' : status === 'watched' ? 'Finished' : 'Added'
+      return {
+        icon: rating === 'love' ? 'heart' : rating === 'like' ? 'thumbs-up' : 'meh-face',
+        text: `${statusText} and rated`,
+        rating,
+        status,
+        isCombined: true
+      }
+    }
+    
+    // Single: rated
+    if (hasRating) {
+      return {
+        icon: rating === 'love' ? 'heart' : rating === 'like' ? 'thumbs-up' : 'meh-face',
+        text: 'Rated',
+        rating,
+        status: null,
+        isCombined: false
+      }
+    }
+    
+    // Single: status changed
+    if (hasStatus) {
+      const statusText = status === 'watching' ? 'Started watching' : status === 'watched' ? 'Finished' : 'Added to list'
+      return {
+        icon: null, // No icon for status-only
+        text: statusText,
+        rating: null,
+        status,
+        isCombined: false
+      }
+    }
+    
+    // Default
+    return {
+      icon: null,
+      text: 'Updated',
+      rating: null,
+      status: null,
+      isCombined: false
     }
   }
 
@@ -1200,8 +1322,8 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
                       }}>
                         {activity.media?.title}
                       </span>
-                      {/* Rating badge for rated activities */}
-                      {activity.activity_type === 'rated' && activityInfo.rating && (
+                      {/* Rating badge for rated activities (including combined) */}
+                      {activityInfo.rating && activityInfo.icon && (
                         <Icon 
                           name={activityInfo.icon as any} 
                           state="active" 
