@@ -37,8 +37,8 @@ export default function LandingPage() {
 
   // Set html background to black for iOS overscroll
   useEffect(() => {
-    document.documentElement.style.backgroundColor = '#000'
-    document.body.style.backgroundColor = '#000'
+    document.documentElement.style.backgroundColor = '#0d0d0d'
+    document.body.style.backgroundColor = '#0d0d0d'
     return () => {
       document.documentElement.style.backgroundColor = ''
       document.body.style.backgroundColor = ''

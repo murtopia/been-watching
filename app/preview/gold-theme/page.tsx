@@ -26,7 +26,7 @@ export default function GoldThemePreview() {
   
   // Theme colors
   const theme = {
-    bg: isDarkMode ? '#000000' : '#ffffff',
+    bg: isDarkMode ? '#0d0d0d' : '#ffffff',
     cardBg: isDarkMode ? '#1a1a1a' : '#f5f5f5',
     cardGradient: isDarkMode 
       ? 'linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%)' 
