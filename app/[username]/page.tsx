@@ -171,6 +171,16 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
   const [loadingMore, setLoadingMore] = useState(false)
   const [showReportModal, setShowReportModal] = useState(false)
 
+  // Set body background to match page background
+  useEffect(() => {
+    document.documentElement.style.backgroundColor = '#0d0d0d'
+    document.body.style.backgroundColor = '#0d0d0d'
+    return () => {
+      document.documentElement.style.backgroundColor = ''
+      document.body.style.backgroundColor = ''
+    }
+  }, [])
+
   useEffect(() => {
     loadUserProfile()
   }, [username])
@@ -671,7 +681,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         alignItems: 'center',
         minHeight: '100vh',
         padding: '2rem',
-        background: '#0d0d0d'
+        background: colors.background
       }}>
         <div style={{ width: '32px', height: '32px', border: `4px solid ${colors.goldAccent}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
       </div>
@@ -687,7 +697,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         alignItems: 'center',
         minHeight: '100vh',
         padding: '2rem',
-        background: '#0d0d0d',
+        background: colors.background,
         color: colors.textPrimary
       }}>
         <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>😕</div>
@@ -715,8 +725,6 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
   const isOwnProfile = currentUser?.id === profile.id
 
   // Softer background like /profile page
-  const softBg = '#0d0d0d'
-
   return (
     <div style={{
       maxWidth: '398px',
@@ -724,7 +732,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
       padding: '0',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       minHeight: '100vh',
-      background: softBg
+      background: colors.background
     }}>
       {/* App Header */}
       <AppHeader profile={currentUserProfile} hideOnScroll />
@@ -1343,7 +1351,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
                         </span>
                       </div>
                       
-                      {/* Line 2: Activity badges */}
+                      {/* Line 2: Activity badges - text only to match activity card fronts */}
                       {badges.length > 0 && (
                         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                           {badges.map((badge, idx) => (
@@ -1352,7 +1360,6 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
                               style={{
                                 display: 'inline-flex',
                                 alignItems: 'center',
-                                gap: '0.375rem',
                                 padding: '0.25rem 0.625rem',
                                 borderRadius: '10px',
                                 fontSize: '0.75rem',
@@ -1362,12 +1369,6 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
                                 color: 'white'
                               }}
                             >
-                              <Icon 
-                                name={badge.icon as any} 
-                                state="default" 
-                                size={14} 
-                                color="white"
-                              />
                               {badge.text}
                             </div>
                           ))}

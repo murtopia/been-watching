@@ -28,8 +28,8 @@ export function useThemeColors() {
     goldDivider: `linear-gradient(90deg, transparent, ${goldAccent}60, transparent)`,
 
     // Background Colors
-    background: isDark ? '#000000' : '#ffffff',
-    bgGradient: isDark ? '#000000' : '#ffffff',
+    background: isDark ? '#0d0d0d' : '#ffffff',  // Soft dark for dark mode
+    bgGradient: isDark ? '#0d0d0d' : '#ffffff',
     cardBg: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.95)',
     cardBgHover: isDark ? 'rgba(255, 255, 255, 0.08)' : '#f8f9fa',
     surfaceBg: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
