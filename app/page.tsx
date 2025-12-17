@@ -35,6 +35,16 @@ export default function LandingPage() {
     checkAuth()
   }, [])
 
+  // Set html background to black for iOS overscroll
+  useEffect(() => {
+    document.documentElement.style.backgroundColor = '#000'
+    document.body.style.backgroundColor = '#000'
+    return () => {
+      document.documentElement.style.backgroundColor = ''
+      document.body.style.backgroundColor = ''
+    }
+  }, [])
+
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
@@ -137,16 +147,6 @@ export default function LandingPage() {
       </div>
     )
   }
-
-  // Set html background to black for iOS overscroll
-  useEffect(() => {
-    document.documentElement.style.backgroundColor = '#000'
-    document.body.style.backgroundColor = '#000'
-    return () => {
-      document.documentElement.style.backgroundColor = ''
-      document.body.style.backgroundColor = ''
-    }
-  }, [])
 
   return (
     <div style={{
