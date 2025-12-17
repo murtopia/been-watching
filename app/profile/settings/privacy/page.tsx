@@ -7,6 +7,7 @@ import { useThemeColors } from '@/hooks/useThemeColors'
 import AppHeader from '@/components/navigation/AppHeader'
 import BottomNav from '@/components/navigation/BottomNav'
 import { CheckCircle, AlertCircle } from 'lucide-react'
+import { Icon } from '@/components/ui/Icon'
 
 export default function PrivacySettingsPage() {
   const [user, setUser] = useState<any>(null)
@@ -328,7 +329,7 @@ export default function PrivacySettingsPage() {
               gap: '0.75rem',
               marginBottom: '0.5rem'
             }}>
-              <span style={{ fontSize: '1.25rem' }}>💻</span>
+              <Icon name="tv-screen" size={20} color={colors.textSecondary} />
               <div style={{ flex: 1 }}>
                 <div style={{
                   fontSize: '0.9375rem',
