@@ -202,7 +202,7 @@ export default function MediaCard({
             className="show-poster"
             onError={handleImageError}
           />
-          {/* Rating Badge */}
+          {/* Rating Badge - using SVG sprite icons */}
           {currentRating && (
             <div style={{
               position: 'absolute',
@@ -216,10 +216,11 @@ export default function MediaCard({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '1.125rem',
               boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
             }}>
-              {currentRating === 'love' ? '❤️' : currentRating === 'like' ? '👍' : '😐'}
+              <svg width="18" height="18">
+                <use xlinkHref={`/icons/feed-sprite.svg#${currentRating === 'love' ? 'heart-active' : currentRating === 'like' ? 'thumbs-up-active' : 'meh-face-active'}`} />
+              </svg>
             </div>
           )}
         </div>

@@ -4,7 +4,7 @@ import { use, useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { getTasteMatchBetweenUsers } from '@/utils/tasteMatch'
-import MediaDetailModal from '@/components/media/MediaDetailModal'
+import ShowDetailCard from '@/components/media/ShowDetailCard'
 import MediaBadges from '@/components/media/MediaBadges'
 import MediaCardGrid from '@/components/media/MediaCardGrid'
 import AppHeader from '@/components/navigation/AppHeader'
@@ -1402,25 +1402,73 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         </div>
       )}
 
-      {/* Media Detail Modal */}
-      {selectedMedia && (
-        <MediaDetailModal
-          isOpen={mediaModalOpen}
-          onClose={() => {
-            setMediaModalOpen(false)
-            setSelectedMedia(null)
-          }}
-          media={selectedMedia}
-          user={currentUser}
-          onStatusChange={async () => {
-            // Reload the watch list and stats when status changes
-            if (profile) {
-              await loadWatchStats(profile.id)
-              await loadWatchList(activeWatchTab)
+      {/* Show Detail Card - back of card design */}
+      <ShowDetailCard
+        isOpen={mediaModalOpen}
+        onClose={() => {
+          setMediaModalOpen(false)
+          setSelectedMedia(null)
+        }}
+        media={selectedMedia || {
+          id: '',
+          title: '',
+        }}
+        currentUser={currentUserProfile ? {
+          id: currentUser?.id || '',
+          name: currentUserProfile.display_name || currentUserProfile.username || '',
+          avatar: currentUserProfile.avatar_url
+        } : undefined}
+        initialRating={selectedMedia?.currentRating}
+        initialStatus={selectedMedia?.currentStatus}
+        onRate={async (mediaId: string, rating: 'meh' | 'like' | 'love' | null) => {
+          if (!currentUser || !selectedMedia) return
+          try {
+            if (rating === null) {
+              await supabase
+                .from('ratings')
+                .delete()
+                .eq('user_id', currentUser.id)
+                .eq('media_id', mediaId)
+            } else {
+              await supabase
+                .from('ratings')
+                .upsert({
+                  user_id: currentUser.id,
+                  media_id: mediaId,
+                  rating: rating
+                }, { onConflict: 'user_id,media_id' })
             }
-          }}
-        />
-      )}
+            // Update local state
+            setSelectedMedia((prev: any) => prev ? { ...prev, currentRating: rating } : null)
+          } catch (error) {
+            console.error('Error rating:', error)
+          }
+        }}
+        onSetStatus={async (mediaId: string, status: 'want' | 'watching' | 'watched' | null) => {
+          if (!currentUser || !selectedMedia) return
+          try {
+            if (status === null) {
+              await supabase
+                .from('watch_status')
+                .delete()
+                .eq('user_id', currentUser.id)
+                .eq('media_id', mediaId)
+            } else {
+              await supabase
+                .from('watch_status')
+                .upsert({
+                  user_id: currentUser.id,
+                  media_id: mediaId,
+                  status: status
+                }, { onConflict: 'user_id,media_id' })
+            }
+            // Update local state
+            setSelectedMedia((prev: any) => prev ? { ...prev, currentStatus: status } : null)
+          } catch (error) {
+            console.error('Error setting status:', error)
+          }
+        }}
+      />
 
       {/* Bottom Navigation */}
       <BottomNav onSearchOpen={() => {}} />
