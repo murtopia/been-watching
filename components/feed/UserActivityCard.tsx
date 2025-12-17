@@ -1192,6 +1192,9 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
           overflow: hidden;
+          word-wrap: break-word;
+          overflow-wrap: break-word;
+          max-width: 100%;
         }
 
         .show-meta {
