@@ -1,216 +1,158 @@
 'use client'
 
-import { useTheme } from '@/contexts/ThemeContext'
-import ThemeToggle from '@/components/theme/ThemeToggle'
+import { useThemeColors } from '@/hooks/useThemeColors'
 import Footer from '@/components/navigation/Footer'
+import { Mail, MessageSquare, Newspaper } from 'lucide-react'
 
 export default function ContactPage() {
-  const { resolvedTheme } = useTheme()
-  const isDark = resolvedTheme === 'dark'
+  const colors = useThemeColors()
 
-  const bgGradient = isDark
-    ? 'linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 100%)'
-    : 'linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%)'
-  const cardBg = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.95)'
-  const cardBorder = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-  const textPrimary = isDark ? '#ffffff' : '#1a1a1a'
-  const textSecondary = isDark ? 'rgba(255, 255, 255, 0.6)' : '#666'
+  const contactOptions = [
+    {
+      icon: Mail,
+      title: 'General Inquiries',
+      description: 'For general questions, feedback, or support',
+      email: 'hello@beenwatching.com'
+    },
+    {
+      icon: MessageSquare,
+      title: 'Technical Support',
+      description: 'Having trouble? Need help with your account?',
+      email: 'support@beenwatching.com'
+    },
+    {
+      icon: Newspaper,
+      title: 'Press & Media',
+      description: 'Media inquiries and press kit requests',
+      email: 'press@beenwatching.com'
+    }
+  ]
 
   return (
     <div
       style={{
         minHeight: '100vh',
-        background: bgGradient,
+        background: colors.background,
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
-        padding: '2rem',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       }}
     >
-      {/* Theme Toggle */}
-      <div
-        style={{
-          position: 'fixed',
-          top: '1rem',
-          right: '1rem',
-          zIndex: 100,
-        }}
-      >
-        <ThemeToggle />
-      </div>
-
       {/* Content */}
       <div
         style={{
           width: '100%',
-          maxWidth: '600px',
-          margin: '4rem auto',
+          maxWidth: '398px',
+          margin: '0 auto',
+          padding: '2rem 1rem',
+          flex: 1,
         }}
       >
+        {/* Back Button */}
+        <a
+          href="/"
+          style={{
+            color: colors.goldAccent,
+            textDecoration: 'none',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            display: 'inline-block',
+            marginBottom: '1.5rem',
+          }}
+        >
+          ← Back to Home
+        </a>
+
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+        <div style={{ marginBottom: '2rem' }}>
           <h1
             style={{
-              fontSize: '2.5rem',
+              fontSize: '2rem',
               fontWeight: 700,
-              background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              marginBottom: '1rem',
+              color: colors.textPrimary,
+              marginBottom: '0.5rem',
             }}
           >
             Contact Us
           </h1>
-          <p style={{ color: textSecondary, fontSize: '1.125rem' }}>
+          <p style={{ color: colors.textSecondary, fontSize: '1rem' }}>
             We'd love to hear from you
           </p>
         </div>
 
         {/* Contact Options */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '3rem' }}>
-          {/* Email Card */}
-          <div
-            style={{
-              background: cardBg,
-              backdropFilter: 'blur(20px)',
-              border: `1px solid ${cardBorder}`,
-              borderRadius: '20px',
-              padding: '2rem',
-              boxShadow: isDark
-                ? '0 20px 60px rgba(0, 0, 0, 0.5)'
-                : '0 20px 60px rgba(0, 0, 0, 0.08)',
-            }}
-          >
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: textPrimary, marginBottom: '0.75rem' }}>
-              General Inquiries
-            </h2>
-            <p style={{ color: textSecondary, marginBottom: '1rem' }}>
-              For general questions, feedback, or support
-            </p>
-            <a
-              href="mailto:hello@beenwatching.com"
-              style={{
-                color: '#e94d88',
-                fontSize: '1.125rem',
-                fontWeight: 600,
-                textDecoration: 'none',
-              }}
-            >
-              hello@beenwatching.com
-            </a>
-          </div>
-
-          {/* Support Card */}
-          <div
-            style={{
-              background: cardBg,
-              backdropFilter: 'blur(20px)',
-              border: `1px solid ${cardBorder}`,
-              borderRadius: '20px',
-              padding: '2rem',
-              boxShadow: isDark
-                ? '0 20px 60px rgba(0, 0, 0, 0.5)'
-                : '0 20px 60px rgba(0, 0, 0, 0.08)',
-            }}
-          >
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: textPrimary, marginBottom: '0.75rem' }}>
-              Technical Support
-            </h2>
-            <p style={{ color: textSecondary, marginBottom: '1rem' }}>
-              Having trouble? Need help with your account?
-            </p>
-            <a
-              href="mailto:support@beenwatching.com"
-              style={{
-                color: '#e94d88',
-                fontSize: '1.125rem',
-                fontWeight: 600,
-                textDecoration: 'none',
-              }}
-            >
-              support@beenwatching.com
-            </a>
-          </div>
-
-          {/* Press Card */}
-          <div
-            style={{
-              background: cardBg,
-              backdropFilter: 'blur(20px)',
-              border: `1px solid ${cardBorder}`,
-              borderRadius: '20px',
-              padding: '2rem',
-              boxShadow: isDark
-                ? '0 20px 60px rgba(0, 0, 0, 0.5)'
-                : '0 20px 60px rgba(0, 0, 0, 0.08)',
-            }}
-          >
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: textPrimary, marginBottom: '0.75rem' }}>
-              Press & Media
-            </h2>
-            <p style={{ color: textSecondary, marginBottom: '1rem' }}>
-              Media inquiries and press kit requests
-            </p>
-            <a
-              href="mailto:press@beenwatching.com"
-              style={{
-                color: '#e94d88',
-                fontSize: '1.125rem',
-                fontWeight: 600,
-                textDecoration: 'none',
-              }}
-            >
-              press@beenwatching.com
-            </a>
-          </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
+          {contactOptions.map((option, index) => {
+            const Icon = option.icon
+            return (
+              <div
+                key={index}
+                style={{
+                  background: 'transparent',
+                  border: `1px solid ${colors.borderColor}`,
+                  borderRadius: '12px',
+                  padding: '1.25rem',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '10px',
+                    background: colors.surfaceBg,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    <Icon size={20} color={colors.textSecondary} />
+                  </div>
+                  <div>
+                    <h2 style={{ fontSize: '1rem', fontWeight: 600, color: colors.textPrimary, marginBottom: '0.25rem' }}>
+                      {option.title}
+                    </h2>
+                    <p style={{ color: colors.textSecondary, fontSize: '0.875rem', marginBottom: '0.75rem' }}>
+                      {option.description}
+                    </p>
+                    <a
+                      href={`mailto:${option.email}`}
+                      style={{
+                        color: colors.goldAccent,
+                        fontSize: '0.9375rem',
+                        fontWeight: 600,
+                        textDecoration: 'none',
+                      }}
+                    >
+                      {option.email}
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
         </div>
 
-        {/* Additional Info */}
+        {/* Response Time */}
         <div
           style={{
-            background: cardBg,
-            backdropFilter: 'blur(20px)',
-            border: `1px solid ${cardBorder}`,
-            borderRadius: '20px',
-            padding: '2rem',
-            boxShadow: isDark
-              ? '0 20px 60px rgba(0, 0, 0, 0.5)'
-              : '0 20px 60px rgba(0, 0, 0, 0.08)',
+            background: 'transparent',
+            border: `1px solid ${colors.borderColor}`,
+            borderRadius: '12px',
+            padding: '1.25rem',
             textAlign: 'center',
           }}
         >
-          <h3 style={{ fontSize: '1rem', fontWeight: 600, color: textPrimary, marginBottom: '0.5rem' }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: 600, color: colors.textPrimary, marginBottom: '0.25rem' }}>
             Response Time
           </h3>
-          <p style={{ color: textSecondary, fontSize: '0.9375rem' }}>
+          <p style={{ color: colors.textSecondary, fontSize: '0.875rem' }}>
             We typically respond within 24-48 hours during business days
           </p>
-        </div>
-
-        {/* Back to Home */}
-        <div style={{ textAlign: 'center', marginTop: '3rem' }}>
-          <a
-            href="/"
-            style={{
-              display: 'inline-block',
-              padding: '0.75rem 1.5rem',
-              background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-              color: '#fff',
-              textDecoration: 'none',
-              borderRadius: '12px',
-              fontWeight: 600,
-            }}
-          >
-            Back to Home
-          </a>
         </div>
       </div>
 
       {/* Footer */}
-      <div style={{ marginTop: 'auto', width: '100%' }}>
-        <Footer variant="full" />
-      </div>
+      <Footer variant="full" />
     </div>
   )
 }

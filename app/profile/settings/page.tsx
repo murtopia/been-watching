@@ -97,7 +97,7 @@ export default function SettingsPage() {
       icon: HelpCircle,
       title: 'Help & Support',
       description: 'FAQ, contact us, about',
-      href: '/profile/settings/help'
+      href: '/help'
     }
   ]
 

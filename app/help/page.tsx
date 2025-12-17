@@ -1,22 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { useTheme } from '@/contexts/ThemeContext'
-import ThemeToggle from '@/components/theme/ThemeToggle'
+import { useThemeColors } from '@/hooks/useThemeColors'
 import Footer from '@/components/navigation/Footer'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 
 export default function HelpPage() {
-  const { resolvedTheme } = useTheme()
-  const isDark = resolvedTheme === 'dark'
+  const colors = useThemeColors()
   const [openFaq, setOpenFaq] = useState<number | null>(null)
-
-  const bgGradient = isDark
-    ? 'linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 100%)'
-    : 'linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%)'
-  const cardBg = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.95)'
-  const cardBorder = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-  const textPrimary = isDark ? '#ffffff' : '#1a1a1a'
-  const textSecondary = isDark ? 'rgba(255, 255, 255, 0.6)' : '#666'
 
   const faqs = [
     {
@@ -57,74 +48,72 @@ export default function HelpPage() {
     <div
       style={{
         minHeight: '100vh',
-        background: bgGradient,
+        background: colors.background,
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
-        padding: '2rem',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       }}
     >
-      {/* Theme Toggle */}
-      <div
-        style={{
-          position: 'fixed',
-          top: '1rem',
-          right: '1rem',
-          zIndex: 100,
-        }}
-      >
-        <ThemeToggle />
-      </div>
-
       {/* Content */}
       <div
         style={{
           width: '100%',
-          maxWidth: '600px',
-          margin: '4rem auto',
+          maxWidth: '398px',
+          margin: '0 auto',
+          padding: '2rem 1rem',
+          flex: 1,
         }}
       >
+        {/* Back Button */}
+        <a
+          href="/"
+          style={{
+            color: colors.goldAccent,
+            textDecoration: 'none',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            display: 'inline-block',
+            marginBottom: '1.5rem',
+          }}
+        >
+          ← Back to Home
+        </a>
+
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+        <div style={{ marginBottom: '2rem' }}>
           <h1
             style={{
-              fontSize: '2.5rem',
+              fontSize: '2rem',
               fontWeight: 700,
-              background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              marginBottom: '1rem',
+              color: colors.textPrimary,
+              marginBottom: '0.5rem',
             }}
           >
             Help Center
           </h1>
-          <p style={{ color: textSecondary, fontSize: '1.125rem' }}>
+          <p style={{ color: colors.textSecondary, fontSize: '1rem' }}>
             Frequently asked questions
           </p>
         </div>
 
         {/* FAQs */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '3rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '2rem' }}>
           {faqs.map((faq, index) => (
             <div
               key={index}
               style={{
-                background: cardBg,
-                backdropFilter: 'blur(20px)',
-                border: `1px solid ${cardBorder}`,
-                borderRadius: '16px',
+                background: 'transparent',
+                border: `1px solid ${colors.borderColor}`,
+                borderRadius: '12px',
                 overflow: 'hidden',
-                boxShadow: isDark
-                  ? '0 10px 30px rgba(0, 0, 0, 0.3)'
-                  : '0 10px 30px rgba(0, 0, 0, 0.05)',
+                transition: 'all 0.2s',
               }}
             >
               <button
                 onClick={() => setOpenFaq(openFaq === index ? null : index)}
                 style={{
                   width: '100%',
-                  padding: '1.25rem',
+                  padding: '1rem',
                   background: 'transparent',
                   border: 'none',
                   textAlign: 'left',
@@ -132,22 +121,25 @@ export default function HelpPage() {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  color: textPrimary,
-                  fontSize: '1rem',
+                  color: colors.textPrimary,
+                  fontSize: '0.9375rem',
                   fontWeight: 600,
+                  gap: '1rem',
                 }}
               >
                 <span>{faq.question}</span>
-                <span style={{ fontSize: '1.5rem', color: '#e94d88' }}>
-                  {openFaq === index ? '−' : '+'}
-                </span>
+                {openFaq === index ? (
+                  <ChevronUp size={20} color={colors.goldAccent} style={{ flexShrink: 0 }} />
+                ) : (
+                  <ChevronDown size={20} color={colors.goldAccent} style={{ flexShrink: 0 }} />
+                )}
               </button>
               {openFaq === index && (
                 <div
                   style={{
-                    padding: '0 1.25rem 1.25rem',
-                    color: textSecondary,
-                    fontSize: '0.9375rem',
+                    padding: '0 1rem 1rem',
+                    color: colors.textSecondary,
+                    fontSize: '0.875rem',
                     lineHeight: 1.6,
                   }}
                 >
@@ -161,21 +153,17 @@ export default function HelpPage() {
         {/* Contact Support */}
         <div
           style={{
-            background: cardBg,
-            backdropFilter: 'blur(20px)',
-            border: `1px solid ${cardBorder}`,
-            borderRadius: '20px',
-            padding: '2rem',
-            boxShadow: isDark
-              ? '0 20px 60px rgba(0, 0, 0, 0.5)'
-              : '0 20px 60px rgba(0, 0, 0, 0.08)',
+            background: 'transparent',
+            border: `1px solid ${colors.borderColor}`,
+            borderRadius: '12px',
+            padding: '1.5rem',
             textAlign: 'center',
           }}
         >
-          <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: textPrimary, marginBottom: '0.75rem' }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: 600, color: colors.textPrimary, marginBottom: '0.5rem' }}>
             Still need help?
           </h3>
-          <p style={{ color: textSecondary, marginBottom: '1.5rem', fontSize: '0.9375rem' }}>
+          <p style={{ color: colors.textSecondary, marginBottom: '1rem', fontSize: '0.875rem' }}>
             Can't find what you're looking for? We're here to help.
           </p>
           <a
@@ -183,37 +171,21 @@ export default function HelpPage() {
             style={{
               display: 'inline-block',
               padding: '0.75rem 1.5rem',
-              background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-              color: '#fff',
+              background: colors.goldAccent,
+              color: '#000',
               textDecoration: 'none',
-              borderRadius: '12px',
+              borderRadius: '8px',
               fontWeight: 600,
+              fontSize: '0.875rem',
             }}
           >
             Contact Support
           </a>
         </div>
-
-        {/* Back to Home */}
-        <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-          <a
-            href="/"
-            style={{
-              color: textSecondary,
-              textDecoration: 'none',
-              fontSize: '0.9375rem',
-              fontWeight: 600,
-            }}
-          >
-            ← Back to Home
-          </a>
-        </div>
       </div>
 
       {/* Footer */}
-      <div style={{ marginTop: 'auto', width: '100%' }}>
-        <Footer variant="full" />
-      </div>
+      <Footer variant="full" />
     </div>
   )
 }
