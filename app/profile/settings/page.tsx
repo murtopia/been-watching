@@ -119,7 +119,7 @@ export default function SettingsPage() {
         <div style={{
           width: '32px',
           height: '32px',
-          border: `4px solid ${colors.brandPink}`,
+          border: `4px solid ${colors.goldAccent}`,
           borderTopColor: 'transparent',
           borderRadius: '50%',
           animation: 'spin 1s linear infinite'
@@ -132,7 +132,7 @@ export default function SettingsPage() {
     <div style={{ minHeight: '100vh', background: colors.bgGradient, paddingBottom: '100px' }}>
       <AppHeader profile={profile} hideOnScroll />
 
-      <div style={{ padding: '1rem', maxWidth: '600px', margin: '0 auto', marginTop: '60px' }}>
+      <div style={{ padding: '1rem', maxWidth: '398px', margin: '0 auto', marginTop: '70px' }}>
         {/* Header */}
         <div style={{ marginBottom: '1.5rem' }}>
           <button
@@ -140,7 +140,7 @@ export default function SettingsPage() {
             style={{
               background: 'none',
               border: 'none',
-              color: colors.brandPink,
+              color: colors.goldAccent,
               fontSize: '0.875rem',
               fontWeight: 600,
               cursor: 'pointer',

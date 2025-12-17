@@ -7,6 +7,7 @@ import { getTasteMatchBetweenUsers } from '@/utils/tasteMatch'
 import MediaDetailModal from '@/components/media/MediaDetailModal'
 import MediaBadges from '@/components/media/MediaBadges'
 import AppHeader from '@/components/navigation/AppHeader'
+import BottomNav from '@/components/navigation/BottomNav'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Grid3x3, List, Flag } from 'lucide-react'
 import { trackUserFollowed, trackUserUnfollowed, trackProfileViewed } from '@/utils/analytics'
@@ -514,9 +515,10 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         justifyContent: 'center',
         alignItems: 'center',
         minHeight: '100vh',
-        padding: '2rem'
+        padding: '2rem',
+        background: '#0d0d0d'
       }}>
-        <div style={{ fontSize: '1.5rem', color: colors.textTertiary }}>Loading...</div>
+        <div style={{ width: '32px', height: '32px', border: `4px solid ${colors.goldAccent}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
       </div>
     )
   }
@@ -529,7 +531,9 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         justifyContent: 'center',
         alignItems: 'center',
         minHeight: '100vh',
-        padding: '2rem'
+        padding: '2rem',
+        background: '#0d0d0d',
+        color: colors.textPrimary
       }}>
         <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>😕</div>
         <div style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '0.5rem' }}>User not found</div>
@@ -538,8 +542,8 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
           onClick={() => router.push(currentUser ? '/feed' : '/welcome')}
           style={{
             padding: '0.75rem 1.5rem',
-            background: colors.brandGradient,
-            color: 'white',
+            background: colors.goldAccent,
+            color: '#000',
             border: 'none',
             borderRadius: '8px',
             fontSize: '1rem',
@@ -555,82 +559,20 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
 
   const isOwnProfile = currentUser?.id === profile.id
 
+  // Softer background like /profile page
+  const softBg = '#0d0d0d'
+
   return (
     <div style={{
-      maxWidth: '600px',
+      maxWidth: '398px',
       margin: '0 auto',
       padding: '0',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       minHeight: '100vh',
-      background: 'var(--bg-primary)'
+      background: softBg
     }}>
       {/* App Header */}
       <AppHeader profile={currentUserProfile} hideOnScroll />
-
-      {/* Home and Follow Button Row */}
-      <div style={{
-        padding: '1rem 1.5rem',
-        display: 'flex',
-        gap: '0.75rem',
-        alignItems: 'center',
-        background: colors.cardBg,
-        borderBottom: colors.cardBorder,
-        marginTop: '60px'
-      }}>
-        <button
-          onClick={() => router.push(currentUser ? '/feed' : '/welcome')}
-          style={{
-            background: colors.buttonBg,
-            border: colors.buttonBorder,
-            padding: '0.5rem 1rem',
-            cursor: 'pointer',
-            borderRadius: '8px',
-            fontSize: '0.875rem',
-            fontWeight: '600',
-            color: colors.textPrimary
-          }}
-        >
-          Home
-        </button>
-
-        {!isOwnProfile && (
-          <>
-            <button
-              onClick={
-                isFollowing ? handleUnfollow : 
-                isPendingFollow ? handleCancelRequest : 
-                handleFollow
-              }
-              disabled={!currentUser}
-              style={{
-                padding: '0.5rem 1rem',
-                background: isFollowing || isPendingFollow ? colors.cardBg : colors.goldAccent,
-                color: isFollowing || isPendingFollow ? colors.textSecondary : '#000000',
-                border: isFollowing || isPendingFollow ? colors.cardBorder : 'none',
-                borderRadius: '8px',
-                fontSize: '0.875rem',
-                fontWeight: '600',
-                cursor: currentUser ? 'pointer' : 'not-allowed',
-                opacity: currentUser ? 1 : 0.5,
-                whiteSpace: 'nowrap'
-              }}
-            >
-              {isFollowing ? 'Following' : isPendingFollow ? 'Requested' : 'Follow'}
-            </button>
-            <DropdownMenu
-              size={18}
-              items={[
-                {
-                  label: 'Report User',
-                  icon: <Flag size={14} />,
-                  onClick: () => setShowReportModal(true),
-                  danger: true
-                }
-              ]}
-            />
-          </>
-        )}
-      </div>
 
       {/* Report Modal */}
       {profile && (
@@ -643,74 +585,133 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         />
       )}
 
-      {/* Header */}
+      {/* Profile Info - matches /profile layout */}
       <div style={{
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: '1rem',
-        marginBottom: '0.5rem',
-        padding: '1.5rem',
-        background: colors.cardBg
+        padding: '1.5rem 0',
+        marginTop: '70px'
       }}>
-        {/* Avatar */}
-        <div
-          style={{
-            width: '60px',
-            height: '60px',
-            borderRadius: '50%',
-            background: profile.avatar_url ? 'transparent' : colors.brandGradient,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '1.25rem',
-            fontWeight: '700',
-            color: 'white',
-            flexShrink: 0,
-            overflow: 'hidden'
-          }}
-        >
-          {profile.avatar_url ? (
-            <img src={profile.avatar_url} alt={profile.display_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          ) : (
-            getInitials(profile.display_name)
-          )}
-        </div>
+        <div style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '1rem',
+          marginBottom: '0.5rem'
+        }}>
+          {/* Avatar */}
+          <div
+            style={{
+              width: '60px',
+              height: '60px',
+              borderRadius: '50%',
+              background: profile.avatar_url ? 'transparent' : colors.brandGradient,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1.25rem',
+              fontWeight: '700',
+              color: 'white',
+              flexShrink: 0,
+              overflow: 'hidden'
+            }}
+          >
+            {profile.avatar_url ? (
+              <img src={profile.avatar_url} alt={profile.display_name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+            ) : (
+              getInitials(profile.display_name)
+            )}
+          </div>
 
-        {/* Info */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.25rem', color: colors.textPrimary }}>
-            {profile.display_name}
-          </div>
-          <div style={{ fontSize: '0.875rem', color: colors.textSecondary, marginBottom: '0.25rem' }}>
-            @{profile.username}
-          </div>
-          {profile.bio && (
-            <div style={{ fontSize: '0.875rem', color: colors.textSecondary, lineHeight: '1.5' }}>
-              {profile.bio}
+          {/* Name, Username and Bio */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.25rem', color: colors.textPrimary }}>
+              {profile.display_name}
             </div>
+            <div style={{ fontSize: '0.875rem', color: colors.textSecondary, marginBottom: '0.25rem' }}>
+              @{profile.username}
+            </div>
+            <div style={{ fontSize: '0.875rem', color: colors.textSecondary, lineHeight: '1.5' }}>
+              {profile.bio || 'What have you been watching?'}
+            </div>
+          </div>
+
+          {/* Follow Button (or Settings for own profile) */}
+          {!isOwnProfile ? (
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <button
+                onClick={
+                  isFollowing ? handleUnfollow : 
+                  isPendingFollow ? handleCancelRequest : 
+                  handleFollow
+                }
+                disabled={!currentUser}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: isFollowing || isPendingFollow ? colors.cardBg : colors.goldAccent,
+                  color: isFollowing || isPendingFollow ? colors.textSecondary : '#000000',
+                  border: isFollowing || isPendingFollow ? colors.cardBorder : 'none',
+                  borderRadius: '8px',
+                  fontSize: '0.875rem',
+                  fontWeight: '600',
+                  cursor: currentUser ? 'pointer' : 'not-allowed',
+                  opacity: currentUser ? 1 : 0.5,
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {isFollowing ? 'Following' : isPendingFollow ? 'Requested' : 'Follow'}
+              </button>
+              <DropdownMenu
+                size={18}
+                items={[
+                  {
+                    label: 'Report User',
+                    icon: <Flag size={14} />,
+                    onClick: () => setShowReportModal(true),
+                    danger: true
+                  }
+                ]}
+              />
+            </div>
+          ) : (
+            <button
+              onClick={() => router.push('/profile')}
+              style={{
+                padding: '0.5rem 1rem',
+                background: colors.buttonBg,
+                border: colors.buttonBorder,
+                borderRadius: '8px',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                color: colors.textPrimary,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              Edit Profile
+            </button>
           )}
         </div>
       </div>
 
+
+      {/* Divider after header */}
+      <div style={{ height: '1px', background: colors.dividerColor, margin: '0.5rem 0 1rem' }} />
 
       {/* Taste Match and Follows badges */}
       {(tasteMatchScore !== null && tasteMatchScore > 0) || followsMe ? (
         <div style={{
           display: 'flex',
           gap: '0.5rem',
-          padding: '0.5rem 1.5rem',
-          background: colors.cardBg,
+          padding: '0.5rem 0',
           marginBottom: '0.5rem'
         }}>
           {tasteMatchScore !== null && tasteMatchScore > 0 && (
             <div style={{
               padding: '0.5rem 1rem',
-              background: tasteMatchScore >= 70 ? colors.brandGradient : colors.cardBg,
-              color: tasteMatchScore >= 70 ? 'white' : colors.textSecondary,
+              background: colors.goldGlassBg,
+              color: colors.textPrimary,
               borderRadius: '8px',
               fontSize: '0.875rem',
               fontWeight: '600',
-              border: tasteMatchScore >= 70 ? 'none' : `1px solid ${colors.brandPink}`
+              border: colors.goldBorder
             }}>
               {tasteMatchScore >= 90 ? '🔥' : tasteMatchScore >= 70 ? '⭐' : '👍'} {tasteMatchScore}% Match
             </div>
@@ -718,11 +719,12 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
           {followsMe && (
             <div style={{
               padding: '0.5rem 1rem',
-              background: colors.brandGradient,
-              color: 'white',
+              background: colors.goldGlassBg,
+              color: colors.textPrimary,
               borderRadius: '8px',
               fontSize: '0.875rem',
-              fontWeight: '600'
+              fontWeight: '600',
+              border: colors.goldBorder
             }}>
               Follows You
             </div>
@@ -779,12 +781,11 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
       {/* Top 3 Shows */}
       {canViewActivities && (
         <div style={{
-          background: colors.cardBg,
-          padding: '1.5rem',
+          padding: '1rem 0',
           marginBottom: '0.5rem'
         }}>
           <h3 style={{ fontSize: '1rem', fontWeight: '700', marginBottom: '1rem', color: colors.textPrimary }}>
-            📺 Top 3 Shows
+            Top 3 Shows
           </h3>
           <div style={{
             display: 'grid',
@@ -800,13 +801,10 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
                   borderRadius: '8px',
                   overflow: 'hidden',
                   background: show ? 'transparent' : colors.cardBg,
-                  border: show ? 'none' : (colors.isDark ? '2px dashed rgba(255, 255, 255, 0.2)' : '2px dashed #ddd'),
+                  border: show ? colors.goldBorderThin : (colors.isDark ? '2px dashed rgba(255, 255, 255, 0.2)' : '2px dashed #ddd'),
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: show
-                    ? '0 0 20px 2px rgba(242, 113, 33, 0.4), 0 4px 12px rgba(0, 0, 0, 0.1)'
-                    : 'none',
                   transition: 'all 0.3s ease'
                 }}
               >
@@ -828,8 +826,8 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
                       width: '28px',
                       height: '28px',
                       borderRadius: '50%',
-                      background: colors.brandBlue,
-                      color: 'white',
+                      background: colors.goldAccent,
+                      color: '#000',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -872,11 +870,15 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         </div>
       )}
 
+      {/* Divider before Watch Lists */}
+      {canViewActivities && (
+        <div style={{ height: '1px', background: colors.dividerColor, margin: '1rem 0' }} />
+      )}
+
       {/* Watch Lists */}
       {canViewActivities && (
         <div style={{
-          background: colors.cardBg,
-          padding: '1.5rem',
+          padding: '1rem 0',
           marginBottom: '0.5rem'
         }}>
           <div style={{
@@ -886,7 +888,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
             marginBottom: '1rem'
           }}>
             <h3 style={{ fontSize: '1rem', fontWeight: '700', color: colors.textPrimary, margin: 0 }}>
-              📚 Watch Lists
+              Watch Lists
             </h3>
 
             {/* View Mode Toggle */}
@@ -902,8 +904,8 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  background: viewMode === 'grid' ? colors.brandBlue : colors.cardBg,
-                  color: viewMode === 'grid' ? 'white' : colors.textPrimary,
+                  background: viewMode === 'grid' ? colors.goldAccent : colors.cardBg,
+                  color: viewMode === 'grid' ? '#000' : colors.textPrimary,
                   border: colors.cardBorder,
                   borderRadius: '8px',
                   cursor: 'pointer'
@@ -920,8 +922,8 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  background: viewMode === 'list' ? colors.brandBlue : colors.cardBg,
-                  color: viewMode === 'list' ? 'white' : colors.textPrimary,
+                  background: viewMode === 'list' ? colors.goldAccent : colors.cardBg,
+                  color: viewMode === 'list' ? '#000' : colors.textPrimary,
                   border: colors.cardBorder,
                   borderRadius: '8px',
                   cursor: 'pointer'
@@ -936,7 +938,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
           {/* Tabs */}
           <div style={{
             display: 'flex',
-            borderBottom: '1px solid #f0f0f0',
+            borderBottom: `1px solid ${colors.dividerColor}`,
             marginBottom: '1rem'
           }}>
             <button
@@ -946,7 +948,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
                 padding: '0.75rem',
                 background: 'none',
                 border: 'none',
-                borderBottom: activeWatchTab === 'want' ? `3px solid ${colors.brandBlue}` : '3px solid transparent',
+                borderBottom: activeWatchTab === 'want' ? `2px solid ${colors.goldAccent}` : '2px solid transparent',
                 cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
@@ -963,8 +965,8 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
               </div>
               <div style={{
                 fontSize: '0.875rem',
-                color: activeWatchTab === 'want' ? colors.brandBlue : '#666',
-                fontWeight: activeWatchTab === 'want' ? '600' : '400'
+                color: activeWatchTab === 'want' ? colors.goldAccent : colors.textSecondary,
+                fontWeight: activeWatchTab === 'want' ? '700' : '400'
               }}>
                 Want to Watch
               </div>
@@ -976,7 +978,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
                 padding: '0.75rem',
                 background: 'none',
                 border: 'none',
-                borderBottom: activeWatchTab === 'watching' ? `3px solid ${colors.brandBlue}` : '3px solid transparent',
+                borderBottom: activeWatchTab === 'watching' ? `2px solid ${colors.goldAccent}` : '2px solid transparent',
                 cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
@@ -993,8 +995,8 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
               </div>
               <div style={{
                 fontSize: '0.875rem',
-                color: activeWatchTab === 'watching' ? colors.brandBlue : '#666',
-                fontWeight: activeWatchTab === 'watching' ? '600' : '400'
+                color: activeWatchTab === 'watching' ? colors.goldAccent : colors.textSecondary,
+                fontWeight: activeWatchTab === 'watching' ? '700' : '400'
               }}>
                 Watching
               </div>
@@ -1006,7 +1008,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
                 padding: '0.75rem',
                 background: 'none',
                 border: 'none',
-                borderBottom: activeWatchTab === 'watched' ? `3px solid ${colors.brandBlue}` : '3px solid transparent',
+                borderBottom: activeWatchTab === 'watched' ? `2px solid ${colors.goldAccent}` : '2px solid transparent',
                 cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
@@ -1023,8 +1025,8 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
               </div>
               <div style={{
                 fontSize: '0.875rem',
-                color: activeWatchTab === 'watched' ? colors.brandBlue : '#666',
-                fontWeight: activeWatchTab === 'watched' ? '600' : '400'
+                color: activeWatchTab === 'watched' ? colors.goldAccent : colors.textSecondary,
+                fontWeight: activeWatchTab === 'watched' ? '700' : '400'
               }}>
                 Watched
               </div>
@@ -1037,7 +1039,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
               <div style={{
                 width: '32px',
                 height: '32px',
-                border: `4px solid ${colors.brandPink}`,
+                border: `4px solid ${colors.goldAccent}`,
                 borderTopColor: 'transparent',
                 borderRadius: '50%',
                 animation: 'spin 1s linear infinite'
@@ -1203,8 +1205,8 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
                 disabled={loadingMore}
                 style={{
                   padding: '0.75rem 1.5rem',
-                  background: loadingMore ? colors.cardBg : colors.brandGradient,
-                  color: 'white',
+                  background: loadingMore ? colors.cardBg : colors.goldAccent,
+                  color: loadingMore ? colors.textSecondary : '#000',
                   border: 'none',
                   borderRadius: '8px',
                   fontSize: '0.875rem',
@@ -1238,15 +1240,17 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         </div>
       )}
 
+      {/* Divider before Recent Activity */}
+      <div style={{ height: '1px', background: colors.dividerColor, margin: '1rem 0' }} />
+
       {/* Recent Activity */}
       {canViewActivities ? (
         <div style={{
-          background: colors.cardBg,
-          padding: '1.5rem',
+          padding: '1rem 0',
           marginBottom: '5rem'
         }}>
           <h3 style={{ fontSize: '1rem', fontWeight: '700', marginBottom: '1rem', color: colors.textPrimary }}>
-            📺 Recent Activity
+            Recent Activity
           </h3>
           {activities.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -1288,8 +1292,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         </div>
       ) : (
         <div style={{
-          background: colors.cardBg,
-          padding: '3rem 1.5rem',
+          padding: '3rem 0',
           textAlign: 'center',
           marginBottom: '5rem'
         }}>
@@ -1302,25 +1305,6 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
           </div>
         </div>
       )}
-
-      {/* Home Button */}
-      <div style={{ textAlign: 'center' }}>
-        <button
-          onClick={() => router.push(currentUser ? '/feed' : '/welcome')}
-          style={{
-            padding: '0.75rem 2rem',
-            background: colors.cardBg,
-            color: colors.textSecondary,
-            border: colors.cardBorder,
-            borderRadius: '8px',
-            fontSize: '0.9375rem',
-            fontWeight: '600',
-            cursor: 'pointer'
-          }}
-        >
-          Home
-        </button>
-      </div>
 
       {/* Media Detail Modal */}
       {selectedMedia && (
@@ -1341,6 +1325,9 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
           }}
         />
       )}
+
+      {/* Bottom Navigation */}
+      <BottomNav onSearchOpen={() => {}} />
     </div>
   )
 }
