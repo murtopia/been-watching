@@ -141,15 +141,17 @@ export default function LandingPage() {
     <div style={{
       minHeight: '100vh',
       position: 'relative',
-      color: colors.textPrimary
+      color: colors.textPrimary,
+      background: '#000', // Prevents white flash on iOS overscroll
+      overscrollBehavior: 'none' // Prevents bounce showing white
     }}>
       {/* Fixed background image - works on mobile */}
       <div style={{
         position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
+        top: '-10%',
+        left: '-10%',
+        right: '-10%',
+        bottom: '-10%',
         backgroundImage: `url('/landing-bg.webp')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
@@ -159,10 +161,10 @@ export default function LandingPage() {
       {/* Fixed overlay - lighter for more background visibility */}
       <div style={{
         position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
+        top: '-10%',
+        left: '-10%',
+        right: '-10%',
+        bottom: '-10%',
         background: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.65) 100%)',
         zIndex: -1
       }} />
@@ -277,7 +279,7 @@ export default function LandingPage() {
             color: colors.textSecondary,
             lineHeight: 1.6
           }}>
-            Track your shows, find out what your friends are watching, and never miss a great show.
+            Track what you watch, find out what your friends are watching, and never miss a great show.
           </p>
         </section>
 
