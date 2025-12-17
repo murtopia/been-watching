@@ -978,6 +978,32 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
             {topShows.map((show, index) => (
               <div
                 key={index}
+                onClick={() => {
+                  if (show) {
+                    // Transform top show data to match ShowDetailCard format
+                    const media = {
+                      id: show.id || `${show.media_type}-${show.tmdb_id}`,
+                      title: show.title || show.name,
+                      posterUrl: show.poster_path 
+                        ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
+                        : undefined,
+                      backdropUrl: show.backdrop_path
+                        ? `https://image.tmdb.org/t/p/w1280${show.backdrop_path}`
+                        : undefined,
+                      year: show.release_date?.substring(0, 4) || show.first_air_date?.substring(0, 4),
+                      genres: show.genres?.map((g: any) => typeof g === 'string' ? g : g.name) || [],
+                      rating: show.vote_average,
+                      synopsis: show.overview,
+                      creator: show.created_by?.[0]?.name || show.production_companies?.[0]?.name,
+                      cast: show.credits?.cast?.slice(0, 6).map((c: any) => c.name) || [],
+                      network: show.networks?.[0]?.name || show.production_companies?.[0]?.name,
+                      mediaType: show.media_type === 'tv' ? 'TV' : 'Movie',
+                      tmdb_id: show.tmdb_id
+                    }
+                    setSelectedMedia(media)
+                    setMediaModalOpen(true)
+                  }
+                }}
                 style={{
                   position: 'relative',
                   aspectRatio: '2/3',
@@ -988,7 +1014,8 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  transition: 'all 0.3s ease'
+                  transition: 'all 0.3s ease',
+                  cursor: show ? 'pointer' : 'default'
                 }}
               >
                 {show ? (
