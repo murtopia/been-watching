@@ -905,7 +905,7 @@ export default function AuthPage() {
       </div>
 
       {/* Full Footer */}
-      <div style={{ marginTop: '3rem', width: '100%', position: 'relative', zIndex: 2 }}>
+      <div style={{ position: 'relative', zIndex: 2 }}>
         <Footer variant="full" />
       </div>
 
