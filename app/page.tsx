@@ -6,7 +6,7 @@ import { createClient } from '@/utils/supabase/client'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import Footer from '@/components/navigation/Footer'
-import { Icon } from '@/components/icons/Icon'
+import { Icon } from '@/components/ui/Icon'
 
 export default function LandingPage() {
   const router = useRouter()
@@ -138,21 +138,29 @@ export default function LandingPage() {
     )
   }
 
+  // Set html background to black for iOS overscroll
+  useEffect(() => {
+    document.documentElement.style.backgroundColor = '#000'
+    document.body.style.backgroundColor = '#000'
+    return () => {
+      document.documentElement.style.backgroundColor = ''
+      document.body.style.backgroundColor = ''
+    }
+  }, [])
+
   return (
     <div style={{
       minHeight: '100vh',
       position: 'relative',
-      color: colors.textPrimary,
-      background: '#000', // Prevents white flash on iOS overscroll
-      overscrollBehavior: 'none' // Prevents bounce showing white
+      color: colors.textPrimary
     }}>
       {/* Fixed background image - works on mobile */}
       <div style={{
         position: 'fixed',
-        top: '-10%',
-        left: '-10%',
-        right: '-10%',
-        bottom: '-10%',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         backgroundImage: `url('/landing-bg.webp')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
@@ -162,10 +170,10 @@ export default function LandingPage() {
       {/* Fixed overlay - lighter for more background visibility */}
       <div style={{
         position: 'fixed',
-        top: '-10%',
-        left: '-10%',
-        right: '-10%',
-        bottom: '-10%',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         background: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.65) 100%)',
         zIndex: -1
       }} />
