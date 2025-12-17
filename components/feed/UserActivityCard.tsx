@@ -1188,13 +1188,8 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           font-weight: 600;
           line-height: 1.3;
           margin-bottom: 6px;
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
           word-wrap: break-word;
           overflow-wrap: break-word;
-          max-width: 100%;
         }
 
         .show-meta {
