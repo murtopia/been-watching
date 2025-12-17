@@ -129,7 +129,7 @@ export default function ContactSettingsPage() {
         <div style={{
           width: '32px',
           height: '32px',
-          border: `4px solid ${colors.brandPink}`,
+          border: `4px solid ${colors.goldAccent}`,
           borderTopColor: 'transparent',
           borderRadius: '50%',
           animation: 'spin 1s linear infinite'
@@ -142,7 +142,7 @@ export default function ContactSettingsPage() {
     <div style={{ minHeight: '100vh', background: colors.bgGradient, paddingBottom: '100px' }}>
       <AppHeader profile={profile} hideOnScroll />
 
-      <div style={{ padding: '1rem', maxWidth: '600px', margin: '0 auto', marginTop: '60px' }}>
+      <div style={{ padding: '1rem', maxWidth: '398px', margin: '0 auto', marginTop: '60px' }}>
         {/* Header */}
         <div style={{ marginBottom: '1.5rem' }}>
           <button
@@ -150,7 +150,7 @@ export default function ContactSettingsPage() {
             style={{
               background: 'none',
               border: 'none',
-              color: colors.brandPink,
+              color: colors.goldAccent,
               fontSize: '0.875rem',
               fontWeight: 600,
               cursor: 'pointer',
@@ -195,12 +195,11 @@ export default function ContactSettingsPage() {
 
         {/* Email Card */}
         <div style={{
-          background: colors.cardBg,
-          border: colors.cardBorder,
+          background: 'transparent',
+          border: `1px solid ${colors.borderColor}`,
           borderRadius: '12px',
           padding: '1.5rem',
-          marginBottom: '1rem',
-          backdropFilter: 'blur(20px)'
+          marginBottom: '1rem'
         }}>
           <h3 style={{
             fontSize: '1rem',
@@ -257,12 +256,11 @@ export default function ContactSettingsPage() {
 
         {/* Phone Number Card */}
         <div style={{
-          background: colors.cardBg,
-          border: colors.cardBorder,
+          background: 'transparent',
+          border: `1px solid ${colors.borderColor}`,
           borderRadius: '12px',
           padding: '1.5rem',
-          marginBottom: '1rem',
-          backdropFilter: 'blur(20px)'
+          marginBottom: '1rem'
         }}>
           <h3 style={{
             fontSize: '1rem',
@@ -319,10 +317,10 @@ export default function ContactSettingsPage() {
                   onClick={handleVerifyPhone}
                   style={{
                     padding: '0.875rem 1rem',
-                    background: colors.brandPink,
+                    background: colors.goldAccent,
                     border: 'none',
                     borderRadius: '8px',
-                    color: 'white',
+                    color: '#000',
                     fontSize: '0.875rem',
                     fontWeight: 600,
                     cursor: 'pointer',
@@ -377,10 +375,10 @@ export default function ContactSettingsPage() {
           style={{
             width: '100%',
             padding: '1rem',
-            background: saving ? colors.textSecondary : colors.brandPink,
+            background: saving ? colors.textSecondary : colors.goldAccent,
             border: 'none',
             borderRadius: '12px',
-            color: 'white',
+            color: '#000',
             fontSize: '1rem',
             fontWeight: 700,
             cursor: saving ? 'not-allowed' : 'pointer',

@@ -91,7 +91,7 @@ export default function PrivacySettingsPage() {
         <div style={{
           width: '32px',
           height: '32px',
-          border: `4px solid ${colors.brandPink}`,
+          border: `4px solid ${colors.goldAccent}`,
           borderTopColor: 'transparent',
           borderRadius: '50%',
           animation: 'spin 1s linear infinite'
@@ -104,7 +104,7 @@ export default function PrivacySettingsPage() {
     <div style={{ minHeight: '100vh', background: colors.bgGradient, paddingBottom: '100px' }}>
       <AppHeader profile={profile} hideOnScroll />
 
-      <div style={{ padding: '1rem', maxWidth: '600px', margin: '0 auto', marginTop: '60px' }}>
+      <div style={{ padding: '1rem', maxWidth: '398px', margin: '0 auto', marginTop: '60px' }}>
         {/* Header */}
         <div style={{ marginBottom: '1.5rem' }}>
           <button
@@ -112,7 +112,7 @@ export default function PrivacySettingsPage() {
             style={{
               background: 'none',
               border: 'none',
-              color: colors.brandPink,
+              color: colors.goldAccent,
               fontSize: '0.875rem',
               fontWeight: 600,
               cursor: 'pointer',
@@ -157,12 +157,11 @@ export default function PrivacySettingsPage() {
 
         {/* Profile Visibility Card */}
         <div style={{
-          background: colors.cardBg,
-          border: colors.cardBorder,
+          background: 'transparent',
+          border: `1px solid ${colors.borderColor}`,
           borderRadius: '12px',
           padding: '1.5rem',
-          marginBottom: '1rem',
-          backdropFilter: 'blur(20px)'
+          marginBottom: '1rem'
         }}>
           <h3 style={{
             fontSize: '1rem',
@@ -216,7 +215,7 @@ export default function PrivacySettingsPage() {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                background: isPrivate ? colors.brandBlue : (colors.isDark ? 'rgba(255,255,255,0.2)' : '#ccc'),
+                background: isPrivate ? colors.goldAccent : (colors.isDark ? 'rgba(255,255,255,0.2)' : '#ccc'),
                 borderRadius: '28px',
                 transition: '0.3s',
                 opacity: saving ? 0.6 : 1
@@ -239,12 +238,11 @@ export default function PrivacySettingsPage() {
 
         {/* Two-Factor Authentication Card */}
         <div style={{
-          background: colors.cardBg,
-          border: colors.cardBorder,
+          background: 'transparent',
+          border: `1px solid ${colors.borderColor}`,
           borderRadius: '12px',
           padding: '1.5rem',
-          marginBottom: '1rem',
-          backdropFilter: 'blur(20px)'
+          marginBottom: '1rem'
         }}>
           <h3 style={{
             fontSize: '1rem',
@@ -289,7 +287,7 @@ export default function PrivacySettingsPage() {
                 background: colors.buttonBg,
                 border: colors.buttonBorder,
                 borderRadius: '8px',
-                color: colors.brandPink,
+                color: colors.goldAccent,
                 fontSize: '0.875rem',
                 fontWeight: 600,
                 cursor: 'pointer'
@@ -302,12 +300,11 @@ export default function PrivacySettingsPage() {
 
         {/* Active Sessions Card */}
         <div style={{
-          background: colors.cardBg,
-          border: colors.cardBorder,
+          background: 'transparent',
+          border: `1px solid ${colors.borderColor}`,
           borderRadius: '12px',
           padding: '1.5rem',
-          marginBottom: '1rem',
-          backdropFilter: 'blur(20px)'
+          marginBottom: '1rem'
         }}>
           <h3 style={{
             fontSize: '1rem',
@@ -367,11 +364,10 @@ export default function PrivacySettingsPage() {
 
         {/* Data & Privacy Card */}
         <div style={{
-          background: colors.cardBg,
-          border: colors.cardBorder,
+          background: 'transparent',
+          border: `1px solid ${colors.borderColor}`,
           borderRadius: '12px',
-          padding: '1.5rem',
-          backdropFilter: 'blur(20px)'
+          padding: '1.5rem'
         }}>
           <h3 style={{
             fontSize: '1rem',
@@ -401,7 +397,7 @@ export default function PrivacySettingsPage() {
               }}
             >
               <span>Download My Data</span>
-              <span style={{ color: colors.brandPink, fontSize: '0.875rem' }}>→</span>
+              <span style={{ color: colors.goldAccent, fontSize: '0.875rem' }}>→</span>
             </button>
 
             <button
@@ -422,7 +418,7 @@ export default function PrivacySettingsPage() {
               }}
             >
               <span>Privacy Policy</span>
-              <span style={{ color: colors.brandPink, fontSize: '0.875rem' }}>→</span>
+              <span style={{ color: colors.goldAccent, fontSize: '0.875rem' }}>→</span>
             </button>
 
             <button
@@ -443,7 +439,7 @@ export default function PrivacySettingsPage() {
               }}
             >
               <span>Terms of Service</span>
-              <span style={{ color: colors.brandPink, fontSize: '0.875rem' }}>→</span>
+              <span style={{ color: colors.goldAccent, fontSize: '0.875rem' }}>→</span>
             </button>
           </div>
         </div>

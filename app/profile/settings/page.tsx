@@ -67,43 +67,37 @@ export default function SettingsPage() {
       icon: User,
       title: 'Account',
       description: 'Email, username, password',
-      href: '/profile/settings/account',
-      color: '#3b82f6'
+      href: '/profile/settings/account'
     },
     {
       icon: Phone,
       title: 'Contact Information',
       description: 'Phone number, verification',
-      href: '/profile/settings/contact',
-      color: '#10b981'
+      href: '/profile/settings/contact'
     },
     {
       icon: Bell,
       title: 'Notifications',
       description: 'Email, SMS, push preferences',
-      href: '/profile/settings/notifications',
-      color: '#f59e0b'
+      href: '/profile/settings/notifications'
     },
     {
       icon: Lock,
       title: 'Privacy & Security',
       description: 'Private account, 2FA, sessions',
-      href: '/profile/settings/privacy',
-      color: '#ef4444'
+      href: '/profile/settings/privacy'
     },
     {
       icon: Palette,
       title: 'Appearance',
       description: 'Theme, display options',
-      href: '/profile/settings/appearance',
-      color: '#8b5cf6'
+      href: '/profile/settings/appearance'
     },
     {
       icon: HelpCircle,
       title: 'Help & Support',
       description: 'FAQ, contact us, about',
-      href: '/profile/settings/help',
-      color: '#06b6d4'
+      href: '/profile/settings/help'
     }
   ]
 
@@ -174,8 +168,8 @@ export default function SettingsPage() {
                 key={section.href}
                 onClick={() => router.push(section.href)}
                 style={{
-                  background: colors.cardBg,
-                  border: colors.cardBorder,
+                  background: 'transparent',
+                  border: `1px solid ${colors.borderColor}`,
                   borderRadius: '12px',
                   padding: '1rem',
                   display: 'flex',
@@ -183,29 +177,28 @@ export default function SettingsPage() {
                   gap: '1rem',
                   cursor: 'pointer',
                   textAlign: 'left',
-                  backdropFilter: 'blur(20px)',
                   transition: 'all 0.2s'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = section.color
-                  e.currentTarget.style.transform = 'translateY(-2px)'
+                  e.currentTarget.style.borderColor = colors.goldAccent
+                  e.currentTarget.style.background = colors.goldGlassBg
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = colors.cardBorder.split(' ')[2]
-                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.borderColor = colors.borderColor
+                  e.currentTarget.style.background = 'transparent'
                 }}
               >
                 <div style={{
                   width: '40px',
                   height: '40px',
                   borderRadius: '10px',
-                  background: `${section.color}20`,
+                  background: colors.surfaceBg,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0
                 }}>
-                  <Icon size={20} color={section.color} />
+                  <Icon size={20} color={colors.textSecondary} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{
@@ -232,8 +225,8 @@ export default function SettingsPage() {
           style={{
             width: '100%',
             marginTop: '2rem',
-            background: colors.cardBg,
-            border: `1px solid #ef4444`,
+            background: 'transparent',
+            border: `1px solid ${colors.error}`,
             borderRadius: '12px',
             padding: '1rem',
             display: 'flex',
@@ -241,19 +234,18 @@ export default function SettingsPage() {
             justifyContent: 'center',
             gap: '0.5rem',
             cursor: 'pointer',
-            backdropFilter: 'blur(20px)',
             transition: 'all 0.2s',
-            color: '#ef4444',
+            color: colors.error,
             fontWeight: 600,
             fontSize: '1rem'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = '#ef4444'
+            e.currentTarget.style.background = colors.error
             e.currentTarget.style.color = 'white'
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = colors.cardBg
-            e.currentTarget.style.color = '#ef4444'
+            e.currentTarget.style.background = 'transparent'
+            e.currentTarget.style.color = colors.error
           }}
         >
           <LogOut size={20} />

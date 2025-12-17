@@ -77,7 +77,7 @@ export default function AppearanceSettingsPage() {
         <div style={{
           width: '32px',
           height: '32px',
-          border: `4px solid ${colors.brandPink}`,
+          border: `4px solid ${colors.goldAccent}`,
           borderTopColor: 'transparent',
           borderRadius: '50%',
           animation: 'spin 1s linear infinite'
@@ -90,7 +90,7 @@ export default function AppearanceSettingsPage() {
     <div style={{ minHeight: '100vh', background: colors.bgGradient, paddingBottom: '100px' }}>
       <AppHeader profile={profile} hideOnScroll />
 
-      <div style={{ padding: '1rem', maxWidth: '600px', margin: '0 auto', marginTop: '60px' }}>
+      <div style={{ padding: '1rem', maxWidth: '398px', margin: '0 auto', marginTop: '60px' }}>
         {/* Header */}
         <div style={{ marginBottom: '1.5rem' }}>
           <button
@@ -98,7 +98,7 @@ export default function AppearanceSettingsPage() {
             style={{
               background: 'none',
               border: 'none',
-              color: colors.brandPink,
+              color: colors.goldAccent,
               fontSize: '0.875rem',
               fontWeight: 600,
               cursor: 'pointer',
@@ -125,11 +125,10 @@ export default function AppearanceSettingsPage() {
 
         {/* Theme Selection */}
         <div style={{
-          background: colors.cardBg,
-          border: colors.cardBorder,
+          background: 'transparent',
+          border: `1px solid ${colors.borderColor}`,
           borderRadius: '16px',
-          padding: '1.25rem',
-          backdropFilter: 'blur(20px)'
+          padding: '1.25rem'
         }}>
           <h2 style={{
             fontSize: '1rem',
@@ -151,11 +150,11 @@ export default function AppearanceSettingsPage() {
                   onClick={() => setThemeMode(option.value)}
                   style={{
                     background: isSelected 
-                      ? `linear-gradient(135deg, ${colors.brandPink}15 0%, ${colors.brandOrange}15 100%)`
+                      ? colors.goldGlassBg
                       : 'transparent',
                     border: isSelected 
-                      ? `2px solid ${colors.brandPink}`
-                      : `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+                      ? `1px solid ${colors.goldAccent}`
+                      : `1px solid ${colors.borderColor}`,
                     borderRadius: '12px',
                     padding: '1rem',
                     display: 'flex',
@@ -172,8 +171,8 @@ export default function AppearanceSettingsPage() {
                     height: '44px',
                     borderRadius: '12px',
                     background: isSelected 
-                      ? colors.brandGradient
-                      : colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+                      ? colors.goldAccent
+                      : colors.surfaceBg,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -181,7 +180,7 @@ export default function AppearanceSettingsPage() {
                   }}>
                     <Icon 
                       size={22} 
-                      color={isSelected ? '#fff' : colors.textSecondary} 
+                      color={isSelected ? '#000' : colors.textSecondary} 
                     />
                   </div>
                   <div style={{ flex: 1 }}>
@@ -202,12 +201,12 @@ export default function AppearanceSettingsPage() {
                       width: '24px',
                       height: '24px',
                       borderRadius: '50%',
-                      background: colors.brandGradient,
+                      background: colors.goldAccent,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}>
-                      <Check size={14} color="#fff" strokeWidth={3} />
+                      <Check size={14} color="#000" strokeWidth={3} />
                     </div>
                   )}
                 </button>
