@@ -1,6 +1,6 @@
 # Gold Theme & Profile/Friends Update
 
-**Last Updated:** December 16, 2025
+**Last Updated:** December 17, 2025
 **Status:** Complete
 
 ---
@@ -8,6 +8,45 @@
 ## Overview
 
 Major visual refresh replacing pink/orange gradients with Electric Gold (#FFC125) accent color throughout the app, plus improvements to the profile page Friends section.
+
+---
+
+## ✅ Landing & Auth Pages (`app/page.tsx`, `app/auth/page.tsx`)
+
+### Background Image
+- **Fixed background:** `landing-bg.webp` (1290x2800px WebP, ~500KB)
+- **Dark overlay:** `linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.65) 100%)`
+- **Mobile-friendly:** Uses `position: fixed` divs (not `background-attachment: fixed` which breaks on iOS)
+- **iOS overscroll fix:** `useEffect` sets black html/body background to prevent white flash when overscrolling
+
+### Landing Page (`app/page.tsx`)
+- **Hero copy:** "What Have You Been Watching?" / "Track what you watch, find out what your friends are watching, and never miss a great show."
+- **Waitlist modal:** Updated copy, circular close button (`close-c-default` icon)
+- **Gold theme:** All buttons and accents use gold
+
+### Auth Page (`app/auth/page.tsx`)
+- **Same background image** as landing page
+- **Theme toggle removed:** Users use system settings by default, can change in Settings → Appearance
+- **Back button:** Links to `/` (was `/welcome` which is deprecated)
+- **Footer width:** Fixed to match landing page (uses `width: 100vw` with negative margins to break out of padding constraint)
+
+### Technical Implementation
+```typescript
+// iOS overscroll fix - add before any early returns
+useEffect(() => {
+  document.documentElement.style.backgroundColor = '#000'
+  document.body.style.backgroundColor = '#000'
+  return () => {
+    document.documentElement.style.backgroundColor = ''
+    document.body.style.backgroundColor = ''
+  }
+}, [])
+
+// Background layers with positive z-index
+<div style={{ position: 'fixed', zIndex: 0, backgroundImage: `url('/landing-bg.webp')`, ... }} />
+<div style={{ position: 'fixed', zIndex: 1, background: 'linear-gradient(...)', ... }} />
+// Content uses zIndex: 2+
+```
 
 ---
 
@@ -163,6 +202,9 @@ textPrimary: '#ffffff' // "Been Watching" text is now white
 - `components/profile/InviteSection.tsx` - Gold accents, updated copy
 - `app/profile/page.tsx` - Mobile redesign, parallel loading
 - `app/myshows/page.tsx` - Gold accents, renamed to "My Lists"
+- `app/page.tsx` - Landing page with background image, gold theme
+- `app/auth/page.tsx` - Auth page with background image, removed theme toggle
+- `public/landing-bg.webp` - Background image for landing/auth pages
 
 ---
 
@@ -173,4 +215,9 @@ textPrimary: '#ffffff' // "Been Watching" text is now white
 - Test MutualFriendsModal scroll on mobile (page shouldn't scroll)
 - Test follow button states (gold for actions, gray for status)
 - Verify "Been Watching" header text is white (not gradient)
+- **Landing page:** Background image fixed on mobile scroll (doesn't move with content)
+- **Landing page:** No white flash when overscrolling on iOS
+- **Auth page:** No theme toggle visible
+- **Auth page:** "Back" button returns to home page (not /welcome)
+- **Both pages:** Footer widths match
 
