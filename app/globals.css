@@ -50,9 +50,10 @@
 }
 
 /* Dark mode - controlled by ThemeContext */
+/* Note: Background should always be solid #0d0d0d - never a gradient */
 [data-theme="dark"] {
     /* Background Colors */
-    --bg-primary: #0a0a0a;
+    --bg-primary: #0d0d0d;
     --surface: rgba(255, 255, 255, 0.05);
     --glass: rgba(255, 255, 255, 0.05);
     --border: rgba(255, 255, 255, 0.1);
@@ -82,7 +83,7 @@
 /* Auto mode - fallback to OS preference */
 @media (prefers-color-scheme: dark) {
     [data-theme="auto"] {
-        --bg-primary: #0a0a0a;
+        --bg-primary: #0d0d0d;
         --surface: rgba(255, 255, 255, 0.05);
         --glass: rgba(255, 255, 255, 0.05);
         --border: rgba(255, 255, 255, 0.1);
@@ -107,14 +108,15 @@ body {
     position: relative;
 }
 
+/* Background should always be solid #0d0d0d in dark mode - never a gradient */
 [data-theme="dark"] body,
 [data-theme="auto"] body {
-    background: linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 100%);
+    background: #0d0d0d;
 }
 
 @media (prefers-color-scheme: dark) {
     [data-theme="auto"] body {
-        background: linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 100%);
+        background: #0d0d0d;
     }
 }
 

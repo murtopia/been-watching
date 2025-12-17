@@ -11,6 +11,25 @@ Major visual refresh replacing pink/orange gradients with Electric Gold (#FFC125
 
 ---
 
+## ⚠️ Important Design Guidelines
+
+### Background Colors
+- **Dark mode background:** Always use solid `#0d0d0d` (soft dark) - **NEVER a gradient**
+- **Light mode background:** Use `#ffffff`
+- **Content containers:** Should have **no fill color** - content floats directly on the page background
+- The `#0d0d0d` color is defined in:
+  - `hooks/useThemeColors.ts` → `background` and `bgGradient`
+  - `app/globals.css` → `--bg-primary` and body background
+  - Individual pages use `document.body.style.backgroundColor = '#0d0d0d'`
+
+### What to Avoid
+- ❌ Gradient backgrounds on pages
+- ❌ Using pure black (`#000000`) - it's too harsh
+- ❌ Container boxes with fill colors around main content (content should float)
+- ❌ Using `colors.cardBg` for main content containers
+
+---
+
 ## ✅ Landing & Auth Pages (`app/page.tsx`, `app/auth/page.tsx`)
 
 ### Background Image
@@ -33,9 +52,10 @@ Major visual refresh replacing pink/orange gradients with Electric Gold (#FFC125
 ### Technical Implementation
 ```typescript
 // iOS overscroll fix - add before any early returns
+// Always use #0d0d0d (soft dark) - never pure black or gradients
 useEffect(() => {
-  document.documentElement.style.backgroundColor = '#000'
-  document.body.style.backgroundColor = '#000'
+  document.documentElement.style.backgroundColor = '#0d0d0d'
+  document.body.style.backgroundColor = '#0d0d0d'
   return () => {
     document.documentElement.style.backgroundColor = ''
     document.body.style.backgroundColor = ''
