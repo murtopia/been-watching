@@ -117,7 +117,7 @@ export default function AccountSettingsPage() {
         {/* Header */}
         <div style={{ marginBottom: '1.5rem' }}>
           <button
-            onClick={() => router.push('/profile/settings')}
+            onClick={() => router.back()}
             style={{
               background: 'none',
               border: 'none',
@@ -131,7 +131,7 @@ export default function AccountSettingsPage() {
               gap: '0.25rem'
             }}
           >
-            ← Settings
+            ← Back
           </button>
           <h1 style={{
             fontSize: '2rem',

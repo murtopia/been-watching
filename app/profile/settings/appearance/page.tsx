@@ -108,7 +108,7 @@ export default function AppearanceSettingsPage() {
               gap: '0.25rem'
             }}
           >
-            ← Back to Settings
+            ← Back
           </button>
           <h1 style={{
             fontSize: '2rem',
