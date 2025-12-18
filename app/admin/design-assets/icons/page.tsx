@@ -240,11 +240,21 @@ export default function IconLibraryPage() {
             </h2>
 
             {/* Icon Grid */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-              gap: '1rem'
-            }}>
+            <div 
+              className="icon-grid"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                gap: '1rem'
+              }}
+            >
+              <style>{`
+                @media (max-width: 400px) {
+                  .icon-grid {
+                    grid-template-columns: 1fr !important;
+                  }
+                }
+              `}</style>
               {icons.map((icon) => (
                 <div
                   key={icon.name}
@@ -311,10 +321,10 @@ export default function IconLibraryPage() {
                   {/* Icon Previews */}
                   <div style={{
                     display: 'flex',
-                    gap: '2rem',
+                    gap: '1rem',
                     alignItems: 'flex-start',
                     justifyContent: 'center',
-                    padding: '2rem 1rem',
+                    padding: '1.5rem 0.75rem',
                     background: selectedTheme === 'dark' ? '#1a1a1a' : '#f5f5f5',
                     borderRadius: '8px',
                     marginBottom: '1rem',

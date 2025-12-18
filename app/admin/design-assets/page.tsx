@@ -61,12 +61,22 @@ export default function DesignAssetsPage() {
       </div>
 
       {/* Section Cards */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-        gap: '1.5rem',
-        maxWidth: '1200px'
-      }}>
+      <div 
+        className="section-cards-grid"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: '1.5rem',
+          maxWidth: '1200px'
+        }}
+      >
+        <style>{`
+          @media (max-width: 400px) {
+            .section-cards-grid {
+              grid-template-columns: 1fr !important;
+            }
+          }
+        `}</style>
         {sections.map((section) => {
           const Icon = section.icon
           return (

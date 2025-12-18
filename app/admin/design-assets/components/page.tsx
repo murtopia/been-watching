@@ -296,11 +296,31 @@ export default function ComponentShowcasePage() {
         </div>
 
         {/* Category Filter */}
-        <div style={{
-          display: 'flex',
-          gap: '0.5rem',
-          flexWrap: 'wrap'
-        }}>
+        <div 
+          className="category-filter"
+          style={{
+            display: 'flex',
+            gap: '0.5rem',
+            flexWrap: 'wrap',
+            overflowX: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            paddingBottom: '0.5rem'
+          }}
+        >
+          <style>{`
+            @media (max-width: 600px) {
+              .category-filter {
+                flex-wrap: nowrap !important;
+                margin-left: -1rem;
+                margin-right: -1rem;
+                padding-left: 1rem;
+                padding-right: 1rem;
+              }
+              .category-filter button {
+                flex-shrink: 0;
+              }
+            }
+          `}</style>
           <button
             onClick={() => setSelectedCategory(null)}
             style={{
@@ -376,11 +396,21 @@ export default function ComponentShowcasePage() {
               </div>
 
               {/* Component Grid */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-                gap: '1rem'
-              }}>
+              <div 
+                className="component-grid"
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                  gap: '1rem'
+                }}
+              >
+                <style>{`
+                  @media (max-width: 400px) {
+                    .component-grid {
+                      grid-template-columns: 1fr !important;
+                    }
+                  }
+                `}</style>
                 {components.map((component) => (
                   <div
                     key={component.name}

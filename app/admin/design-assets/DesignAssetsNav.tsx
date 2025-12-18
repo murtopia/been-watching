@@ -23,8 +23,26 @@ export default function DesignAssetsNav() {
       marginBottom: '2rem',
       borderBottom: `1px solid ${colors.borderColor}`,
       paddingBottom: '0',
-      overflowX: 'auto'
-    }}>
+      overflowX: 'auto',
+      WebkitOverflowScrolling: 'touch',
+      scrollbarWidth: 'none',
+      msOverflowStyle: 'none'
+    }}
+    className="design-assets-nav"
+    >
+      <style>{`
+        .design-assets-nav::-webkit-scrollbar {
+          display: none;
+        }
+        @media (max-width: 600px) {
+          .design-assets-nav {
+            margin-left: -1rem;
+            margin-right: -1rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
+          }
+        }
+      `}</style>
       {navItems.map((item) => (
         <Link
           key={item.href}
@@ -37,7 +55,8 @@ export default function DesignAssetsNav() {
             textDecoration: 'none',
             borderBottom: pathname === item.href ? `2px solid ${colors.goldAccent}` : '2px solid transparent',
             transition: 'all 0.2s',
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
+            flexShrink: 0
           }}
         >
           {item.label}

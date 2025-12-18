@@ -304,12 +304,37 @@ export default function CardPreviewPage() {
         {/* Right Content - Preview & Details */}
         <div>
           {/* Card Navigation */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '1rem'
-          }}>
+          <div 
+            className="card-nav-controls"
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '1rem',
+              gap: '0.5rem',
+              flexWrap: 'wrap'
+            }}
+          >
+            <style>{`
+              @media (max-width: 500px) {
+                .card-nav-controls {
+                  flex-direction: column;
+                }
+                .card-nav-controls > div {
+                  order: -1;
+                  margin-bottom: 0.5rem;
+                }
+                .card-nav-controls > button {
+                  flex: 1;
+                  justify-content: center;
+                }
+                .card-nav-buttons {
+                  display: flex;
+                  width: 100%;
+                  gap: 0.5rem;
+                }
+              }
+            `}</style>
             <button
               onClick={() => handleCardChange('prev')}
               style={{
@@ -331,7 +356,7 @@ export default function CardPreviewPage() {
               Previous
             </button>
 
-            <div style={{ textAlign: 'center' }}>
+            <div style={{ textAlign: 'center', minWidth: 0 }}>
               <div style={{
                 fontSize: '1.25rem',
                 fontWeight: 700,
@@ -419,12 +444,22 @@ export default function CardPreviewPage() {
           </div>
 
           {/* Card Details */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-            gap: '1rem',
-            marginBottom: '1.5rem'
-          }}>
+          <div 
+            className="card-details-grid"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+              gap: '1rem',
+              marginBottom: '1.5rem'
+            }}
+          >
+            <style>{`
+              @media (max-width: 400px) {
+                .card-details-grid {
+                  grid-template-columns: 1fr !important;
+                }
+              }
+            `}</style>
             {/* Template Info */}
             <div style={{
               background: colors.cardBg,
@@ -519,11 +554,21 @@ export default function CardPreviewPage() {
             }}>
               Key Features
             </h3>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: '0.75rem'
-            }}>
+            <div 
+              className="features-grid"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                gap: '0.75rem'
+              }}
+            >
+              <style>{`
+                @media (max-width: 400px) {
+                  .features-grid {
+                    grid-template-columns: 1fr 1fr !important;
+                  }
+                }
+              `}</style>
               {selectedCard.features.map((feature, index) => (
                 <div
                   key={index}
