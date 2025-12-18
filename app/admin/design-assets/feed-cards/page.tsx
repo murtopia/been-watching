@@ -227,9 +227,21 @@ export default function FeedCardsPreviewPage() {
   }
 
   return (
-    <div style={{ padding: '2rem', minHeight: '100vh', background: colors.background }}>
-      {/* Sub Navigation */}
-      <DesignAssetsNav />
+    <>
+      <style>{`
+        .feed-cards-page {
+          padding: 2rem;
+          min-height: 100vh;
+        }
+        @media (max-width: 768px) {
+          .feed-cards-page {
+            padding: 1rem;
+          }
+        }
+      `}</style>
+      <div className="feed-cards-page" style={{ background: colors.background }}>
+        {/* Sub Navigation */}
+        <DesignAssetsNav />
 
       {/* Header */}
       <div style={{
@@ -502,6 +514,7 @@ export default function FeedCardsPreviewPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   )
 }

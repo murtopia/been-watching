@@ -264,63 +264,76 @@ export default function ComponentShowcasePage() {
   }
 
   return (
-    <div style={{ padding: '2rem' }}>
-      {/* Sub Navigation */}
-      <DesignAssetsNav />
+    <>
+      <style>{`
+        .component-showcase-page {
+          padding: 2rem;
+        }
+        .category-filter {
+          display: flex;
+          gap: 0.5rem;
+          flex-wrap: wrap;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          padding-bottom: 0.5rem;
+        }
+        .component-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          gap: 1rem;
+        }
+        @media (max-width: 768px) {
+          .component-showcase-page {
+            padding: 1rem;
+          }
+          .category-filter {
+            flex-wrap: nowrap !important;
+            margin-left: -1rem;
+            margin-right: -1rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
+          }
+          .category-filter button {
+            flex-shrink: 0;
+          }
+          .component-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
+      <div className="component-showcase-page">
+        {/* Sub Navigation */}
+        <DesignAssetsNav />
 
-      {/* Header */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: '2rem',
-        flexWrap: 'wrap',
-        gap: '1rem'
-      }}>
-        <div>
-          <h1 style={{
-            fontSize: '2rem',
-            fontWeight: 700,
-            color: colors.textPrimary,
-            margin: '0 0 0.5rem 0'
-          }}>
-            Component Showcase
-          </h1>
-          <p style={{
-            fontSize: '1rem',
-            color: colors.textSecondary,
-            margin: 0
-          }}>
-            {totalComponents} reusable components • 9 categories • Consistent design system
-          </p>
-        </div>
+        {/* Header */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          marginBottom: '2rem',
+          flexWrap: 'wrap',
+          gap: '1rem'
+        }}>
+          <div>
+            <h1 style={{
+              fontSize: '2rem',
+              fontWeight: 700,
+              color: colors.textPrimary,
+              margin: '0 0 0.5rem 0'
+            }}>
+              Component Showcase
+            </h1>
+            <p style={{
+              fontSize: '1rem',
+              color: colors.textSecondary,
+              margin: 0
+            }}>
+              {totalComponents} reusable components • 9 categories • Consistent design system
+            </p>
+          </div>
 
-        {/* Category Filter */}
-        <div 
-          className="category-filter"
-          style={{
-            display: 'flex',
-            gap: '0.5rem',
-            flexWrap: 'wrap',
-            overflowX: 'auto',
-            WebkitOverflowScrolling: 'touch',
-            paddingBottom: '0.5rem'
-          }}
-        >
-          <style>{`
-            @media (max-width: 600px) {
-              .category-filter {
-                flex-wrap: nowrap !important;
-                margin-left: -1rem;
-                margin-right: -1rem;
-                padding-left: 1rem;
-                padding-right: 1rem;
-              }
-              .category-filter button {
-                flex-shrink: 0;
-              }
-            }
-          `}</style>
+          {/* Category Filter */}
+          <div className="category-filter">
           <button
             onClick={() => setSelectedCategory(null)}
             style={{
@@ -396,21 +409,7 @@ export default function ComponentShowcasePage() {
               </div>
 
               {/* Component Grid */}
-              <div 
-                className="component-grid"
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-                  gap: '1rem'
-                }}
-              >
-                <style>{`
-                  @media (max-width: 400px) {
-                    .component-grid {
-                      grid-template-columns: 1fr !important;
-                    }
-                  }
-                `}</style>
+              <div className="component-grid">
                 {components.map((component) => (
                   <div
                     key={component.name}
@@ -597,6 +596,7 @@ export default function ComponentShowcasePage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   )
 }

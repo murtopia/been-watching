@@ -91,32 +91,46 @@ export default function IconLibraryPage() {
   }
 
   return (
-    <div style={{ padding: '2rem', position: 'relative' }}>
-      {/* Sub Navigation */}
-      <DesignAssetsNav />
-
-      {/* Sticky Controls Container - aligned to the right on desktop, centered on mobile */}
-      <div 
-        className="icon-controls"
-        style={{
-          position: 'sticky',
-          top: '1rem',
-          zIndex: 100,
-          display: 'flex',
-          justifyContent: 'flex-end',
-          marginBottom: '2rem',
-          paddingRight: '20px'
-        }}
-      >
-        <style>{`
-          @media (max-width: 768px) {
-            .icon-controls {
-              justify-content: center !important;
-              padding-right: 0 !important;
-              flex-wrap: wrap;
-            }
+    <>
+      <style>{`
+        .icon-library-page {
+          padding: 2rem;
+          position: relative;
+        }
+        .icon-controls {
+          position: sticky;
+          top: 1rem;
+          z-index: 100;
+          display: flex;
+          justify-content: flex-end;
+          margin-bottom: 2rem;
+          padding-right: 20px;
+        }
+        .icon-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: 1rem;
+        }
+        @media (max-width: 768px) {
+          .icon-library-page {
+            padding: 1rem;
           }
-        `}</style>
+          .icon-controls {
+            justify-content: center !important;
+            padding-right: 0 !important;
+            flex-wrap: wrap;
+          }
+          .icon-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
+      <div className="icon-library-page">
+        {/* Sub Navigation */}
+        <DesignAssetsNav />
+
+        {/* Sticky Controls Container - aligned to the right on desktop, centered on mobile */}
+        <div className="icon-controls">
         <div style={{
           display: 'flex',
           gap: '0.75rem',
@@ -240,21 +254,7 @@ export default function IconLibraryPage() {
             </h2>
 
             {/* Icon Grid */}
-            <div 
-              className="icon-grid"
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                gap: '1rem'
-              }}
-            >
-              <style>{`
-                @media (max-width: 400px) {
-                  .icon-grid {
-                    grid-template-columns: 1fr !important;
-                  }
-                }
-              `}</style>
+            <div className="icon-grid">
               {icons.map((icon) => (
                 <div
                   key={icon.name}
@@ -575,6 +575,7 @@ export default function IconLibraryPage() {
           <li>Full documentation: <code style={{ background: colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)', padding: '0.125rem 0.375rem', borderRadius: '4px' }}>/components/ui/Icon.md</code></li>
         </ul>
       </div>
-    </div>
+      </div>
+    </>
   )
 }

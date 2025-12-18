@@ -37,46 +37,51 @@ export default function DesignAssetsPage() {
   ]
 
   return (
-    <div style={{ padding: '2rem' }}>
-      {/* Sub Navigation */}
-      <DesignAssetsNav />
-
-      {/* Header */}
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{
-          fontSize: '2rem',
-          fontWeight: 700,
-          color: colors.textPrimary,
-          margin: '0 0 0.5rem 0'
-        }}>
-          Design Assets
-        </h1>
-        <p style={{
-          fontSize: '1rem',
-          color: colors.textSecondary,
-          margin: 0
-        }}>
-          Centralized design system components, icons, and preview tools for the Enhanced Activity Feed
-        </p>
-      </div>
-
-      {/* Section Cards */}
-      <div 
-        className="section-cards-grid"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: '1.5rem',
-          maxWidth: '1200px'
-        }}
-      >
-        <style>{`
-          @media (max-width: 400px) {
-            .section-cards-grid {
-              grid-template-columns: 1fr !important;
-            }
+    <>
+      <style>{`
+        .design-assets-page {
+          padding: 2rem;
+        }
+        .section-cards-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: 1.5rem;
+          max-width: 1200px;
+        }
+        @media (max-width: 768px) {
+          .design-assets-page {
+            padding: 1rem;
           }
-        `}</style>
+          .section-cards-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
+      <div className="design-assets-page">
+        {/* Sub Navigation */}
+        <DesignAssetsNav />
+
+        {/* Header */}
+        <div style={{ marginBottom: '2rem' }}>
+          <h1 style={{
+            fontSize: '2rem',
+            fontWeight: 700,
+            color: colors.textPrimary,
+            margin: '0 0 0.5rem 0'
+          }}>
+            Design Assets
+          </h1>
+          <p style={{
+            fontSize: '1rem',
+            color: colors.textSecondary,
+            margin: 0
+          }}>
+            Centralized design system components, icons, and preview tools for the Enhanced Activity Feed
+          </p>
+        </div>
+
+        {/* Section Cards */}
+        <div className="section-cards-grid">
         {sections.map((section) => {
           const Icon = section.icon
           return (
@@ -199,6 +204,7 @@ export default function DesignAssetsPage() {
           <li>Complete design system documentation available in <code style={{ background: colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)', padding: '0.125rem 0.375rem', borderRadius: '4px' }}>/docs/design/</code></li>
         </ul>
       </div>
-    </div>
+      </div>
+    </>
   )
 }

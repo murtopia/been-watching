@@ -134,19 +134,94 @@ export default function CardPreviewPage() {
   }
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1600px', margin: '0 auto' }}>
-      {/* Sub Navigation */}
-      <DesignAssetsNav />
+    <>
+      <style>{`
+        .card-preview-page {
+          padding: 2rem;
+          max-width: 1600px;
+          margin: 0 auto;
+        }
+        .admin-cards-grid {
+          display: grid;
+          grid-template-columns: minmax(300px, 400px) 1fr;
+          gap: 2rem;
+          align-items: start;
+        }
+        .card-nav-controls {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1rem;
+          gap: 0.5rem;
+          flex-wrap: wrap;
+        }
+        .card-details-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 1rem;
+          margin-bottom: 1.5rem;
+        }
+        .features-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 0.75rem;
+        }
+        @media (max-width: 900px) {
+          .admin-cards-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .admin-cards-grid > div:first-child {
+            order: 2;
+          }
+          .admin-cards-grid > div:last-child {
+            order: 1;
+          }
+        }
+        @media (max-width: 768px) {
+          .card-preview-page {
+            padding: 1rem;
+          }
+          .card-nav-controls {
+            flex-direction: column;
+          }
+          .card-nav-controls > div:first-of-type {
+            order: -1;
+            margin-bottom: 0.5rem;
+          }
+          .card-nav-buttons-row {
+            display: flex;
+            width: 100%;
+            gap: 0.5rem;
+          }
+          .card-nav-buttons-row button {
+            flex: 1;
+            justify-content: center;
+          }
+          .card-details-grid,
+          .features-grid {
+            grid-template-columns: 1fr 1fr !important;
+          }
+        }
+        @media (max-width: 400px) {
+          .card-details-grid,
+          .features-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
+      <div className="card-preview-page">
+        {/* Sub Navigation */}
+        <DesignAssetsNav />
 
-      {/* Header */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: '2rem',
-        flexWrap: 'wrap',
-        gap: '1rem'
-      }}>
+        {/* Header */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          marginBottom: '2rem',
+          flexWrap: 'wrap',
+          gap: '1rem'
+        }}>
         <div>
           <h1 style={{
             fontSize: '2rem',
@@ -195,27 +270,7 @@ export default function CardPreviewPage() {
       </div>
 
       {/* Main Content Grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'minmax(300px, 400px) 1fr',
-        gap: '2rem',
-        alignItems: 'start'
-      }}
-      className="admin-cards-grid"
-      >
-        <style>{`
-          @media (max-width: 900px) {
-            .admin-cards-grid {
-              grid-template-columns: 1fr !important;
-            }
-            .admin-cards-grid > div:first-child {
-              order: 2;
-            }
-            .admin-cards-grid > div:last-child {
-              order: 1;
-            }
-          }
-        `}</style>
+      <div className="admin-cards-grid">
         {/* Left Sidebar - Card Selector */}
         <div>
           <h2 style={{
@@ -304,37 +359,7 @@ export default function CardPreviewPage() {
         {/* Right Content - Preview & Details */}
         <div>
           {/* Card Navigation */}
-          <div 
-            className="card-nav-controls"
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '1rem',
-              gap: '0.5rem',
-              flexWrap: 'wrap'
-            }}
-          >
-            <style>{`
-              @media (max-width: 500px) {
-                .card-nav-controls {
-                  flex-direction: column;
-                }
-                .card-nav-controls > div {
-                  order: -1;
-                  margin-bottom: 0.5rem;
-                }
-                .card-nav-controls > button {
-                  flex: 1;
-                  justify-content: center;
-                }
-                .card-nav-buttons {
-                  display: flex;
-                  width: 100%;
-                  gap: 0.5rem;
-                }
-              }
-            `}</style>
+          <div className="card-nav-controls">
             <button
               onClick={() => handleCardChange('prev')}
               style={{
@@ -444,22 +469,7 @@ export default function CardPreviewPage() {
           </div>
 
           {/* Card Details */}
-          <div 
-            className="card-details-grid"
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-              gap: '1rem',
-              marginBottom: '1.5rem'
-            }}
-          >
-            <style>{`
-              @media (max-width: 400px) {
-                .card-details-grid {
-                  grid-template-columns: 1fr !important;
-                }
-              }
-            `}</style>
+          <div className="card-details-grid">
             {/* Template Info */}
             <div style={{
               background: colors.cardBg,
@@ -554,21 +564,7 @@ export default function CardPreviewPage() {
             }}>
               Key Features
             </h3>
-            <div 
-              className="features-grid"
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-                gap: '0.75rem'
-              }}
-            >
-              <style>{`
-                @media (max-width: 400px) {
-                  .features-grid {
-                    grid-template-columns: 1fr 1fr !important;
-                  }
-                }
-              `}</style>
+            <div className="features-grid">
               {selectedCard.features.map((feature, index) => (
                 <div
                   key={index}
@@ -633,6 +629,7 @@ export default function CardPreviewPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   )
 }
