@@ -94,50 +94,57 @@ export default function IconLibraryPage() {
     <>
       <style>{`
         .icon-library-page {
-          padding: 2rem;
+          padding: 1rem;
           position: relative;
+          width: 100%;
           max-width: 100%;
           overflow-x: hidden;
           box-sizing: border-box;
         }
         .icon-controls {
-          position: sticky;
-          top: 1rem;
-          z-index: 100;
           display: flex;
-          justify-content: flex-end;
-          margin-bottom: 2rem;
-          padding-right: 20px;
+          justify-content: center;
+          margin-bottom: 1.5rem;
+          flex-wrap: wrap;
+          gap: 0.5rem;
         }
         .icon-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          grid-template-columns: 1fr;
           gap: 1rem;
+          width: 100%;
         }
         .icon-card {
+          width: 100%;
           max-width: 100%;
           box-sizing: border-box;
           overflow: hidden;
+          padding: 1rem;
         }
         .icon-card code {
           word-break: break-all;
+          font-size: 0.7rem;
         }
-        @media (max-width: 768px) {
+        .icon-preview-area {
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+        @media (min-width: 768px) {
           .icon-library-page {
-            padding: 1rem;
+            padding: 2rem;
           }
           .icon-controls {
-            justify-content: center !important;
-            padding-right: 0 !important;
-            flex-wrap: wrap;
-            position: relative;
-            top: 0;
+            justify-content: flex-end;
+            padding-right: 20px;
           }
           .icon-grid {
-            grid-template-columns: 1fr !important;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
           }
           .icon-card {
-            padding: 1rem !important;
+            padding: 1.5rem;
+          }
+          .icon-card code {
+            font-size: 0.75rem;
           }
         }
       `}</style>

@@ -40,27 +40,31 @@ export default function DesignAssetsPage() {
     <>
       <style>{`
         .design-assets-page {
-          padding: 2rem;
+          padding: 1rem;
+          width: 100%;
           max-width: 100%;
           overflow-x: hidden;
           box-sizing: border-box;
         }
         .section-cards-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-          gap: 1.5rem;
-          max-width: 1200px;
+          grid-template-columns: 1fr;
+          gap: 1rem;
+          width: 100%;
         }
         .section-card {
+          width: 100%;
           max-width: 100%;
           box-sizing: border-box;
         }
-        @media (max-width: 768px) {
+        @media (min-width: 768px) {
           .design-assets-page {
-            padding: 1rem;
+            padding: 2rem;
           }
           .section-cards-grid {
-            grid-template-columns: 1fr !important;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            max-width: 1200px;
           }
         }
       `}</style>

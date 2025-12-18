@@ -267,7 +267,8 @@ export default function ComponentShowcasePage() {
     <>
       <style>{`
         .component-showcase-page {
-          padding: 2rem;
+          padding: 1rem;
+          width: 100%;
           max-width: 100%;
           overflow-x: hidden;
           box-sizing: border-box;
@@ -275,44 +276,50 @@ export default function ComponentShowcasePage() {
         .category-filter {
           display: flex;
           gap: 0.5rem;
-          flex-wrap: wrap;
           overflow-x: auto;
           -webkit-overflow-scrolling: touch;
           padding-bottom: 0.5rem;
+          max-width: 100%;
+        }
+        .category-filter button {
+          flex-shrink: 0;
+          font-size: 0.7rem;
+          padding: 0.4rem 0.6rem;
         }
         .component-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          grid-template-columns: 1fr;
           gap: 1rem;
+          width: 100%;
         }
         .component-card {
+          width: 100%;
           max-width: 100%;
           box-sizing: border-box;
           overflow: hidden;
+          padding: 1rem;
         }
         .component-card code {
           word-break: break-all;
           overflow-wrap: break-word;
+          font-size: 0.65rem;
         }
-        @media (max-width: 768px) {
+        @media (min-width: 768px) {
           .component-showcase-page {
-            padding: 1rem;
-          }
-          .category-filter {
-            flex-wrap: nowrap !important;
-            margin-left: -1rem;
-            margin-right: -1rem;
-            padding-left: 1rem;
-            padding-right: 1rem;
+            padding: 2rem;
           }
           .category-filter button {
-            flex-shrink: 0;
+            font-size: 0.75rem;
+            padding: 0.5rem 0.75rem;
           }
           .component-grid {
-            grid-template-columns: 1fr !important;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
           }
           .component-card {
-            padding: 1rem !important;
+            padding: 1.5rem;
+          }
+          .component-card code {
+            font-size: 0.7rem;
           }
         }
       `}</style>

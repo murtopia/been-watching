@@ -137,38 +137,42 @@ export default function CardPreviewPage() {
     <>
       <style>{`
         .card-preview-page {
-          padding: 2rem;
+          padding: 1rem;
+          width: 100%;
           max-width: 100%;
           overflow-x: hidden;
           box-sizing: border-box;
         }
         .admin-cards-grid {
-          display: grid;
-          grid-template-columns: minmax(300px, 400px) 1fr;
-          gap: 2rem;
-          align-items: start;
-          max-width: 1600px;
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+          width: 100%;
         }
         .card-nav-controls {
           display: flex;
-          justify-content: space-between;
+          flex-direction: column;
           align-items: center;
           margin-bottom: 1rem;
           gap: 0.5rem;
-          flex-wrap: wrap;
+        }
+        .card-nav-controls > div:first-of-type {
+          order: -1;
+          margin-bottom: 0.5rem;
         }
         .card-details-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-          gap: 1rem;
-          margin-bottom: 1.5rem;
+          grid-template-columns: 1fr 1fr;
+          gap: 0.75rem;
+          margin-bottom: 1rem;
         }
         .features-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-          gap: 0.75rem;
+          grid-template-columns: 1fr 1fr;
+          gap: 0.5rem;
         }
         .card-type-button {
+          width: 100%;
           max-width: 100%;
           box-sizing: border-box;
         }
@@ -176,47 +180,37 @@ export default function CardPreviewPage() {
           overflow-x: auto;
           -webkit-overflow-scrolling: touch;
           max-width: 100%;
+          width: 100%;
         }
-        @media (max-width: 900px) {
-          .admin-cards-grid {
-            grid-template-columns: 1fr !important;
-          }
-          .admin-cards-grid > div:first-child {
-            order: 2;
-          }
-          .admin-cards-grid > div:last-child {
-            order: 1;
-          }
-        }
-        @media (max-width: 768px) {
+        @media (min-width: 768px) {
           .card-preview-page {
-            padding: 1rem;
+            padding: 2rem;
           }
           .card-nav-controls {
-            flex-direction: column;
+            flex-direction: row;
+            justify-content: space-between;
           }
           .card-nav-controls > div:first-of-type {
-            order: -1;
-            margin-bottom: 0.5rem;
+            order: 0;
+            margin-bottom: 0;
           }
-          .card-nav-buttons-row {
-            display: flex;
-            width: 100%;
-            gap: 0.5rem;
+          .card-details-grid {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
           }
-          .card-nav-buttons-row button {
-            flex: 1;
-            justify-content: center;
-          }
-          .card-details-grid,
           .features-grid {
-            grid-template-columns: 1fr 1fr !important;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.75rem;
           }
         }
-        @media (max-width: 400px) {
-          .card-details-grid,
-          .features-grid {
-            grid-template-columns: 1fr !important;
+        @media (min-width: 900px) {
+          .admin-cards-grid {
+            display: grid;
+            grid-template-columns: minmax(300px, 400px) 1fr;
+            gap: 2rem;
+            align-items: start;
+            max-width: 1600px;
           }
         }
       `}</style>

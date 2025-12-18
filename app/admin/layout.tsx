@@ -401,7 +401,10 @@ export default function AdminLayout({
         marginLeft: isMobile ? 0 : sidebarWidth,
         marginTop: isMobile ? '56px' : 0,
         transition: 'margin-left 0.3s ease',
-        minHeight: isMobile ? 'calc(100vh - 56px)' : '100vh'
+        minHeight: isMobile ? 'calc(100vh - 56px)' : '100vh',
+        maxWidth: isMobile ? '100vw' : `calc(100vw - ${sidebarWidth})`,
+        overflowX: 'hidden',
+        boxSizing: 'border-box'
       }}>
         {children}
       </main>

@@ -230,15 +230,16 @@ export default function FeedCardsPreviewPage() {
     <>
       <style>{`
         .feed-cards-page {
-          padding: 2rem;
+          padding: 1rem;
           min-height: 100vh;
+          width: 100%;
           max-width: 100%;
           overflow-x: hidden;
           box-sizing: border-box;
         }
-        @media (max-width: 768px) {
+        @media (min-width: 768px) {
           .feed-cards-page {
-            padding: 1rem;
+            padding: 2rem;
           }
         }
       `}</style>
