@@ -138,14 +138,16 @@ export default function CardPreviewPage() {
       <style>{`
         .card-preview-page {
           padding: 2rem;
-          max-width: 1600px;
-          margin: 0 auto;
+          max-width: 100%;
+          overflow-x: hidden;
+          box-sizing: border-box;
         }
         .admin-cards-grid {
           display: grid;
           grid-template-columns: minmax(300px, 400px) 1fr;
           gap: 2rem;
           align-items: start;
+          max-width: 1600px;
         }
         .card-nav-controls {
           display: flex;
@@ -165,6 +167,15 @@ export default function CardPreviewPage() {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
           gap: 0.75rem;
+        }
+        .card-type-button {
+          max-width: 100%;
+          box-sizing: border-box;
+        }
+        .iframe-container {
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          max-width: 100%;
         }
         @media (max-width: 900px) {
           .admin-cards-grid {

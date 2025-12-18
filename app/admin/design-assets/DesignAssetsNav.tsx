@@ -17,51 +17,63 @@ export default function DesignAssetsNav() {
   ]
 
   return (
-    <div style={{
-      display: 'flex',
-      gap: '0.5rem',
-      marginBottom: '2rem',
-      borderBottom: `1px solid ${colors.borderColor}`,
-      paddingBottom: '0',
-      overflowX: 'auto',
-      WebkitOverflowScrolling: 'touch',
-      scrollbarWidth: 'none',
-      msOverflowStyle: 'none'
-    }}
-    className="design-assets-nav"
-    >
+    <>
       <style>{`
+        .design-assets-nav-wrapper {
+          margin-left: -1rem;
+          margin-right: -1rem;
+          padding-left: 1rem;
+          padding-right: 1rem;
+          margin-bottom: 2rem;
+          overflow: hidden;
+        }
+        .design-assets-nav {
+          display: flex;
+          gap: 0;
+          border-bottom: 1px solid ${colors.borderColor};
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+          padding-bottom: 0;
+        }
         .design-assets-nav::-webkit-scrollbar {
           display: none;
         }
-        @media (max-width: 600px) {
-          .design-assets-nav {
+        @media (max-width: 768px) {
+          .design-assets-nav-wrapper {
             margin-left: -1rem;
             margin-right: -1rem;
-            padding-left: 1rem;
-            padding-right: 1rem;
+          }
+          .design-assets-nav a {
+            padding: 0.75rem 0.75rem !important;
+            font-size: 0.8rem !important;
           }
         }
       `}</style>
-      {navItems.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          style={{
-            padding: '0.75rem 1rem',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            color: pathname === item.href ? colors.goldAccent : colors.textSecondary,
-            textDecoration: 'none',
-            borderBottom: pathname === item.href ? `2px solid ${colors.goldAccent}` : '2px solid transparent',
-            transition: 'all 0.2s',
-            whiteSpace: 'nowrap',
-            flexShrink: 0
-          }}
-        >
-          {item.label}
-        </Link>
-      ))}
-    </div>
+      <div className="design-assets-nav-wrapper">
+        <div className="design-assets-nav">
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              style={{
+                padding: '0.75rem 1rem',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                color: pathname === item.href ? colors.goldAccent : colors.textSecondary,
+                textDecoration: 'none',
+                borderBottom: pathname === item.href ? `2px solid ${colors.goldAccent}` : '2px solid transparent',
+                transition: 'all 0.2s',
+                whiteSpace: 'nowrap',
+                flexShrink: 0
+              }}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+    </>
   )
 }

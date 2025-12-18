@@ -232,6 +232,9 @@ export default function FeedCardsPreviewPage() {
         .feed-cards-page {
           padding: 2rem;
           min-height: 100vh;
+          max-width: 100%;
+          overflow-x: hidden;
+          box-sizing: border-box;
         }
         @media (max-width: 768px) {
           .feed-cards-page {

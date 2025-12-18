@@ -268,6 +268,9 @@ export default function ComponentShowcasePage() {
       <style>{`
         .component-showcase-page {
           padding: 2rem;
+          max-width: 100%;
+          overflow-x: hidden;
+          box-sizing: border-box;
         }
         .category-filter {
           display: flex;
@@ -281,6 +284,15 @@ export default function ComponentShowcasePage() {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
           gap: 1rem;
+        }
+        .component-card {
+          max-width: 100%;
+          box-sizing: border-box;
+          overflow: hidden;
+        }
+        .component-card code {
+          word-break: break-all;
+          overflow-wrap: break-word;
         }
         @media (max-width: 768px) {
           .component-showcase-page {
@@ -298,6 +310,9 @@ export default function ComponentShowcasePage() {
           }
           .component-grid {
             grid-template-columns: 1fr !important;
+          }
+          .component-card {
+            padding: 1rem !important;
           }
         }
       `}</style>
@@ -413,6 +428,7 @@ export default function ComponentShowcasePage() {
                 {components.map((component) => (
                   <div
                     key={component.name}
+                    className="component-card"
                     style={{
                       background: colors.cardBg,
                       border: colors.cardBorder,

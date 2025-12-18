@@ -41,12 +41,19 @@ export default function DesignAssetsPage() {
       <style>{`
         .design-assets-page {
           padding: 2rem;
+          max-width: 100%;
+          overflow-x: hidden;
+          box-sizing: border-box;
         }
         .section-cards-grid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
           gap: 1.5rem;
           max-width: 1200px;
+        }
+        .section-card {
+          max-width: 100%;
+          box-sizing: border-box;
         }
         @media (max-width: 768px) {
           .design-assets-page {
@@ -87,6 +94,7 @@ export default function DesignAssetsPage() {
           return (
             <button
               key={section.href}
+              className="section-card"
               onClick={() => router.push(section.href)}
               style={{
                 background: colors.cardBg,

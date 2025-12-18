@@ -96,6 +96,9 @@ export default function IconLibraryPage() {
         .icon-library-page {
           padding: 2rem;
           position: relative;
+          max-width: 100%;
+          overflow-x: hidden;
+          box-sizing: border-box;
         }
         .icon-controls {
           position: sticky;
@@ -111,6 +114,14 @@ export default function IconLibraryPage() {
           grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
           gap: 1rem;
         }
+        .icon-card {
+          max-width: 100%;
+          box-sizing: border-box;
+          overflow: hidden;
+        }
+        .icon-card code {
+          word-break: break-all;
+        }
         @media (max-width: 768px) {
           .icon-library-page {
             padding: 1rem;
@@ -119,9 +130,14 @@ export default function IconLibraryPage() {
             justify-content: center !important;
             padding-right: 0 !important;
             flex-wrap: wrap;
+            position: relative;
+            top: 0;
           }
           .icon-grid {
             grid-template-columns: 1fr !important;
+          }
+          .icon-card {
+            padding: 1rem !important;
           }
         }
       `}</style>
@@ -258,6 +274,7 @@ export default function IconLibraryPage() {
               {icons.map((icon) => (
                 <div
                   key={icon.name}
+                  className="icon-card"
                   style={{
                     background: colors.cardBg,
                     border: colors.cardBorder,
