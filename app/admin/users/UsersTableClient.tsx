@@ -155,7 +155,8 @@ export default function UsersTableClient({ userRole, canManageUsers }: UsersTabl
           borderRadius: '12px',
           overflow: 'hidden'
         }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed', minWidth: '700px' }}>
             <thead>
               <tr style={{ background: colors.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }}>
                 <th style={{ width: '35%', padding: '0.75rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '600', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -254,6 +255,7 @@ export default function UsersTableClient({ userRole, canManageUsers }: UsersTabl
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
     )

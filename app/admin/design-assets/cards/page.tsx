@@ -200,7 +200,22 @@ export default function CardPreviewPage() {
         gridTemplateColumns: 'minmax(300px, 400px) 1fr',
         gap: '2rem',
         alignItems: 'start'
-      }}>
+      }}
+      className="admin-cards-grid"
+      >
+        <style>{`
+          @media (max-width: 900px) {
+            .admin-cards-grid {
+              grid-template-columns: 1fr !important;
+            }
+            .admin-cards-grid > div:first-child {
+              order: 2;
+            }
+            .admin-cards-grid > div:last-child {
+              order: 1;
+            }
+          }
+        `}</style>
         {/* Left Sidebar - Card Selector */}
         <div>
           <h2 style={{
@@ -359,13 +374,16 @@ export default function CardPreviewPage() {
           <div style={{
             marginBottom: '1.5rem',
             display: 'flex',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            overflowX: 'auto',
+            WebkitOverflowScrolling: 'touch'
           }}>
             <iframe
               key={iframeKey}
               src={selectedCard.file}
               style={{
                 width: '398px',
+                minWidth: '398px',
                 height: '645px',
                 border: 'none',
                 display: 'block'

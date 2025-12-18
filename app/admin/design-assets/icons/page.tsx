@@ -95,16 +95,28 @@ export default function IconLibraryPage() {
       {/* Sub Navigation */}
       <DesignAssetsNav />
 
-      {/* Sticky Controls Container - aligned to the right */}
-      <div style={{
-        position: 'sticky',
-        top: '1rem',
-        zIndex: 100,
-        display: 'flex',
-        justifyContent: 'flex-end',
-        marginBottom: '2rem',
-        paddingRight: '20px' // Move 20px to the left from the right edge
-      }}>
+      {/* Sticky Controls Container - aligned to the right on desktop, centered on mobile */}
+      <div 
+        className="icon-controls"
+        style={{
+          position: 'sticky',
+          top: '1rem',
+          zIndex: 100,
+          display: 'flex',
+          justifyContent: 'flex-end',
+          marginBottom: '2rem',
+          paddingRight: '20px'
+        }}
+      >
+        <style>{`
+          @media (max-width: 768px) {
+            .icon-controls {
+              justify-content: center !important;
+              padding-right: 0 !important;
+              flex-wrap: wrap;
+            }
+          }
+        `}</style>
         <div style={{
           display: 'flex',
           gap: '0.75rem',

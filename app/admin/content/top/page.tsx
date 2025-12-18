@@ -268,10 +268,11 @@ export default async function AdminContentTopPage() {
         }}>
           Most Rated (Top 20)
         </h2>
-        <div style={{ overflow: 'auto' }}>
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
           <table style={{
             width: '100%',
-            borderCollapse: 'collapse'
+            borderCollapse: 'collapse',
+            minWidth: '700px'
           }}>
             <thead>
               <tr style={{
@@ -395,10 +396,11 @@ export default async function AdminContentTopPage() {
         }}>
           Score calculation: Love = 3 points, Like = 2 points, Meh = 1 point
         </div>
-        <div style={{ overflow: 'auto' }}>
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
           <table style={{
             width: '100%',
-            borderCollapse: 'collapse'
+            borderCollapse: 'collapse',
+            minWidth: '700px'
           }}>
             <thead>
               <tr style={{
