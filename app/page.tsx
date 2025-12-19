@@ -179,7 +179,7 @@ export default function LandingPage() {
       }} />
       {/* Header - consistent with app header style */}
       <header style={{
-        padding: '1rem 1.5rem',
+        padding: '5px 1.5rem',
         background: colors.glassBg,
         borderBottom: colors.goldBorder,
         backdropFilter: 'blur(20px)',
@@ -204,10 +204,10 @@ export default function LandingPage() {
             gap: '0.5rem'
           }}>
             <img
-              src="/bw-logo.png"
+              src="/BW_header_v2.png"
               alt="Been Watching"
               style={{
-                height: '40px',
+                height: '52px',
                 width: 'auto'
               }}
             />
