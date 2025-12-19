@@ -172,7 +172,7 @@ export default function AppHeader({
             src="/BW_header_icon.png"
             alt="Been Watching"
             style={{
-              height: '52px',
+              height: '151px',
               width: 'auto'
             }}
           />
