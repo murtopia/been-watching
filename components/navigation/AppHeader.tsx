@@ -137,7 +137,7 @@ export default function AppHeader({
         }
       `}</style>
     <div style={{
-      padding: '1rem 1.5rem',
+      padding: '0 1.5rem',
       background: cardBg,
       borderBottom: cardBorder,
       backdropFilter: backdropBlur,
@@ -172,7 +172,7 @@ export default function AppHeader({
             src="/BW_header_v2.png"
             alt="Been Watching"
             style={{
-              height: '119px',
+              height: '52px',
               width: 'auto'
             }}
           />
