@@ -472,6 +472,18 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   const [watchlistStatus, setWatchlistStatus] = useState<Set<'want' | 'watching' | 'watched'>>(
     initialUserStatus ? new Set([initialUserStatus]) : new Set()
   )
+  
+  // Sync userRating when data prop changes (e.g., when ShowDetailCard opens with new initialRating)
+  useEffect(() => {
+    setUserRating(data.friendsActivity.ratings.userRating || null)
+  }, [data.friendsActivity.ratings.userRating])
+  
+  // Sync watchlistStatus when initialUserStatus prop changes
+  useEffect(() => {
+    if (initialUserStatus) {
+      setWatchlistStatus(new Set([initialUserStatus]))
+    }
+  }, [initialUserStatus])
   const [commentLikes, setCommentLikes] = useState<Record<string, { liked: boolean; count: number }>>(
     data.showComments.reduce((acc, comment) => ({
       ...acc,

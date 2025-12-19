@@ -438,22 +438,28 @@ export default function MyShowsPage() {
     // Stop propagation to prevent triggering the parent onClick
     e.stopPropagation()
 
-    if (!show) return
+    if (!show || !user) return
 
     // Fetch full media details from TMDB
     const mediaType = show.media_type || (show.first_air_date ? 'tv' : 'movie')
     const tmdbId = show.tmdb_id || show.id
+    const mediaId = show.id || `${mediaType}-${tmdbId}`
     
     try {
-      // Fetch details with credits
-      const response = await fetch(
-        `https://api.themoviedb.org/3/${mediaType}/${tmdbId}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY || '99b89037cac7fea56692934b534ea26a'}&append_to_response=credits`
-      )
-      const tmdbData = await response.json()
+      // Fetch details with credits, and user's rating/status in parallel
+      const [tmdbResponse, ratingData, statusData] = await Promise.all([
+        fetch(
+          `https://api.themoviedb.org/3/${mediaType}/${tmdbId}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY || '99b89037cac7fea56692934b534ea26a'}&append_to_response=credits`
+        ),
+        supabase.from('ratings').select('rating').eq('user_id', user.id).eq('media_id', mediaId).maybeSingle(),
+        supabase.from('watch_status').select('status').eq('user_id', user.id).eq('media_id', mediaId).maybeSingle()
+      ])
+      
+      const tmdbData = await tmdbResponse.json()
 
       // Transform to ShowDetailCard format
       const media = {
-        id: show.id || `${mediaType}-${tmdbId}`,
+        id: mediaId,
         title: tmdbData.title || tmdbData.name,
         posterUrl: tmdbData.poster_path 
           ? `https://image.tmdb.org/t/p/w500${tmdbData.poster_path}`
@@ -470,7 +476,10 @@ export default function MyShowsPage() {
         network: tmdbData.networks?.[0]?.name || tmdbData.production_companies?.[0]?.name,
         mediaType: mediaType === 'tv' ? 'TV' : 'Movie',
         season: show.tmdb_data?.season_number,
-        tmdb_id: tmdbId
+        tmdb_id: tmdbId,
+        // Include user's current rating and status
+        currentRating: ratingData.data?.rating || null,
+        currentStatus: statusData.data?.status || null
       }
 
       setSelectedMedia(media)
