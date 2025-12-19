@@ -319,7 +319,7 @@ export default function MyShowsPage() {
       season: tmdbData.season_number,
       tmdb_id: mediaItem.media.tmdb_id,
       // Store current rating and status for the card
-      currentRating: mediaItem.rating,
+      currentRating: mediaItem.user_rating,
       currentStatus: mediaItem.status
     }
     setSelectedMedia(media)
