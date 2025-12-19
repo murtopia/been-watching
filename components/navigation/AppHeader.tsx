@@ -169,12 +169,11 @@ export default function AppHeader({
           gap: '0.5rem'
         }}>
           <img
-            src="/BW_logo_updated.svg"
+            src="/BW_header_icon.png"
             alt="Been Watching"
             style={{
               height: '52px',
-              width: 'auto',
-              marginBottom: '-8px' // Offset for the speech bubble tail
+              width: 'auto'
             }}
           />
           <h1 style={{
