@@ -1384,10 +1384,23 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           top: 142px;
         }
 
+        .action-modal-title {
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: white;
+          text-align: center;
+          margin-bottom: 12px;
+        }
+
         .action-modal-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
           gap: 12px;
+        }
+
+        .action-modal-grid .action-modal-title {
+          margin-bottom: 8px;
+          margin-top: 4px;
         }
 
         .action-modal-item {
@@ -2918,6 +2931,8 @@ export const FeedCard: React.FC<FeedCardProps> = ({
             onClick={() => { setActionOverlayVisible(false); setPressedIcon(null); }}
           >
             <div className="action-modal" onClick={(e) => e.stopPropagation()}>
+              {/* Rate This Show Title */}
+              <div className="action-modal-title">Rate This Show</div>
               <div className="action-modal-grid">
                 {/* Rating Icons */}
                 <div 
@@ -2970,6 +2985,9 @@ export const FeedCard: React.FC<FeedCardProps> = ({
 
                 {/* Divider */}
                 <div className="action-modal-divider"></div>
+
+                {/* Add to a Watchlist Title */}
+                <div className="action-modal-title" style={{ gridColumn: '1 / -1' }}>Add to a Watchlist</div>
 
                 {/* Watchlist Icons */}
                 <div 
