@@ -3294,8 +3294,7 @@ export default function PreviewFeedLivePage() {
                 ratings: { meh: 0, like: 0, love: 0, userRating: cachedRating }
               },
               comments: [],
-              showComments: [],
-              initialUserStatus: cachedStatus
+              showComments: []
             }
             
             return (
@@ -3310,6 +3309,7 @@ export default function PreviewFeedLivePage() {
                       name: profile?.display_name || 'Guest',
                       avatar: profile?.avatar_url || ''
                     }}
+                    initialUserStatus={cachedStatus}
                     onRate={handleRate}
                     onSetStatus={handleSetStatus}
                     onLikeShowComment={(commentId) => handleLikeShowComment(commentId)}
@@ -3570,8 +3570,7 @@ export default function PreviewFeedLivePage() {
                 ratings: { meh: 0, like: 0, love: 0, userRating: cachedRating }
               },
               comments: [],
-              showComments: [],
-              initialUserStatus: cachedStatus
+              showComments: []
             }
             
             return (
@@ -3586,6 +3585,7 @@ export default function PreviewFeedLivePage() {
                       name: profile?.display_name || 'Guest',
                       avatar: profile?.avatar_url || ''
                     }}
+                    initialUserStatus={cachedStatus}
                     onRate={handleRate}
                     onSetStatus={handleSetStatus}
                     onLikeShowComment={(commentId) => handleLikeShowComment(commentId)}
