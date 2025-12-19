@@ -3,58 +3,24 @@
 import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface FooterProps {
+  /** @deprecated Use withBottomNav instead. Will be removed in future version. */
   variant?: 'full' | 'minimal'
+  /** Add extra bottom padding to account for BottomNav on logged-in pages */
+  withBottomNav?: boolean
 }
 
-export default function Footer({ variant = 'full' }: FooterProps) {
+export default function Footer({ variant = 'full', withBottomNav = false }: FooterProps) {
   const colors = useThemeColors()
 
   const currentYear = new Date().getFullYear()
 
-  if (variant === 'minimal') {
-    // Minimal footer card for logged-in pages
-    return (
-      <div style={{
-        maxWidth: '600px',
-        margin: '2rem auto 0',
-        padding: '0 1.5rem',
-        paddingBottom: '6rem' // Extra space for BottomNav
-      }}>
-        <div style={{
-          background: colors.glassBg,
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          border: colors.goldBorder,
-          borderRadius: '20px',
-          padding: '2rem',
-          boxShadow: colors.shadowLg,
-          textAlign: 'center'
-        }}>
-          <div style={{ marginBottom: '1rem', fontSize: '0.8125rem' }}>
-            <a href="/privacy" style={{ color: colors.textPrimary, textDecoration: 'none', margin: '0 0.75rem', fontWeight: '600' }}>
-              Privacy
-            </a>
-            <a href="/terms" style={{ color: colors.textPrimary, textDecoration: 'none', margin: '0 0.75rem', fontWeight: '600' }}>
-              Terms
-            </a>
-            <a href="/ccpa" style={{ color: colors.textPrimary, textDecoration: 'none', margin: '0 0.75rem', fontWeight: '600' }}>
-              Do Not Sell My Info
-            </a>
-          </div>
-          <div style={{ color: colors.textSecondary, fontSize: '0.8125rem' }}>
-            © {currentYear} Been Watching. All rights reserved.
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Full footer card for marketing/public pages
+  // Full footer card - used on all pages now
   return (
     <div style={{
       maxWidth: '600px',
       margin: '2rem auto 0',
-      padding: '0 1.5rem'
+      padding: '0 1.5rem',
+      paddingBottom: withBottomNav ? '6rem' : '2rem' // Extra space for BottomNav when needed
     }}>
       <div style={{
         background: colors.glassBg,

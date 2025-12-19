@@ -1215,8 +1215,8 @@ export default function ProfilePage() {
         onFriendClick={(username) => router.push(`/${username}`)}
       />
 
-      {/* Minimal Footer */}
-      <Footer variant="minimal" />
+      {/* Footer */}
+      <Footer withBottomNav />
 
       <BottomNav onSearchOpen={() => setSearchOpen(true)} />
 

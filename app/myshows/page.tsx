@@ -932,8 +932,8 @@ export default function MyShowsPage() {
         </div>
       )}
 
-      {/* Minimal Footer */}
-      <Footer variant="minimal" />
+      {/* Footer */}
+      <Footer withBottomNav />
 
       <BottomNav onSearchOpen={() => setSearchOpen(true)} />
     </div>
