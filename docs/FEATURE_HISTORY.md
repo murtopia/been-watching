@@ -2,6 +2,69 @@
 
 This document tracks the development history of major features and important changes.
 
+## Recent Updates (December 2025)
+
+### Session: December 19, 2025 - Quick Action Modal Fixes
+**Duration**: Partial session
+**Status**: ✅ Complete
+
+#### Issues Fixed
+
+1. **Quick Action Modal Section Titles**
+   - Added "Rate This Show" title above rating icons (Meh, Like, Love)
+   - Added "Add to a Watchlist" title above watchlist icons (Want To, Watching, Watched)
+   - Added visual divider between sections
+   - Styled with uppercase, letter-spacing, centered alignment
+
+2. **Rating Not Displaying in Quick Action Modal**
+   - **Problem**: When opening Quick Action modal for already-rated shows, the rating wasn't highlighted
+   - **Root Causes**: 
+     - State initialization: `userRating` state was only set on component mount, not updated when props changed
+     - My Shows page: Property name typo (`mediaItem.rating` vs `mediaItem.user_rating`)
+     - Top 3 shows: Not fetching user's rating/status from database
+     - Feed page: Recommendation cards not receiving cached ratings
+   - **Solution**:
+     - Added `useEffect` hooks in `FeedCard` to sync `userRating` and `watchlistStatus` when props change
+     - Fixed property name in `handlePosterClick` on My Shows page
+     - Added database fetch for rating/status in `handleViewTopShow` for Top 3 shows
+     - Added `userRatingsMap` and `userStatusMap` caches in feed page
+
+3. **Dismissed Cards Reappearing After Refresh**
+   - **Problem**: Dismissed recommendation cards would reappear after page refresh
+   - **Root Cause**: `getUserExcludedMediaIds` wasn't checking `user_dismissed_media` table
+   - **Solution**: Updated `utils/feedUtils.ts` to include `user_dismissed_media` in exclusions
+
+#### Technical Details
+
+**State Syncing in FeedCard** (`components/feed/UserActivityCard.tsx`):
+```typescript
+// Sync userRating when data prop changes
+useEffect(() => {
+  setUserRating(data.friendsActivity.ratings.userRating || null)
+}, [data.friendsActivity.ratings.userRating])
+
+// Sync watchlistStatus when initialUserStatus prop changes  
+useEffect(() => {
+  if (initialUserStatus) {
+    setWatchlistStatus(new Set([initialUserStatus]))
+  }
+}, [initialUserStatus])
+```
+
+**Rating/Status Caching** (`app/feed/page.tsx`):
+- `userRatingsMap`: Map of media IDs to ratings (meh/like/love)
+- `userStatusMap`: Map of media IDs to statuses (want/watching/watched)
+- Loaded when feed loads, updated immediately when user takes action
+- Passed to recommendation cards for proper display
+
+#### Files Modified
+- `components/feed/UserActivityCard.tsx` - Section titles, state syncing useEffects
+- `app/feed/page.tsx` - Rating/status caching system, pass `initialUserStatus` prop
+- `app/myshows/page.tsx` - Fixed property name, added rating fetch for Top 3
+- `utils/feedUtils.ts` - Added `user_dismissed_media` to exclusion query
+
+---
+
 ## Recent Updates (October 2025)
 
 ### Session: October 18, 2025 - Authentication & UX Improvements
