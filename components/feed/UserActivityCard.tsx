@@ -2372,10 +2372,14 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                 <div>
                   <button 
                     className="action-btn dismiss-btn" 
-                    onClick={() => {
-                      const mediaId = ('media' in data && (data as FeedCardData).media?.id) || ''
+                    onClick={(e) => {
+                      e.stopPropagation() // Prevent event bubbling
+                      const mediaId = ('media' in data && (data as FeedCardData).media?.id)
                       if (mediaId) {
-                        onDismissRecommendation(mediaId)
+                        // Ensure it's a string
+                        onDismissRecommendation(String(mediaId))
+                      } else {
+                        console.warn('Dismiss button clicked but no media ID found in data:', data)
                       }
                     }}
                     title="Not interested"

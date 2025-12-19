@@ -2551,10 +2551,13 @@ export default function PreviewFeedLivePage() {
   // Persists to database so the show never appears again in recommendations
   const handleDismissMedia = async (mediaId: string, cardType: string) => {
     if (!user) return
-    console.log('Dismiss media:', mediaId, 'from card type:', cardType)
+    
+    // Ensure mediaId is a string (defensive against numeric IDs from TMDB)
+    const mediaIdStr = String(mediaId)
+    console.log('Dismiss media:', mediaIdStr, 'from card type:', cardType)
     
     // Normalize media ID (strip season suffix)
-    const normalizedMediaId = mediaId.replace(/-s\d+$/, '')
+    const normalizedMediaId = mediaIdStr.replace(/-s\d+$/, '')
     
     try {
       // Insert into user_dismissed_media table
@@ -2580,12 +2583,24 @@ export default function PreviewFeedLivePage() {
       // Remove card from feed UI immediately
       setFeedItems(prev => prev.filter(item => {
         // Check if this item's media_id matches the dismissed one
-        const itemMediaId = 
-          item.data?.media?.id?.replace?.(/-s\d+$/, '') ||
-          (item.type === 'because_you_liked' ? `${item.data?.media?.media_type || 'tv'}-${item.data?.media?.id}` : null)
+        // Handle both string IDs ("tv-12345") and legacy numeric IDs
+        let itemMediaId: string | null = null
+        
+        if (item.data?.media?.id) {
+          const rawId = item.data.media.id
+          // If it's already a formatted string (tv-12345), use it directly
+          if (typeof rawId === 'string' && rawId.includes('-')) {
+            itemMediaId = rawId.replace(/-s\d+$/, '')
+          } else {
+            // Legacy: construct from media_type + id
+            const mediaType = item.data?.media?.media_type || 
+              (item.type === 'you_might_like' || item.type === 'because_you_liked' ? 'tv' : 'tv')
+            itemMediaId = `${mediaType}-${rawId}`
+          }
+        }
         
         if (!itemMediaId) return true
-        return itemMediaId.replace(/-s\d+$/, '') !== normalizedMediaId
+        return itemMediaId !== normalizedMediaId
       }))
       
       console.log('✅ Media dismissed and removed from feed')
@@ -3442,13 +3457,15 @@ export default function PreviewFeedLivePage() {
             
             const releaseYear = parseInt((media.first_air_date || media.release_date || '').substring(0, 4)) || new Date().getFullYear()
             const mediaTypeVal = media.media_type || 'tv'
+            // Construct proper media ID: "tv-12345" or "movie-12345"
+            const mediaId = `${mediaTypeVal}-${media.id}`
             // TMDB trending data has genre_ids (numbers), map to names
             const genreNames = mapGenreIds(media.genre_ids)
             const cardData: FeedCardData = {
               id: item.id,
               media: {
-                id: media.id,
-                title: media.title || 'Unknown',
+                id: mediaId,
+                title: media.title || media.name || 'Unknown',
                 year: releaseYear,
                 genres: genreNames,
                 rating: media.vote_average || 0,
