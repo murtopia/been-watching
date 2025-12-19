@@ -137,7 +137,7 @@ export default function AppHeader({
         }
       `}</style>
     <div style={{
-      padding: '0 1.5rem',
+      padding: '5px 1.5rem',
       background: cardBg,
       borderBottom: cardBorder,
       backdropFilter: backdropBlur,
