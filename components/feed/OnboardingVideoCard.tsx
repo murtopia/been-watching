@@ -28,26 +28,25 @@ export default function OnboardingVideoCard({
   const colors = useThemeColors()
   const videoRef = useRef<HTMLVideoElement>(null)
   const [isMuted, setIsMuted] = useState(true)
-  const [isPlaying, setIsPlaying] = useState(true)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [hasStarted, setHasStarted] = useState(false)
   const [videoSrc] = useState(() => 
     forcedVideoSrc || ONBOARDING_VIDEOS[Math.floor(Math.random() * ONBOARDING_VIDEOS.length)]
   )
-
-  // Auto-play video on mount
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.play().catch(() => {
-        // Autoplay was prevented, user needs to interact
-        setIsPlaying(false)
-      })
-    }
-  }, [])
 
   const toggleMute = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (videoRef.current) {
       videoRef.current.muted = !videoRef.current.muted
       setIsMuted(!isMuted)
+    }
+  }
+
+  const handlePlay = () => {
+    if (videoRef.current) {
+      videoRef.current.play()
+      setIsPlaying(true)
+      setHasStarted(true)
     }
   }
 
@@ -160,7 +159,35 @@ export default function OnboardingVideoCard({
           transform: scale(0.95);
         }
 
-        /* Play/pause indicator (shows when paused) */
+        /* Initial play button (shows before video starts) */
+        .initial-play-btn {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 100px;
+          height: 100px;
+          border-radius: 50%;
+          background: rgba(255, 193, 37, 0.9);
+          border: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          box-shadow: 0 4px 20px rgba(255, 193, 37, 0.4);
+        }
+
+        .initial-play-btn:hover {
+          transform: translate(-50%, -50%) scale(1.05);
+          box-shadow: 0 6px 30px rgba(255, 193, 37, 0.5);
+        }
+
+        .initial-play-btn:active {
+          transform: translate(-50%, -50%) scale(0.95);
+        }
+
+        /* Play/pause indicator (shows when paused after starting) */
         .play-indicator {
           position: absolute;
           top: 50%;
@@ -261,21 +288,30 @@ export default function OnboardingVideoCard({
             ref={videoRef}
             className="video-element"
             src={videoSrc}
-            autoPlay
             muted
             playsInline
             loop
+            poster=""
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
           />
 
-          {/* Tap area for play/pause */}
-          <div className="tap-area" onClick={togglePlayPause} />
+          {/* Initial play button - shows before video starts */}
+          {!hasStarted && (
+            <button className="initial-play-btn" onClick={handlePlay}>
+              <Icon name="play" size={48} color="#000000" />
+            </button>
+          )}
 
-          {/* Play indicator when paused */}
-          <div className={`play-indicator ${!isPlaying ? 'visible' : ''}`}>
-            <Icon name="play" size={40} color="white" />
-          </div>
+          {/* Tap area for play/pause (only after video has started) */}
+          {hasStarted && <div className="tap-area" onClick={togglePlayPause} />}
+
+          {/* Play indicator when paused (only after video has started) */}
+          {hasStarted && (
+            <div className={`play-indicator ${!isPlaying ? 'visible' : ''}`}>
+              <Icon name="play" size={40} color="white" />
+            </div>
+          )}
 
           {/* Welcome badge */}
           <div className="welcome-badge">
