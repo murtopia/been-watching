@@ -169,10 +169,10 @@ export default function AppHeader({
           gap: '0.5rem'
         }}>
           <img
-            src="/BW_header_icon.png"
+            src="/BW_header_v2.png"
             alt="Been Watching"
             style={{
-              height: '151px',
+              height: '60px',
               width: 'auto'
             }}
           />
