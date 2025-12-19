@@ -3,10 +3,10 @@
   <defs>
     <style>
       .cls-1 {
-        fill: #FFC125;
+        fill: none;
       }
       .cls-2 {
-        fill: none;
+        fill: #FFC125;
       }
     </style>
   </defs>
