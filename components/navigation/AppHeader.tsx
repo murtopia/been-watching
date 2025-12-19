@@ -169,7 +169,7 @@ export default function AppHeader({
           gap: '0.5rem'
         }}>
           <img
-            src="/bw-logo.png"
+            src="/BW_logo_updated.svg"
             alt="Been Watching"
             style={{
               height: '40px',
