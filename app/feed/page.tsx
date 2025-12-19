@@ -875,6 +875,10 @@ export default function PreviewFeedLivePage() {
   const [dismissedUsers, setDismissedUsers] = useState<Set<string>>(new Set())
   const followSuggestionsCount = useRef(0) // Track how many times we've shown the card
   
+  // Cache user ratings by media ID for recommendation cards
+  const [userRatingsMap, setUserRatingsMap] = useState<Map<string, 'meh' | 'like' | 'love'>>(new Map())
+  const [userStatusMap, setUserStatusMap] = useState<Map<string, 'want' | 'watching' | 'watched'>>(new Map())
+  
   // Track media IDs shown in CURRENT batch (reset each load to allow recommendations to repeat)
   // Activities are always unique (cursor-based), but recommendations can repeat after a few loads
   const shownMediaIds = useRef<Set<string>>(new Set())
@@ -930,8 +934,53 @@ export default function PreviewFeedLivePage() {
   useEffect(() => {
     if (user) {
       loadFeed()
+      // Load user's ratings and watch statuses into cache for recommendation cards
+      loadUserRatingsAndStatus()
     }
   }, [user])
+  
+  // Load user's ratings and statuses into maps for quick lookup in recommendation cards
+  const loadUserRatingsAndStatus = async () => {
+    if (!user) return
+    
+    try {
+      const [ratingsResult, statusResult] = await Promise.all([
+        supabase.from('ratings').select('media_id, rating').eq('user_id', user.id),
+        supabase.from('watch_status').select('media_id, status').eq('user_id', user.id)
+      ])
+      
+      if (ratingsResult.data) {
+        const newRatingsMap = new Map<string, 'meh' | 'like' | 'love'>()
+        for (const r of ratingsResult.data) {
+          if (r.media_id && r.rating) {
+            // Store both with and without season suffix for flexible lookup
+            newRatingsMap.set(r.media_id, r.rating as 'meh' | 'like' | 'love')
+            const baseId = r.media_id.replace(/-s\d+$/, '')
+            if (baseId !== r.media_id) {
+              newRatingsMap.set(baseId, r.rating as 'meh' | 'like' | 'love')
+            }
+          }
+        }
+        setUserRatingsMap(newRatingsMap)
+      }
+      
+      if (statusResult.data) {
+        const newStatusMap = new Map<string, 'want' | 'watching' | 'watched'>()
+        for (const s of statusResult.data) {
+          if (s.media_id && s.status) {
+            newStatusMap.set(s.media_id, s.status as 'want' | 'watching' | 'watched')
+            const baseId = s.media_id.replace(/-s\d+$/, '')
+            if (baseId !== s.media_id) {
+              newStatusMap.set(baseId, s.status as 'want' | 'watching' | 'watched')
+            }
+          }
+        }
+        setUserStatusMap(newStatusMap)
+      }
+    } catch (err) {
+      console.error('Error loading user ratings/status:', err)
+    }
+  }
 
   const loadUser = async () => {
     const { data: { user }, error } = await supabase.auth.getUser()
@@ -2672,6 +2721,19 @@ export default function PreviewFeedLivePage() {
     const mediaType = mediaId.startsWith('tv-') ? 'tv' : 'movie'
     const mediaTitle = mediaItem?.data?.show?.title || 'Unknown'
     
+    // Update the cache immediately for UI responsiveness
+    setUserRatingsMap(prev => {
+      const newMap = new Map(prev)
+      if (rating === null) {
+        newMap.delete(mediaId)
+        newMap.delete(mediaId.replace(/-s\d+$/, ''))
+      } else {
+        newMap.set(mediaId, rating)
+        newMap.set(mediaId.replace(/-s\d+$/, ''), rating)
+      }
+      return newMap
+    })
+    
     try {
       if (rating === null) {
         // Remove rating
@@ -2715,6 +2777,19 @@ export default function PreviewFeedLivePage() {
     const mediaType = mediaId.startsWith('tv-') ? 'tv' : 'movie'
     const mediaTitle = mediaItem?.data?.show?.title || 'Unknown'
     const oldStatus = mediaItem?.data?.userStatus || null
+    
+    // Update the cache immediately for UI responsiveness
+    setUserStatusMap(prev => {
+      const newMap = new Map(prev)
+      if (status === null) {
+        newMap.delete(mediaId)
+        newMap.delete(mediaId.replace(/-s\d+$/, ''))
+      } else {
+        newMap.set(mediaId, status)
+        newMap.set(mediaId.replace(/-s\d+$/, ''), status)
+      }
+      return newMap
+    })
     
     try {
       if (status === null) {
@@ -3189,6 +3264,10 @@ export default function PreviewFeedLivePage() {
             const mediaType = media.media_type || 'tv'
             const mediaId = `${mediaType}-${media.id}`
             
+            // Look up user's existing rating and status from cache
+            const cachedRating = userRatingsMap.get(mediaId)
+            const cachedStatus = userStatusMap.get(mediaId)
+            
             // Transform TMDB data to FeedCardData format
             const releaseYear = parseInt((media.first_air_date || media.release_date || '').substring(0, 4)) || new Date().getFullYear()
             const cardData: FeedCardData = {
@@ -3212,10 +3291,11 @@ export default function PreviewFeedLivePage() {
                 watching: { count: 0, avatars: [] },
                 wantToWatch: { count: 0, avatars: [] },
                 watched: { count: 0, avatars: [] },
-                ratings: { meh: 0, like: 0, love: 0 }
+                ratings: { meh: 0, like: 0, love: 0, userRating: cachedRating }
               },
               comments: [],
-              showComments: []
+              showComments: [],
+              initialUserStatus: cachedStatus
             }
             
             return (
@@ -3459,6 +3539,11 @@ export default function PreviewFeedLivePage() {
             const mediaTypeVal = media.media_type || 'tv'
             // Construct proper media ID: "tv-12345" or "movie-12345"
             const mediaId = `${mediaTypeVal}-${media.id}`
+            
+            // Look up user's existing rating and status from cache
+            const cachedRating = userRatingsMap.get(mediaId)
+            const cachedStatus = userStatusMap.get(mediaId)
+            
             // TMDB trending data has genre_ids (numbers), map to names
             const genreNames = mapGenreIds(media.genre_ids)
             const cardData: FeedCardData = {
@@ -3482,10 +3567,11 @@ export default function PreviewFeedLivePage() {
                 watching: { count: 0, avatars: [] },
                 wantToWatch: { count: 0, avatars: [] },
                 watched: { count: 0, avatars: [] },
-                ratings: { meh: 0, like: 0, love: 0 }
+                ratings: { meh: 0, like: 0, love: 0, userRating: cachedRating }
               },
               comments: [],
-              showComments: []
+              showComments: [],
+              initialUserStatus: cachedStatus
             }
             
             return (
