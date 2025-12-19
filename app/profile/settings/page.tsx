@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import AppHeader from '@/components/navigation/AppHeader'
 import BottomNav from '@/components/navigation/BottomNav'
+import OnboardingVideoCard from '@/components/feed/OnboardingVideoCard'
 import {
   User,
   Phone,
@@ -14,13 +15,16 @@ import {
   Palette,
   HelpCircle,
   ChevronRight,
-  LogOut
+  LogOut,
+  Play,
+  X
 } from 'lucide-react'
 
 export default function SettingsPage() {
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [showTutorial, setShowTutorial] = useState(false)
   const router = useRouter()
   const colors = useThemeColors()
   const supabase = createClient()
@@ -219,12 +223,43 @@ export default function SettingsPage() {
           })}
         </div>
 
+        {/* Watch Tutorial Button */}
+        <button
+          onClick={() => setShowTutorial(true)}
+          style={{
+            width: '100%',
+            marginTop: '2rem',
+            background: 'transparent',
+            border: `1px solid ${colors.goldAccent}`,
+            borderRadius: '12px',
+            padding: '1rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.5rem',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            color: colors.goldAccent,
+            fontWeight: 600,
+            fontSize: '1rem'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = colors.goldGlassBg
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent'
+          }}
+        >
+          <Play size={20} />
+          Watch Tutorial
+        </button>
+
         {/* Logout Button */}
         <button
           onClick={handleLogout}
           style={{
             width: '100%',
-            marginTop: '2rem',
+            marginTop: '0.75rem',
             background: 'transparent',
             border: `1px solid ${colors.error}`,
             borderRadius: '12px',
@@ -252,6 +287,50 @@ export default function SettingsPage() {
           Log Out
         </button>
       </div>
+
+      {/* Tutorial Modal */}
+      {showTutorial && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.9)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}
+          onClick={() => setShowTutorial(false)}
+        >
+          <div
+            style={{ position: 'relative' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <OnboardingVideoCard hideDismiss />
+            <button
+              onClick={() => setShowTutorial(false)}
+              style={{
+                position: 'absolute',
+                top: '-50px',
+                right: '0',
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '50%',
+                width: '42px',
+                height: '42px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                color: 'white'
+              }}
+            >
+              <X size={24} />
+            </button>
+          </div>
+        </div>
+      )}
 
       <BottomNav onSearchOpen={() => {}} />
     </div>

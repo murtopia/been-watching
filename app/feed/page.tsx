@@ -18,6 +18,7 @@ import { createClient } from '@/utils/supabase/client'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { UserActivityCard, FeedCard, BADGE_PRESETS, FeedCardData } from '@/components/feed/UserActivityCard'
 import { FollowSuggestionsCard } from '@/components/feed/FollowSuggestionsCard'
+import OnboardingVideoCard from '@/components/feed/OnboardingVideoCard'
 import BottomNav from '@/components/navigation/BottomNav'
 import AppHeader from '@/components/navigation/AppHeader'
 import SearchModalEnhanced from '@/components/search/SearchModalEnhanced'
@@ -879,6 +880,9 @@ export default function PreviewFeedLivePage() {
   const [userRatingsMap, setUserRatingsMap] = useState<Map<string, 'meh' | 'like' | 'love'>>(new Map())
   const [userStatusMap, setUserStatusMap] = useState<Map<string, 'want' | 'watching' | 'watched'>>(new Map())
   
+  // Onboarding video card state
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  
   // Track media IDs shown in CURRENT batch (reset each load to allow recommendations to repeat)
   // Activities are always unique (cursor-based), but recommendations can repeat after a few loads
   const shownMediaIds = useRef<Set<string>>(new Set())
@@ -991,15 +995,19 @@ export default function PreviewFeedLivePage() {
     }
     setUser(user)
     
-    // Load user profile for header
+    // Load user profile for header and onboarding status
     const { data: profileData } = await supabase
       .from('profiles')
-      .select('id, username, display_name, avatar_url')
+      .select('id, username, display_name, avatar_url, has_seen_onboarding')
       .eq('id', user.id)
       .single()
     
     if (profileData) {
       setProfile(profileData)
+      // Show onboarding video if user hasn't seen it yet
+      if (!profileData.has_seen_onboarding) {
+        setShowOnboarding(true)
+      }
     }
   }
 
@@ -2712,6 +2720,25 @@ export default function PreviewFeedLivePage() {
     }
   }
 
+  // Handle dismissing the onboarding video card
+  const handleDismissOnboarding = async () => {
+    if (!user) return
+    
+    try {
+      // Update profile to mark onboarding as seen
+      await supabase
+        .from('profiles')
+        .update({ has_seen_onboarding: true })
+        .eq('id', user.id)
+      
+      // Hide the card immediately
+      setShowOnboarding(false)
+      console.log('Onboarding video dismissed')
+    } catch (err) {
+      console.error('Error dismissing onboarding:', err)
+    }
+  }
+
   const handleRate = async (mediaId: string, rating: 'meh' | 'like' | 'love' | null) => {
     if (!user) return
     console.log('Rate media:', mediaId, rating)
@@ -3187,6 +3214,15 @@ export default function PreviewFeedLivePage() {
       `}</style>
 
       <div>
+        {/* Onboarding Video Card - shows first for new users */}
+        {showOnboarding && (
+          <div className="card-snap-wrapper">
+            <div className="card-inner-wrapper">
+              <OnboardingVideoCard onDismiss={handleDismissOnboarding} />
+            </div>
+          </div>
+        )}
+
         {feedItems.map((item) => {
           if (item.type === 'activity') {
             const { activity, friendsActivity, showComments, activityComments } = item.data
