@@ -17,9 +17,9 @@ export default function Footer({ variant = 'full', withBottomNav = false }: Foot
   // Full footer card - used on all pages now
   return (
     <div style={{
-      maxWidth: '600px',
+      maxWidth: '398px',
       margin: '2rem auto 0',
-      padding: '0 1.5rem',
+      padding: '0 1rem',
       paddingBottom: withBottomNav ? '6rem' : '2rem' // Extra space for BottomNav when needed
     }}>
       <div style={{
@@ -27,8 +27,8 @@ export default function Footer({ variant = 'full', withBottomNav = false }: Foot
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
         border: colors.goldBorder,
-        borderRadius: '20px',
-        padding: '2.5rem',
+        borderRadius: '16px',
+        padding: '1.5rem',
         boxShadow: colors.shadowLg
       }}>
         {/* Brand Section */}
@@ -55,45 +55,15 @@ export default function Footer({ variant = 'full', withBottomNav = false }: Foot
           </p>
         </div>
 
-        {/* Links Grid - 3 columns */}
+        {/* Links Grid - 2 columns */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateColumns: 'repeat(2, 1fr)',
           gap: '1.5rem',
           marginBottom: '1.5rem'
         }}>
-          {/* Company - Left Aligned */}
+          {/* Been Watching - Left Aligned */}
           <div style={{ textAlign: 'left' }}>
-            <h3 style={{
-              fontSize: '0.75rem',
-              fontWeight: '700',
-              color: colors.textPrimary,
-              marginBottom: '0.75rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em'
-            }}>
-              Company
-            </h3>
-            <ul style={{
-              listStyle: 'none',
-              padding: 0,
-              margin: 0
-            }}>
-              <li style={{ marginBottom: '0.5rem' }}>
-                <a href="/about" style={{ color: colors.textSecondary, textDecoration: 'none', fontSize: '0.875rem' }}>
-                  About
-                </a>
-              </li>
-              <li style={{ marginBottom: '0.5rem' }}>
-                <a href="/contact" style={{ color: colors.textSecondary, textDecoration: 'none', fontSize: '0.875rem' }}>
-                  Contact
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Been Watching - Center Aligned */}
-          <div style={{ textAlign: 'center' }}>
             <h3 style={{
               fontSize: '0.75rem',
               fontWeight: '700',
@@ -110,13 +80,23 @@ export default function Footer({ variant = 'full', withBottomNav = false }: Foot
               margin: 0
             }}>
               <li style={{ marginBottom: '0.5rem' }}>
-                <a href="/help" style={{ color: colors.textSecondary, textDecoration: 'none', fontSize: '0.875rem' }}>
-                  Help
+                <a href="/about" style={{ color: colors.textSecondary, textDecoration: 'none', fontSize: '0.875rem' }}>
+                  About
                 </a>
               </li>
               <li style={{ marginBottom: '0.5rem' }}>
                 <a href="/community-guidelines" style={{ color: colors.textSecondary, textDecoration: 'none', fontSize: '0.875rem' }}>
                   Guidelines
+                </a>
+              </li>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <a href="/help" style={{ color: colors.textSecondary, textDecoration: 'none', fontSize: '0.875rem' }}>
+                  Help
+                </a>
+              </li>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <a href="/contact" style={{ color: colors.textSecondary, textDecoration: 'none', fontSize: '0.875rem' }}>
+                  Contact
                 </a>
               </li>
             </ul>
