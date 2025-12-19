@@ -194,6 +194,7 @@ export default function AppHeader({
           {showNotifications && profile && (
             <button
               onClick={handleNotificationClick}
+              data-notification-bell="true"
               className={notificationCount > 0 ? 'bell-active' : ''}
               style={{
                 background: 'none',
@@ -212,8 +213,8 @@ export default function AppHeader({
                   position: 'absolute',
                   top: '-2px',
                   right: '-2px',
-                  background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-                  color: 'white',
+                  background: colors.goldAccent,
+                  color: '#000000',
                   fontSize: '0.625rem',
                   fontWeight: '700',
                   borderRadius: '10px',

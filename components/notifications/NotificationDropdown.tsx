@@ -182,10 +182,15 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
     return () => clearTimeout(timer)
   }, [isOpen, notifications])
 
-  // Close dropdown when clicking outside
+  // Close dropdown when clicking outside (but not on the bell button - that toggles via its own handler)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as HTMLElement
+      // Ignore clicks on the notification bell button (it has its own toggle logic)
+      if (target.closest('[data-notification-bell="true"]')) {
+        return
+      }
+      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
         onClose()
       }
     }
@@ -360,7 +365,7 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
               style={{
                 background: 'none',
                 border: 'none',
-                color: '#e94d88',
+                color: colors.goldAccent,
                 fontSize: '0.875rem',
                 fontWeight: '600',
                 cursor: 'pointer',
@@ -411,8 +416,8 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
               width: '32px',
               height: '32px',
               margin: '0 auto',
-              border: '3px solid rgba(233, 77, 136, 0.3)',
-              borderTop: '3px solid #e94d88',
+              border: `3px solid ${colors.goldAccent}33`,
+              borderTop: `3px solid ${colors.goldAccent}`,
               borderRadius: '50%',
               animation: 'spin 1s linear infinite'
             }} />
