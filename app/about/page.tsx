@@ -113,6 +113,27 @@ export default function AboutPage() {
           {/* Divider */}
           <div style={{ height: '1px', background: colors.dividerColor, margin: '1.5rem 0' }} />
 
+          <section style={{ marginBottom: '2rem' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.75rem', color: colors.textPrimary }}>
+              A Special Thanks
+            </h2>
+            <p style={{ color: colors.textSecondary, fontSize: '0.9375rem' }}>
+              I'd like to shoutout a special thank you to my buddy Tony Rosland, the creator of{' '}
+              <a 
+                href="https://studioledger.app/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                style={{ color: colors.goldAccent, textDecoration: 'none', fontWeight: 600 }}
+              >
+                Studio Ledger
+              </a>
+              . Tony has been my guide, mentor, troubleshooter, and advisor throughout this project and others. I have learned so much from him in a relatively short amount of time. Because of Tony, I now approach all of my projects in such a more advanced way that allows for faster development, less errors, and more awesomeness. Thanks Tony, I appreciate you!
+            </p>
+          </section>
+
+          {/* Divider */}
+          <div style={{ height: '1px', background: colors.dividerColor, margin: '1.5rem 0' }} />
+
           <section>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.75rem', color: colors.textPrimary }}>
               Get in Touch
@@ -128,7 +149,7 @@ export default function AboutPage() {
       </div>
 
       {/* Footer */}
-      <Footer variant="full" />
+      <Footer />
     </div>
   )
 }
