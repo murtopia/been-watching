@@ -172,8 +172,9 @@ export default function AppHeader({
             src="/BW_logo_updated.svg"
             alt="Been Watching"
             style={{
-              height: '40px',
-              width: 'auto'
+              height: '52px',
+              width: 'auto',
+              marginBottom: '-8px' // Offset for the speech bubble tail
             }}
           />
           <h1 style={{
