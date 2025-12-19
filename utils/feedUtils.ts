@@ -7,31 +7,44 @@ import { createClient } from '@/utils/supabase/client'
 
 /**
  * Get all media IDs that should be excluded from recommendations
- * (shows user has already interacted with)
+ * (shows user has already interacted with OR dismissed)
  */
 export async function getUserExcludedMediaIds(userId: string): Promise<Set<string>> {
   const supabase = createClient()
   
-  // Get shows in user's watchlist
-  const { data: watchStatus } = await supabase
-    .from('watch_status')
-    .select('media_id')
-    .eq('user_id', userId)
-  
-  // Get shows user has rated
-  const { data: ratings } = await supabase
-    .from('ratings')
-    .select('media_id')
-    .eq('user_id', userId)
+  // Fetch all exclusion sources in parallel
+  const [watchStatusResult, ratingsResult, dismissedResult] = await Promise.all([
+    // Get shows in user's watchlist
+    supabase
+      .from('watch_status')
+      .select('media_id')
+      .eq('user_id', userId),
+    
+    // Get shows user has rated
+    supabase
+      .from('ratings')
+      .select('media_id')
+      .eq('user_id', userId),
+    
+    // Get shows user has dismissed
+    supabase
+      .from('user_dismissed_media')
+      .select('media_id')
+      .eq('user_id', userId)
+  ])
   
   const excluded = new Set<string>()
   
-  watchStatus?.forEach(w => {
+  watchStatusResult.data?.forEach(w => {
     if (w.media_id) excluded.add(w.media_id)
   })
   
-  ratings?.forEach(r => {
+  ratingsResult.data?.forEach(r => {
     if (r.media_id) excluded.add(r.media_id)
+  })
+  
+  dismissedResult.data?.forEach(d => {
+    if (d.media_id) excluded.add(d.media_id)
   })
   
   return excluded
