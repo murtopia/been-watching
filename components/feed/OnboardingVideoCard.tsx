@@ -44,6 +44,9 @@ export default function OnboardingVideoCard({
 
   const handlePlay = () => {
     if (videoRef.current) {
+      // Unmute when user explicitly clicks play
+      videoRef.current.muted = false
+      setIsMuted(false)
       videoRef.current.play()
       setIsPlaying(true)
       setHasStarted(true)
