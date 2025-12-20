@@ -306,8 +306,8 @@ export default function OnboardingVideoCard({
           width: 42px;
           height: 42px;
           border-radius: 50%;
-          background: rgba(80, 80, 80, 0.5);
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          background: ${colors.goldGlassBg};
+          border: ${colors.goldBorder};
           backdrop-filter: blur(10px);
           -webkit-backdrop-filter: blur(10px);
           display: flex;
@@ -318,7 +318,7 @@ export default function OnboardingVideoCard({
         }
 
         .dismiss-btn:hover {
-          background: rgba(100, 100, 100, 0.6);
+          background: rgba(255, 193, 37, 0.25);
         }
 
         .dismiss-btn:active {
@@ -351,7 +351,7 @@ export default function OnboardingVideoCard({
           {/* Initial play button - shows before video starts */}
           {!hasStarted && (
             <button className="initial-play-btn" onClick={handlePlay}>
-              <Icon name="play-c-default" size={64} />
+              <Icon name="play-c-default" size={64} color={colors.goldAccent} />
             </button>
           )}
 
@@ -361,7 +361,7 @@ export default function OnboardingVideoCard({
           {/* Play indicator when paused (only after video has started) */}
           {hasStarted && (
             <div className={`play-indicator ${!isPlaying ? 'visible' : ''}`}>
-              <Icon name="play-c-default" size={48} />
+              <Icon name="play-c-default" size={48} color={colors.goldAccent} />
             </div>
           )}
 
