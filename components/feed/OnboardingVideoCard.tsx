@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef } from 'react'
 import { Icon } from '@/components/ui/Icon'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Volume2, VolumeX } from 'lucide-react'
@@ -30,17 +30,12 @@ export default function OnboardingVideoCard({
   const [isMuted, setIsMuted] = useState(true)
   const [isPlaying, setIsPlaying] = useState(false)
   const [hasStarted, setHasStarted] = useState(false)
+  const [isLiked, setIsLiked] = useState(false)
+  const [likeCount, setLikeCount] = useState(42)
+  const [commentCount] = useState(7)
   const [videoSrc] = useState(() => 
     forcedVideoSrc || ONBOARDING_VIDEOS[Math.floor(Math.random() * ONBOARDING_VIDEOS.length)]
   )
-
-  const toggleMute = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (videoRef.current) {
-      videoRef.current.muted = !videoRef.current.muted
-      setIsMuted(!isMuted)
-    }
-  }
 
   const handlePlay = () => {
     if (videoRef.current) {
@@ -65,9 +60,33 @@ export default function OnboardingVideoCard({
     }
   }
 
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (videoRef.current) {
+      videoRef.current.muted = !videoRef.current.muted
+      setIsMuted(!isMuted)
+    }
+  }
+
   const handleDismiss = (e: React.MouseEvent) => {
     e.stopPropagation()
     onDismiss?.()
+  }
+
+  const handleLike = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setIsLiked(!isLiked)
+    setLikeCount(prev => isLiked ? prev - 1 : prev + 1)
+  }
+
+  const handlePlus = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    // For demo purposes - doesn't do anything functional
+  }
+
+  const handleComment = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    // For demo purposes - doesn't do anything functional
   }
 
   return (
@@ -96,24 +115,18 @@ export default function OnboardingVideoCard({
           object-fit: cover;
         }
 
-        .video-overlay {
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-        }
-
         /* Gradient overlay at bottom for controls visibility */
         .bottom-gradient {
           position: absolute;
           bottom: 0;
           left: 0;
           right: 0;
-          height: 120px;
-          background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+          height: 150px;
+          background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
           pointer-events: none;
         }
 
-        /* Welcome badge at top */
+        /* Welcome badge at top left */
         .welcome-badge {
           position: absolute;
           top: 16px;
@@ -132,37 +145,31 @@ export default function OnboardingVideoCard({
           letter-spacing: 0.5px;
           backdrop-filter: blur(10px);
           -webkit-backdrop-filter: blur(10px);
+          z-index: 2;
         }
 
-        /* Mute/unmute button */
-        .mute-btn {
+        /* Three dots menu button (top right) */
+        .menu-btn {
           position: absolute;
-          top: 16px;
-          right: 16px;
-          width: 42px;
-          height: 42px;
-          border-radius: 50%;
-          background: rgba(255, 193, 37, 0.15);
-          border: 1px solid rgba(255, 193, 37, 0.3);
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
+          top: 20px;
+          right: 12px;
+          width: 40px;
+          height: 40px;
           display: flex;
           align-items: center;
           justify-content: center;
+          border: none;
+          background: none;
           cursor: pointer;
-          transition: all 0.2s ease;
+          z-index: 2;
+          opacity: 0.8;
         }
 
-        .mute-btn:hover {
-          background: rgba(255, 193, 37, 0.25);
-          transform: scale(1.05);
+        .menu-btn:hover {
+          opacity: 1;
         }
 
-        .mute-btn:active {
-          transform: scale(0.95);
-        }
-
-        /* Initial play button (shows before video starts) */
+        /* Initial play button (shows before video starts) - using glassmorphism */
         .initial-play-btn {
           position: absolute;
           top: 50%;
@@ -171,19 +178,23 @@ export default function OnboardingVideoCard({
           width: 100px;
           height: 100px;
           border-radius: 50%;
-          background: rgba(255, 193, 37, 0.9);
-          border: none;
+          background: ${colors.goldGlassBg};
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border: ${colors.goldBorder};
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
           transition: all 0.2s ease;
-          box-shadow: 0 4px 20px rgba(255, 193, 37, 0.4);
+          box-shadow: 0 4px 20px rgba(255, 193, 37, 0.3);
+          z-index: 3;
         }
 
         .initial-play-btn:hover {
           transform: translate(-50%, -50%) scale(1.05);
-          box-shadow: 0 6px 30px rgba(255, 193, 37, 0.5);
+          box-shadow: 0 6px 30px rgba(255, 193, 37, 0.4);
+          background: rgba(255, 193, 37, 0.25);
         }
 
         .initial-play-btn:active {
@@ -214,18 +225,26 @@ export default function OnboardingVideoCard({
           opacity: 1;
         }
 
+        /* Tap to play area */
+        .tap-area {
+          position: absolute;
+          inset: 60px 60px 140px 60px;
+          cursor: pointer;
+          z-index: 1;
+        }
+
         /* Bottom content area */
         .bottom-content {
           position: absolute;
           bottom: 0;
           left: 0;
           right: 0;
-          padding: 20px;
+          padding: 16px 20px 20px;
           z-index: 2;
         }
 
         .title-section {
-          margin-bottom: 12px;
+          margin-bottom: 16px;
         }
 
         .card-title {
@@ -242,15 +261,64 @@ export default function OnboardingVideoCard({
           margin: 0;
         }
 
-        /* Dismiss button */
-        .dismiss-btn {
-          position: absolute;
-          bottom: 20px;
-          right: 20px;
+        /* Action buttons row */
+        .actions-row {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+        }
+
+        .action-buttons-left {
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+        }
+
+        .action-item {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .action-btn {
           width: 42px;
           height: 42px;
           border-radius: 50%;
-          background: rgba(255, 255, 255, 0.1);
+          background: ${colors.goldGlassBg};
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border: ${colors.goldBorder};
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .action-btn:active {
+          transform: scale(0.9);
+        }
+
+        .action-count {
+          text-align: center;
+          font-size: 12px;
+          font-weight: 600;
+          margin-top: 2px;
+          color: white;
+        }
+
+        /* Dismiss section (right side) */
+        .dismiss-section {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .dismiss-btn {
+          width: 42px;
+          height: 42px;
+          border-radius: 50%;
+          background: rgba(80, 80, 80, 0.5);
           border: 1px solid rgba(255, 255, 255, 0.2);
           backdrop-filter: blur(10px);
           -webkit-backdrop-filter: blur(10px);
@@ -259,29 +327,50 @@ export default function OnboardingVideoCard({
           justify-content: center;
           cursor: pointer;
           transition: all 0.2s ease;
-          z-index: 3;
         }
 
         .dismiss-btn:hover {
-          background: rgba(255, 255, 255, 0.2);
-          transform: scale(1.05);
+          background: rgba(100, 100, 100, 0.6);
         }
 
         .dismiss-btn:active {
-          transform: scale(0.95);
+          transform: scale(0.9);
         }
 
-        /* Tap to play area */
-        .tap-area {
+        .dismiss-label {
+          font-size: 11px;
+          color: rgba(255, 255, 255, 0.7);
+          margin-top: 4px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        /* Mute button (floating, top area after video starts) */
+        .mute-btn {
           position: absolute;
-          inset: 60px 60px 100px 60px;
+          top: 70px;
+          right: 16px;
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background: rgba(0, 0, 0, 0.5);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
           cursor: pointer;
-          z-index: 1;
+          transition: all 0.2s ease;
+          z-index: 2;
         }
 
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+        .mute-btn:hover {
+          background: rgba(0, 0, 0, 0.7);
+        }
+
+        .mute-btn:active {
+          transform: scale(0.9);
         }
       `}</style>
 
@@ -302,7 +391,7 @@ export default function OnboardingVideoCard({
           {/* Initial play button - shows before video starts */}
           {!hasStarted && (
             <button className="initial-play-btn" onClick={handlePlay}>
-              <Icon name="play" size={48} color="#000000" />
+              <Icon name="play-c-default" size={64} />
             </button>
           )}
 
@@ -316,20 +405,23 @@ export default function OnboardingVideoCard({
             </div>
           )}
 
-          {/* Welcome badge */}
+          {/* Welcome badge (top left) */}
           <div className="welcome-badge">
             <Icon name="sparkles" size={14} color={colors.goldAccent} />
             Welcome to Been Watching
           </div>
 
-          {/* Mute/unmute button */}
-          <button className="mute-btn" onClick={toggleMute} title={isMuted ? 'Unmute' : 'Mute'}>
-            {isMuted ? (
-              <VolumeX size={20} color="white" />
-            ) : (
-              <Volume2 size={20} color="white" />
-            )}
+          {/* Three dots menu button (top right) - for visual reference */}
+          <button className="menu-btn" onClick={(e) => e.stopPropagation()}>
+            <Icon name="menu-dots" size={20} color="white" />
           </button>
+
+          {/* Mute/unmute button (shows after video starts) */}
+          {hasStarted && (
+            <button className="mute-btn" onClick={toggleMute} title={isMuted ? 'Unmute' : 'Mute'}>
+              {isMuted ? <VolumeX size={18} color="white" /> : <Volume2 size={18} color="white" />}
+            </button>
+          )}
 
           {/* Bottom gradient */}
           <div className="bottom-gradient" />
@@ -340,14 +432,50 @@ export default function OnboardingVideoCard({
               <h2 className="card-title">Getting Started</h2>
               <p className="card-subtitle">Learn how to use Been Watching</p>
             </div>
-          </div>
 
-          {/* Dismiss button */}
-          {!hideDismiss && onDismiss && (
-            <button className="dismiss-btn" onClick={handleDismiss} title="Dismiss">
-              <Icon name="close" size={20} color="white" />
-            </button>
-          )}
+            {/* Action buttons row */}
+            <div className="actions-row">
+              {/* Left side: Heart, Plus, Comment */}
+              <div className="action-buttons-left">
+                {/* Heart */}
+                <div className="action-item">
+                  <button className="action-btn" onClick={handleLike}>
+                    <Icon
+                      name="heart-nav"
+                      state={isLiked ? 'active' : 'default'}
+                      size={24}
+                    />
+                  </button>
+                  <span className="action-count">{likeCount}</span>
+                </div>
+
+                {/* Plus */}
+                <div className="action-item">
+                  <button className="action-btn" onClick={handlePlus}>
+                    <Icon name="plus" state="default" size={24} />
+                  </button>
+                </div>
+
+                {/* Comment */}
+                <div className="action-item">
+                  <button className="action-btn" onClick={handleComment}>
+                    <Icon name="comment" state="default" size={24} />
+                  </button>
+                  <span className="action-count">{commentCount}</span>
+                </div>
+              </div>
+
+              {/* Right side: Dismiss button with label */}
+              {!hideDismiss && onDismiss && (
+                <div className="dismiss-section">
+                  <button className="dismiss-btn" onClick={handleDismiss} title="Dismiss">
+                    <Icon name="close" state="default" size={20} />
+                  </button>
+                  <span className="dismiss-label">Dismiss</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </>
