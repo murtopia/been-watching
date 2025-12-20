@@ -298,6 +298,7 @@ interface Profile {
   username: string
   display_name: string
   avatar_url: string | null
+  has_seen_onboarding?: boolean
 }
 
 // =====================================================
