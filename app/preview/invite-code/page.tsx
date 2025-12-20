@@ -23,10 +23,10 @@ export default function InviteCodePreview() {
             style={{
               marginTop: '1rem',
               padding: '0.75rem 1.5rem',
-              background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+              background: '#FFC125',
               border: 'none',
               borderRadius: '8px',
-              color: '#fff',
+              color: '#000',
               fontWeight: 600,
               cursor: 'pointer'
             }}
@@ -63,7 +63,7 @@ export default function InviteCodePreview() {
       </div>
       <InviteCodeGate
         userId="preview-user-id"
-        onValidated={() => setValidated(true)}
+        onSuccess={() => setValidated(true)}
       />
     </div>
   )
