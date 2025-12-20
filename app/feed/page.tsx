@@ -1004,14 +1004,43 @@ export default function PreviewFeedLivePage() {
       .eq('id', user.id)
       .single()
     
-    if (profileError && profileError.message?.includes('has_seen_onboarding')) {
-      // Column doesn't exist yet, fetch without it
-      const { data: basicProfileData } = await supabase
-        .from('profiles')
-        .select('id, username, display_name, avatar_url')
-        .eq('id', user.id)
-        .single()
-      profileData = basicProfileData ? { ...basicProfileData, has_seen_onboarding: true } : null
+    if (profileError) {
+      console.log('Profile fetch error:', profileError.code, profileError.message)
+      
+      if (profileError.message?.includes('has_seen_onboarding')) {
+        // Column doesn't exist yet, fetch without it
+        const { data: basicProfileData } = await supabase
+          .from('profiles')
+          .select('id, username, display_name, avatar_url')
+          .eq('id', user.id)
+          .single()
+        profileData = basicProfileData ? { ...basicProfileData, has_seen_onboarding: true } : null
+      } else if (profileError.code === 'PGRST116') {
+        // No profile exists for this user - create a default one
+        console.log('No profile found for user, creating default profile...')
+        const defaultProfile = {
+          id: user.id,
+          username: user.email?.split('@')[0] || `user_${user.id.slice(0, 8)}`,
+          display_name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'New User',
+          avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
+          has_seen_onboarding: false
+        }
+        
+        // Try to insert the profile
+        const { data: newProfile, error: insertError } = await supabase
+          .from('profiles')
+          .insert(defaultProfile)
+          .select('id, username, display_name, avatar_url, has_seen_onboarding')
+          .single()
+        
+        if (insertError) {
+          console.error('Failed to create profile:', insertError)
+          // Use the default profile data anyway for the header
+          profileData = defaultProfile
+        } else {
+          profileData = newProfile
+        }
+      }
     } else {
       profileData = fullProfileData
     }
@@ -1022,6 +1051,17 @@ export default function PreviewFeedLivePage() {
       if (!profileData.has_seen_onboarding) {
         setShowOnboarding(true)
       }
+    } else {
+      // Fallback: create a minimal profile for the header to display
+      console.warn('Could not load or create profile, using fallback')
+      setProfile({
+        id: user.id,
+        username: user.email?.split('@')[0] || 'user',
+        display_name: user.user_metadata?.full_name || 'New User',
+        avatar_url: user.user_metadata?.avatar_url || null,
+        has_seen_onboarding: false
+      })
+      setShowOnboarding(true)
     }
   }
 
