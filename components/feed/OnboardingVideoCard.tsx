@@ -28,9 +28,6 @@ export default function OnboardingVideoCard({
   const videoRef = useRef<HTMLVideoElement>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [hasStarted, setHasStarted] = useState(false)
-  const [isLiked, setIsLiked] = useState(false)
-  const [likeCount, setLikeCount] = useState(42)
-  const [commentCount] = useState(7)
   const [videoSrc] = useState(() => 
     forcedVideoSrc || ONBOARDING_VIDEOS[Math.floor(Math.random() * ONBOARDING_VIDEOS.length)]
   )
@@ -62,21 +59,6 @@ export default function OnboardingVideoCard({
     onDismiss?.()
   }
 
-  const handleLike = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    setIsLiked(!isLiked)
-    setLikeCount(prev => isLiked ? prev - 1 : prev + 1)
-  }
-
-  const handlePlus = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    // For demo purposes - doesn't do anything functional
-  }
-
-  const handleComment = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    // For demo purposes - doesn't do anything functional
-  }
 
   return (
     <>
@@ -258,12 +240,10 @@ export default function OnboardingVideoCard({
           transform: scale(0.9);
         }
 
-        .action-count {
-          text-align: center;
-          font-size: 12px;
-          font-weight: 600;
-          margin-top: 2px;
-          color: white;
+        .action-btn.disabled {
+          opacity: 0.5;
+          cursor: default;
+          pointer-events: none;
         }
 
         /* Bottom content area (left side) */
@@ -387,31 +367,25 @@ export default function OnboardingVideoCard({
 
           {/* Right side action buttons (stacked vertically) */}
           <div className="action-buttons-right">
-            {/* Heart */}
+            {/* Heart - disabled for demo */}
             <div className="action-item">
-              <button className="action-btn" onClick={handleLike}>
-                <Icon
-                  name="heart-nav"
-                  state={isLiked ? 'active' : 'default'}
-                  size={24}
-                />
+              <button className="action-btn disabled">
+                <Icon name="heart-nav" state="default" size={24} />
               </button>
-              <span className="action-count">{likeCount}</span>
             </div>
 
-            {/* Plus */}
+            {/* Plus - disabled for demo */}
             <div className="action-item">
-              <button className="action-btn" onClick={handlePlus}>
+              <button className="action-btn disabled">
                 <Icon name="plus" state="default" size={24} />
               </button>
             </div>
 
-            {/* Comment */}
+            {/* Comment - disabled for demo */}
             <div className="action-item">
-              <button className="action-btn" onClick={handleComment}>
+              <button className="action-btn disabled">
                 <Icon name="comment" state="default" size={24} />
               </button>
-              <span className="action-count">{commentCount}</span>
             </div>
 
             {/* Dismiss button with label */}
