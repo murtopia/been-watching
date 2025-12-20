@@ -286,11 +286,11 @@ export default function AppHeader({
                   width: '32px',
                   height: '32px',
                   borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+                  background: colors.goldAccent,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: 'white',
+                  color: '#000',
                   fontSize: '0.875rem',
                   fontWeight: '700'
                 }}>

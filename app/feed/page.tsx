@@ -996,11 +996,25 @@ export default function PreviewFeedLivePage() {
     setUser(user)
     
     // Load user profile for header and onboarding status
-    const { data: profileData } = await supabase
+    // Try with has_seen_onboarding first, fall back without it if column doesn't exist
+    let profileData = null
+    const { data: fullProfileData, error: profileError } = await supabase
       .from('profiles')
       .select('id, username, display_name, avatar_url, has_seen_onboarding')
       .eq('id', user.id)
       .single()
+    
+    if (profileError && profileError.message?.includes('has_seen_onboarding')) {
+      // Column doesn't exist yet, fetch without it
+      const { data: basicProfileData } = await supabase
+        .from('profiles')
+        .select('id, username, display_name, avatar_url')
+        .eq('id', user.id)
+        .single()
+      profileData = basicProfileData ? { ...basicProfileData, has_seen_onboarding: true } : null
+    } else {
+      profileData = fullProfileData
+    }
     
     if (profileData) {
       setProfile(profileData)
