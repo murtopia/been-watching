@@ -997,9 +997,17 @@ export default function PreviewFeedLivePage() {
     setUser(user)
     
     // Load user profile for header and onboarding status
-    // Try with has_seen_onboarding first, fall back without it if column doesn't exist
-    let profileData = null
-    const { data: fullProfileData, error: profileError } = await supabase
+    // Build a fallback profile from user metadata (works for Google OAuth and email/password)
+    const fallbackProfile: Profile = {
+      id: user.id,
+      username: user.email?.split('@')[0] || `user_${user.id.slice(0, 8)}`,
+      display_name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'New User',
+      avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
+      has_seen_onboarding: false
+    }
+    
+    // Try to fetch existing profile
+    const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('id, username, display_name, avatar_url, has_seen_onboarding')
       .eq('id', user.id)
@@ -1008,61 +1016,56 @@ export default function PreviewFeedLivePage() {
     if (profileError) {
       console.log('Profile fetch error:', profileError.code, profileError.message)
       
-      if (profileError.message?.includes('has_seen_onboarding')) {
-        // Column doesn't exist yet, fetch without it
-        const { data: basicProfileData } = await supabase
-          .from('profiles')
-          .select('id, username, display_name, avatar_url')
-          .eq('id', user.id)
-          .single()
-        profileData = basicProfileData ? { ...basicProfileData, has_seen_onboarding: true } : null
-      } else if (profileError.code === 'PGRST116') {
-        // No profile exists for this user - create a default one
-        console.log('No profile found for user, creating default profile...')
-        const defaultProfile = {
-          id: user.id,
-          username: user.email?.split('@')[0] || `user_${user.id.slice(0, 8)}`,
-          display_name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'New User',
-          avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
-          has_seen_onboarding: false
-        }
-        
-        // Try to insert the profile
+      // Handle specific error cases
+      if (profileError.code === 'PGRST116') {
+        // No profile exists - try to create one
+        console.log('No profile found, creating...')
         const { data: newProfile, error: insertError } = await supabase
           .from('profiles')
-          .insert(defaultProfile)
+          .insert({
+            id: user.id,
+            username: fallbackProfile.username,
+            display_name: fallbackProfile.display_name,
+            avatar_url: fallbackProfile.avatar_url,
+            has_seen_onboarding: false
+          })
           .select('id, username, display_name, avatar_url, has_seen_onboarding')
           .single()
         
         if (insertError) {
           console.error('Failed to create profile:', insertError)
-          // Use the default profile data anyway for the header
-          profileData = defaultProfile
-        } else {
-          profileData = newProfile
+          // Still use fallback - header will display
         }
-      }
-    } else {
-      profileData = fullProfileData
-    }
-    
-    if (profileData) {
-      setProfile(profileData)
-      // Show onboarding video if user hasn't seen it yet
-      if (!profileData.has_seen_onboarding) {
+        
+        // Use newly created profile or fallback
+        setProfile(newProfile || fallbackProfile)
+        setShowOnboarding(true)
+      } else if (profileError.message?.includes('has_seen_onboarding')) {
+        // Column doesn't exist yet - fetch without it
+        const { data: basicProfile } = await supabase
+          .from('profiles')
+          .select('id, username, display_name, avatar_url')
+          .eq('id', user.id)
+          .single()
+        
+        if (basicProfile) {
+          setProfile({ ...basicProfile, has_seen_onboarding: true })
+        } else {
+          setProfile(fallbackProfile)
+          setShowOnboarding(true)
+        }
+      } else {
+        // Unknown error - use fallback to ensure header displays
+        console.warn('Unknown profile error, using fallback')
+        setProfile(fallbackProfile)
         setShowOnboarding(true)
       }
     } else {
-      // Fallback: create a minimal profile for the header to display
-      console.warn('Could not load or create profile, using fallback')
-      setProfile({
-        id: user.id,
-        username: user.email?.split('@')[0] || 'user',
-        display_name: user.user_metadata?.full_name || 'New User',
-        avatar_url: user.user_metadata?.avatar_url || null,
-        has_seen_onboarding: false
-      })
-      setShowOnboarding(true)
+      // Profile loaded successfully
+      setProfile(profileData)
+      if (!profileData.has_seen_onboarding) {
+        setShowOnboarding(true)
+      }
     }
   }
 
