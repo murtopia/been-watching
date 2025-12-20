@@ -7,6 +7,7 @@ import ThemeToggle from '@/components/theme/ThemeToggle'
 import NotificationDropdown from '@/components/notifications/NotificationDropdown'
 import Icon from '@/components/ui/Icon'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { getInitials, getAvatarGradient, getUserColor } from '@/utils/avatarUtils'
 
 interface AppHeaderProps {
   profile?: any
@@ -286,15 +287,16 @@ export default function AppHeader({
                   width: '32px',
                   height: '32px',
                   borderRadius: '50%',
-                  background: colors.goldAccent,
+                  background: getAvatarGradient(getUserColor(profile.id)),
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#000',
+                  color: '#fff',
                   fontSize: '0.875rem',
-                  fontWeight: '700'
+                  fontWeight: '700',
+                  textShadow: '0 1px 2px rgba(0,0,0,0.3)'
                 }}>
-                  {profile.display_name?.[0] || '?'}
+                  {getInitials(profile.display_name)}
                 </div>
               )}
             </button>

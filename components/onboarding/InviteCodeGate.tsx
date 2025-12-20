@@ -2,27 +2,22 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface InviteCodeGateProps {
   userId: string
-  onValidated: () => void
+  onSuccess: () => void
 }
 
-export default function InviteCodeGate({ userId, onValidated }: InviteCodeGateProps) {
+export default function InviteCodeGate({ userId, onSuccess }: InviteCodeGateProps) {
+  const colors = useThemeColors()
   const [inviteCode, setInviteCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [isDarkMode, setIsDarkMode] = useState(false)
   const supabase = createClient()
 
-  useEffect(() => {
-    const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    setIsDarkMode(darkModeQuery.matches)
-
-    const handler = (e: MediaQueryListEvent) => setIsDarkMode(e.matches)
-    darkModeQuery.addEventListener('change', handler)
-    return () => darkModeQuery.removeEventListener('change', handler)
-  }, [])
+  // Gold accent color
+  const goldAccent = '#FFC125'
 
   const validateInviteCode = async (code: string): Promise<boolean> => {
     try {
@@ -76,7 +71,7 @@ export default function InviteCodeGate({ userId, onValidated }: InviteCodeGatePr
         .eq('id', userId)
 
       // Code is valid, proceed to profile setup
-      onValidated()
+      onSuccess()
     } catch (err) {
       setError('An unexpected error occurred')
       setLoading(false)
@@ -87,14 +82,6 @@ export default function InviteCodeGate({ userId, onValidated }: InviteCodeGatePr
     await supabase.auth.signOut()
     window.location.href = '/auth'
   }
-
-  const cardBg = isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.95)'
-  const cardBorder = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-  const textPrimary = isDarkMode ? '#ffffff' : '#1a1a1a'
-  const textSecondary = isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)'
-  const inputBg = isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)'
-  const inputBorder = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-  const inputFocusBg = isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)'
 
   return (
     <div
@@ -115,14 +102,12 @@ export default function InviteCodeGate({ userId, onValidated }: InviteCodeGatePr
         style={{
           width: '100%',
           maxWidth: '420px',
-          background: cardBg,
+          background: colors.cardBg,
           backdropFilter: 'blur(20px)',
-          border: `1px solid ${cardBorder}`,
+          border: `1px solid ${colors.cardBorder}`,
           borderRadius: '24px',
           padding: '3rem',
-          boxShadow: isDarkMode
-            ? '0 20px 60px rgba(0, 0, 0, 0.5)'
-            : '0 20px 60px rgba(0, 0, 0, 0.08)',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
@@ -130,15 +115,13 @@ export default function InviteCodeGate({ userId, onValidated }: InviteCodeGatePr
             style={{
               fontSize: '2rem',
               fontWeight: 700,
-              background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
+              color: goldAccent,
               marginBottom: '0.5rem',
             }}
           >
             Invite Code Required
           </h1>
-          <p style={{ color: textSecondary, fontSize: '0.875rem' }}>
+          <p style={{ color: colors.textSecondary, fontSize: '0.875rem' }}>
             Enter your invite code to continue
           </p>
         </div>
@@ -148,7 +131,7 @@ export default function InviteCodeGate({ userId, onValidated }: InviteCodeGatePr
             <label
               style={{
                 display: 'block',
-                color: textPrimary,
+                color: colors.textPrimary,
                 fontSize: '0.875rem',
                 fontWeight: 600,
                 marginBottom: '0.5rem',
@@ -165,29 +148,30 @@ export default function InviteCodeGate({ userId, onValidated }: InviteCodeGatePr
               style={{
                 width: '100%',
                 padding: '0.875rem 1rem',
-                background: inputBg,
-                border: `1px solid ${inputBorder}`,
+                background: colors.inputBg,
+                border: `1px solid ${colors.inputBorder}`,
                 borderRadius: '12px',
-                color: textPrimary,
+                color: colors.textPrimary,
                 fontSize: '1rem',
                 outline: 'none',
                 transition: 'all 0.2s',
                 textTransform: 'uppercase',
+                boxSizing: 'border-box',
               }}
               onFocus={(e) => {
-                e.target.style.borderColor = 'rgba(233, 77, 136, 0.5)'
-                e.target.style.background = inputFocusBg
+                e.target.style.borderColor = `${goldAccent}80`
+                e.target.style.boxShadow = `0 0 0 3px ${goldAccent}20`
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = inputBorder
-                e.target.style.background = inputBg
+                e.target.style.borderColor = colors.inputBorder
+                e.target.style.boxShadow = 'none'
               }}
             />
-            <p style={{ fontSize: '0.75rem', color: textSecondary, marginTop: '0.5rem' }}>
+            <p style={{ fontSize: '0.75rem', color: colors.textSecondary, marginTop: '0.5rem' }}>
               Don't have a code?{' '}
               <a
                 href="/waitlist"
-                style={{ color: 'rgba(233, 77, 136, 1)', textDecoration: 'none' }}
+                style={{ color: goldAccent, textDecoration: 'none' }}
               >
                 Join the waitlist
               </a>
@@ -217,11 +201,11 @@ export default function InviteCodeGate({ userId, onValidated }: InviteCodeGatePr
               width: '100%',
               padding: '1rem',
               background: loading || !inviteCode
-                ? (isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)')
-                : 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
+                ? colors.inputBg
+                : goldAccent,
               border: 'none',
               borderRadius: '12px',
-              color: '#fff',
+              color: loading || !inviteCode ? colors.textSecondary : '#000',
               fontSize: '1rem',
               fontWeight: 700,
               cursor: loading || !inviteCode ? 'not-allowed' : 'pointer',
@@ -232,7 +216,7 @@ export default function InviteCodeGate({ userId, onValidated }: InviteCodeGatePr
             onMouseEnter={(e) => {
               if (!loading && inviteCode) {
                 e.currentTarget.style.transform = 'translateY(-2px)'
-                e.currentTarget.style.boxShadow = '0 10px 25px rgba(233, 77, 136, 0.3)'
+                e.currentTarget.style.boxShadow = `0 10px 25px ${goldAccent}40`
               }
             }}
             onMouseLeave={(e) => {
@@ -249,20 +233,20 @@ export default function InviteCodeGate({ userId, onValidated }: InviteCodeGatePr
             style={{
               width: '100%',
               padding: '0.875rem',
-              background: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
-              border: `1px solid ${inputBorder}`,
+              background: colors.inputBg,
+              border: `1px solid ${colors.inputBorder}`,
               borderRadius: '12px',
-              color: textPrimary,
+              color: colors.textPrimary,
               fontSize: '0.875rem',
               fontWeight: 600,
               cursor: 'pointer',
               transition: 'all 0.2s',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'
+              e.currentTarget.style.background = colors.inputBorder
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)'
+              e.currentTarget.style.background = colors.inputBg
             }}
           >
             Sign Out
