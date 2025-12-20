@@ -225,7 +225,7 @@ export default function OnboardingVideoCard({
         .action-buttons-right {
           position: absolute;
           right: 12px;
-          bottom: 100px;
+          bottom: 20px;
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -351,7 +351,10 @@ export default function OnboardingVideoCard({
           {/* Initial play button - shows before video starts */}
           {!hasStarted && (
             <button className="initial-play-btn" onClick={handlePlay}>
-              <Icon name="play-c-default" size={64} color={colors.goldAccent} />
+              <svg width="64" height="64" viewBox="0 0 42 42">
+                <circle cx="21" cy="21" r="20" fill={colors.goldGlassBg} stroke={colors.goldAccent} strokeWidth="1"/>
+                <polygon points="18 15 28 21 18 27 18 15" fill={colors.goldAccent}/>
+              </svg>
             </button>
           )}
 
@@ -361,7 +364,10 @@ export default function OnboardingVideoCard({
           {/* Play indicator when paused (only after video has started) */}
           {hasStarted && (
             <div className={`play-indicator ${!isPlaying ? 'visible' : ''}`}>
-              <Icon name="play-c-default" size={48} color={colors.goldAccent} />
+              <svg width="48" height="48" viewBox="0 0 42 42">
+                <circle cx="21" cy="21" r="20" fill={colors.goldGlassBg} stroke={colors.goldAccent} strokeWidth="1"/>
+                <polygon points="18 15 28 21 18 27 18 15" fill={colors.goldAccent}/>
+              </svg>
             </div>
           )}
 
