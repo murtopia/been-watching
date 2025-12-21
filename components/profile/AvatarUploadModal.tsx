@@ -517,10 +517,15 @@ export default function AvatarUploadModal({
                   fontWeight: '600',
                   cursor: uploading ? 'not-allowed' : 'pointer',
                   opacity: uploading ? 0.6 : 1,
-                  transition: 'all 0.2s'
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem'
                 }}
               >
-                📸 Add Photo
+                <Icon name="plus" size={20} color="#000" />
+                Add Photo
               </button>
 
               {currentAvatarUrl && (
@@ -537,10 +542,15 @@ export default function AvatarUploadModal({
                     fontWeight: '600',
                     cursor: uploading ? 'not-allowed' : 'pointer',
                     opacity: uploading ? 0.6 : 1,
-                    transition: 'all 0.2s'
+                    transition: 'all 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem'
                   }}
                 >
-                  {uploading ? 'Removing...' : '🗑️ Remove Current Picture'}
+                  <Icon name="trash" size={18} color="#ef4444" />
+                  {uploading ? 'Removing...' : 'Remove Current Picture'}
                 </button>
               )}
 
@@ -578,10 +588,19 @@ export default function AvatarUploadModal({
                   fontWeight: '600',
                   cursor: uploading ? 'not-allowed' : 'pointer',
                   opacity: uploading ? 0.6 : 1,
-                  transition: 'all 0.2s'
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem'
                 }}
               >
-                {uploading ? 'Uploading...' : '✓ Upload'}
+                {uploading ? 'Uploading...' : (
+                  <>
+                    <Icon name="check" size={18} color="#000" />
+                    Upload
+                  </>
+                )}
               </button>
 
               <button
