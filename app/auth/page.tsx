@@ -203,11 +203,15 @@ export default function AuthPage() {
             const masterCode = inviteCode.trim().toUpperCase()
 
             try {
-              // Use the master code
-              await supabase.rpc('use_master_code', {
+              // Use the master code (increment usage counter)
+              const { error: rpcError } = await supabase.rpc('use_master_code', {
                 master_code: masterCode,
                 user_id: data.user.id
               })
+              
+              if (rpcError) {
+                console.error('Failed to increment code usage:', rpcError)
+              }
 
               // Determine tier and award invites
               const tier = masterCode === 'BOOZEHOUND' ? 'boozehound' :

@@ -49,14 +49,18 @@ export default function InviteCodeGate({ userId, onSuccess }: InviteCodeGateProp
         return
       }
 
-      // Use the master code
-      await supabase.rpc('use_master_code', {
-        master_code: inviteCode.trim().toUpperCase(),
+      // Use the master code (increment usage counter)
+      const masterCode = inviteCode.trim().toUpperCase()
+      const { error: rpcError } = await supabase.rpc('use_master_code', {
+        master_code: masterCode,
         user_id: userId
       })
+      
+      if (rpcError) {
+        console.error('Failed to increment code usage:', rpcError)
+      }
 
       // Update profile with master code and tier
-      const masterCode = inviteCode.trim().toUpperCase()
       const tier = masterCode === 'BOOZEHOUND' ? 'boozehound' :
                   masterCode.startsWith('BWALPHA_') ? 'alpha' : 'beta'
 
