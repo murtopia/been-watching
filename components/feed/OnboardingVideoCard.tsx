@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Icon } from '@/components/ui/Icon'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
@@ -26,11 +26,37 @@ export default function OnboardingVideoCard({
 }: OnboardingVideoCardProps) {
   const colors = useThemeColors()
   const videoRef = useRef<HTMLVideoElement>(null)
+  const cardRef = useRef<HTMLDivElement>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [hasStarted, setHasStarted] = useState(false)
   const [videoSrc] = useState(() => 
     forcedVideoSrc || ONBOARDING_VIDEOS[Math.floor(Math.random() * ONBOARDING_VIDEOS.length)]
   )
+
+  // Auto-pause when card scrolls out of view (less than 25% visible)
+  useEffect(() => {
+    const card = cardRef.current
+    const video = videoRef.current
+    if (!card || !video) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0]
+        // Pause when less than 25% of card is visible
+        if (!entry.isIntersecting && !video.paused) {
+          video.pause()
+          setIsPlaying(false)
+        }
+      },
+      {
+        threshold: 0.25, // Trigger when 25% visibility threshold is crossed
+        rootMargin: '0px'
+      }
+    )
+
+    observer.observe(card)
+    return () => observer.disconnect()
+  }, [])
 
   const handlePlay = () => {
     if (videoRef.current) {
@@ -314,7 +340,7 @@ export default function OnboardingVideoCard({
         }
       `}</style>
 
-      <div className="onboarding-card">
+      <div className="onboarding-card" ref={cardRef}>
         <div className="video-container">
           <video
             ref={videoRef}
