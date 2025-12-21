@@ -12,6 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced filtering on My Shows page
 - Statistics dashboard
 
+### Recently Completed (2024-12-21)
+- ✅ **Invite Code Usage Tracking Fix**
+  - Fixed `use_master_code` RPC silently failing due to missing `GRANT EXECUTE` permissions
+  - Added error handling in `app/auth/page.tsx` and `components/onboarding/InviteCodeGate.tsx`
+  - Created migration `supabase/migrations/fix-invite-usage-counts.sql` to:
+    - Grant execute permissions on `is_master_code_valid`, `use_master_code`, `create_bwalpha_code`
+    - Create UPDATE policy for `master_codes` table
+    - Sync historical `current_uses` counts with actual profile signup counts
+  - Admin `/admin/invites` now shows accurate usage counts
+
 ### Recently Completed (2024-12-08)
 - ✅ **Landing Page Simplification**
   - Removed 6 feature cards for cleaner design

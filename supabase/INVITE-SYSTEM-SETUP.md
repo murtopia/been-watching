@@ -157,3 +157,21 @@ If it's missing, insert it manually:
 INSERT INTO master_codes (code, type, max_uses, is_active)
 VALUES ('BOOZEHOUND', 'master_unlimited', NULL, true);
 ```
+
+### Usage counts not incrementing (Shows 0 even after codes are used)
+
+**Root Cause**: The `use_master_code` RPC function was missing `GRANT EXECUTE` permissions for authenticated users, causing it to fail silently.
+
+**Fix**: Run the migration at `supabase/migrations/fix-invite-usage-counts.sql`. This migration:
+1. Grants execute permissions on `is_master_code_valid`, `use_master_code`, `create_bwalpha_code`
+2. Creates UPDATE policy for `master_codes` table
+3. Syncs historical `current_uses` counts with actual profile signup counts
+
+After running, verify with:
+```sql
+SELECT code, current_uses, 
+  (SELECT COUNT(*) FROM profiles p WHERE p.invited_by_master_code = mc.code) as actual_signups
+FROM master_codes mc;
+```
+
+Both columns should match.

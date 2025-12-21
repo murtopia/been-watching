@@ -337,6 +337,8 @@ const handleInviteCodeSubmit = (code: string) => {
    - ✅ User's `invites_remaining` = 10
    - ✅ Master code `current_uses` incremented
 
+> **Note**: If `current_uses` is not incrementing, run `supabase/migrations/fix-invite-usage-counts.sql` to grant missing EXECUTE permissions on the RPC functions.
+
 ### Test Case 3: Security Tests
 - ❌ Try to use already-used token → "Invite Already Used"
 - ❌ Try to redeem invite when inviter has 0 remaining → Error
