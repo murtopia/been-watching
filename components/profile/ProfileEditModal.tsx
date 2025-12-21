@@ -114,7 +114,7 @@ export default function ProfileEditModal({ isOpen, onClose, profile, onSave }: P
           width: '100%',
           maxWidth: '398px',
           background: colors.cardBg,
-          border: `1px solid ${colors.cardBorder}`,
+          border: `1px solid ${colors.goldAccent}`,
           borderRadius: '20px',
           overflow: 'hidden',
           boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4)',
@@ -143,13 +143,13 @@ export default function ProfileEditModal({ isOpen, onClose, profile, onSave }: P
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              padding: '0.25rem',
+              padding: 0,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
             }}
           >
-            <Icon name="close" size={24} color={colors.textSecondary} />
+            <Icon name="close-c-default" size={36} />
           </button>
         </div>
 

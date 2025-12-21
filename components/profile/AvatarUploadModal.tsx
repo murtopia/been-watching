@@ -2,6 +2,8 @@
 
 import { useState, useRef } from 'react'
 import { createClient } from '@/utils/supabase/client'
+import { useThemeColors } from '@/hooks/useThemeColors'
+import { Icon } from '@/components/ui/Icon'
 
 interface AvatarUploadModalProps {
   isOpen: boolean
@@ -29,6 +31,7 @@ export default function AvatarUploadModal({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const imageRef = useRef<HTMLImageElement>(null)
   const supabase = createClient()
+  const colors = useThemeColors()
 
   if (!isOpen) return null
 
@@ -290,7 +293,9 @@ export default function AvatarUploadModal({
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'transparent',
+        background: 'rgba(0, 0, 0, 0.6)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -301,15 +306,15 @@ export default function AvatarUploadModal({
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: 'rgba(255, 255, 255, 0.55)',
-          backdropFilter: 'blur(30px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(30px) saturate(180%)',
-          border: '1px solid rgba(255, 255, 255, 0.18)',
+          background: colors.cardBg,
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: `1px solid ${colors.goldAccent}`,
           borderRadius: '20px',
           padding: '2rem',
           maxWidth: '400px',
           width: '100%',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4)',
           position: 'relative'
         }}
       >
@@ -321,37 +326,25 @@ export default function AvatarUploadModal({
             position: 'absolute',
             top: '1rem',
             right: '1rem',
-            width: '32px',
-            height: '32px',
-            borderRadius: '50%',
+            background: 'none',
             border: 'none',
-            background: 'rgba(0, 0, 0, 0.1)',
-            color: '#666',
-            fontSize: '1.25rem',
             cursor: uploading ? 'not-allowed' : 'pointer',
+            padding: 0,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            transition: 'all 0.2s',
             opacity: uploading ? 0.5 : 1
           }}
-          onMouseEnter={(e) => {
-            if (!uploading) {
-              e.currentTarget.style.background = 'rgba(0, 0, 0, 0.2)'
-            }
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'rgba(0, 0, 0, 0.1)'
-          }}
         >
-          ×
+          <Icon name="close-c-default" size={36} />
         </button>
 
         <h2 style={{
           fontSize: '1.5rem',
           fontWeight: '700',
           marginBottom: '1.5rem',
-          textAlign: 'center'
+          textAlign: 'center',
+          color: colors.textPrimary
         }}>
           Update Profile Picture
         </h2>
@@ -370,8 +363,8 @@ export default function AvatarUploadModal({
                   height: '200px',
                   borderRadius: '50%',
                   overflow: 'hidden',
-                  border: '3px solid white',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                  border: `3px solid ${colors.goldAccent}`,
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
                   position: 'relative',
                   cursor: isDragging ? 'grabbing' : 'grab',
                   touchAction: 'none'
@@ -418,8 +411,9 @@ export default function AvatarUploadModal({
                   width: '36px',
                   height: '36px',
                   borderRadius: '50%',
-                  border: '1px solid #ddd',
-                  background: 'white',
+                  border: `1px solid ${colors.borderColor}`,
+                  background: colors.buttonBg,
+                  color: colors.textPrimary,
                   cursor: zoom <= 1 ? 'not-allowed' : 'pointer',
                   fontSize: '1.25rem',
                   display: 'flex',
@@ -439,7 +433,8 @@ export default function AvatarUploadModal({
                 onChange={(e) => setZoom(parseFloat(e.target.value))}
                 style={{
                   flex: 1,
-                  maxWidth: '150px'
+                  maxWidth: '150px',
+                  accentColor: colors.goldAccent
                 }}
               />
               <button
@@ -449,8 +444,9 @@ export default function AvatarUploadModal({
                   width: '36px',
                   height: '36px',
                   borderRadius: '50%',
-                  border: '1px solid #ddd',
-                  background: 'white',
+                  border: `1px solid ${colors.borderColor}`,
+                  background: colors.buttonBg,
+                  color: colors.textPrimary,
                   cursor: zoom >= 3 ? 'not-allowed' : 'pointer',
                   fontSize: '1.25rem',
                   display: 'flex',
@@ -467,7 +463,7 @@ export default function AvatarUploadModal({
             <p style={{
               textAlign: 'center',
               fontSize: '0.875rem',
-              color: '#666',
+              color: colors.textSecondary,
               marginBottom: '1.5rem'
             }}>
               Drag to reposition • Use slider to zoom
@@ -513,8 +509,8 @@ export default function AvatarUploadModal({
                 disabled={uploading}
                 style={{
                   padding: '1rem',
-                  background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-                  color: 'white',
+                  background: colors.goldAccent,
+                  color: '#000',
                   border: 'none',
                   borderRadius: '12px',
                   fontSize: '1rem',
@@ -533,9 +529,9 @@ export default function AvatarUploadModal({
                   disabled={uploading}
                   style={{
                     padding: '1rem',
-                    background: 'white',
-                    color: '#e94d88',
-                    border: '1px solid #e94d88',
+                    background: 'transparent',
+                    color: '#ef4444',
+                    border: '1px solid #ef4444',
                     borderRadius: '12px',
                     fontSize: '1rem',
                     fontWeight: '600',
@@ -554,7 +550,7 @@ export default function AvatarUploadModal({
                 style={{
                   padding: '1rem',
                   background: 'transparent',
-                  color: '#666',
+                  color: colors.textSecondary,
                   border: 'none',
                   borderRadius: '12px',
                   fontSize: '1rem',
@@ -574,8 +570,8 @@ export default function AvatarUploadModal({
                 disabled={uploading}
                 style={{
                   padding: '1rem',
-                  background: 'linear-gradient(135deg, #e94d88 0%, #f27121 100%)',
-                  color: 'white',
+                  background: colors.goldAccent,
+                  color: '#000',
                   border: 'none',
                   borderRadius: '12px',
                   fontSize: '1rem',
@@ -598,7 +594,7 @@ export default function AvatarUploadModal({
                 style={{
                   padding: '1rem',
                   background: 'transparent',
-                  color: '#666',
+                  color: colors.textSecondary,
                   border: 'none',
                   borderRadius: '12px',
                   fontSize: '1rem',
@@ -619,10 +615,10 @@ export default function AvatarUploadModal({
           <p style={{
             marginTop: '1rem',
             fontSize: '0.75rem',
-            color: '#666',
+            color: colors.textSecondary,
             textAlign: 'center'
           }}>
-            Images will be resized to 512x512px
+            Images will be resized to 512×512px
           </p>
         )}
       </div>
