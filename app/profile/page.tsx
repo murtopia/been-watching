@@ -13,6 +13,7 @@ import MutualFriendsModal from '@/components/friends/MutualFriendsModal'
 import Footer from '@/components/navigation/Footer'
 import InviteSection from '@/components/profile/InviteSection'
 import ReferralDashboard from '@/components/profile/ReferralDashboard'
+import ProfileEditModal from '@/components/profile/ProfileEditModal'
 import { Icon } from '@/components/ui/Icon'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { getTasteMatchBetweenUsers, findSimilarUsers } from '@/utils/tasteMatch'
@@ -39,6 +40,7 @@ export default function ProfilePage() {
   const [mutualModalOpen, setMutualModalOpen] = useState(false)
   const [mutualModalFriends, setMutualModalFriends] = useState<any[]>([])
   const [inviteSectionKey, setInviteSectionKey] = useState(0)
+  const [showEditModal, setShowEditModal] = useState(false)
   // Follow request states
   const [pendingRequests, setPendingRequests] = useState<Set<string>>(new Set()) // User IDs where I have sent pending requests
   const [incomingRequests, setIncomingRequests] = useState<any[]>([]) // Profiles of users requesting to follow me
@@ -692,23 +694,52 @@ export default function ProfilePage() {
             <p style={{ fontSize: '0.875rem', color: colors.textSecondary, margin: 0 }}>{profile.bio || 'What have you been watching?'}</p>
           </div>
 
-          {/* Settings Button */}
-          <button
-            onClick={() => router.push('/profile/settings')}
-            style={{
-              padding: '0.5rem 1rem',
-              background: colors.buttonBg,
-              border: colors.buttonBorder,
-              borderRadius: '8px',
-              fontSize: '0.875rem',
-              fontWeight: '600',
-              color: colors.textPrimary,
-              cursor: 'pointer',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            Settings
-          </button>
+          {/* Action Buttons */}
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '8px',
+            alignItems: 'center'
+          }}>
+            {/* Settings Button */}
+            <button
+              onClick={() => router.push('/profile/settings')}
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                background: colors.buttonBg,
+                border: `1px solid ${colors.borderColor}`,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s'
+              }}
+              title="Settings"
+            >
+              <Icon name="gear" size={20} color={colors.textPrimary} />
+            </button>
+            {/* Edit Profile Button */}
+            <button
+              onClick={() => setShowEditModal(true)}
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                background: colors.buttonBg,
+                border: `1px solid ${colors.borderColor}`,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s'
+              }}
+              title="Edit Profile"
+            >
+              <Icon name="edit" size={18} color={colors.textPrimary} />
+            </button>
+          </div>
         </div>
 
         {/* Divider */}
@@ -1214,6 +1245,28 @@ export default function ProfilePage() {
         friends={mutualModalFriends}
         onFriendClick={(username) => router.push(`/${username}`)}
       />
+
+      {/* Profile Edit Modal */}
+      {profile && (
+        <ProfileEditModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          profile={{
+            id: profile.id,
+            username: profile.username || '',
+            display_name: profile.display_name || '',
+            bio: profile.bio || ''
+          }}
+          onSave={(updatedProfile) => {
+            setProfile({
+              ...profile,
+              username: updatedProfile.username,
+              display_name: updatedProfile.display_name,
+              bio: updatedProfile.bio
+            })
+          }}
+        />
+      )}
 
       {/* Footer */}
       <Footer withBottomNav />
