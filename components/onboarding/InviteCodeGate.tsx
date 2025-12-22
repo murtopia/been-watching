@@ -231,30 +231,45 @@ export default function InviteCodeGate({ userId, onSuccess }: InviteCodeGateProp
             {loading ? 'Verifying...' : 'Continue'}
           </button>
 
-          <button
-            type="button"
-            onClick={handleLogout}
-            style={{
-              width: '100%',
-              padding: '0.875rem',
-              background: colors.inputBg,
-              border: `1px solid ${colors.inputBorder}`,
-              borderRadius: '12px',
-              color: colors.textPrimary,
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = colors.inputBorder
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = colors.inputBg
-            }}
-          >
-            Sign Out
-          </button>
+          <div style={{ 
+            marginTop: '1.5rem', 
+            paddingTop: '1.5rem', 
+            borderTop: `1px solid ${colors.inputBorder}`,
+            textAlign: 'center'
+          }}>
+            <p style={{ 
+              color: colors.textSecondary, 
+              fontSize: '0.8125rem', 
+              margin: 0,
+              marginBottom: '0.75rem'
+            }}>
+              Wrong account?
+            </p>
+            <button
+              type="button"
+              onClick={handleLogout}
+              style={{
+                width: '100%',
+                padding: '0.875rem',
+                background: colors.inputBg,
+                border: `1px solid ${colors.inputBorder}`,
+                borderRadius: '12px',
+                color: colors.textPrimary,
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = colors.inputBorder
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = colors.inputBg
+              }}
+            >
+              Sign Out & Return Home
+            </button>
+          </div>
         </form>
       </div>
     </div>

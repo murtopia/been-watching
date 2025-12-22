@@ -283,6 +283,18 @@ export default function AuthPage() {
   }
 
   const handleGoogleLogin = async () => {
+    // For signup, require valid invite in sessionStorage
+    // For login (existing users), allow without invite check
+    if (isSignup) {
+      const inviteToken = sessionStorage.getItem('invite_token')
+      const vipCode = sessionStorage.getItem('vip_code')
+      
+      if (!inviteToken && !vipCode) {
+        setErrorMessage('You need a VIP invite to sign up. Enter your code on the home page or join the waitlist.')
+        return
+      }
+    }
+    
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -485,6 +497,48 @@ export default function AuthPage() {
             Sign Up
           </button>
         </div>
+
+        {/* Signup invite requirement message */}
+        {isSignup && !inviteType && (
+          <div style={{
+            marginBottom: '1.5rem',
+            padding: '1rem',
+            background: isDarkMode ? 'rgba(255, 193, 37, 0.1)' : 'rgba(255, 193, 37, 0.15)',
+            border: '1px solid rgba(255, 193, 37, 0.3)',
+            borderRadius: '12px',
+            textAlign: 'center',
+          }}>
+            <p style={{ 
+              color: textPrimary, 
+              fontSize: '0.875rem', 
+              margin: 0,
+              marginBottom: '0.5rem'
+            }}>
+              Been Watching is invite-only during our alpha.
+            </p>
+            <p style={{ 
+              color: textSecondary, 
+              fontSize: '0.8125rem', 
+              margin: 0 
+            }}>
+              Don't have a VIP invite?{' '}
+              <a 
+                href="/" 
+                style={{ 
+                  color: '#FFC125', 
+                  textDecoration: 'none',
+                  fontWeight: 600
+                }}
+                onClick={(e) => {
+                  e.preventDefault()
+                  router.push('/')
+                }}
+              >
+                Join the waitlist
+              </a>
+            </p>
+          </div>
+        )}
 
         {/* OAuth Buttons */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
