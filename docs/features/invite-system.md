@@ -117,12 +117,13 @@ https://beenwatching.com/join?code=xJ9kLmP2qR
 
 ---
 
-## 🚧 IN PROGRESS
+## ✅ COMPLETED
 
-### 5. Auth/Signup Flow Updates
+### 5. Auth/Signup Flow Updates ✓
 **File**: `app/auth/page.tsx`
+**Updated**: December 22, 2024
 
-**Needs to handle TWO invite types:**
+**Handles TWO invite types with full enforcement:**
 
 #### Path A: Friend Invite (Token)
 1. User clicks `/join?code=xJ9kLmP2qR`
@@ -133,153 +134,62 @@ https://beenwatching.com/join?code=xJ9kLmP2qR
 6. User gets 0 initial invites (must earn via profile completion)
 
 #### Path B: VIP Code
-1. User visits `/vip` and enters code
-2. Code stored in sessionStorage: `vip_code`
-3. Redirects to signup
-4. **Requires entering the code again** (for verification)
-5. After signup → Call `use_master_code()`, award bulk invites
-6. User gets 10 invites (BOOZEHOUND) or 3 invites (BWALPHA)
+1. User enters code on landing page
+2. Code validated and stored in sessionStorage: `vip_code`
+3. Redirects to `/auth?signup=true`
+4. After signup → Call `use_master_code()`, award bulk invites
+5. User gets 10 invites (BOOZEHOUND) or 3 invites (BWALPHA)
 
-**Key Changes Needed:**
-```typescript
-// Check for invite type in sessionStorage
-const inviteToken = sessionStorage.getItem('invite_token')
-const vipCode = sessionStorage.getItem('vip_code')
-
-if (inviteToken) {
-  // Friend invite flow - NO code required
-  // After signup: redeem_invite_token(inviteToken, user.id)
-} else if (vipCode) {
-  // VIP code flow - require code entry
-  // After signup: use_master_code(vipCode, user.id)
-} else {
-  // No invite - show error or waitlist
-}
-```
+**Key Security Features:**
+- ✅ Google OAuth blocked without valid invite in sessionStorage
+- ✅ Email signup blocked without valid invite
+- ✅ Post-OAuth invite redemption handles race conditions
+- ✅ Clear messaging for users without invites (links to waitlist)
 
 ---
 
-## 📝 REMAINING TASKS
+### 6. Post-OAuth Invite Redemption ✓
+**File**: `app/feed/page.tsx`
+**Updated**: December 22, 2024
 
-### Priority 1: Critical (Must Do Now)
+**Problem Solved**: OAuth flows can't access sessionStorage server-side.
 
-#### Task A: Update `app/auth/page.tsx`
-**Estimated Time**: 15-20 minutes
+**Solution**: `redeemPendingInvite()` helper in feed page:
+1. After OAuth callback redirects to feed
+2. Feed page checks sessionStorage for pending invite
+3. Automatically redeems VIP code or friend token
+4. Updates profile with `is_approved: true`
+5. Clears sessionStorage
+6. Continues to ProfileSetup modal
 
-**Changes:**
-1. Check sessionStorage for `invite_token` vs `vip_code`
-2. If `invite_token` exists:
-   - Hide invite code input field
-   - Show: "Signing up with invite from @username"
-   - Skip master code validation
-   - After signup: Call `redeem_invite_token()`
-3. If `vip_code` exists:
-   - Show invite code input (pre-filled with vip_code)
-   - Validate as master code
-   - After signup: Call `use_master_code()`, award bulk invites
-4. If neither:
-   - Require invite code entry OR redirect to waitlist
-
-**Pseudo-code:**
 ```typescript
-// On mount
-useEffect(() => {
-  const inviteToken = sessionStorage.getItem('invite_token')
+// Helper function to redeem pending invite from sessionStorage
+const redeemPendingInvite = async (userId: string): Promise<boolean> => {
   const vipCode = sessionStorage.getItem('vip_code')
-
-  if (inviteToken) {
-    setInviteType('token')
-    setIsSignup(true)
-    // Validate and get inviter info
-    validateInviteToken(inviteToken).then(data => {
-      setInviterUsername(data.inviter_username)
-    })
-  } else if (vipCode) {
-    setInviteType('vip')
-    setIsSignup(true)
-    setInviteCode(vipCode)
+  const inviteToken = sessionStorage.getItem('invite_token')
+  
+  if (vipCode) {
+    // Redeem VIP code, update profile, clear sessionStorage
+    return true
+  } else if (inviteToken) {
+    // Redeem friend invite token, update profile, clear sessionStorage
+    return true
   }
-}, [])
-
-// In handleSubmit
-if (isSignup) {
-  // Create account first
-  const { data, error } = await supabase.auth.signUp(...)
-
-  if (data.user) {
-    if (inviteType === 'token') {
-      // Redeem friend invite
-      await supabase.rpc('redeem_invite_token', {
-        invite_token: inviteToken,
-        referee_user_id: data.user.id
-      })
-
-      // Clear token
-      sessionStorage.removeItem('invite_token')
-
-      // User starts with 0 invites (must earn)
-      await supabase.from('profiles').update({
-        invites_remaining: 0,
-        is_approved: true
-      }).eq('id', data.user.id)
-
-    } else if (inviteType === 'vip') {
-      // Use VIP code
-      await supabase.rpc('use_master_code', {
-        master_code: vipCode,
-        user_id: data.user.id
-      })
-
-      // Award bulk invites based on tier
-      const tier = vipCode === 'BOOZEHOUND' ? 'boozehound' :
-                   vipCode.startsWith('BWALPHA_') ? 'alpha' : 'beta'
-
-      await supabase.from('profiles').update({
-        invited_by_master_code: vipCode,
-        invite_tier: tier,
-        invites_remaining: tier === 'boozehound' ? 10 : tier === 'alpha' ? 3 : 0,
-        is_approved: true
-      }).eq('id', data.user.id)
-
-      sessionStorage.removeItem('vip_code')
-    }
-  }
+  return false
 }
 ```
 
 ---
 
-#### Task B: Update Welcome/Home Page (Optional but Recommended)
-**File**: `app/welcome/page.tsx` or `app/page.tsx`
-**Estimated Time**: 10 minutes
+### 7. InviteCodeGate Modal Improvements ✓
+**File**: `components/onboarding/InviteCodeGate.tsx`
+**Updated**: December 22, 2024
 
-**Add smart invite code entry:**
-```typescript
-const handleInviteCodeSubmit = (code: string) => {
-  // Check if it's a token (12 chars, alphanumeric)
-  if (/^[A-Za-z0-9]{12}$/.test(code)) {
-    // Likely a friend invite token
-    router.push(`/join?code=${code}`)
-  } else {
-    // Likely a VIP code (BOOZEHOUND, BWALPHA_XXX)
-    router.push(`/vip`)
-    sessionStorage.setItem('vip_code', code.toUpperCase())
-  }
-}
-```
-
-**UI:**
-```
-┌─────────────────────────────────┐
-│  Been Watching                  │
-│  Track. Share. Discover.        │
-│                                 │
-│  🎟️ Have an invite?             │
-│  [Enter code or link] [→]       │
-│                                 │
-│  or [Join Waitlist]             │
-└─────────────────────────────────┘
-```
+**UX Improvements:**
+- Added "Wrong account?" label above sign out button
+- Changed button text to "Sign Out & Return Home"
+- Added visual separator for clarity
+- This modal serves as safety net for orphan users
 
 ---
 
@@ -519,14 +429,17 @@ created_at            TIMESTAMPTZ DEFAULT NOW()
 
 ---
 
-## ✅ READY TO CONTINUE?
+## ✅ STATUS: COMPLETE
 
-**Current Status**: 80% complete
+**Current Status**: 100% complete (December 22, 2024)
 
-**Remaining**: Update auth/signup flow (20%)
+**All invite flows are now enforced:**
+- ✅ VIP code entry on landing page
+- ✅ Friend invite via `/join?code=xxx`
+- ✅ Google OAuth with invite validation
+- ✅ Email signup with invite validation
+- ✅ Post-OAuth invite redemption
+- ✅ InviteCodeGate safety net for orphan users
+- ✅ Waitlist for users without invites
 
-**Estimated Time to Complete**: 15-20 minutes
-
-**Ready to push live after**: Testing (10 min)
-
-Let's finish the auth/signup flow now!
+**Security**: Users cannot create accounts without a valid invite code or token.

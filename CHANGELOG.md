@@ -12,6 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced filtering on My Shows page
 - Statistics dashboard
 
+### Recently Completed (2024-12-22)
+- ✅ **Invite Code Flow Enforcement**
+  - Fixed security hole where Google OAuth could bypass invite validation
+  - Block signup (email or Google) if no valid invite in sessionStorage
+  - Added post-OAuth invite redemption in feed page (`redeemPendingInvite()` helper)
+  - Auto-redeems VIP codes or friend invite tokens after OAuth callback
+  - Improved InviteCodeGate modal UX ("Sign Out & Return Home" with context)
+  - Added invite-only messaging on /auth page with waitlist link
+  - Existing users (like Tyler) can still log in and enter code via InviteCodeGate
+
 ### Recently Completed (2024-12-21)
 - ✅ **Invite Code Usage Tracking Fix**
   - Fixed `use_master_code` RPC silently failing due to missing `GRANT EXECUTE` permissions
