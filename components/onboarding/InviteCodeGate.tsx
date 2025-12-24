@@ -40,6 +40,13 @@ export default function InviteCodeGate({ userId, onSuccess }: InviteCodeGateProp
     setLoading(true)
     setError(null)
 
+    // Defensive check - ensure userId is valid
+    if (!userId || userId.trim() === '') {
+      setError('Session error. Please refresh the page and try again.')
+      setLoading(false)
+      return
+    }
+
     try {
       // Validate invite code
       const isValid = await validateInviteCode(inviteCode.trim().toUpperCase())

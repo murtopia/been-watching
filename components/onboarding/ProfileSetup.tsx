@@ -59,6 +59,13 @@ export default function ProfileSetup({
     setLoading(true)
     setError(null)
 
+    // Defensive check - ensure userId is valid
+    if (!userId || userId.trim() === '') {
+      setError('Session error. Please refresh the page and try again.')
+      setLoading(false)
+      return
+    }
+
     try {
       // Check if username is taken (by someone else)
       const { data: existingUser } = await supabase
