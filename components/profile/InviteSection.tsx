@@ -372,7 +372,6 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
           fontSize: '1.75rem',
           fontWeight: '700',
           marginBottom: '0.75rem',
-          color: colors.textPrimary,
           color: colors.goldAccent
         }}>
           Congratulations!
