@@ -399,7 +399,6 @@ export default function ReportModal({
                     color: (!selectedReason || isSubmitting) ? 'white' : '#000',
                     border: 'none',
                     borderRadius: '8px',
-                    color: '#fff',
                     fontSize: '0.875rem',
                     fontWeight: 600,
                     cursor: (!selectedReason || isSubmitting) ? 'not-allowed' : 'pointer',
