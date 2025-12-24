@@ -3388,9 +3388,9 @@ export default function PreviewFeedLivePage() {
       <AppHeader profile={profile} hideOnScroll />
 
       {/* Invite Code Gate - shown first for unapproved users */}
-      {showInviteCodeGate && (
+      {showInviteCodeGate && user?.id && (
         <InviteCodeGate
-          userId={user?.id || ''}
+          userId={user.id}
           onSuccess={() => {
             setShowInviteCodeGate(false)
             // After invite code is validated, show profile setup
@@ -3400,9 +3400,9 @@ export default function PreviewFeedLivePage() {
       )}
 
       {/* Profile Setup - shown after invite code for users with auto-generated usernames */}
-      {showProfileSetup && profile && (
+      {showProfileSetup && profile && user?.id && (
         <ProfileSetup
-          userId={user?.id || ''}
+          userId={user.id}
           initialUsername={profile.username || ''}
           initialDisplayName={profile.display_name || ''}
           userEmail={user?.email || ''}
