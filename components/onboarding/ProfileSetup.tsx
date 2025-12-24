@@ -59,8 +59,12 @@ export default function ProfileSetup({
     setLoading(true)
     setError(null)
 
-    // Defensive check - ensure userId is valid
-    if (!userId || userId.trim() === '') {
+    // Debug logging
+    console.log('ProfileSetup handleSubmit - userId:', userId, 'type:', typeof userId)
+
+    // Defensive check - ensure userId is valid UUID
+    if (!userId || userId.trim() === '' || userId.length < 10) {
+      console.error('ProfileSetup: Invalid userId detected:', userId)
       setError('Session error. Please refresh the page and try again.')
       setLoading(false)
       return
@@ -121,20 +125,26 @@ export default function ProfileSetup({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '2rem',
+        padding: '1rem',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        overflow: 'auto',
+        WebkitOverflowScrolling: 'touch',
       }}
     >
       <div
         style={{
           width: '100%',
           maxWidth: '420px',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
           background: colors.cardBg,
           backdropFilter: 'blur(20px)',
           border: `1px solid ${colors.cardBorder}`,
           borderRadius: '24px',
-          padding: '3rem',
+          padding: '2rem',
           boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+          margin: 'auto',
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
