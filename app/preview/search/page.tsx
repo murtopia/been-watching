@@ -134,7 +134,6 @@ export default function SearchPreview() {
             background: `linear-gradient(135deg, ${colors.goldAccent}, ${colors.goldAccent}dd)`,
             border: 'none',
             color: '#000',
-            color: 'white',
             fontSize: '1rem',
             fontWeight: '600',
             cursor: 'pointer',
