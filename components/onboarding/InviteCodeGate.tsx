@@ -64,15 +64,23 @@ export default function InviteCodeGate({ userId, onSuccess }: InviteCodeGateProp
       const tier = masterCode === 'BOOZEHOUND' ? 'boozehound' :
                   masterCode.startsWith('BWALPHA_') ? 'alpha' : 'beta'
 
-      await supabase
+      // Use upsert to handle case where profile row doesn't exist yet
+      const { error: profileError } = await supabase
         .from('profiles')
-        .update({
+        .upsert({
+          id: userId,
           invited_by_master_code: masterCode,
           invite_tier: tier,
           invites_remaining: 0, // All users start with 0 invites, earn 1 from profile completion
           is_approved: true
-        })
-        .eq('id', userId)
+        }, { onConflict: 'id' })
+      
+      if (profileError) {
+        console.error('Failed to update profile:', profileError)
+        setError('Failed to save profile. Please try again.')
+        setLoading(false)
+        return
+      }
 
       // Code is valid, proceed to profile setup
       onSuccess()

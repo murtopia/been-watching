@@ -73,17 +73,18 @@ export default function ProfileSetup({
         return
       }
 
-      // Update profile
+      // Use upsert to handle case where profile row doesn't exist yet
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({
+        .upsert({
+          id: userId,
           username: username.toLowerCase(),
           display_name: displayName,
           bio: bio
-        })
-        .eq('id', userId)
+        }, { onConflict: 'id' })
 
       if (updateError) {
+        console.error('Failed to save profile:', updateError)
         setError(updateError.message)
         setLoading(false)
         return
