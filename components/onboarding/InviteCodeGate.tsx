@@ -40,8 +40,25 @@ export default function InviteCodeGate({ userId, onSuccess }: InviteCodeGateProp
     setLoading(true)
     setError(null)
 
-    // Defensive check - ensure userId is valid
-    if (!userId || userId.trim() === '') {
+    // Get current user ID directly from Supabase auth as fallback
+    let effectiveUserId = userId
+    
+    // Debug logging
+    console.log('InviteCodeGate handleSubmit - prop userId:', userId)
+
+    // If prop userId is invalid, try to get it from auth
+    if (!effectiveUserId || effectiveUserId.trim() === '' || effectiveUserId.length < 10) {
+      console.warn('InviteCodeGate: Prop userId invalid, fetching from auth...')
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user?.id) {
+        effectiveUserId = user.id
+        console.log('InviteCodeGate: Got userId from auth:', effectiveUserId)
+      }
+    }
+
+    // Final validation
+    if (!effectiveUserId || effectiveUserId.trim() === '' || effectiveUserId.length < 10) {
+      console.error('InviteCodeGate: No valid userId available')
       setError('Session error. Please refresh the page and try again.')
       setLoading(false)
       return
@@ -60,7 +77,7 @@ export default function InviteCodeGate({ userId, onSuccess }: InviteCodeGateProp
       const masterCode = inviteCode.trim().toUpperCase()
       const { error: rpcError } = await supabase.rpc('use_master_code', {
         master_code: masterCode,
-        user_id: userId
+        user_id: effectiveUserId
       })
       
       if (rpcError) {
@@ -75,7 +92,7 @@ export default function InviteCodeGate({ userId, onSuccess }: InviteCodeGateProp
       const { error: profileError } = await supabase
         .from('profiles')
         .upsert({
-          id: userId,
+          id: effectiveUserId,
           invited_by_master_code: masterCode,
           invite_tier: tier,
           invites_remaining: 0, // All users start with 0 invites, earn 1 from profile completion

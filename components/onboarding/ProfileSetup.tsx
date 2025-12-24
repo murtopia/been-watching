@@ -59,12 +59,25 @@ export default function ProfileSetup({
     setLoading(true)
     setError(null)
 
+    // Get current user ID directly from Supabase auth as fallback
+    let effectiveUserId = userId
+    
     // Debug logging
-    console.log('ProfileSetup handleSubmit - userId:', userId, 'type:', typeof userId)
+    console.log('ProfileSetup handleSubmit - prop userId:', userId, 'type:', typeof userId)
 
-    // Defensive check - ensure userId is valid UUID
-    if (!userId || userId.trim() === '' || userId.length < 10) {
-      console.error('ProfileSetup: Invalid userId detected:', userId)
+    // If prop userId is invalid, try to get it from auth
+    if (!effectiveUserId || effectiveUserId.trim() === '' || effectiveUserId.length < 10) {
+      console.warn('ProfileSetup: Prop userId invalid, fetching from auth...')
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user?.id) {
+        effectiveUserId = user.id
+        console.log('ProfileSetup: Got userId from auth:', effectiveUserId)
+      }
+    }
+
+    // Final validation
+    if (!effectiveUserId || effectiveUserId.trim() === '' || effectiveUserId.length < 10) {
+      console.error('ProfileSetup: No valid userId available')
       setError('Session error. Please refresh the page and try again.')
       setLoading(false)
       return
@@ -78,7 +91,7 @@ export default function ProfileSetup({
         .eq('username', username.toLowerCase())
         .single()
 
-      if (existingUser && existingUser.id !== userId) {
+      if (existingUser && existingUser.id !== effectiveUserId) {
         setError('Username is already taken')
         setLoading(false)
         return
@@ -88,7 +101,7 @@ export default function ProfileSetup({
       const { error: updateError } = await supabase
         .from('profiles')
         .upsert({
-          id: userId,
+          id: effectiveUserId,
           username: username.toLowerCase(),
           display_name: displayName,
           bio: bio
