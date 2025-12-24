@@ -153,7 +153,7 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
                   transition: 'color 0.2s ease'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.color = colors.brandPink
+                  e.currentTarget.style.color = colors.goldAccent
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.color = colors.textSecondary
@@ -171,7 +171,7 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
               width: '44px',
               height: '44px',
               borderRadius: '50%',
-              background: colors.brandGradient,
+              background: `linear-gradient(135deg, ${colors.goldAccent}, ${colors.goldAccent}dd)`,
               border: 'none',
               cursor: 'pointer',
               display: 'flex',
@@ -190,7 +190,7 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
               e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.15)'
             }}
           >
-            <X style={{ width: '24px', height: '24px', color: 'white' }} />
+            <X style={{ width: '24px', height: '24px', color: '#000' }} />
           </button>
         </div>
 
@@ -207,8 +207,11 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
                 fontWeight: '600',
                 border: 'none',
                 cursor: 'pointer',
-                background: mediaType === type ? colors.brandBlue : colors.buttonBg,
-                color: mediaType === type ? 'white' : colors.textSecondary
+                background: mediaType === type 
+                  ? `linear-gradient(135deg, ${colors.goldAccent}22, ${colors.goldAccent}11)` 
+                  : colors.buttonBg,
+                color: mediaType === type ? colors.goldAccent : colors.textSecondary,
+                border: mediaType === type ? `1px solid ${colors.goldAccent}` : '1px solid transparent'
               }}
             >
               {type === 'all' ? 'All' : type === 'tv' ? 'TV Shows' : 'Movies'}

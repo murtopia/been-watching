@@ -154,7 +154,7 @@ export default function ShowCommentInput({
           transition: 'all 0.2s'
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = colors.brandPink
+          e.currentTarget.style.borderColor = colors.goldAccent
           e.currentTarget.style.background = colors.cardBg
         }}
         onMouseLeave={(e) => {
@@ -224,7 +224,7 @@ export default function ShowCommentInput({
           transition: 'border-color 0.2s'
         }}
         onFocus={(e) => {
-          e.target.style.borderColor = colors.brandPink
+          e.target.style.borderColor = colors.goldAccent
         }}
         onBlur={(e) => {
           e.target.style.borderColor = colors.inputBorder
@@ -300,7 +300,7 @@ export default function ShowCommentInput({
           disabled={commentText.trim().length === 0 || charCount > MAX_CHARS || isSaving}
           style={{
             padding: '0.5rem 1.5rem',
-            background: commentText.trim().length === 0 || charCount > MAX_CHARS ? colors.buttonBg : colors.brandGradient,
+            background: commentText.trim().length === 0 || charCount > MAX_CHARS ? colors.buttonBg : `linear-gradient(135deg, ${colors.goldAccent}, ${colors.goldAccent}dd)`,
             border: 'none',
             borderRadius: '8px',
             fontSize: '0.875rem',

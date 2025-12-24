@@ -309,7 +309,7 @@ export default function UsersTableClient({ userRole, canManageUsers }: UsersTabl
           {renderUserTable(owners, 'Owners', '#7C3AED', true)}
 
           {/* Admins */}
-          {renderUserTable(admins, 'Admins', '#EC4899', true)}
+          {renderUserTable(admins, 'Admins', '#FFC125', true)}
 
           {/* Analysts */}
           {renderUserTable(analysts, 'Analysts', '#3B82F6', true)}

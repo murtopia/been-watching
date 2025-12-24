@@ -228,7 +228,7 @@ export default function Card3MobileTestPage() {
           <h1 style={{
             fontSize: '16px',
             fontWeight: '600',
-            color: '#EC4899',
+            color: '#FFC125',
             margin: '0'
           }}>
             React Card 3: Your Friends Loved
@@ -273,7 +273,7 @@ export default function Card3MobileTestPage() {
           <h2 style={{
             fontSize: '13px',
             fontWeight: '600',
-            color: '#EC4899',
+            color: '#FFC125',
             margin: '0 0 8px 0'
           }}>
             Card 3 Specifics

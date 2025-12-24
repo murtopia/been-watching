@@ -22,7 +22,7 @@ export default function TopShowModal({ onClose, onSelect, slotNumber, userId }: 
   const supabase = createClient()
   const colors = useThemeColors()
 
-  const debouncedQuery = useDebounce(query, 300)
+  const debouncedQuery = useDebounce(query, 500)
 
   // Gold theme styling to match SearchModalEnhanced
   const goldBorder = `1px solid ${colors.goldAccent}`

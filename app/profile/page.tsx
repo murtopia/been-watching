@@ -650,13 +650,13 @@ export default function ProfilePage() {
               width: '60px',
               height: '60px',
               borderRadius: '50%',
-              background: colors.brandGradient,
+              background: `linear-gradient(135deg, ${colors.goldAccent}, ${colors.goldAccent}cc)`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '1.25rem',
               fontWeight: '700',
-              color: 'white',
+              color: '#000',
               flexShrink: 0,
               cursor: 'pointer'
             }}
@@ -1121,7 +1121,7 @@ export default function ProfilePage() {
                   transition: 'all 0.2s'
                 }}
                 onFocus={(e) => {
-                  e.target.style.borderColor = colors.brandPink
+                  e.target.style.borderColor = colors.goldAccent
                   e.target.style.background = colors.inputBg
                 }}
                 onBlur={(e) => {

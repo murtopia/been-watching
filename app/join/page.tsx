@@ -142,8 +142,8 @@ function JoinPageContent() {
             onClick={() => router.push('/')}
             style={{
               padding: '0.75rem 1.5rem',
-              background: colors.brandGradient,
-              color: 'white',
+              background: `linear-gradient(135deg, ${colors.goldAccent}, ${colors.goldAccent}dd)`,
+              color: '#000',
               border: 'none',
               borderRadius: '8px',
               fontSize: '1rem',
@@ -232,8 +232,8 @@ function JoinPageContent() {
             onClick={() => router.push('/')}
             style={{
               padding: '0.75rem 1.5rem',
-              background: colors.brandGradient,
-              color: 'white',
+              background: `linear-gradient(135deg, ${colors.goldAccent}, ${colors.goldAccent}dd)`,
+              color: '#000',
               border: 'none',
               borderRadius: '8px',
               fontSize: '1rem',
@@ -292,7 +292,7 @@ function JoinPageContent() {
           marginBottom: '2rem',
           lineHeight: '1.6'
         }}>
-          <span style={{ color: colors.brandPink, fontWeight: '600' }}>
+          <span style={{ color: colors.goldAccent, fontWeight: '600' }}>
             @{validation.inviter_username}
           </span>
           {' '}invited you to join <strong style={{ color: colors.textPrimary }}>Been Watching</strong>,
@@ -322,8 +322,8 @@ function JoinPageContent() {
           style={{
             width: '100%',
             padding: '1rem',
-            background: colors.brandGradient,
-            color: 'white',
+            background: `linear-gradient(135deg, ${colors.goldAccent}, ${colors.goldAccent}dd)`,
+            color: '#000',
             border: 'none',
             borderRadius: '8px',
             fontSize: '1.1rem',
@@ -353,7 +353,7 @@ function JoinPageContent() {
             style={{
               background: 'none',
               border: 'none',
-              color: colors.brandPink,
+              color: colors.goldAccent,
               cursor: 'pointer',
               textDecoration: 'underline',
               fontSize: '0.875rem',

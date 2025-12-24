@@ -600,7 +600,7 @@ export default function FeedDebugPage() {
     const colors: Record<CardType, string> = {
       activity: '#4ade80',
       because_you_liked: '#a78bfa',
-      friends_loved: '#f472b6',
+      friends_loved: '#FFC125',
       coming_soon: '#facc15',
       now_streaming: '#38bdf8',
       you_might_like: '#60a5fa',
@@ -726,7 +726,7 @@ export default function FeedDebugPage() {
               width: '100%',
               marginTop: 12,
               padding: '10px',
-              background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+              background: 'linear-gradient(135deg, #FFC125, #F5A623)',
               border: 'none',
               borderRadius: 8,
               color: 'white',

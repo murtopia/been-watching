@@ -161,7 +161,7 @@ export default function ReportModal({
           borderBottom: colors.cardBorder
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <AlertTriangle size={24} color={colors.brandPink} />
+            <AlertTriangle size={24} color={colors.goldAccent} />
             <h2 style={{
               fontSize: '1.25rem',
               fontWeight: 600,
@@ -276,9 +276,9 @@ export default function ReportModal({
                         gap: '0.75rem',
                         padding: '0.75rem',
                         background: selectedReason === key
-                          ? (colors.isDark ? 'rgba(233, 77, 136, 0.1)' : 'rgba(233, 77, 136, 0.08)')
+                          ? `${colors.goldAccent}15`
                           : 'transparent',
-                        border: selectedReason === key ? `1px solid ${colors.brandPink}` : colors.cardBorder,
+                        border: selectedReason === key ? `1px solid ${colors.goldAccent}` : colors.cardBorder,
                         borderRadius: '8px',
                         cursor: 'pointer',
                         transition: 'all 0.2s'
@@ -304,7 +304,7 @@ export default function ReportModal({
                           width: '18px',
                           height: '18px',
                           cursor: 'pointer',
-                          accentColor: colors.brandPink
+                          accentColor: colors.goldAccent
                         }}
                       />
                       <span style={{
@@ -395,7 +395,8 @@ export default function ReportModal({
                     padding: '0.75rem 1.5rem',
                     background: (!selectedReason || isSubmitting)
                       ? colors.textSecondary
-                      : colors.brandGradient,
+                      : `linear-gradient(135deg, ${colors.goldAccent}, ${colors.goldAccent}dd)`,
+                    color: (!selectedReason || isSubmitting) ? 'white' : '#000',
                     border: 'none',
                     borderRadius: '8px',
                     color: '#fff',

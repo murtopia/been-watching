@@ -239,7 +239,7 @@ export default function ReferralDashboard({ userId }: ReferralDashboardProps) {
                 borderRadius: '50%',
                 background: referee?.avatar_url
                   ? `url(${referee.avatar_url}) center/cover`
-                  : colors.brandGradient,
+                  : `linear-gradient(135deg, ${colors.goldAccent}, ${colors.goldAccent}cc)`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

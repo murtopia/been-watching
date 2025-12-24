@@ -181,7 +181,7 @@ const activityText = {
 }
 
 const friendName = {
-  color: '#ec4899',
+  color: '#FFC125',
   fontWeight: '600',
 }
 
@@ -203,7 +203,7 @@ const commentText = {
   margin: '8px 0',
   padding: '8px 12px',
   backgroundColor: '#f9fafb',
-  borderLeft: '3px solid #ec4899',
+  borderLeft: '3px solid #FFC125',
 }
 
 const usernameText = {
@@ -228,9 +228,9 @@ const ctaSection = {
 }
 
 const button = {
-  backgroundColor: '#ec4899',
+  backgroundColor: '#FFC125',
   borderRadius: '8px',
-  color: '#ffffff',
+  color: '#000000',
   fontSize: '16px',
   fontWeight: '600',
   textDecoration: 'none',

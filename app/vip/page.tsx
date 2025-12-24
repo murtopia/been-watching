@@ -142,7 +142,7 @@ export default function VIPPage() {
               fontFamily: 'monospace'
             }}
             onFocus={(e) => {
-              e.currentTarget.style.borderColor = colors.brandPink
+              e.currentTarget.style.borderColor = colors.goldAccent
             }}
             onBlur={(e) => {
               if (!error) {
@@ -171,8 +171,8 @@ export default function VIPPage() {
             style={{
               width: '100%',
               padding: '1rem',
-              background: validating ? colors.textSecondary : colors.brandGradient,
-              color: 'white',
+              background: validating ? colors.textSecondary : `linear-gradient(135deg, ${colors.goldAccent}, ${colors.goldAccent}dd)`,
+              color: validating ? 'white' : '#000',
               border: 'none',
               borderRadius: '8px',
               fontSize: '1.1rem',
@@ -239,7 +239,7 @@ export default function VIPPage() {
               style={{
                 background: 'none',
                 border: 'none',
-                color: colors.brandPink,
+                color: colors.goldAccent,
                 cursor: 'pointer',
                 textDecoration: 'underline',
                 fontSize: '0.875rem',
@@ -256,7 +256,7 @@ export default function VIPPage() {
               style={{
                 background: 'none',
                 border: 'none',
-                color: colors.brandPink,
+                color: colors.goldAccent,
                 cursor: 'pointer',
                 textDecoration: 'underline',
                 fontSize: '0.875rem',

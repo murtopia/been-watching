@@ -816,13 +816,13 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
               width: '60px',
               height: '60px',
               borderRadius: '50%',
-              background: profile.avatar_url ? 'transparent' : colors.brandGradient,
+              background: profile.avatar_url ? 'transparent' : `linear-gradient(135deg, ${colors.goldAccent}, ${colors.goldAccent}cc)`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '1.25rem',
               fontWeight: '700',
-              color: 'white',
+              color: profile.avatar_url ? 'white' : '#000',
               flexShrink: 0,
               overflow: 'hidden'
             }}
@@ -955,7 +955,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
           border: colors.cardBorder,
           textAlign: 'center'
         }}>
-          <div style={{ fontSize: '2rem', fontWeight: '700', color: colors.brandPink, marginBottom: '0.25rem' }}>
+          <div style={{ fontSize: '2rem', fontWeight: '700', color: colors.goldAccent, marginBottom: '0.25rem' }}>
             {watchStats.want}
           </div>
           <div style={{ fontSize: '0.875rem', color: colors.textTertiary, fontWeight: '600' }}>

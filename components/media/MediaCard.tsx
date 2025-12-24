@@ -291,7 +291,7 @@ export default function MediaCard({
                       setShowFullOverview(!showFullOverview)
                     }}
                     style={{
-                      color: colors.brandBlue || '#0095f6',
+                      color: colors.goldAccent,
                       fontSize: '0.875rem',
                       fontWeight: '500',
                       marginTop: '0.25rem',

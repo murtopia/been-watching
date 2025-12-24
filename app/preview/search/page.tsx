@@ -51,8 +51,7 @@ export default function SearchPreview() {
           fontSize: '1.5rem', 
           fontWeight: '700', 
           marginBottom: '0.5rem',
-          background: colors.brandGradient,
-          WebkitBackgroundClip: 'text',
+          color: colors.goldAccent,
           WebkitTextFillColor: 'transparent'
         }}>
           Search Modal Preview
@@ -85,19 +84,19 @@ export default function SearchPreview() {
             gap: '0.75rem'
           }}>
             <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', color: colors.textSecondary, fontSize: '0.9rem' }}>
-              <span style={{ color: colors.brandPink }}>📝</span>
+              <span style={{ color: colors.goldAccent }}>📝</span>
               <span><strong style={{ color: colors.textPrimary }}>"Add or Rate a Show"</strong> header with close icon</span>
             </li>
             <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', color: colors.textSecondary, fontSize: '0.9rem' }}>
-              <span style={{ color: colors.brandPink }}>🔥</span>
+              <span style={{ color: colors.goldAccent }}>🔥</span>
               <span><strong style={{ color: colors.textPrimary }}>6 trending cards</strong> in 3x2 grid</span>
             </li>
             <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', color: colors.textSecondary, fontSize: '0.9rem' }}>
-              <span style={{ color: colors.brandPink }}>🎬</span>
+              <span style={{ color: colors.goldAccent }}>🎬</span>
               <span>Tap card opens <strong style={{ color: colors.textPrimary }}>ShowDetailCard modal</strong></span>
             </li>
             <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', color: colors.textSecondary, fontSize: '0.9rem' }}>
-              <span style={{ color: colors.brandPink }}>✓</span>
+              <span style={{ color: colors.goldAccent }}>✓</span>
               <span>Modal <strong style={{ color: colors.textPrimary }}>stays open</strong> after rating/adding</span>
             </li>
           </ul>
@@ -132,8 +131,9 @@ export default function SearchPreview() {
             width: '100%',
             padding: '1rem',
             borderRadius: '12px',
-            background: colors.brandGradient,
+            background: `linear-gradient(135deg, ${colors.goldAccent}, ${colors.goldAccent}dd)`,
             border: 'none',
+            color: '#000',
             color: 'white',
             fontSize: '1rem',
             fontWeight: '600',
@@ -166,7 +166,7 @@ export default function SearchPreview() {
           background: colors.isDark ? 'rgba(59, 130, 246, 0.1)' : 'rgba(59, 130, 246, 0.08)',
           border: `1px solid ${colors.isDark ? 'rgba(59, 130, 246, 0.3)' : 'rgba(59, 130, 246, 0.2)'}`
         }}>
-          <h3 style={{ fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.75rem', color: colors.brandBlue }}>
+          <h3 style={{ fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.75rem', color: colors.goldAccent }}>
             📋 Test Checklist
           </h3>
           <ol style={{ 

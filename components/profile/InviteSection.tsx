@@ -323,8 +323,8 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
       <div style={{
         position: 'relative',
         padding: '3rem 1.5rem',
-        background: 'linear-gradient(135deg, rgba(233, 77, 136, 0.2) 0%, rgba(242, 113, 33, 0.2) 100%)',
-        border: `2px solid ${colors.brandPink}`,
+        background: `linear-gradient(135deg, ${colors.goldAccent}22 0%, ${colors.goldAccent}11 100%)`,
+        border: `2px solid ${colors.goldAccent}`,
         borderRadius: '12px',
         textAlign: 'center',
         animation: 'fadeIn 0.3s ease-in'
@@ -373,9 +373,7 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
           fontWeight: '700',
           marginBottom: '0.75rem',
           color: colors.textPrimary,
-          background: colors.brandGradient,
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent'
+          color: colors.goldAccent
         }}>
           Congratulations!
         </h2>
@@ -441,7 +439,7 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
                 onMouseEnter={(e) => {
                   if (!isComplete) {
                     e.currentTarget.style.background = colors.cardBgHover
-                    e.currentTarget.style.borderColor = colors.brandPink
+                    e.currentTarget.style.borderColor = colors.goldAccent
                   }
                 }}
                 onMouseLeave={(e) => {
@@ -511,7 +509,7 @@ export default function InviteSection({ userId, username, invitesRemaining, onIn
             <div style={{
               height: '100%',
               width: `${progress}%`,
-              background: colors.brandGradient,
+              background: `linear-gradient(135deg, ${colors.goldAccent}, ${colors.goldAccent}dd)`,
               transition: 'width 0.3s ease'
             }} />
           </div>

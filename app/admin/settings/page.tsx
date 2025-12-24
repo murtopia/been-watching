@@ -91,7 +91,7 @@ export default function AdminSettingsPage() {
           width: '40px',
           height: '40px',
           border: '4px solid #f3f4f6',
-          borderTop: '4px solid #ec4899',
+          borderTop: '4px solid #FFC125',
           borderRadius: '50%',
           animation: 'spin 1s linear infinite',
           margin: '0 auto'
@@ -231,8 +231,8 @@ export default function AdminSettingsPage() {
             width: '40px',
             height: '40px',
             borderRadius: '8px',
-            background: '#ec489920',
-            color: '#ec4899',
+            background: '#FFC12520',
+            color: '#FFC125',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center'
