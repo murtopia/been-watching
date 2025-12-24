@@ -205,7 +205,6 @@ export default function SearchModal({ isOpen, onClose, onSelectMedia, user }: Se
                 borderRadius: '20px',
                 fontSize: '0.875rem',
                 fontWeight: '600',
-                border: 'none',
                 cursor: 'pointer',
                 background: mediaType === type 
                   ? `linear-gradient(135deg, ${colors.goldAccent}22, ${colors.goldAccent}11)` 
