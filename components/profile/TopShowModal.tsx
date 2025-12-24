@@ -2,11 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { Search, X } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import MediaCard from '@/components/media/MediaCard'
-import { safeFormatDate } from '@/utils/dateFormatting'
+import Icon from '@/components/ui/Icon'
 
 interface TopShowModalProps {
   onClose: () => void
@@ -25,9 +24,8 @@ export default function TopShowModal({ onClose, onSelect, slotNumber, userId }: 
 
   const debouncedQuery = useDebounce(query, 300)
 
-  // Modal-specific colors
-  const modalBg = colors.isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.55)'
-  const modalBorder = colors.isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(255, 255, 255, 0.18)'
+  // Gold theme styling to match SearchModalEnhanced
+  const goldBorder = `1px solid ${colors.goldAccent}`
 
   const searchMedia = useCallback(async (searchQuery: string) => {
     if (!searchQuery.trim()) {
@@ -132,7 +130,7 @@ export default function TopShowModal({ onClose, onSelect, slotNumber, userId }: 
       style={{
         position: 'fixed',
         inset: 0,
-        backgroundColor: 'transparent',
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -144,24 +142,42 @@ export default function TopShowModal({ onClose, onSelect, slotNumber, userId }: 
       <div
         style={{
           width: '100%',
-          maxWidth: '600px',
-          height: '85vh',
-          background: modalBg,
-          backdropFilter: 'blur(30px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(30px) saturate(180%)',
-          borderRadius: '20px',
-          border: modalBorder,
+          maxWidth: '398px',
+          height: '645px',
+          maxHeight: '90vh',
+          background: colors.isDark ? 'rgba(20, 20, 25, 1)' : 'rgba(255, 255, 255, 1)',
+          borderRadius: '24px',
+          border: goldBorder,
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: colors.isDark ? '0 8px 32px rgba(0, 0, 0, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.12)'
+          boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5)'
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Search Input - At Top */}
-        <div style={{ padding: '1.25rem 1.5rem', borderBottom: modalBorder, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ position: 'relative', flex: 1 }}>
-            <Search style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', width: '20px', height: '20px', color: colors.textSecondary }} />
+        {/* Header */}
+        <div style={{ 
+          padding: '1.25rem 1.25rem 0.75rem', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          flexShrink: 0
+        }}>
+          <h2 style={{ margin: 0, fontSize: '1.125rem', fontWeight: '700', color: colors.textPrimary }}>
+            Select Top #{slotNumber}
+          </h2>
+          <button
+            onClick={onClose}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', display: 'flex' }}
+          >
+            <Icon name="close" variant="circle" size={42} />
+          </button>
+        </div>
+
+        {/* Search Input */}
+        <div style={{ padding: '0 1.25rem 1rem', flexShrink: 0 }}>
+          <div style={{ position: 'relative' }}>
+            <Search style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', width: '18px', height: '18px', color: colors.textSecondary }} />
             <input
               type="text"
               value={query}
@@ -169,10 +185,10 @@ export default function TopShowModal({ onClose, onSelect, slotNumber, userId }: 
               placeholder="Search shows or movies..."
               style={{
                 width: '100%',
-                padding: '0.875rem 3rem 0.875rem 3rem',
+                padding: '0.75rem 2.5rem 0.75rem 2.75rem',
                 border: colors.inputBorder,
                 borderRadius: '12px',
-                fontSize: '1rem',
+                fontSize: '0.9375rem',
                 outline: 'none',
                 background: colors.inputBg,
                 color: colors.textPrimary
@@ -181,79 +197,43 @@ export default function TopShowModal({ onClose, onSelect, slotNumber, userId }: 
             />
             {query && (
               <button
-                onClick={() => {
-                  setQuery('')
-                  setResults([])
-                }}
-                style={{
-                  position: 'absolute',
-                  right: '0.75rem',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '0.25rem',
-                  color: colors.textSecondary,
-                  transition: 'color 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = colors.brandPink
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = colors.textSecondary
+                onClick={() => { setQuery(''); setResults([]) }}
+                style={{ 
+                  position: 'absolute', 
+                  right: '0.75rem', 
+                  top: '50%', 
+                  transform: 'translateY(-50%)', 
+                  background: 'none', 
+                  border: 'none', 
+                  cursor: 'pointer', 
+                  padding: '0.25rem', 
+                  display: 'flex' 
                 }}
               >
-                <X style={{ width: '20px', height: '20px' }} />
+                <Icon name="close" size={18} color={colors.textSecondary} />
               </button>
             )}
           </div>
-
-          {/* Close Button */}
-          <button
-            onClick={onClose}
-            style={{
-              width: '44px',
-              height: '44px',
-              borderRadius: '50%',
-              background: colors.brandGradient,
-              border: 'none',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.2s ease',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-              flexShrink: 0
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)'
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)'
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.15)'
-            }}
-          >
-            <X style={{ width: '24px', height: '24px', color: 'white' }} />
-          </button>
         </div>
 
         {/* Type Filter */}
-        <div style={{ padding: '1rem 1.5rem', display: 'flex', gap: '0.5rem', borderBottom: modalBorder }}>
+        <div style={{ padding: '0 1.25rem 1rem', display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
           {(['all', 'tv', 'movie'] as const).map((type) => (
             <button
               key={type}
               onClick={() => setMediaType(type)}
               style={{
-                padding: '0.5rem 1.25rem',
+                padding: '0.5rem 1rem',
                 borderRadius: '20px',
-                fontSize: '0.875rem',
+                fontSize: '0.8125rem',
                 fontWeight: '600',
-                border: 'none',
+                border: mediaType === type ? `1px solid ${colors.goldAccent}` : '1px solid transparent',
                 cursor: 'pointer',
-                background: mediaType === type ? colors.brandBlue : colors.buttonBg,
-                color: mediaType === type ? 'white' : colors.textSecondary
+                background: mediaType === type 
+                  ? `linear-gradient(135deg, ${colors.goldAccent}22, ${colors.goldAccent}11)` 
+                  : colors.buttonBg,
+                color: mediaType === type ? colors.goldAccent : colors.textSecondary,
+                transition: 'all 0.2s ease'
               }}
             >
               {type === 'all' ? 'All' : type === 'tv' ? 'TV Shows' : 'Movies'}
@@ -262,61 +242,54 @@ export default function TopShowModal({ onClose, onSelect, slotNumber, userId }: 
         </div>
 
         {/* Results - Scrollable */}
-        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-          {/* Sticky shadow overlay at top */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '20px',
-            background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, transparent 100%)',
-            pointerEvents: 'none',
-            zIndex: 10
-          }} />
-
-          {/* Scrollable content */}
-          <div style={{
-            height: '100%',
-            overflowY: 'auto',
-            padding: '1rem 1.5rem'
-          }}>
-            {loading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}>
-                <div style={{ width: '32px', height: '32px', border: `4px solid ${colors.goldAccent}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-              </div>
-            ) : results.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {results.map((item) => {
-                  const isTV = item.media_type === 'tv' || mediaType === 'tv'
-                  return isTV ? (
-                    <TVShowWithSeasons
-                      key={`tv-${item.id}`}
-                      show={item}
-                      onSelect={handleSelect}
-                      slotNumber={slotNumber}
-                    />
-                  ) : (
-                    <MovieResultCard
-                      key={`movie-${item.id}`}
-                      media={item}
-                      onSelect={handleSelect}
-                      slotNumber={slotNumber}
-                    />
-                  )
-                })}
-              </div>
-            ) : query.trim() ? (
-              <div style={{ textAlign: 'center', padding: '3rem 0', color: colors.textTertiary, fontSize: '0.95rem' }}>
-                No results found for "{query}"
-              </div>
-            ) : (
-              <div style={{ textAlign: 'center', padding: '3rem 0', color: colors.textTertiary, fontSize: '0.95rem' }}>
-                Start typing to search for shows and movies
-              </div>
-            )}
-          </div>
+        <div style={{ 
+          flex: 1, 
+          overflowY: 'auto',
+          padding: '0 1.25rem 1.25rem',
+          minHeight: 0
+        }}>
+          {loading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem 0' }}>
+              <div style={{ width: '32px', height: '32px', border: `3px solid ${colors.goldAccent}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+            </div>
+          ) : results.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {results.map((item) => {
+                const isTV = item.media_type === 'tv' || mediaType === 'tv'
+                return isTV ? (
+                  <TVShowWithSeasons
+                    key={`tv-${item.id}`}
+                    show={item}
+                    onSelect={handleSelect}
+                    slotNumber={slotNumber}
+                  />
+                ) : (
+                  <MovieResultCard
+                    key={`movie-${item.id}`}
+                    media={item}
+                    onSelect={handleSelect}
+                    slotNumber={slotNumber}
+                  />
+                )
+              })}
+            </div>
+          ) : query.trim() ? (
+            <div style={{ textAlign: 'center', padding: '3rem 0', color: colors.textTertiary, fontSize: '0.9375rem' }}>
+              No results found for "{query}"
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '3rem 0', color: colors.textTertiary, fontSize: '0.9375rem' }}>
+              Search for shows or movies to add to your Top 3
+            </div>
+          )}
         </div>
+        
+        {/* Spinner animation */}
+        <style jsx>{`
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
       </div>
     </div>
   )
@@ -387,71 +360,76 @@ function TVShowWithSeasons({ show, onSelect, slotNumber }: { show: any; onSelect
 function SeasonSelectCard({ show, season, onSelect, slotNumber }: { show: any; season: any; onSelect: Function; slotNumber: number }) {
   const colors = useThemeColors()
 
-  const seasonMediaId = `tv-${show.id}-s${season.season_number}`
-
   const handleAddToTop = () => {
     onSelect(season)
   }
 
-  // Create media object for this season
-  const seasonMedia = {
-    id: seasonMediaId,
-    title: `${show.name} - Season ${season.season_number}`,
-    name: `${show.name} - Season ${season.season_number}`,
-    poster_path: season.poster_path || show.poster_path,
-    vote_average: season.vote_average,
-    release_date: safeFormatDate(season.air_date) || undefined,
-    overview: season.overview || show.overview,
-    media_type: 'tv',
-    tmdb_id: show.id,
-    tmdb_data: {
-      ...show,
-      season_number: season.season_number,
-      season_id: season.id,
-      number_of_seasons: show.number_of_seasons,
-      networks: show.networks
-    }
-  }
-
   return (
-    <div style={{ marginBottom: '1rem', position: 'relative' }}>
-      {/* Add to Top # button in upper right */}
-      <button
-        onClick={handleAddToTop}
-        style={{
-          position: 'absolute',
-          top: '1rem',
-          right: '1rem',
-          padding: '0.5rem 1rem',
-          background: colors.brandGradient,
-          color: 'white',
-          border: 'none',
-          borderRadius: '8px',
-          fontWeight: '600',
-          fontSize: '0.875rem',
-          cursor: 'pointer',
-          transition: 'all 0.2s',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-          zIndex: 10
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.05)'
-          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1)'
-          e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.15)'
-        }}
-      >
-        Add to Top #{slotNumber}
-      </button>
-
-      <div className="activity-card">
-        <MediaCard
-          media={seasonMedia}
-          showActions={false}
-          seasonNumber={season.season_number}
-        />
+    <div style={{ 
+      position: 'relative',
+      background: colors.isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
+      borderRadius: '12px',
+      padding: '0.75rem',
+      border: `1px solid ${colors.isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.06)'}`
+    }}>
+      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+        {/* Poster */}
+        <div style={{ 
+          width: '60px', 
+          height: '90px', 
+          borderRadius: '8px', 
+          overflow: 'hidden',
+          flexShrink: 0,
+          background: colors.isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+        }}>
+          {(season.poster_path || show.poster_path) && (
+            <img 
+              src={`https://image.tmdb.org/t/p/w200${season.poster_path || show.poster_path}`}
+              alt={`${show.name} Season ${season.season_number}`}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          )}
+        </div>
+        
+        {/* Info */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h4 style={{ 
+            margin: 0, 
+            fontSize: '0.875rem', 
+            fontWeight: '600', 
+            color: colors.textPrimary,
+            lineHeight: 1.3,
+            marginBottom: '0.25rem'
+          }}>
+            {show.name}
+          </h4>
+          <p style={{ 
+            margin: 0, 
+            fontSize: '0.8125rem', 
+            color: colors.textSecondary,
+            marginBottom: '0.5rem'
+          }}>
+            Season {season.season_number}
+          </p>
+          
+          {/* Add Button */}
+          <button
+            onClick={handleAddToTop}
+            style={{
+              padding: '0.375rem 0.75rem',
+              background: `linear-gradient(135deg, ${colors.goldAccent}, ${colors.goldAccent}dd)`,
+              color: '#000',
+              border: 'none',
+              borderRadius: '6px',
+              fontWeight: '600',
+              fontSize: '0.75rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            Add to Top #{slotNumber}
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -465,50 +443,74 @@ function MovieResultCard({ media, onSelect, slotNumber }: { media: any; onSelect
     onSelect(media)
   }
 
-  // Format the media object with safe date formatting
-  const formattedMedia = {
-    ...media,
-    release_date: safeFormatDate(media.release_date || media.first_air_date) || undefined
-  }
-
   return (
-    <div style={{ marginBottom: '1rem', position: 'relative' }}>
-      {/* Add to Top # button in upper right */}
-      <button
-        onClick={handleAddToTop}
-        style={{
-          position: 'absolute',
-          top: '1rem',
-          right: '1rem',
-          padding: '0.5rem 1rem',
-          background: colors.brandGradient,
-          color: 'white',
-          border: 'none',
-          borderRadius: '8px',
-          fontWeight: '600',
-          fontSize: '0.875rem',
-          cursor: 'pointer',
-          transition: 'all 0.2s',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-          zIndex: 10
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.05)'
-          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1)'
-          e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.15)'
-        }}
-      >
-        Add to Top #{slotNumber}
-      </button>
-
-      <div className="activity-card">
-        <MediaCard
-          media={formattedMedia}
-          showActions={false}
-        />
+    <div style={{ 
+      position: 'relative',
+      background: colors.isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
+      borderRadius: '12px',
+      padding: '0.75rem',
+      border: `1px solid ${colors.isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.06)'}`
+    }}>
+      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+        {/* Poster */}
+        <div style={{ 
+          width: '60px', 
+          height: '90px', 
+          borderRadius: '8px', 
+          overflow: 'hidden',
+          flexShrink: 0,
+          background: colors.isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+        }}>
+          {media.poster_path && (
+            <img 
+              src={`https://image.tmdb.org/t/p/w200${media.poster_path}`}
+              alt={media.title || media.name}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          )}
+        </div>
+        
+        {/* Info */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h4 style={{ 
+            margin: 0, 
+            fontSize: '0.875rem', 
+            fontWeight: '600', 
+            color: colors.textPrimary,
+            lineHeight: 1.3,
+            marginBottom: '0.25rem'
+          }}>
+            {media.title || media.name}
+          </h4>
+          {(media.release_date || media.first_air_date) && (
+            <p style={{ 
+              margin: 0, 
+              fontSize: '0.8125rem', 
+              color: colors.textSecondary,
+              marginBottom: '0.5rem'
+            }}>
+              {new Date(media.release_date || media.first_air_date).getFullYear()}
+            </p>
+          )}
+          
+          {/* Add Button */}
+          <button
+            onClick={handleAddToTop}
+            style={{
+              padding: '0.375rem 0.75rem',
+              background: `linear-gradient(135deg, ${colors.goldAccent}, ${colors.goldAccent}dd)`,
+              color: '#000',
+              border: 'none',
+              borderRadius: '6px',
+              fontWeight: '600',
+              fontSize: '0.75rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            Add to Top #{slotNumber}
+          </button>
+        </div>
       </div>
     </div>
   )
