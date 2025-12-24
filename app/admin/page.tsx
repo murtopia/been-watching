@@ -82,14 +82,19 @@ export default function AdminDashboard() {
         .select('*', { count: 'exact', head: true })
       setTotalFollows(followsCount || 0)
 
-      // Invite Metrics
-      const { data: invites } = await supabase
-        .from('invite_codes')
-        .select('is_used')
-      const totalInvites = invites?.length || 0
-      const usedInvites = invites?.filter(i => i.is_used).length || 0
-      setTotalInvites(totalInvites)
-      setInvitesAccepted(usedInvites)
+      // Invite Metrics - from master_codes table
+      const { data: masterCodes } = await supabase
+        .from('master_codes')
+        .select('current_uses, max_uses, is_active')
+      
+      // Count total uses across all codes
+      const totalUsed = masterCodes?.reduce((sum, code) => sum + (code.current_uses || 0), 0) || 0
+      
+      // Count active codes
+      const activeCodes = masterCodes?.filter(c => c.is_active).length || 0
+      
+      setTotalInvites(activeCodes)
+      setInvitesAccepted(totalUsed)
 
       setLoading(false)
     } catch (error) {
@@ -243,29 +248,26 @@ export default function AdminDashboard() {
         marginBottom: '2rem'
       }}>
         <MetricCard
-          title="Total Invites Shared"
+          title="Active Invite Codes"
           value={loading ? '-' : totalInvites.toLocaleString()}
           icon={Gift}
-          subtitle="All invite codes created"
+          subtitle="VIP & BWALPHA codes"
           loading={loading}
         />
 
         <MetricCard
-          title="Invites Accepted"
+          title="Code Redemptions"
           value={loading ? '-' : invitesAccepted.toLocaleString()}
           icon={CheckCircle}
-          trend={{
-            value: totalInvites > 0 ? Math.round((invitesAccepted / totalInvites) * 100) : 0,
-            label: 'acceptance rate'
-          }}
+          subtitle="Total signups via codes"
           loading={loading}
         />
 
         <MetricCard
-          title="Active Invites"
-          value={loading ? '-' : (totalInvites - invitesAccepted).toLocaleString()}
+          title="Avg per Code"
+          value={loading ? '-' : (totalInvites > 0 ? (invitesAccepted / totalInvites).toFixed(1) : '0')}
           icon={Clock}
-          subtitle="Available to be used"
+          subtitle="Redemptions per code"
           loading={loading}
         />
       </div>
