@@ -1374,6 +1374,20 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           transition: all 0.2s ease;
         }
 
+        .action-modal-close {
+          position: absolute;
+          top: 8px;
+          right: 8px;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 10;
+        }
+
         .card.flipped .action-modal {
           transform: scale(0.9) rotateY(180deg);
           left: 90px;
@@ -2943,6 +2957,13 @@ export const FeedCard: React.FC<FeedCardProps> = ({
             onClick={() => { setActionOverlayVisible(false); setPressedIcon(null); }}
           >
             <div className="action-modal" onClick={(e) => e.stopPropagation()}>
+              {/* Close Button */}
+              <button 
+                className="action-modal-close"
+                onClick={() => { setActionOverlayVisible(false); setPressedIcon(null); }}
+              >
+                <Icon name="close-c-default" size={28} />
+              </button>
               {/* Rate This Show Title */}
               <div className="action-modal-title">Rate This Show</div>
               <div className="action-modal-grid">
