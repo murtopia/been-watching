@@ -6,6 +6,7 @@ import { createClient } from '@/utils/supabase/client'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import ShowCommentInput from '@/components/notes/ShowCommentInput'
 import { trackShowCommentAdded } from '@/utils/analytics'
+import Icon from '@/components/ui/Icon'
 
 interface MediaDetailModalProps {
   isOpen: boolean
@@ -285,28 +286,17 @@ export default function MediaDetailModal({
             position: 'absolute',
             top: '1rem',
             right: '1rem',
-            width: '32px',
-            height: '32px',
-            borderRadius: '50%',
+            background: 'none',
             border: 'none',
-            background: 'rgba(0, 0, 0, 0.1)',
-            color: colors.textSecondary,
-            fontSize: '1.25rem',
             cursor: 'pointer',
+            padding: 0,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            transition: 'all 0.2s',
             zIndex: 10
           }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(0, 0, 0, 0.2)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'rgba(0, 0, 0, 0.1)'
-          }}
         >
-          ×
+          <Icon name="close-c-default" size={36} />
         </button>
 
         {/* Content */}
