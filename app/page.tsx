@@ -298,14 +298,14 @@ export default function LandingPage() {
 
         {/* Join Waitlist Card - Primary CTA */}
         <div style={{
-          background: isDark ? 'rgba(30, 30, 30, 0.85)' : 'rgba(255, 255, 255, 0.85)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          border: colors.cardBorder,
+          background: isDark ? 'rgba(18, 18, 18, 0.97)' : 'rgba(255, 255, 255, 0.97)',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          border: isDark ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid rgba(0, 0, 0, 0.08)',
           borderRadius: '20px',
           padding: '2rem',
           marginBottom: '1rem',
-          boxShadow: colors.shadowLg
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
         }}>
           <h3 style={{
             fontSize: '1.25rem',
@@ -352,12 +352,13 @@ export default function LandingPage() {
 
         {/* VIP Code Entry Card */}
         <div style={{
-          background: colors.cardBg,
-          backdropFilter: 'blur(20px)',
-          border: colors.cardBorder,
+          background: isDark ? 'rgba(18, 18, 18, 0.97)' : 'rgba(255, 255, 255, 0.97)',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          border: isDark ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid rgba(0, 0, 0, 0.08)',
           borderRadius: '20px',
           padding: '2rem',
-          boxShadow: colors.shadowLg
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
         }}>
           <h3 style={{
             fontSize: '1.25rem',

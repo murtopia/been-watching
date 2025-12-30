@@ -352,7 +352,8 @@ export default function OnboardingVideoCard({
             muted
             playsInline
             loop
-            preload="metadata"
+            preload="auto"
+            poster="/videos/onboarding-poster.jpg"
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
           />
