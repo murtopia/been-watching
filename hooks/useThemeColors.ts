@@ -27,13 +27,14 @@ export function useThemeColors() {
       : 'rgba(255, 193, 37, 0.2)',   // Gold tint for light mode
     goldDivider: `linear-gradient(90deg, transparent, ${goldAccent}60, transparent)`,
 
-    // Background Colors
+    // Background Colors - use opaque backgrounds for Safari compatibility
+    // Safari often fails to render backdrop-filter, so backgrounds must look good without blur
     background: isDark ? '#0d0d0d' : '#ffffff',  // Soft dark for dark mode
     bgGradient: isDark ? '#0d0d0d' : '#ffffff',
-    cardBg: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.95)',
-    cardBgHover: isDark ? 'rgba(255, 255, 255, 0.08)' : '#f8f9fa',
-    surfaceBg: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
-    glassBg: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.75)',
+    cardBg: isDark ? 'rgba(20, 20, 20, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+    cardBgHover: isDark ? 'rgba(30, 30, 30, 0.95)' : '#f8f9fa',
+    surfaceBg: isDark ? 'rgba(20, 20, 20, 0.9)' : 'rgba(0, 0, 0, 0.03)',
+    glassBg: isDark ? 'rgba(13, 13, 13, 0.95)' : 'rgba(255, 255, 255, 0.95)',
 
     // Border Colors
     cardBorder: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #f0f0f0',
@@ -100,8 +101,8 @@ export function useThemeColors() {
       ? '0 20px 60px rgba(0, 0, 0, 0.5)'
       : '0 20px 60px rgba(0, 0, 0, 0.08)',
 
-    // Navigation Colors (for BottomNav)
-    navContainer: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.75)',
+    // Navigation Colors (for BottomNav) - opaque for Safari compatibility
+    navContainer: isDark ? 'rgba(13, 13, 13, 0.95)' : 'rgba(255, 255, 255, 0.95)',
     navButton: isDark ? 'rgba(255, 255, 255, 0.10)' : 'rgba(0, 0, 0, 0.06)',
     navButtonActive: isDark ? 'rgba(255, 255, 255, 0.18)' : 'rgba(0, 0, 0, 0.12)',
     navText: isDark ? 'rgba(255, 255, 255, 0.9)' : '#000000',
@@ -120,10 +121,11 @@ export function useThemeColors() {
     }),
 
     getCardStyle: () => ({
-      background: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.75)',
+      background: isDark ? 'rgba(20, 20, 20, 0.95)' : 'rgba(255, 255, 255, 0.95)',
       border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)',
       borderRadius: '12px',
-      backdropFilter: 'blur(20px)'
+      backdropFilter: 'blur(20px) saturate(180%)',
+      WebkitBackdropFilter: 'blur(20px) saturate(180%)'
     })
   }
 }

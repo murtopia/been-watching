@@ -105,9 +105,10 @@ export default function AppHeader({
   // Theme-based colors
   const colors = useThemeColors()
   const isDark = resolvedTheme === 'dark'
-  const cardBg = colors.glassBg
+  // Use opaque backgrounds for Safari compatibility (backdrop-filter often fails)
+  const cardBg = isDark ? 'rgba(13, 13, 13, 0.95)' : 'rgba(255, 255, 255, 0.95)'
   const cardBorder = colors.goldBorder
-  const backdropBlur = 'blur(20px)'
+  const backdropBlur = 'blur(20px) saturate(180%)'
   
   // Bell color - gold when notifications exist, white otherwise
   const bellColor = notificationCount > 0 
