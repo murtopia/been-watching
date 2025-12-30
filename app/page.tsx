@@ -180,10 +180,10 @@ export default function LandingPage() {
       {/* Header - consistent with app header style */}
       <header style={{
         padding: '5px 1.5rem',
-        background: isDark ? 'rgba(13, 13, 13, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+        background: colors.glassBg,
         borderBottom: colors.goldBorder,
-        backdropFilter: 'blur(20px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
         position: 'sticky',
         top: 0,
         zIndex: 10,
