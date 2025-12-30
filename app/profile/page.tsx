@@ -741,32 +741,6 @@ export default function ProfilePage() {
             </button>
           </div>
         </div>
-
-        {/* Divider */}
-        <div style={{ height: '1px', background: colors.dividerColor, margin: '1rem 0' }} />
-
-        {/* Stats Row */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-around',
-          paddingBottom: '1.5rem'
-        }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: colors.textPrimary }}>{counts.wantCount}</div>
-            <div style={{ fontSize: '0.875rem', color: colors.textSecondary }}>Want to Watch</div>
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: colors.textPrimary }}>{counts.watchingCount}</div>
-            <div style={{ fontSize: '0.875rem', color: colors.textSecondary }}>Watching</div>
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: colors.textPrimary }}>{counts.watchedCount}</div>
-            <div style={{ fontSize: '0.875rem', color: colors.textSecondary }}>Watched</div>
-          </div>
-        </div>
-
-        {/* Divider after stats */}
-        <div style={{ height: '1px', background: colors.dividerColor }} />
       </div>
 
       {/* Admin Link (shown for any admin role: owner, admin, or analyst) */}

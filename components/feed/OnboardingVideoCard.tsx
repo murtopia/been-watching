@@ -90,7 +90,8 @@ export default function OnboardingVideoCard({
     <>
       <style jsx>{`
         .onboarding-card {
-          width: 398px;
+          width: 100%;
+          max-width: 398px;
           height: 645px;
           position: relative;
           border-radius: 20px;
@@ -104,6 +105,8 @@ export default function OnboardingVideoCard({
           width: 100%;
           height: 100%;
           position: relative;
+          /* Subtle gradient background while video loads */
+          background: linear-gradient(180deg, rgba(40,40,40,1) 0%, rgba(20,20,20,1) 100%);
         }
 
         .video-element {
@@ -349,7 +352,7 @@ export default function OnboardingVideoCard({
             muted
             playsInline
             loop
-            poster=""
+            preload="metadata"
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
           />

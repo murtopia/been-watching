@@ -1038,7 +1038,8 @@ export const FeedCard: React.FC<FeedCardProps> = ({
       <style jsx>{`
         /* Card container with 3D perspective */
         .card-container {
-          width: 398px;
+          width: 100%;
+          max-width: 398px;
           height: 645px;
           perspective: 1000px;
           position: relative;
@@ -1369,9 +1370,32 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           border: 1px solid rgba(255, 255, 255, 0.15);
           border-radius: 16px;
           padding: 16px;
+          padding-top: 40px; /* Extra space for close button */
           width: 240px;
           opacity: 0;
           transition: all 0.2s ease;
+        }
+
+        /* Center modal on narrow screens */
+        @media (max-width: 400px) {
+          .action-modal {
+            left: 50% !important;
+            right: auto !important;
+            transform: translateX(-50%) scale(0.9) !important;
+            bottom: 120px !important;
+            top: auto !important;
+          }
+          .action-overlay.visible .action-modal {
+            transform: translateX(-50%) scale(1) !important;
+          }
+          .card.flipped .action-modal {
+            transform: translateX(-50%) scale(0.9) rotateY(180deg) !important;
+            top: 50% !important;
+            bottom: auto !important;
+          }
+          .card.flipped .action-overlay.visible .action-modal {
+            transform: translateX(-50%) scale(1) rotateY(180deg) !important;
+          }
         }
 
         .action-modal-close {
@@ -1832,14 +1856,23 @@ export const FeedCard: React.FC<FeedCardProps> = ({
 
         .close-btn {
           position: absolute;
-          top: 20px;
+          top: 12px;
           right: 12px;
           border: none;
           background: transparent;
-          padding: 0;
+          padding: 8px;
           cursor: pointer;
-          z-index: 10;
+          z-index: 20;
           transition: all 0.2s;
+        }
+
+        /* Ensure close button is visible on narrow screens */
+        @media (max-width: 400px) {
+          .close-btn {
+            top: 8px;
+            right: 8px;
+            padding: 4px;
+          }
         }
 
         .close-btn:active {

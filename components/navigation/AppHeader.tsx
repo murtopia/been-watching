@@ -136,6 +136,13 @@ export default function AppHeader({
           animation: bellRingWithPause 5s ease-in-out 2s infinite;
           transform-origin: top center;
         }
+        
+        /* Hide header text on narrow screens (iPhone 12 = 390px) */
+        @media (max-width: 400px) {
+          .header-title {
+            display: none !important;
+          }
+        }
       `}</style>
     <div style={{
       padding: '5px 1.5rem',
@@ -177,12 +184,16 @@ export default function AppHeader({
               width: 'auto'
             }}
           />
-          <h1 style={{
-            color: colors.textPrimary,
-            fontSize: '1.25rem',
-            fontWeight: '700',
-            margin: 0
-          }}>
+          <h1 
+            className="header-title"
+            style={{
+              color: colors.textPrimary,
+              fontSize: '1.25rem',
+              fontWeight: '700',
+              margin: 0,
+              whiteSpace: 'nowrap'
+            }}
+          >
             Been Watching
           </h1>
         </div>

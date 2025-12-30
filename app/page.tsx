@@ -279,16 +279,18 @@ export default function LandingPage() {
           <h2 style={{
             fontSize: '1.75rem',
             fontWeight: 700,
-            color: colors.textPrimary,
+            color: '#ffffff',
             marginBottom: '0.75rem',
-            lineHeight: 1.3
+            lineHeight: 1.3,
+            textShadow: '0 2px 8px rgba(0,0,0,0.5)'
           }}>
             What Have You Been Watching?
           </h2>
           <p style={{
             fontSize: '1rem',
-            color: colors.textSecondary,
-            lineHeight: 1.6
+            color: 'rgba(255, 255, 255, 0.85)',
+            lineHeight: 1.6,
+            textShadow: '0 1px 4px rgba(0,0,0,0.3)'
           }}>
             Track what you watch, find out what your friends are watching, and never miss a great show.
           </p>
@@ -296,8 +298,9 @@ export default function LandingPage() {
 
         {/* Join Waitlist Card - Primary CTA */}
         <div style={{
-          background: colors.cardBg,
+          background: isDark ? 'rgba(30, 30, 30, 0.85)' : 'rgba(255, 255, 255, 0.85)',
           backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
           border: colors.cardBorder,
           borderRadius: '20px',
           padding: '2rem',
