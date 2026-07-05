@@ -603,6 +603,7 @@ export default function FeedPage() {
       synopsis: item.overview || '',
       creator: '',
       cast: [],
+      season: item.season || undefined,
       mediaType: item.mediaType === 'movie' ? 'Movie' : 'TV'
     },
     friends: { avatars: [], count: 0, text: '' },
