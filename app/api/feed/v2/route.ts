@@ -362,12 +362,21 @@ export async function GET() {
       .select('id, tmdb_id, media_type, title, poster_path, overview, release_date, vote_average, tmdb_data')
       .or(baseIds.map(id => `id.eq.${id},id.like.${id}-s%`).join(','))
 
+    // Prefer the latest aired season row (matches chart cards and the season
+    // data repair); fall back to the base row only when no season rows exist.
+    const seasonRank = (m: any): number => {
+      const match = m.id.match(/-s(\d+)$/)
+      if (!match) return -1 // base row loses to any season row
+      const seasonNum = parseInt(match[1])
+      const aired = m.release_date && m.release_date <= today
+      // Aired seasons outrank unaired ones; higher season wins within each group
+      return (aired ? 1000 : 0) + seasonNum
+    }
     const byBase = new Map<string, any>()
     for (const m of (vlyMedia as any[]) || []) {
       const base = m.id.replace(/-s\d+$/, '')
       const existing = byBase.get(base)
-      // Prefer the base row for display; fall back to lowest season
-      if (!existing || m.id === base || (existing.id !== base && m.id < existing.id)) {
+      if (!existing || seasonRank(m) > seasonRank(existing)) {
         byBase.set(base, m)
       }
     }

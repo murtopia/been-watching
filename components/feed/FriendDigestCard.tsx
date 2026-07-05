@@ -11,7 +11,6 @@ import React from 'react'
 import type { FriendDigest, DigestShowItem } from '@/lib/feed/types'
 import { getAvatarProps } from '@/utils/avatarUtils'
 import Icon from '@/components/ui/Icon'
-import { ShareButton } from '@/components/sharing/ShareButton'
 
 const ACTION_CONFIG: Record<DigestShowItem['action'], { label: string; icon: string; color: string; border: string }> = {
   loved: { label: 'Loved', icon: 'heart', color: 'rgba(255, 59, 92, 0.25)', border: 'rgba(255, 59, 92, 0.6)' },
@@ -185,9 +184,10 @@ export default function FriendDigestCard({ digest, onShowClick, onUserClick }: F
         }
 
         .digest-season {
-          font-size: 10.5px;
+          font-size: 12px;
           font-weight: 700;
           color: rgba(255, 255, 255, 0.45);
+          margin-left: 6px;
         }
       `}</style>
 
@@ -210,24 +210,6 @@ export default function FriendDigestCard({ digest, onShowClick, onUserClick }: F
           <div className="digest-sub">
             {digest.periodLabel} · {showCount} {showCount === 1 ? 'show' : 'shows'}
           </div>
-        </div>
-        <div style={{ marginLeft: 'auto' }} onClick={(e) => e.stopPropagation()}>
-          <ShareButton
-            variant="icon"
-            size="sm"
-            data={{
-              contentType: 'list',
-              contentId: `digest-${digest.user.id}`,
-              title: `What ${firstName}'s been watching`,
-              username: digest.user.username,
-              avatarUrl: digest.user.avatar_url || undefined,
-              items: digest.items.slice(0, 9).map(item => ({
-                id: item.mediaId,
-                title: (item.title || '').replace(/\s*-\s*Season\s+\d+$/i, ''),
-                posterUrl: item.posterPath ? `https://image.tmdb.org/t/p/w342${item.posterPath}` : ''
-              }))
-            }}
-          />
         </div>
       </div>
 
@@ -265,7 +247,10 @@ export default function FriendDigestCard({ digest, onShowClick, onUserClick }: F
                 <div className="digest-row-poster" />
               )}
               <div className="digest-row-info">
-                <div className="digest-row-title">{displayTitle}</div>
+                <div className="digest-row-title">
+                  {displayTitle}
+                  {item.season && <span className="digest-season">S{item.season}</span>}
+                </div>
                 <div className="digest-row-meta">
                   <span
                     className="digest-action-pill"
@@ -274,7 +259,6 @@ export default function FriendDigestCard({ digest, onShowClick, onUserClick }: F
                     <Icon name={action.icon} size={10} color="white" />
                     {action.label}
                   </span>
-                  {item.season && <span className="digest-season">S{item.season}</span>}
                   {item.commentCount > 0 && (
                     <span className="digest-comment-chip">
                       <Icon name="comment" size={11} color="rgba(255,255,255,0.55)" />
