@@ -261,6 +261,14 @@ export default function ShowDetailCard({
     <>
       <div className="show-detail-overlay" onClick={onClose}>
         <div className="show-detail-card-wrapper" onClick={e => e.stopPropagation()}>
+          <button className="show-detail-close" onClick={onClose} aria-label="Close">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+          {/* Card flips freely between front and back inside the modal;
+              close via the X button or the backdrop, keeping feed position. */}
           <FeedCard
             variant="b"
             data={feedCardData}
@@ -273,12 +281,6 @@ export default function ShowDetailCard({
             } : undefined}
             initialUserStatus={initialStatus}
             initialFlipped={true}
-            onFlip={(flipped) => {
-              // If user flips to front, close the modal
-              if (!flipped) {
-                onClose()
-              }
-            }}
           />
         </div>
       </div>
@@ -299,10 +301,32 @@ export default function ShowDetailCard({
         }
 
         .show-detail-card-wrapper {
+          position: relative;
           width: 100%;
           max-width: 398px;
           height: auto;
           max-height: 90vh;
+        }
+
+        .show-detail-close {
+          position: absolute;
+          top: -14px;
+          right: -8px;
+          z-index: 20;
+          width: 34px;
+          height: 34px;
+          border-radius: 50%;
+          border: 1px solid rgba(255, 255, 255, 0.35);
+          background: rgba(0, 0, 0, 0.75);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+        .show-detail-close:active {
+          transform: scale(0.94);
         }
       `}</style>
     </>

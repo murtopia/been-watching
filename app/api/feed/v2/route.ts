@@ -11,6 +11,7 @@ import type {
   BylItem,
   FollowSuggestionItem
 } from '@/lib/feed/types'
+import { PLATFORM_LABELS, CATEGORY_LABELS, getPlatformLogoUrl } from '@/lib/feed/platforms'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -19,16 +20,6 @@ const TMDB_API_KEY = process.env.TMDB_API_KEY
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3'
 
 const DIGEST_WINDOW_DAYS = 7
-const PLATFORM_LABELS: Record<string, string> = {
-  netflix: 'Netflix',
-  max: 'Max',
-  disney: 'Disney+',
-  prime: 'Prime Video',
-  paramount: 'Paramount+',
-  hulu: 'Hulu',
-  apple: 'Apple TV+',
-  peacock: 'Peacock'
-}
 const SOURCE_LABELS: Record<string, string> = {
   netflix_tudum: 'Netflix Top 10 (official)',
   flixpatrol: 'FlixPatrol',
@@ -79,11 +70,11 @@ export async function GET() {
     supabase.from('ratings').select('media_id, rating').eq('user_id', user.id),
     supabase
       .from('platform_charts')
-      .select('platform, chart_type, period, chart_date, rank, title, metric_label, metric_value, is_new, weeks_on_chart, tmdb_id, media_type, poster_path, source')
+      .select('platform, chart_type, category, period, chart_date, rank, title, metric_label, metric_value, is_new, weeks_on_chart, tmdb_id, media_type, poster_path, source')
       .eq('region', 'US')
       .gte('chart_date', new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
       .order('chart_date', { ascending: false })
-      .limit(400)
+      .limit(1200)
   ])
 
   const friendIds = (followsRes.data || []).map(f => f.following_id)
@@ -207,19 +198,21 @@ export async function GET() {
   }
   digests.sort((a, b) => b.lastActivityAt.localeCompare(a.lastActivityAt))
 
-  // ---- Platform charts (best source per platform, latest date) ----
+  // ---- Platform charts (best source per platform+category, latest date) ----
   const chartRows = (chartsRes.data as any[]) || []
+  const rowCategory = (r: any) => r.category || 'overall'
   // Source priority per platform: flixpatrol > netflix_tudum > tmdb
   const sourcePriority = (s: string) => (s === 'flixpatrol' ? 3 : s === 'netflix_tudum' ? 2 : 1)
-  const bestByPlatform = new Map<string, { source: string; chartDate: string; period: string }>()
+  const bestByGroup = new Map<string, { source: string; chartDate: string; period: string }>()
   for (const r of chartRows) {
-    const cur = bestByPlatform.get(r.platform)
+    const key = `${r.platform}|${rowCategory(r)}`
+    const cur = bestByGroup.get(key)
     if (
       !cur ||
       sourcePriority(r.source) > sourcePriority(cur.source) ||
       (r.source === cur.source && r.chart_date > cur.chartDate)
     ) {
-      bestByPlatform.set(r.platform, { source: r.source, chartDate: r.chart_date, period: r.period })
+      bestByGroup.set(key, { source: r.source, chartDate: r.chart_date, period: r.period })
     }
   }
 
@@ -274,9 +267,14 @@ export async function GET() {
   }
 
   const charts: PlatformChart[] = []
-  for (const [platform, best] of bestByPlatform) {
+  for (const [groupKey, best] of bestByGroup) {
+    const [platform, category] = groupKey.split('|')
     const rows = chartRows.filter(
-      r => r.platform === platform && r.source === best.source && r.chart_date === best.chartDate
+      r =>
+        r.platform === platform &&
+        rowCategory(r) === category &&
+        r.source === best.source &&
+        r.chart_date === best.chartDate
     )
     const toEntry = (r: any): ChartEntry => ({
       rank: r.rank,
@@ -294,6 +292,9 @@ export async function GET() {
     charts.push({
       platform,
       platformLabel: PLATFORM_LABELS[platform] || platform,
+      platformLogoUrl: getPlatformLogoUrl(platform),
+      category,
+      categoryLabel: category === 'overall' ? null : CATEGORY_LABELS[category] || category,
       source: best.source,
       sourceLabel: SOURCE_LABELS[best.source] || best.source,
       period: best.period as 'day' | 'week',
@@ -302,8 +303,16 @@ export async function GET() {
       movies: rows.filter(r => r.chart_type === 'movie').sort((a, b) => a.rank - b.rank).map(toEntry)
     })
   }
-  // Netflix first, then alphabetical
-  charts.sort((a, b) => (a.platform === 'netflix' ? -1 : b.platform === 'netflix' ? 1 : a.platform.localeCompare(b.platform)))
+  // Overall charts first (Netflix leading), then genre charts alphabetically
+  charts.sort((a, b) => {
+    const aOverall = a.category === 'overall' ? 0 : 1
+    const bOverall = b.category === 'overall' ? 0 : 1
+    if (aOverall !== bOverall) return aOverall - bOverall
+    if (a.platform !== b.platform) {
+      return a.platform === 'netflix' ? -1 : b.platform === 'netflix' ? 1 : a.platform.localeCompare(b.platform)
+    }
+    return a.category.localeCompare(b.category)
+  })
 
   // ---- Viewers Like You (collaborative filtering on ratings overlap) ----
   const allRatings = (allRatingsRes.data as any[]) || []

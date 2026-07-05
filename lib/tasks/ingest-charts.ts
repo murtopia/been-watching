@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { CHART_CATEGORIES } from '@/lib/feed/platforms'
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3'
@@ -36,6 +37,8 @@ export interface IngestChartsResult {
 interface ChartRow {
   platform: string
   chart_type: 'tv' | 'movie'
+  /** 'overall' for the main Top 10, or a genre subcategory like 'reality' */
+  category: string
   region: string
   period: 'day' | 'week'
   chart_date: string
@@ -120,7 +123,7 @@ async function upsertChartRows(supabase: SupabaseClient, rows: ChartRow[]): Prom
   if (rows.length === 0) return null
   const { error } = await supabase
     .from('platform_charts')
-    .upsert(rows, { onConflict: 'platform,chart_type,region,period,chart_date,rank,source' })
+    .upsert(rows, { onConflict: 'platform,chart_type,category,region,period,chart_date,rank,source' })
   return error ? error.message : null
 }
 
@@ -173,6 +176,7 @@ async function ingestNetflixTudum(supabase: SupabaseClient): Promise<IngestChart
       rows.push({
         platform: 'netflix',
         chart_type: chartType,
+        category: 'overall',
         region: 'US',
         period: 'week',
         chart_date: latestWeek,
@@ -198,6 +202,41 @@ async function ingestNetflixTudum(supabase: SupabaseClient): Promise<IngestChart
 
 // ---------- TMDB per-platform popularity (free daily fallback for all platforms) ----------
 
+async function fetchTmdbDiscoverChart(
+  platform: string,
+  providerId: number,
+  chartType: 'tv' | 'movie',
+  category: string,
+  genreId: number | null,
+  chartDate: string,
+  limit: number
+): Promise<ChartRow[]> {
+  const genreFilter = genreId ? `&with_genres=${genreId}` : ''
+  const res = await fetch(
+    `${TMDB_BASE_URL}/discover/${chartType}?api_key=${TMDB_API_KEY}` +
+    `&with_watch_providers=${providerId}&watch_region=US` +
+    `&with_watch_monetization_types=flatrate&sort_by=popularity.desc${genreFilter}`
+  )
+  if (!res.ok) return []
+  const data = await res.json()
+  return ((data.results || []) as any[]).slice(0, limit).map((item, idx) => ({
+    platform,
+    chart_type: chartType,
+    category,
+    region: 'US',
+    period: 'day' as const,
+    chart_date: chartDate,
+    rank: idx + 1,
+    title: item.name || item.title || '',
+    metric_label: 'popularity',
+    metric_value: Math.round(item.popularity || 0),
+    tmdb_id: item.id,
+    media_type: chartType,
+    poster_path: item.poster_path || null,
+    source: 'tmdb'
+  }))
+}
+
 async function ingestTmdbPlatformCharts(supabase: SupabaseClient): Promise<IngestChartsResult['tmdbPlatforms']> {
   if (!TMDB_API_KEY) return { rows: 0, error: 'TMDB_API_KEY not configured' }
 
@@ -207,31 +246,15 @@ async function ingestTmdbPlatformCharts(supabase: SupabaseClient): Promise<Inges
   try {
     for (const [platform, providerId] of Object.entries(TMDB_PROVIDERS)) {
       for (const chartType of ['tv', 'movie'] as const) {
-        const res = await fetch(
-          `${TMDB_BASE_URL}/discover/${chartType}?api_key=${TMDB_API_KEY}` +
-          `&with_watch_providers=${providerId}&watch_region=US` +
-          `&with_watch_monetization_types=flatrate&sort_by=popularity.desc`
-        )
-        if (!res.ok) continue
-        const data = await res.json()
-        const top = (data.results || []).slice(0, 10)
-        top.forEach((item: any, idx: number) => {
-          rows.push({
-            platform,
-            chart_type: chartType,
-            region: 'US',
-            period: 'day',
-            chart_date: today,
-            rank: idx + 1,
-            title: item.name || item.title || '',
-            metric_label: 'popularity',
-            metric_value: Math.round(item.popularity || 0),
-            tmdb_id: item.id,
-            media_type: chartType,
-            poster_path: item.poster_path || null,
-            source: 'tmdb'
-          })
-        })
+        // Overall Top 10
+        rows.push(...await fetchTmdbDiscoverChart(platform, providerId, chartType, 'overall', null, today, 10))
+
+        // Genre subcategory Top 5s (reality, crime, comedy, documentary, family)
+        for (const cat of CHART_CATEGORIES) {
+          const genreId = chartType === 'tv' ? cat.tvGenreId : cat.movieGenreId
+          if (!genreId) continue
+          rows.push(...await fetchTmdbDiscoverChart(platform, providerId, chartType, cat.id, genreId, today, 5))
+        }
       }
     }
 
@@ -312,6 +335,7 @@ async function ingestFlixPatrol(supabase: SupabaseClient): Promise<IngestChartsR
         platformRows.push({
           platform,
           chart_type: chartType,
+          category: 'overall',
           region: 'US',
           period: 'day',
           chart_date: d.date?.from || today,

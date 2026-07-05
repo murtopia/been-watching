@@ -1,14 +1,15 @@
 'use client'
 
 /**
- * Platform Chart Card - "Top on Netflix This Week"
+ * Platform Chart Card - "Top TV Shows on Netflix"
  *
+ * One platform + one media type (+ optional genre category) per card.
  * Bored Room-inspired ranked chart: horizontal bars whose length reflects the
  * metric, circular poster on the left, title + metric on the bar, NEW badge
  * for new entries, and stacked friend avatars on shows your friends track.
  */
 
-import React, { useState } from 'react'
+import React from 'react'
 import type { PlatformChart, ChartEntry } from '@/lib/feed/types'
 import { getAvatarProps } from '@/utils/avatarUtils'
 import { ShareButton } from '@/components/sharing/ShareButton'
@@ -46,20 +47,27 @@ function formatDateRange(chart: PlatformChart): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
+export function chartCardTitle(chart: PlatformChart, chartType: 'tv' | 'movie'): string {
+  const typeWord = chartType === 'tv'
+    ? (chart.category === 'overall' ? 'TV Shows' : 'Shows')
+    : 'Movies'
+  const categoryWord = chart.category !== 'overall' && chart.categoryLabel ? `${chart.categoryLabel} ` : ''
+  return `Top ${categoryWord}${typeWord} on ${chart.platformLabel}`
+}
+
 interface PlatformChartCardProps {
-  charts: PlatformChart[]
+  chart: PlatformChart
+  chartType: 'tv' | 'movie'
   onShowClick?: (entry: ChartEntry, chart: PlatformChart, chartType: 'tv' | 'movie') => void
 }
 
-export default function PlatformChartCard({ charts, onShowClick }: PlatformChartCardProps) {
-  const [platformIdx, setPlatformIdx] = useState(0)
-  const [tab, setTab] = useState<'tv' | 'movie'>('tv')
+export default function PlatformChartCard({ chart, chartType, onShowClick }: PlatformChartCardProps) {
+  const entries = (chartType === 'tv' ? chart.tv : chart.movies).slice(0, 5)
+  if (entries.length === 0) return null
 
-  if (charts.length === 0) return null
-  const chart = charts[Math.min(platformIdx, charts.length - 1)]
-  const entries = (tab === 'tv' ? chart.tv : chart.movies).slice(0, 5)
   const colorsFor = PLATFORM_COLORS[chart.platform] || PLATFORM_COLORS.apple
   const maxMetric = Math.max(...entries.map(e => e.metricValue || 0), 1)
+  const title = chartCardTitle(chart, chartType)
 
   return (
     <div className="chart-card">
@@ -76,11 +84,28 @@ export default function PlatformChartCard({ charts, onShowClick }: PlatformChart
         }
 
         .chart-header {
-          padding: 20px 20px 12px;
+          padding: 20px 20px 14px;
+        }
+
+        .chart-header-row {
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+        }
+
+        .platform-logo {
+          width: 44px;
+          height: 44px;
+          border-radius: 12px;
+          object-fit: cover;
+          flex-shrink: 0;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
         }
 
         .chart-title {
-          font-size: 22px;
+          flex: 1;
+          min-width: 0;
+          font-size: 20px;
           font-weight: 800;
           line-height: 1.15;
           letter-spacing: -0.3px;
@@ -92,59 +117,12 @@ export default function PlatformChartCard({ charts, onShowClick }: PlatformChart
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-top: 8px;
+          margin-top: 10px;
           font-size: 11px;
           font-weight: 600;
           letter-spacing: 0.6px;
           text-transform: uppercase;
           color: rgba(255, 255, 255, 0.55);
-        }
-
-        .platform-pills {
-          display: flex;
-          gap: 6px;
-          padding: 4px 20px 12px;
-          overflow-x: auto;
-          scrollbar-width: none;
-        }
-        .platform-pills::-webkit-scrollbar { display: none; }
-
-        .platform-pill {
-          flex-shrink: 0;
-          padding: 6px 12px;
-          border-radius: 20px;
-          font-size: 12px;
-          font-weight: 700;
-          cursor: pointer;
-          border: 1px solid rgba(255, 255, 255, 0.18);
-          background: rgba(255, 255, 255, 0.06);
-          color: rgba(255, 255, 255, 0.75);
-          transition: all 0.15s ease;
-        }
-        .platform-pill.active {
-          background: rgba(255, 193, 37, 0.18);
-          border-color: #FFC125;
-          color: #FFC125;
-        }
-
-        .type-tabs {
-          display: flex;
-          gap: 14px;
-          padding: 0 20px 6px;
-        }
-        .type-tab {
-          background: none;
-          border: none;
-          padding: 4px 0;
-          font-size: 13px;
-          font-weight: 700;
-          color: rgba(255, 255, 255, 0.45);
-          cursor: pointer;
-          border-bottom: 2px solid transparent;
-        }
-        .type-tab.active {
-          color: white;
-          border-bottom-color: #FFC125;
         }
 
         .chart-rows {
@@ -157,17 +135,7 @@ export default function PlatformChartCard({ charts, onShowClick }: PlatformChart
         .chart-row {
           display: flex;
           align-items: center;
-          gap: 8px;
           cursor: pointer;
-        }
-
-        .chart-rank {
-          width: 22px;
-          font-size: 16px;
-          font-weight: 800;
-          color: rgba(255, 255, 255, 0.85);
-          text-align: right;
-          flex-shrink: 0;
         }
 
         .chart-poster-wrap {
@@ -277,15 +245,18 @@ export default function PlatformChartCard({ charts, onShowClick }: PlatformChart
       `}</style>
 
       <div className="chart-header">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
-          <h2 className="chart-title">Top on {chart.platformLabel}</h2>
+        <div className="chart-header-row">
+          {chart.platformLogoUrl && (
+            <img className="platform-logo" src={chart.platformLogoUrl} alt={chart.platformLabel} />
+          )}
+          <h2 className="chart-title">{title}</h2>
           <ShareButton
             variant="icon"
             size="sm"
             data={{
               contentType: 'list',
-              contentId: `chart-${chart.platform}-${chart.chartDate}`,
-              title: `Top on ${chart.platformLabel} (${formatDateRange(chart)})`,
+              contentId: `chart-${chart.platform}-${chart.category}-${chartType}-${chart.chartDate}`,
+              title: `${title} (${formatDateRange(chart)})`,
               items: entries.map(e => ({
                 id: e.dbMediaId || `chart-${e.rank}`,
                 title: e.title,
@@ -300,44 +271,20 @@ export default function PlatformChartCard({ charts, onShowClick }: PlatformChart
         </div>
       </div>
 
-      {charts.length > 1 && (
-        <div className="platform-pills">
-          {charts.map((c, idx) => (
-            <button
-              key={c.platform}
-              className={`platform-pill ${idx === platformIdx ? 'active' : ''}`}
-              onClick={() => setPlatformIdx(idx)}
-            >
-              {c.platformLabel}
-            </button>
-          ))}
-        </div>
-      )}
-
-      <div className="type-tabs">
-        <button className={`type-tab ${tab === 'tv' ? 'active' : ''}`} onClick={() => setTab('tv')}>
-          TV Shows
-        </button>
-        <button className={`type-tab ${tab === 'movie' ? 'active' : ''}`} onClick={() => setTab('movie')}>
-          Movies
-        </button>
-      </div>
-
       <div className="chart-rows">
-        {entries.map((entry) => {
+        {entries.map((entry, idx) => {
           const metricText = formatMetric(entry.metricLabel, entry.metricValue)
-          // Bar length scales with metric; falls back to rank-based taper
+          // Bar length scales with metric; falls back to position-based taper
           const ratio = entry.metricValue
             ? Math.max(0.45, entry.metricValue / maxMetric)
-            : Math.max(0.45, 1 - (entry.rank - 1) * 0.12)
+            : Math.max(0.45, 1 - idx * 0.12)
 
           return (
             <div
               key={`${entry.rank}-${entry.title}`}
               className="chart-row"
-              onClick={() => onShowClick?.(entry, chart, tab)}
+              onClick={() => onShowClick?.(entry, chart, chartType)}
             >
-              <div className="chart-rank">{entry.rank}.</div>
               <div className="chart-poster-wrap">
                 {entry.posterPath ? (
                   <img

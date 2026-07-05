@@ -55,6 +55,11 @@ export interface ChartEntry {
 export interface PlatformChart {
   platform: string
   platformLabel: string
+  /** TMDB watch-provider logo (nominative use, attributed via sourceLabel) */
+  platformLogoUrl: string | null
+  /** 'overall' or a genre subcategory like 'reality', 'crime', 'comedy' */
+  category: string
+  categoryLabel: string | null
   source: string
   sourceLabel: string
   period: 'day' | 'week'

@@ -63,11 +63,55 @@ interface DetailShow {
 
 type FeedBlock =
   | { kind: 'digest'; key: string; digest: FeedV2Response['digests'][number] }
-  | { kind: 'charts'; key: string }
+  | { kind: 'chart'; key: string; chart: PlatformChart; chartType: 'tv' | 'movie' }
   | { kind: 'vly'; key: string; item: VlyItem }
   | { kind: 'byl'; key: string; item: BylItem }
   | { kind: 'coming_soon'; key: string; item: ComingSoonItem }
   | { kind: 'follow_suggestions'; key: string }
+
+/**
+ * Pick today's chart cards: one card per platform+type, Netflix TV (best data)
+ * always first, the rest rotating daily so every platform/genre gets airtime.
+ */
+function pickChartBlocks(charts: PlatformChart[], maxCards: number): FeedBlock[] {
+  const candidates: Array<{ chart: PlatformChart; chartType: 'tv' | 'movie' }> = []
+  for (const chart of charts) {
+    if (chart.tv.length >= 3) candidates.push({ chart, chartType: 'tv' })
+    if (chart.movies.length >= 3) candidates.push({ chart, chartType: 'movie' })
+  }
+  if (candidates.length === 0) return []
+
+  const toBlock = (c: { chart: PlatformChart; chartType: 'tv' | 'movie' }): FeedBlock => ({
+    kind: 'chart',
+    key: `chart-${c.chart.platform}-${c.chart.category}-${c.chartType}`,
+    chart: c.chart,
+    chartType: c.chartType
+  })
+
+  const dayIndex = Math.floor(Date.now() / 86400000)
+  const rotate = <T,>(arr: T[]): T[] => {
+    if (arr.length === 0) return arr
+    const off = dayIndex % arr.length
+    return [...arr.slice(off), ...arr.slice(0, off)]
+  }
+
+  const anchor = candidates.find(c => c.chart.platform === 'netflix' && c.chart.category === 'overall' && c.chartType === 'tv')
+  const overall = rotate(candidates.filter(c => c !== anchor && c.chart.category === 'overall'))
+  const genre = rotate(candidates.filter(c => c.chart.category !== 'overall'))
+
+  const picked: typeof candidates = []
+  if (anchor) picked.push(anchor)
+  // Alternate overall and genre picks so the mix stays varied
+  let oi = 0
+  let gi = 0
+  while (picked.length < maxCards && (oi < overall.length || gi < genre.length)) {
+    if (oi < overall.length) picked.push(overall[oi++])
+    if (picked.length >= maxCards) break
+    if (gi < genre.length) picked.push(genre[gi++])
+  }
+
+  return picked.map(toBlock)
+}
 
 export default function FeedPage() {
   const colors = useThemeColors()
@@ -284,12 +328,10 @@ export default function FeedPage() {
     const vly = feedData.viewersLikeYou.slice(0, 2)
     const byl = feedData.becauseYouLiked.slice(0, 2)
     const comingSoon = feedData.comingSoon.slice(0, 2)
-    const hasCharts = feedData.charts.length > 0
+    const chartBlocks = pickChartBlocks(feedData.charts, 5)
 
-    // Lead with the most recent friend digest
+    // Base sequence without charts
     if (digests[0]) result.push({ kind: 'digest', key: `digest-${digests[0].user.id}`, digest: digests[0] })
-    // Charts card up top - it's the "what's actually popular" anchor
-    if (hasCharts) result.push({ kind: 'charts', key: 'charts' })
     if (digests[1]) result.push({ kind: 'digest', key: `digest-${digests[1].user.id}`, digest: digests[1] })
     if (vly[0]) result.push({ kind: 'vly', key: `vly-${vly[0].mediaId}`, item: vly[0] })
     if (comingSoon[0]) result.push({ kind: 'coming_soon', key: `cs-${comingSoon[0].mediaId}`, item: comingSoon[0] })
@@ -302,6 +344,14 @@ export default function FeedPage() {
     }
     if (byl[1]) result.push({ kind: 'byl', key: `byl-${byl[1].tmdbId}`, item: byl[1] })
     if (comingSoon[1]) result.push({ kind: 'coming_soon', key: `cs-${comingSoon[1].mediaId}`, item: comingSoon[1] })
+
+    // Interleave chart cards: first one right after the lead digest, then one
+    // every third slot so they're spread through the feed instead of stacked.
+    let insertAt = Math.min(1, result.length)
+    for (const chartBlock of chartBlocks) {
+      result.splice(insertAt, 0, chartBlock)
+      insertAt = Math.min(insertAt + 3, result.length)
+    }
 
     const visibleSuggestions = feedData.followSuggestions.filter(s => !dismissedSuggestions.has(s.id))
     if (visibleSuggestions.length > 0) result.push({ kind: 'follow_suggestions', key: 'follow-suggestions' })
@@ -747,12 +797,13 @@ export default function FeedPage() {
             )
           }
 
-          if (block.kind === 'charts' && feedData) {
+          if (block.kind === 'chart') {
             return (
               <div key={block.key} className="card-snap-wrapper">
                 <div className="card-inner-wrapper">
                   <PlatformChartCard
-                    charts={feedData.charts}
+                    chart={block.chart}
+                    chartType={block.chartType}
                     onShowClick={openShowFromChart}
                   />
                 </div>
