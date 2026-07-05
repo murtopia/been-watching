@@ -6,6 +6,7 @@ import { useDebounce } from '@/hooks/useDebounce'
 import { createClient } from '@/utils/supabase/client'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { trackSearchPerformed } from '@/utils/analytics'
+import { ensureReleaseReminder } from '@/lib/reminders'
 import Icon from '@/components/ui/Icon'
 import { FeedCard, FeedCardData } from '@/components/feed/UserActivityCard'
 
@@ -644,6 +645,10 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
         }, { onConflict: 'user_id,media_id' })
         setUserStatuses(prev => ({ ...prev, [mediaId]: status }))
         setUserWatchlistIds(prev => new Set([...prev, mediaId]))
+        // Unreleased show added to a list -> auto-set the release reminder
+        if (status === 'want' || status === 'watching') {
+          await ensureReleaseReminder(supabase, user.id, mediaId)
+        }
       }
       
       onSelectMedia(buildMediaForParent(mediaId), userRatings[mediaId] ?? undefined, status ?? undefined)
@@ -760,7 +765,7 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
                 flexShrink: 0
               }}>
                 <h2 style={{ margin: 0, fontSize: '1.125rem', fontWeight: '700', color: colors.textPrimary }}>
-                  Add or Rate a Show
+                  Find a Show
                 </h2>
                 <button
                   onClick={onClose}

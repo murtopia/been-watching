@@ -9,10 +9,11 @@
  * for new entries, and stacked friend avatars on shows your friends track.
  */
 
-import React from 'react'
+import React, { useState } from 'react'
 import type { PlatformChart, ChartEntry } from '@/lib/feed/types'
 import { getAvatarProps } from '@/utils/avatarUtils'
-import { ShareButton } from '@/components/sharing/ShareButton'
+import Icon from '@/components/ui/Icon'
+import { ShareModal } from '@/components/sharing/ShareModal'
 
 const PLATFORM_COLORS: Record<string, { bar: string; barEnd: string; accent: string }> = {
   netflix: { bar: '#B1060F', barEnd: '#E50914', accent: '#E50914' },
@@ -62,6 +63,7 @@ interface PlatformChartCardProps {
 }
 
 export default function PlatformChartCard({ chart, chartType, onShowClick }: PlatformChartCardProps) {
+  const [shareOpen, setShareOpen] = useState(false)
   const entries = (chartType === 'tv' ? chart.tv : chart.movies).slice(0, 5)
   if (entries.length === 0) return null
 
@@ -234,13 +236,36 @@ export default function PlatformChartCard({ chart, chartType, onShowClick }: Pla
         }
 
         .chart-footer {
-          padding: 0 20px 16px;
+          padding: 0 16px 14px 20px;
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 12px;
+        }
+
+        .chart-source {
           font-size: 10px;
           font-weight: 600;
           letter-spacing: 0.5px;
           text-transform: uppercase;
           color: rgba(255, 255, 255, 0.35);
-          text-align: right;
+        }
+
+        .chart-share-btn {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          background: rgba(255, 255, 255, 0.08);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          flex-shrink: 0;
+        }
+        .chart-share-btn:active {
+          transform: scale(0.94);
         }
       `}</style>
 
@@ -250,20 +275,6 @@ export default function PlatformChartCard({ chart, chartType, onShowClick }: Pla
             <img className="platform-logo" src={chart.platformLogoUrl} alt={chart.platformLabel} />
           )}
           <h2 className="chart-title">{title}</h2>
-          <ShareButton
-            variant="icon"
-            size="sm"
-            data={{
-              contentType: 'list',
-              contentId: `chart-${chart.platform}-${chart.category}-${chartType}-${chart.chartDate}`,
-              title: `${title} (${formatDateRange(chart)})`,
-              items: entries.map(e => ({
-                id: e.dbMediaId || `chart-${e.rank}`,
-                title: e.title,
-                posterUrl: e.posterPath ? `https://image.tmdb.org/t/p/w342${e.posterPath}` : ''
-              }))
-            }}
-          />
         </div>
         <div className="chart-subtitle">
           <span>{formatDateRange(chart)}</span>
@@ -333,7 +344,33 @@ export default function PlatformChartCard({ chart, chartType, onShowClick }: Pla
         })}
       </div>
 
-      <div className="chart-footer">via {chart.sourceLabel}</div>
+      <div className="chart-footer">
+        <span className="chart-source">via {chart.sourceLabel}</span>
+        <button
+          className="chart-share-btn"
+          onClick={() => setShareOpen(true)}
+          aria-label="Share"
+        >
+          <Icon name="share" state="default" size={18} color="white" />
+        </button>
+      </div>
+
+      {shareOpen && (
+        <ShareModal
+          isOpen={shareOpen}
+          onClose={() => setShareOpen(false)}
+          data={{
+            contentType: 'list',
+            contentId: `chart-${chart.platform}-${chart.category}-${chartType}-${chart.chartDate}`,
+            title: `${title} (${formatDateRange(chart)})`,
+            items: entries.map(e => ({
+              id: e.dbMediaId || `chart-${e.rank}`,
+              title: e.title,
+              posterUrl: e.posterPath ? `https://image.tmdb.org/t/p/w342${e.posterPath}` : ''
+            }))
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -310,31 +310,7 @@ export default function MediaCard({
         </div>
       </div>
 
-      {/* Quick rate buttons */}
-      {showActions && onRate && (
-        <div className="quick-rate" onClick={(e) => e.stopPropagation()}>
-          <button
-            className={`quick-rate-btn meh ${currentRating === 'meh' ? 'active' : ''}`}
-            onClick={() => onRate('meh')}
-          >
-            😐 Meh
-          </button>
-          <button
-            className={`quick-rate-btn like ${currentRating === 'like' ? 'active' : ''}`}
-            onClick={() => onRate('like')}
-          >
-            👍 Like
-          </button>
-          <button
-            className={`quick-rate-btn love ${currentRating === 'love' ? 'active' : ''}`}
-            onClick={() => onRate('love')}
-          >
-            ❤️ Love
-          </button>
-        </div>
-      )}
-
-      {/* Quick status buttons */}
+      {/* Quick status buttons - watchlist first, rating unlocks after Watched */}
       {showActions && onStatus && (
         <div className="quick-status" onClick={(e) => e.stopPropagation()}>
           <div className="status-btn-group">
@@ -361,6 +337,30 @@ export default function MediaCard({
               ✓ Watched
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Quick rate buttons - only for shows you've finished */}
+      {showActions && onRate && currentStatus === 'watched' && (
+        <div className="quick-rate" onClick={(e) => e.stopPropagation()}>
+          <button
+            className={`quick-rate-btn meh ${currentRating === 'meh' ? 'active' : ''}`}
+            onClick={() => onRate('meh')}
+          >
+            😐 Meh
+          </button>
+          <button
+            className={`quick-rate-btn like ${currentRating === 'like' ? 'active' : ''}`}
+            onClick={() => onRate('like')}
+          >
+            👍 Like
+          </button>
+          <button
+            className={`quick-rate-btn love ${currentRating === 'love' ? 'active' : ''}`}
+            onClick={() => onRate('love')}
+          >
+            ❤️ Love
+          </button>
         </div>
       )}
     </div>

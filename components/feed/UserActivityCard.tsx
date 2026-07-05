@@ -2408,7 +2408,10 @@ export const FeedCard: React.FC<FeedCardProps> = ({
               </div>
 
               {/* Show Info */}
-              <div className="show-title">{data.media.title}</div>
+              <div className="show-title">
+                {data.media.title}
+                {data.media.season && !data.media.title.includes(`Season ${data.media.season}`) && !data.media.title.includes(`S${data.media.season}`) && ` S${data.media.season}`}
+              </div>
               <div className="show-meta">
                 {data.media.year} <span className="meta-dot">•</span>{' '}
                 {data.media.genres.join(' ')} <span className="meta-dot">•</span>{' '}
@@ -2545,15 +2548,6 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                     aria-label="Share"
                   >
                     <Icon name="share" state="default" size={24} />
-                  </button>
-                </div>
-              )}
-
-              {/* Remind Me Button - Only for Card 4 (unreleased) */}
-              {isUnreleased && (
-                <div>
-                  <button className="action-btn" onClick={onSetReminder ?? onRemindMe}>
-                    <Icon name="bell" state="default" size={24} />
                   </button>
                 </div>
               )}
@@ -2882,12 +2876,6 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                 >
                   <Icon name="share" size={22} color="white" />
                 </button>
-                {/* Remind Me - Only for unreleased */}
-                {isUnreleased && (
-                  <button className="back-icon-btn" onClick={onSetReminder ?? onRemindMe}>
-                    <Icon name="bell" size={22} color="white" />
-                  </button>
-                )}
               </div>
 
               {/* Info Grid */}
@@ -3146,64 +3134,9 @@ export const FeedCard: React.FC<FeedCardProps> = ({
               >
                 <Icon name="close-c-default" size={28} />
               </button>
-              {/* Rate This Show Title */}
-              <div className="action-modal-title">Rate This Show</div>
+              {/* Add to a Watchlist Title - watchlist first, rating unlocks after Watched */}
+              <div className="action-modal-title">Add to a Watchlist</div>
               <div className="action-modal-grid">
-                {/* Rating Icons */}
-                <div 
-                  className="action-modal-item" 
-                  onClick={(e) => handleRating('meh', e)}
-                  onTouchStart={() => setPressedIcon('meh')}
-                >
-                  <div className={`action-modal-icon ${userRating === 'meh' ? 'active' : ''} ${pressedIcon === 'meh' ? 'pressed' : ''}`}>
-                    <Icon
-                      name="meh-face"
-                      state={userRating === 'meh' ? 'active' : 'default'}
-                      size={20}
-                      color="white"
-                    />
-                  </div>
-                  <div className="action-modal-label">Meh</div>
-                </div>
-
-                <div 
-                  className="action-modal-item" 
-                  onClick={(e) => handleRating('like', e)}
-                  onTouchStart={() => setPressedIcon('like')}
-                >
-                  <div className={`action-modal-icon ${userRating === 'like' ? 'active' : ''} ${pressedIcon === 'like' ? 'pressed' : ''}`}>
-                    <Icon
-                      name="thumbs-up"
-                      state={userRating === 'like' ? 'active' : 'default'}
-                      size={20}
-                      color="white"
-                    />
-                  </div>
-                  <div className="action-modal-label">Like</div>
-                </div>
-
-                <div 
-                  className="action-modal-item" 
-                  onClick={(e) => handleRating('love', e)}
-                  onTouchStart={() => setPressedIcon('love')}
-                >
-                  <div className={`action-modal-icon ${userRating === 'love' ? 'active' : ''} ${pressedIcon === 'love' ? 'pressed' : ''}`}>
-                    <Icon
-                      name="heart"
-                      state={userRating === 'love' ? 'active' : 'default'}
-                      size={20}
-                      color="white"
-                    />
-                  </div>
-                  <div className="action-modal-label">Love</div>
-                </div>
-
-                {/* Divider */}
-                <div className="action-modal-divider"></div>
-
-                {/* Add to a Watchlist Title */}
-                <div className="action-modal-title" style={{ gridColumn: '1 / -1' }}>Add to a Watchlist</div>
-
                 {/* Watchlist Icons */}
                 <div 
                   className="action-modal-item" 
@@ -3267,6 +3200,62 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                   </div>
                   <div className="action-modal-label">Watched</div>
                 </div>
+
+                {/* Rating section - only for shows you've finished */}
+                {watchlistStatus.has('watched') && (
+                  <>
+                    <div className="action-modal-divider"></div>
+                    <div className="action-modal-title" style={{ gridColumn: '1 / -1' }}>Rate This Show</div>
+
+                    <div
+                      className="action-modal-item"
+                      onClick={(e) => handleRating('meh', e)}
+                      onTouchStart={() => setPressedIcon('meh')}
+                    >
+                      <div className={`action-modal-icon ${userRating === 'meh' ? 'active' : ''} ${pressedIcon === 'meh' ? 'pressed' : ''}`}>
+                        <Icon
+                          name="meh-face"
+                          state={userRating === 'meh' ? 'active' : 'default'}
+                          size={20}
+                          color="white"
+                        />
+                      </div>
+                      <div className="action-modal-label">Meh</div>
+                    </div>
+
+                    <div
+                      className="action-modal-item"
+                      onClick={(e) => handleRating('like', e)}
+                      onTouchStart={() => setPressedIcon('like')}
+                    >
+                      <div className={`action-modal-icon ${userRating === 'like' ? 'active' : ''} ${pressedIcon === 'like' ? 'pressed' : ''}`}>
+                        <Icon
+                          name="thumbs-up"
+                          state={userRating === 'like' ? 'active' : 'default'}
+                          size={20}
+                          color="white"
+                        />
+                      </div>
+                      <div className="action-modal-label">Like</div>
+                    </div>
+
+                    <div
+                      className="action-modal-item"
+                      onClick={(e) => handleRating('love', e)}
+                      onTouchStart={() => setPressedIcon('love')}
+                    >
+                      <div className={`action-modal-icon ${userRating === 'love' ? 'active' : ''} ${pressedIcon === 'love' ? 'pressed' : ''}`}>
+                        <Icon
+                          name="heart"
+                          state={userRating === 'love' ? 'active' : 'default'}
+                          size={20}
+                          color="white"
+                        />
+                      </div>
+                      <div className="action-modal-label">Love</div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>

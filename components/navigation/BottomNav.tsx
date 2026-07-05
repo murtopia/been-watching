@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import Icon from '@/components/ui/Icon'
 
 export default function BottomNav({ onSearchOpen }: { onSearchOpen?: () => void }) {
   const router = useRouter()
@@ -79,10 +80,11 @@ export default function BottomNav({ onSearchOpen }: { onSearchOpen?: () => void 
         HOME
       </button>
 
-      {/* Plus Button */}
+      {/* Search Button */}
       <button
         onClick={() => handleNavClick('search')}
         style={plusButtonStyle}
+        aria-label="Find a show"
         onMouseEnter={(e) => {
           e.currentTarget.style.transform = 'scale(1.1)'
           e.currentTarget.style.background = colors.isDark 
@@ -94,7 +96,12 @@ export default function BottomNav({ onSearchOpen }: { onSearchOpen?: () => void 
           e.currentTarget.style.background = colors.goldGlassBg
         }}
       >
-        +
+        <Icon
+          name="search"
+          size={26}
+          color={colors.isDark ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.85)'}
+          ariaHidden
+        />
       </button>
 
       {/* LISTS Button */}

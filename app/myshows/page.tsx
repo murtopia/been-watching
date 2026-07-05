@@ -15,6 +15,7 @@ import Footer from '@/components/navigation/Footer'
 import { Grid3x3, List } from 'lucide-react'
 import { safeFormatDate } from '@/utils/dateFormatting'
 import { trackMediaRated, trackWatchStatusChanged, trackMyShowsViewed } from '@/utils/analytics'
+import { ensureReleaseReminder } from '@/lib/reminders'
 
 export default function MyShowsPage() {
   const [user, setUser] = useState<any>(null)
@@ -254,6 +255,11 @@ export default function MyShowsPage() {
               status: status
             }, { onConflict: 'user_id,media_id' })
 
+          // Unreleased show added to a list -> auto-set the release reminder
+          if (status === 'want' || status === 'watching') {
+            await ensureReleaseReminder(supabase, user.id, mediaId)
+          }
+
           // Track status change
           const mediaIdStr = String(mediaId)
           const seasonNumber = mediaIdStr.includes('-s')
@@ -372,7 +378,12 @@ export default function MyShowsPage() {
               user_id: user.id,
               status: status
             }, { onConflict: 'user_id,media_id' })
-          
+
+          // Unreleased show added to a list -> auto-set the release reminder
+          if (status === 'want' || status === 'watching') {
+            await ensureReleaseReminder(supabase, user.id, mediaId)
+          }
+
           // Track status change
           trackWatchStatusChanged({
             media_id: mediaId,
