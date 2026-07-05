@@ -63,6 +63,8 @@ interface DetailShow {
   tmdb_id?: number
 }
 
+const FEED_CACHE_KEY = 'bw_feed_v2_cache'
+
 type FeedBlock =
   | { kind: 'digest'; key: string; digest: FeedV2Response['digests'][number] }
   | { kind: 'hero'; key: string }
@@ -153,13 +155,21 @@ export default function FeedPage() {
   }, [])
 
   useEffect(() => {
+    // Hydrate instantly from the last response (stale-while-revalidate)
+    try {
+      const cached = sessionStorage.getItem(FEED_CACHE_KEY)
+      if (cached) {
+        setFeedData(JSON.parse(cached) as FeedV2Response)
+        setLoading(false)
+      }
+    } catch {
+      // Corrupt cache - ignore, fresh fetch will replace it
+    }
+    // The feed API authenticates via cookies, so it can run in parallel with loadUser()
     loadUser()
+    loadFeed()
     localStorage.setItem('bw_last_home', '/feed')
   }, [])
-
-  useEffect(() => {
-    if (user) loadFeed()
-  }, [user])
 
   // ---------- auth + onboarding (invite gate, profile setup) ----------
 
@@ -300,7 +310,6 @@ export default function FeedPage() {
 
   const loadFeed = async () => {
     try {
-      setLoading(true)
       setError(null)
       const res = await fetch('/api/feed/v2')
       if (res.status === 401) {
@@ -310,6 +319,11 @@ export default function FeedPage() {
       if (!res.ok) throw new Error(`Feed failed to load (${res.status})`)
       const data: FeedV2Response = await res.json()
       setFeedData(data)
+      try {
+        sessionStorage.setItem(FEED_CACHE_KEY, JSON.stringify(data))
+      } catch {
+        // Storage full/unavailable - not critical
+      }
     } catch (err: any) {
       console.error('Error loading feed:', err)
       setError(err.message || 'Failed to load feed')
@@ -490,11 +504,24 @@ export default function FeedPage() {
   const openShowFromChart = async (entry: ChartEntry, chart: PlatformChart, chartType: 'tv' | 'movie') => {
     let mediaId = entry.dbMediaId
     let mediaRow: any = null
-    if (!mediaId && entry.tmdbId) {
+    if (mediaId) {
+      // Known show - fetch the row so year/genres/synopsis populate
+      const { data } = await supabase
+        .from('media')
+        .select('id, poster_path, overview, release_date, vote_average, tmdb_data')
+        .eq('id', mediaId)
+        .maybeSingle()
+      mediaRow = data
+    } else if (entry.tmdbId) {
       mediaRow = await ensureMedia(entry.tmdbId, chartType)
       mediaId = mediaRow?.id || null
     }
     if (!mediaId) return
+
+    const namedGenres = mediaRow?.tmdb_data?.genres?.map((g: any) => g.name).slice(0, 3)
+    const genres = namedGenres && namedGenres.length > 0
+      ? namedGenres
+      : mapGenreIds(mediaRow?.tmdb_data?.genre_ids)
 
     setDetailShow({
       id: mediaId,
@@ -503,7 +530,7 @@ export default function FeedPage() {
         ? `https://image.tmdb.org/t/p/w500${mediaRow?.poster_path || entry.posterPath}`
         : undefined,
       year: mediaRow?.release_date ? mediaRow.release_date.substring(0, 4) : undefined,
-      genres: mediaRow?.tmdb_data?.genres?.map((g: any) => g.name).slice(0, 3) || [],
+      genres,
       rating: mediaRow?.vote_average || 0,
       synopsis: mediaRow?.overview || '',
       mediaType: chartType === 'movie' ? 'Movie' : 'TV',
@@ -688,25 +715,51 @@ export default function FeedPage() {
       <div style={{
         minHeight: '100vh',
         background: colors.bgGradient,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: colors.textPrimary
+        paddingTop: '90px',
+        paddingBottom: '120px',
+        overflowX: 'hidden'
       }}>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        <div style={{
-          width: '36px',
-          height: '36px',
-          border: `3px solid ${colors.goldAccent}`,
-          borderTopColor: 'transparent',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite'
-        }} />
+        <style>{`
+          @keyframes skeletonPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+          }
+          .skeleton-card-wrapper {
+            padding: 15px 8px;
+            display: flex;
+            justify-content: center;
+          }
+          .skeleton-card {
+            width: 100%;
+            max-width: 398px;
+            height: 645px;
+            border-radius: 16px;
+            background: linear-gradient(160deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+            animation: skeletonPulse 1.4s ease-in-out infinite;
+            position: relative;
+            overflow: hidden;
+          }
+          .skeleton-line {
+            position: absolute;
+            left: 20px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+          }
+        `}</style>
+        <AppHeader profile={profile} hideOnScroll />
+        {[0, 1].map(i => (
+          <div key={i} className="skeleton-card-wrapper">
+            <div className="skeleton-card">
+              <div className="skeleton-line" style={{ bottom: 96, width: '55%', height: 22 }} />
+              <div className="skeleton-line" style={{ bottom: 64, width: '38%', height: 14 }} />
+            </div>
+          </div>
+        ))}
       </div>
     )
   }
 
-  if (error) {
+  if (error && !feedData) {
     return (
       <div style={{
         minHeight: '100vh',
@@ -905,9 +958,10 @@ export default function FeedPage() {
                     data={buildComingSoonCardData(item)}
                     badges={[BADGE_PRESETS.COMING_SOON(formattedDate)]}
                     currentUser={currentUserForCards}
+                    initialUserStatus={feedData?.userStatuses?.[item.mediaId] ?? null}
                     onSetReminder={() => handleSetReminder(item)}
                     onRemindMe={() => handleSetReminder(item)}
-                    onAddToWatchlist={() => handleSetStatus(item.mediaId, 'want')}
+                    onSetStatus={handleSetStatus}
                   />
                 </div>
               </div>

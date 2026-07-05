@@ -483,6 +483,16 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   const [watchlistStatus, setWatchlistStatus] = useState<Set<'want' | 'watching' | 'watched'>>(
     initialUserStatus ? new Set([initialUserStatus]) : new Set()
   )
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const showToast = (message: string) => {
+    setToastMessage(message)
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+    toastTimerRef.current = setTimeout(() => setToastMessage(null), 2500)
+  }
+  useEffect(() => () => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+  }, [])
   
   // Sync userRating when data prop changes (e.g., when ShowDetailCard opens with new initialRating)
   useEffect(() => {
@@ -913,6 +923,22 @@ export const FeedCard: React.FC<FeedCardProps> = ({
     onSetStatus?.(data.media.id, newStatus)
   }
 
+  /** Coming Soon bookmark: toggle Want to Watch with visible confirmation */
+  const handleUnreleasedBookmark = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    const adding = !watchlistStatus.has('want')
+    if (onSetStatus) {
+      handleWatchlist('want', e)
+    } else {
+      // Legacy callers only provide onAddToWatchlist (add-only persistence)
+      setWatchlistStatus(adding ? new Set(['want']) : new Set())
+      if (adding) onAddToWatchlist?.()
+    }
+    showToast(adding
+      ? "Added to Want to Watch — we'll remind you at release"
+      : 'Removed from Want to Watch')
+  }
+
   // Submit activity comment
   const handleSubmitActivityComment = async () => {
     try {
@@ -1068,6 +1094,36 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           height: 645px;
           perspective: 1000px;
           position: relative;
+        }
+
+        /* Watchlist confirmation toast */
+        .card-toast {
+          position: absolute;
+          left: 50%;
+          bottom: 76px;
+          transform: translateX(-50%);
+          max-width: 85%;
+          padding: 10px 16px;
+          border-radius: 20px;
+          background: rgba(0, 0, 0, 0.85);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border: ${colors.goldBorder};
+          color: white;
+          font-size: 13px;
+          font-weight: 600;
+          text-align: center;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          z-index: 30;
+          pointer-events: none;
+          animation: toastIn 0.25s ease;
+        }
+
+        @keyframes toastIn {
+          from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+          to { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
 
         /* Card with flip transformation */
@@ -1894,22 +1950,37 @@ export const FeedCard: React.FC<FeedCardProps> = ({
 
         .close-btn {
           position: absolute;
-          top: 12px;
+          top: 20px;
           right: 12px;
-          border: none;
-          background: transparent;
-          padding: 8px;
+          height: 36px;
+          padding: 0 12px;
+          border-radius: 18px;
+          background: ${colors.goldGlassBg};
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border: ${colors.goldBorder};
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
           cursor: pointer;
           z-index: 20;
           transition: all 0.2s;
         }
 
-        /* Ensure close button is visible on narrow screens */
+        .close-btn-label {
+          font-size: 12px;
+          font-weight: 600;
+          color: white;
+          letter-spacing: 0.3px;
+          white-space: nowrap;
+        }
+
+        /* Ensure the cover pill stays visible on narrow screens */
         @media (max-width: 400px) {
           .close-btn {
-            top: 8px;
+            top: 12px;
             right: 8px;
-            padding: 4px;
           }
         }
 
@@ -1918,10 +1989,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
         }
 
         .close-btn svg {
-          width: 16px;
-          height: 16px;
-          stroke: white;
-          stroke-width: 2;
+          pointer-events: none;
         }
 
         /* Back card sections */
@@ -1930,7 +1998,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           font-weight: 700;
           margin-bottom: 6px;
           letter-spacing: -0.5px;
-          padding-right: 60px; /* Prevent overlap with close button */
+          padding-right: 90px; /* Prevent overlap with the Cover pill */
         }
 
         .back-meta {
@@ -2493,9 +2561,17 @@ export const FeedCard: React.FC<FeedCardProps> = ({
               {/* Add Button - Shows + icon (or bookmark-plus for unreleased) */}
               <div>
                 {isUnreleased ? (
-                  // Card 4 (Coming Soon) - Direct bookmark action, no modal
-                  <button className="action-btn" onClick={onAddToWatchlist}>
-                    <Icon name="bookmark-plus" state="default" size={24} />
+                  // Card 4 (Coming Soon) - Direct bookmark toggle with confirmation
+                  <button
+                    className={`action-btn ${watchlistStatus.has('want') ? 'active' : ''}`}
+                    onClick={handleUnreleasedBookmark}
+                    aria-label={watchlistStatus.has('want') ? 'Remove from Want to Watch' : 'Add to Want to Watch'}
+                  >
+                    {watchlistStatus.has('want') ? (
+                      <Icon name="bookmark" state="active" size={24} />
+                    ) : (
+                      <Icon name="bookmark-plus" state="default" size={24} />
+                    )}
                   </button>
                 ) : (
                   // Standard - Opens quick action modal
@@ -2747,8 +2823,10 @@ export const FeedCard: React.FC<FeedCardProps> = ({
 
           {/* BACK FACE */}
           <div className="card-face card-back">
-            <button className="close-btn" onClick={flipCard}>
-              <Icon name="close" variant="circle" size={42} />
+            {/* Cover pill - mirrors the front's Details pill, flips back to the art */}
+            <button className="close-btn" onClick={flipCard} aria-label="Show cover">
+              <Icon name="tv-screen" size={16} color="white" />
+              <span className="close-btn-label">Cover</span>
             </button>
 
             <div className="card-back-scroll-wrapper">
@@ -2840,15 +2918,17 @@ export const FeedCard: React.FC<FeedCardProps> = ({
               {/* Action Icons */}
               <div className="back-action-icons">
                 {isUnreleased ? (
-                  // Card 4 (Coming Soon) - Bookmark-plus instead of + icon
+                  // Card 4 (Coming Soon) - Bookmark toggle with confirmation
                   <button
                     className="back-icon-btn primary"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onAddToWatchlist?.()
-                    }}
+                    onClick={handleUnreleasedBookmark}
+                    aria-label={watchlistStatus.has('want') ? 'Remove from Want to Watch' : 'Add to Want to Watch'}
                   >
-                    <Icon name="bookmark-plus" size={22} color="white" />
+                    {watchlistStatus.has('want') ? (
+                      <Icon name="bookmark" state="active" size={22} />
+                    ) : (
+                      <Icon name="bookmark-plus" size={22} color="white" />
+                    )}
                   </button>
                 ) : (
                   // Standard - + icon opens quick action modal
@@ -3260,6 +3340,11 @@ export const FeedCard: React.FC<FeedCardProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Watchlist confirmation toast */}
+        {toastMessage && (
+          <div className="card-toast" role="status">{toastMessage}</div>
+        )}
       </div>
 
       {/* YouTube Trailer Modal */}

@@ -12,6 +12,7 @@ import type {
   FollowSuggestionItem
 } from '@/lib/feed/types'
 import { PLATFORM_LABELS, CATEGORY_LABELS, getPlatformLogoUrl } from '@/lib/feed/platforms'
+import { mapGenreIds } from '@/lib/feed/genres'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -33,7 +34,10 @@ function mediaYear(row: any): number | null {
 }
 
 function mediaGenres(row: any): string[] {
-  return row?.tmdb_data?.genres?.map((g: any) => g.name).slice(0, 3) || []
+  const named = row?.tmdb_data?.genres?.map((g: any) => g.name).slice(0, 3)
+  if (named && named.length > 0) return named
+  // Rows created from TMDB search/list payloads only have numeric genre_ids
+  return mapGenreIds(row?.tmdb_data?.genre_ids)
 }
 
 function seasonFromId(mediaId: string): number | null {
