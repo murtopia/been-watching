@@ -18,6 +18,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Icon } from '@/components/ui/Icon'
 import { ShareButton } from '@/components/sharing/ShareButton'
+import { ShareModal } from '@/components/sharing/ShareModal'
 import YouTubeModal from '@/components/media/YouTubeModal'
 import { getAvatarProps } from '@/utils/avatarUtils'
 import { useThemeColors } from '@/hooks/useThemeColors'
@@ -167,6 +168,12 @@ interface FeedCardProps {
   onFlip?: (isFlipped: boolean) => void  // Notify parent when card flips
   /** Start the card in flipped (back) state - useful for modal/detail views */
   initialFlipped?: boolean
+  /** Optional season picker (search/add flow) - lets the user choose which season to track/rate */
+  seasonSelector?: {
+    seasons: Array<{ seasonNumber: number; airDate?: string | null }>
+    selected: number
+    onSelect: (seasonNumber: number) => void
+  }
 }
 
 /** Legacy props interface for backwards compatibility */
@@ -419,6 +426,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   onShare,
   onAddToWatchlist,
   onRemindMe,
+  onSetReminder,
   onDismissRecommendation,
   onUserClick,
   onMediaClick,
@@ -433,6 +441,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   onTrack,
   onFlip,
   initialFlipped = false,
+  seasonSelector,
 }) => {
   // Theme colors for gold styling
   const colors = useThemeColors()
@@ -455,8 +464,10 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   
   // Determine variant behavior
   const showUserHeader = variant === 'a' && cardUser
-  const showHeartAction = variant === 'a'
-  const showCommentAction = variant === 'a' // Template B cards don't have comment on front
+  // Activity likes/comments are retired from card fronts (Phase 2c).
+  // Data tables remain intact; show-level comments are surfaced via a count chip instead.
+  const showHeartAction = false
+  const showCommentAction = false
   const isUnreleased = backVariant === 'unreleased' // Card 4 special handling
 
   const [isFlipped, setIsFlipped] = useState(initialFlipped)
@@ -507,6 +518,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   const [trailerKey, setTrailerKey] = useState<string | null>(null) // YouTube trailer key
   const [trailerLoading, setTrailerLoading] = useState(true) // Track trailer fetch status
   const [showTrailerModal, setShowTrailerModal] = useState(false) // Control trailer modal visibility
+  const [shareModalOpen, setShareModalOpen] = useState(false) // Instagram/social share modal
 
   // Refs for DOM elements
   const cardRef = useRef<HTMLDivElement>(null)
@@ -866,6 +878,19 @@ export const FeedCard: React.FC<FeedCardProps> = ({
     e.stopPropagation()
     // Toggle off if clicking the same rating, otherwise set new rating
     const newRating = userRating === rating ? null : rating
+
+    // Rating gate: ratings are only for shows you've finished
+    if (newRating !== null && !watchlistStatus.has('watched')) {
+      const ok = window.confirm(`Ratings are for shows you've finished. Mark "${data.media.title}" as Done Watching and rate it?`)
+      if (!ok) {
+        setPressedIcon(null)
+        return
+      }
+      setWatchlistStatus(new Set(['watched']))
+      onTrack?.('watchlist', { status: 'watched', mediaId: data.media.id, via: 'rating_gate' })
+      onSetStatus?.(data.media.id, 'watched')
+    }
+
     setUserRating(newRating)
     setPressedIcon(null) // Clear pressed state after selection
     onTrack?.('rating', { rating: newRating, mediaId: data.media.id })
@@ -1170,9 +1195,11 @@ export const FeedCard: React.FC<FeedCardProps> = ({
         /* Activity Badges */
         .activity-badges {
           display: flex;
+          flex-wrap: nowrap;
           gap: 8px;
           margin-bottom: 12px;
-          max-width: calc(100% - 70px); /* Leave room for side action icons */
+          /* .card-content already reserves 70px right padding for side icons */
+          max-width: 100%;
         }
 
         .activity-badge {
@@ -1182,6 +1209,8 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           font-weight: 700;
           display: inline-flex;
           align-items: center;
+          flex-wrap: nowrap;
+          white-space: nowrap;
           gap: 6px;
           backdrop-filter: blur(10px);
           -webkit-backdrop-filter: blur(10px);
@@ -1253,9 +1282,9 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           position: absolute;
           top: 20px;
           right: 12px;
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
+          height: 36px;
+          padding: 0 12px;
+          border-radius: 18px;
           background: ${colors.goldGlassBg};
           backdrop-filter: blur(10px);
           -webkit-backdrop-filter: blur(10px);
@@ -1263,9 +1292,18 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           display: flex;
           align-items: center;
           justify-content: center;
+          gap: 6px;
           cursor: pointer;
           z-index: 6;
           transition: all 0.2s;
+        }
+
+        .menu-btn-label {
+          font-size: 12px;
+          font-weight: 600;
+          color: white;
+          letter-spacing: 0.3px;
+          white-space: nowrap;
         }
 
         .menu-btn:active {
@@ -1938,6 +1976,58 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           pointer-events: none;
         }
 
+        .season-selector {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 14px;
+        }
+
+        .season-selector-label {
+          font-size: 12px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          opacity: 0.7;
+          flex-shrink: 0;
+        }
+
+        .season-selector-chips {
+          display: flex;
+          gap: 6px;
+          overflow-x: auto;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+
+        .season-selector-chips::-webkit-scrollbar {
+          display: none;
+        }
+
+        .season-chip {
+          min-width: 34px;
+          height: 34px;
+          padding: 0 10px;
+          border-radius: 10px;
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          color: white;
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+          flex-shrink: 0;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          transition: background 0.15s ease, border-color 0.15s ease;
+        }
+
+        .season-chip.active {
+          background: rgba(255, 215, 0, 0.2);
+          border-color: #FFD700;
+          color: #FFD700;
+        }
+
         /* Ensure button inherits all badge styling */
         button.back-badge {
           /* Reset only what's needed, let .back-badge class provide the rest */
@@ -2234,9 +2324,10 @@ export const FeedCard: React.FC<FeedCardProps> = ({
             </div>
             <div className="background-overlay" />
 
-            {/* Menu Button (Three Dots) */}
-            <div className="menu-btn" onClick={flipCard}>
-              <Icon name="menu-dots" size={20} color="white" />
+            {/* Details Button - visible flip affordance (double-tap still works) */}
+            <div className="menu-btn" onClick={flipCard} role="button" aria-label="Show details">
+              <Icon name="menu-dots" size={16} color="white" />
+              <span className="menu-btn-label">Details</span>
             </div>
 
             {/* Card Content */}
@@ -2310,7 +2401,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                       {!badgeIcon && badge.text === 'Currently Watching' && (
                         <Icon name="play" state="default" size={16} color={badge.textColor || 'white'} />
                       )}
-                      {badge.text}
+                      <span>{badge.text}</span>
                     </div>
                   )
                 })}
@@ -2421,10 +2512,38 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                 </div>
               )}
 
+              {/* Show Comments chip - flips to the back where the discussion lives */}
+              {!isUnreleased && (
+                <div>
+                  <button
+                    className="action-btn"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (!isFlipped) flipCard()
+                      onTrack?.('show_comments_chip', { mediaId: data.media.id })
+                    }}
+                    title="Show comments"
+                  >
+                    <Icon name="comment" state="default" size={24} />
+                  </button>
+                  {localShowComments.length > 0 && (
+                    <div className="action-count">{localShowComments.length}</div>
+                  )}
+                </div>
+              )}
+
               {/* Share Button - For Template B and unreleased */}
               {(!showCommentAction || isUnreleased) && (
                 <div>
-                  <button className="action-btn" disabled style={{ opacity: 0.4, cursor: 'not-allowed' }}>
+                  <button
+                    className="action-btn"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setShareModalOpen(true)
+                      onTrack?.('share_opened', { mediaId: data.media.id })
+                    }}
+                    aria-label="Share"
+                  >
                     <Icon name="share" state="default" size={24} />
                   </button>
                 </div>
@@ -2433,7 +2552,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
               {/* Remind Me Button - Only for Card 4 (unreleased) */}
               {isUnreleased && (
                 <div>
-                  <button className="action-btn" onClick={onRemindMe}>
+                  <button className="action-btn" onClick={onSetReminder ?? onRemindMe}>
                     <Icon name="bell" state="default" size={24} />
                   </button>
                 </div>
@@ -2687,6 +2806,28 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                     <Icon name="play" size={10} /> Trailer
                   </button>
                 </div>
+
+                {/* Season Selector (search/add flow) */}
+                {seasonSelector && seasonSelector.seasons.length > 1 && (
+                  <div className="season-selector">
+                    <span className="season-selector-label">Season</span>
+                    <div className="season-selector-chips">
+                      {seasonSelector.seasons.map((s) => (
+                        <button
+                          key={s.seasonNumber}
+                          type="button"
+                          className={`season-chip ${seasonSelector.selected === s.seasonNumber ? 'active' : ''}`}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            seasonSelector.onSelect(s.seasonNumber)
+                          }}
+                        >
+                          {s.seasonNumber}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Synopsis */}
@@ -2730,12 +2871,20 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                 <button className="back-icon-btn" onClick={handleCommentIconClick}>
                   <Icon name="comment" size={22} color="white" />
                 </button>
-                <button className="back-icon-btn" disabled style={{ opacity: 0.4, cursor: 'not-allowed' }}>
+                <button
+                  className="back-icon-btn"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShareModalOpen(true)
+                    onTrack?.('share_opened', { mediaId: data.media.id })
+                  }}
+                  aria-label="Share"
+                >
                   <Icon name="share" size={22} color="white" />
                 </button>
                 {/* Remind Me - Only for unreleased */}
                 {isUnreleased && (
-                  <button className="back-icon-btn" onClick={onRemindMe}>
+                  <button className="back-icon-btn" onClick={onSetReminder ?? onRemindMe}>
                     <Icon name="bell" size={22} color="white" />
                   </button>
                 )}
@@ -3131,6 +3280,26 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           onClose={() => setShowTrailerModal(false)}
           videoId={trailerKey}
           title={`${data.media.title} Trailer`}
+        />
+      )}
+
+      {/* Instagram Story/Post share modal */}
+      {shareModalOpen && (
+        <ShareModal
+          isOpen={shareModalOpen}
+          onClose={() => setShareModalOpen(false)}
+          data={{
+            contentType: 'show',
+            contentId: data.media.id,
+            title: data.media.title,
+            posterUrl: data.media.posterUrl,
+            year: data.media.year,
+            genres: data.media.genres,
+            rating: userRating || data.media.rating,
+            username: cardUser?.username || currentUser?.name,
+            avatarUrl: currentUser?.avatar || cardUser?.avatar || undefined,
+            userId: currentUser?.id || cardUser?.id
+          }}
         />
       )}
     </>

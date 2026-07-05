@@ -31,6 +31,10 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
   const [selectedCardData, setSelectedCardData] = useState<FeedCardData | null>(null)
   const [isFlipped, setIsFlipped] = useState(false)
   const [cardLoading, setCardLoading] = useState(false)
+  const [availableSeasons, setAvailableSeasons] = useState<Array<{ seasonNumber: number; airDate?: string | null; posterPath?: string | null; overview?: string | null }>>([])
+  const [selectedSeason, setSelectedSeason] = useState<number | null>(null)
+  const [lightboxPoster, setLightboxPoster] = useState<{ path: string; title: string } | null>(null)
+  const detailsCache = useRef<Record<string, any>>({})
   
   const colors = useThemeColors()
   const debouncedQuery = useDebounce(query, 500)
@@ -342,14 +346,50 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
     return !userWatchlistIds.has(mediaId)
   })
 
-  // Build FeedCardData from TMDB item
-  const buildCardData = async (item: any): Promise<FeedCardData> => {
+  // Extract valid seasons (skip specials/season 0) from TMDB TV details
+  const getValidSeasons = (details: any) => {
+    return (details.seasons || [])
+      .filter((s: any) => s.season_number > 0)
+      .sort((a: any, b: any) => a.season_number - b.season_number)
+      .map((s: any) => ({
+        seasonNumber: s.season_number,
+        airDate: s.air_date || null,
+        posterPath: s.poster_path || null,
+        overview: s.overview || null
+      }))
+  }
+
+  // Default season: the most recent season that has started airing (falls back to latest)
+  const getDefaultSeason = (seasons: Array<{ seasonNumber: number; airDate?: string | null }>) => {
+    if (seasons.length === 0) return null
+    const today = new Date().toISOString().split('T')[0]
+    const aired = seasons.filter(s => s.airDate && s.airDate <= today)
+    return (aired.length > 0 ? aired[aired.length - 1] : seasons[seasons.length - 1]).seasonNumber
+  }
+
+  // Build FeedCardData from TMDB item. For TV, seasonNumber selects which season row to target.
+  const buildCardData = async (item: any, seasonNumber?: number | null): Promise<{ cardData: FeedCardData; seasons: any[]; season: number | null }> => {
     const mediaType = item.media_type || 'movie'
-    const mediaId = `${mediaType}-${item.id}`
-    
-    // Fetch full details from TMDB
-    const detailsRes = await fetch(`/api/tmdb/${mediaType}/${item.id}?append_to_response=credits`)
-    const details = await detailsRes.json()
+
+    // Fetch full details from TMDB (cached per item)
+    const cacheKey = `${mediaType}-${item.id}`
+    let details = detailsCache.current[cacheKey]
+    if (!details) {
+      const detailsRes = await fetch(`/api/tmdb/${mediaType}/${item.id}?append_to_response=credits`)
+      details = await detailsRes.json()
+      detailsCache.current[cacheKey] = details
+    }
+
+    // Season-specific media ID for TV (canonical format: tv-{tmdbId}-s{n})
+    const seasons = mediaType === 'tv' ? getValidSeasons(details) : []
+    let season: number | null = null
+    if (mediaType === 'tv' && seasons.length > 0) {
+      season = seasonNumber ?? getDefaultSeason(seasons)
+    }
+    const mediaId = mediaType === 'tv' && season !== null
+      ? `tv-${item.id}-s${season}`
+      : `${mediaType}-${item.id}`
+    const seasonInfo = season !== null ? seasons.find((s: any) => s.seasonNumber === season) : null
     
     // Fetch show comments from database
     const supabase = createClient()
@@ -406,20 +446,24 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
 
     const currentUserRating = userRatings[mediaId] as 'meh' | 'like' | 'love' | undefined
 
-    return {
+    const posterPath = seasonInfo?.posterPath || details.poster_path
+    const yearSource = seasonInfo?.airDate || details.release_date || details.first_air_date || ''
+
+    const cardData: FeedCardData = {
       id: mediaId,
       media: {
         id: mediaId,
         title: details.title || details.name || item.title || item.name,
-        year: parseInt((details.release_date || details.first_air_date || '')?.substring(0, 4)) || 0,
+        year: parseInt(yearSource.substring(0, 4)) || 0,
         genres: details.genres?.map((g: any) => g.name) || [],
         rating: details.vote_average || 0,
-        posterUrl: details.poster_path ? `https://image.tmdb.org/t/p/w500${details.poster_path}` : '',
-        synopsis: details.overview || '',
+        posterUrl: posterPath ? `https://image.tmdb.org/t/p/w500${posterPath}` : '',
+        synopsis: seasonInfo?.overview || details.overview || '',
         creator: details.created_by?.[0]?.name || details.production_companies?.[0]?.name || '',
         cast: details.credits?.cast?.slice(0, 6).map((c: any) => c.name) || [],
         network: details.networks?.[0]?.name,
         streamingPlatforms: details.networks?.map((n: any) => n.name) || [],
+        season: season ?? undefined,
         mediaType: mediaType === 'tv' ? 'TV' : 'Movie'
       },
       friends: {
@@ -458,6 +502,8 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
         userLiked: false
       })) || []
     }
+
+    return { cardData, seasons, season }
   }
 
   const handlePosterClick = async (item: any) => {
@@ -466,12 +512,25 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
     setIsFlipped(true)
     
     try {
-      const cardData = await buildCardData(item)
+      const { cardData, seasons, season } = await buildCardData(item)
       setSelectedCardData(cardData)
+      setAvailableSeasons(seasons)
+      setSelectedSeason(season)
     } catch (error) {
       console.error('Error building card data:', error)
     } finally {
       setCardLoading(false)
+    }
+  }
+
+  const handleSeasonSelect = async (seasonNumber: number) => {
+    if (!selectedItem || seasonNumber === selectedSeason) return
+    setSelectedSeason(seasonNumber)
+    try {
+      const { cardData } = await buildCardData(selectedItem, seasonNumber)
+      setSelectedCardData(cardData)
+    } catch (error) {
+      console.error('Error switching season:', error)
     }
   }
 
@@ -480,7 +539,62 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
     setTimeout(() => {
       setSelectedItem(null)
       setSelectedCardData(null)
+      setAvailableSeasons([])
+      setSelectedSeason(null)
     }, 300)
+  }
+
+  // Build a season-aware media object for parent onSelectMedia callbacks
+  const buildMediaForParent = (mediaId: string) => {
+    if (!selectedItem) return null
+    const seasonMatch = mediaId.match(/-s(\d+)$/)
+    const seasonNumber = seasonMatch ? parseInt(seasonMatch[1]) : null
+    if (seasonNumber === null) return selectedItem
+    const seasonInfo = availableSeasons.find(s => s.seasonNumber === seasonNumber)
+    const baseTitle = selectedItem.title || selectedItem.name
+    return {
+      ...selectedItem,
+      id: mediaId,
+      tmdb_id: selectedItem.id,
+      media_type: 'tv',
+      title: `${baseTitle} - Season ${seasonNumber}`,
+      name: `${baseTitle} - Season ${seasonNumber}`,
+      season_number: seasonNumber,
+      poster_path: seasonInfo?.posterPath || selectedItem.poster_path,
+      overview: seasonInfo?.overview || selectedItem.overview,
+      first_air_date: seasonInfo?.airDate || selectedItem.first_air_date
+    }
+  }
+
+  // Ensure a media row exists before saving a rating/status (ratings + watch_status FK to media.id)
+  const ensureMediaRow = async (mediaId: string) => {
+    if (!selectedItem) return
+    const supabase = createClient()
+    const mediaType = selectedItem.media_type || 'movie'
+    const details = detailsCache.current[`${mediaType}-${selectedItem.id}`]
+    const seasonMatch = mediaId.match(/-s(\d+)$/)
+    const seasonNumber = seasonMatch ? parseInt(seasonMatch[1]) : null
+    const seasonInfo = seasonNumber !== null
+      ? availableSeasons.find(s => s.seasonNumber === seasonNumber)
+      : null
+
+    const baseTitle = selectedItem.title || selectedItem.name
+    const title = seasonNumber !== null ? `${baseTitle} - Season ${seasonNumber}` : baseTitle
+
+    await supabase.from('media').upsert({
+      id: mediaId,
+      tmdb_id: selectedItem.id,
+      media_type: mediaType,
+      title,
+      poster_path: seasonInfo?.posterPath || selectedItem.poster_path,
+      backdrop_path: selectedItem.backdrop_path,
+      overview: seasonInfo?.overview || selectedItem.overview,
+      release_date: seasonInfo?.airDate || selectedItem.release_date || selectedItem.first_air_date || null,
+      vote_average: selectedItem.vote_average,
+      tmdb_data: details
+        ? { ...details, season_number: seasonNumber ?? undefined, credits: undefined }
+        : { ...selectedItem, season_number: seasonNumber ?? undefined }
+    }, { onConflict: 'id' })
   }
 
   // Handle rating from FeedCard
@@ -494,6 +608,7 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
         await supabase.from('ratings').delete().eq('user_id', user.id).eq('media_id', mediaId)
         setUserRatings(prev => { const u = { ...prev }; delete u[mediaId]; return u })
       } else {
+        await ensureMediaRow(mediaId)
         await supabase.from('ratings').upsert({
           user_id: user.id,
           media_id: mediaId,
@@ -502,7 +617,7 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
         setUserRatings(prev => ({ ...prev, [mediaId]: rating }))
       }
       
-      onSelectMedia(selectedItem, rating ?? undefined, userStatuses[mediaId] ?? undefined)
+      onSelectMedia(buildMediaForParent(mediaId), rating ?? undefined, userStatuses[mediaId] ?? undefined)
     } catch (error) {
       console.error('Error saving rating:', error)
     }
@@ -515,15 +630,7 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
     const supabase = createClient()
     
     try {
-      await supabase.from('media').upsert({
-        id: mediaId,
-        tmdb_id: selectedItem.id,
-        media_type: selectedItem.media_type,
-        title: selectedItem.title || selectedItem.name,
-        poster_path: selectedItem.poster_path,
-        overview: selectedItem.overview,
-        vote_average: selectedItem.vote_average
-      }, { onConflict: 'id' })
+      await ensureMediaRow(mediaId)
       
       if (status === null) {
         await supabase.from('watch_status').delete().eq('user_id', user.id).eq('media_id', mediaId)
@@ -539,7 +646,7 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
         setUserWatchlistIds(prev => new Set([...prev, mediaId]))
       }
       
-      onSelectMedia(selectedItem, userRatings[mediaId] ?? undefined, status ?? undefined)
+      onSelectMedia(buildMediaForParent(mediaId), userRatings[mediaId] ?? undefined, status ?? undefined)
     } catch (error) {
       console.error('Error saving status:', error)
     }
@@ -550,15 +657,16 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
     if (!user) return
     
     const supabase = createClient()
+    await ensureMediaRow(mediaId)
     await supabase.from('show_comments').insert({
       user_id: user.id,
       media_id: mediaId,
       comment_text: text
     })
     
-    // Refresh card data
+    // Refresh card data (keep the currently selected season)
     if (selectedItem) {
-      const cardData = await buildCardData(selectedItem)
+      const { cardData } = await buildCardData(selectedItem, selectedSeason)
       setSelectedCardData(cardData)
     }
   }
@@ -566,7 +674,8 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
   if (!isOpen) return null
 
   const displayItems = query.trim() ? results : filteredTrending
-  const selectedMediaId = selectedItem ? `${selectedItem.media_type}-${selectedItem.id}` : null
+  // Season-aware: card data ID is tv-{id}-s{n} for TV shows
+  const selectedMediaId = selectedCardData?.id || (selectedItem ? `${selectedItem.media_type}-${selectedItem.id}` : null)
   const currentStatus = selectedMediaId ? userStatuses[selectedMediaId] : undefined
 
   return (
@@ -736,6 +845,34 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
                               ) : (
                                 <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: colors.surfaceBg, color: colors.textTertiary, fontSize: '0.7rem' }}>No Image</div>
                               )}
+                              {item.poster_path && (
+                                <button
+                                  aria-label="View full-size poster"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setLightboxPoster({ path: item.poster_path, title: item.title || item.name || '' })
+                                  }}
+                                  style={{
+                                    position: 'absolute',
+                                    top: '6px',
+                                    right: '6px',
+                                    width: '28px',
+                                    height: '28px',
+                                    borderRadius: '50%',
+                                    background: 'rgba(0, 0, 0, 0.65)',
+                                    border: '1px solid rgba(255, 255, 255, 0.25)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    padding: 0
+                                  }}
+                                >
+                                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                                  </svg>
+                                </button>
+                              )}
                               {itemRating && (
                                 <div style={{ position: 'absolute', bottom: '6px', right: '6px', width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(0, 0, 0, 0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                   <Icon name={itemRating === 'love' ? 'heart' : itemRating === 'like' ? 'thumbs-up' : 'meh-face'} state="active" size={16} />
@@ -781,6 +918,7 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
                 </div>
               ) : selectedCardData ? (
                 <FeedCard
+                  key={selectedCardData.id}
                   variant="b"
                   data={selectedCardData}
                   initialFlipped={true}
@@ -789,6 +927,11 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
                   onRate={handleRate}
                   onSetStatus={handleStatus}
                   onSubmitShowComment={handleSubmitShowComment}
+                  seasonSelector={availableSeasons.length > 1 && selectedSeason !== null ? {
+                    seasons: availableSeasons,
+                    selected: selectedSeason,
+                    onSelect: handleSeasonSelect
+                  } : undefined}
                   currentUser={profile ? {
                     id: user?.id,
                     name: profile.display_name || profile.username || '',
@@ -800,6 +943,57 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
           </div>
         </div>
       </div>
+
+      {/* Full-size poster lightbox (TMDB original size) */}
+      {lightboxPoster && (
+        <div
+          onClick={() => setLightboxPoster(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.92)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10001,
+            padding: '24px',
+            cursor: 'zoom-out'
+          }}
+        >
+          <img
+            src={`https://image.tmdb.org/t/p/original${lightboxPoster.path}`}
+            alt={lightboxPoster.title}
+            style={{
+              maxWidth: '100%',
+              maxHeight: '92vh',
+              borderRadius: '12px',
+              boxShadow: '0 12px 48px rgba(0, 0, 0, 0.8)'
+            }}
+          />
+          <button
+            aria-label="Close"
+            onClick={() => setLightboxPoster(null)}
+            style={{
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              background: 'rgba(255, 255, 255, 0.12)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              color: 'white',
+              fontSize: '20px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
     </>
   )
 }

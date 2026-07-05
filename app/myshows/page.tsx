@@ -10,6 +10,7 @@ import SearchModalEnhanced from '@/components/search/SearchModalEnhanced'
 import ShowDetailCard from '@/components/media/ShowDetailCard'
 import MediaCardGrid from '@/components/media/MediaCardGrid'
 import TopShowModal from '@/components/profile/TopShowModal'
+import { ShareButton } from '@/components/sharing/ShareButton'
 import Footer from '@/components/navigation/Footer'
 import { Grid3x3, List } from 'lucide-react'
 import { safeFormatDate } from '@/utils/dateFormatting'
@@ -20,9 +21,8 @@ export default function MyShowsPage() {
   const [profile, setProfile] = useState<any>(null)
   const [activeTab, setActiveTab] = useState<'want' | 'watching' | 'watched'>('watching')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [mediaItems, setMediaItems] = useState<any[]>([])
+  const [allItems, setAllItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [counts, setCounts] = useState({ wantCount: 0, watchingCount: 0, watchedCount: 0, totalCount: 0 })
   const [searchOpen, setSearchOpen] = useState(false)
   const [detailModalOpen, setDetailModalOpen] = useState(false)
   const [selectedMedia, setSelectedMedia] = useState<any>(null)
@@ -35,23 +35,35 @@ export default function MyShowsPage() {
   const supabase = createClient()
   const colors = useThemeColors()
 
+  // Items for the active tab, derived locally - tab switches are instant
+  const mediaItems = allItems.filter(item => item.status === activeTab)
+  const counts = {
+    wantCount: allItems.filter(i => i.status === 'want').length,
+    watchingCount: allItems.filter(i => i.status === 'watching').length,
+    watchedCount: allItems.filter(i => i.status === 'watched').length,
+    totalCount: allItems.length
+  }
+
   useEffect(() => {
     checkUser()
+    localStorage.setItem('bw_last_home', '/myshows')
   }, [])
 
   useEffect(() => {
     if (user) {
-      loadMediaForTab(activeTab)
-      loadCounts()
+      loadAllLists()
+    }
+  }, [user])
 
-      // Track My Shows page view
+  useEffect(() => {
+    if (user && !loading) {
       trackMyShowsViewed({
         tab: activeTab,
         view_mode: viewMode,
         items_count: mediaItems.length
       })
     }
-  }, [user, activeTab])
+  }, [user, activeTab, loading])
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -79,63 +91,34 @@ export default function MyShowsPage() {
     }
   }
 
-  const loadCounts = async () => {
-    if (!user) return
-
-    const { count: wantCount } = await supabase
-      .from('watch_status')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .eq('status', 'want')
-
-    const { count: watchingCount } = await supabase
-      .from('watch_status')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .eq('status', 'watching')
-
-    const { count: watchedCount } = await supabase
-      .from('watch_status')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .eq('status', 'watched')
-
-    const totalCount = (wantCount || 0) + (watchingCount || 0) + (watchedCount || 0)
-    setCounts({ wantCount: wantCount || 0, watchingCount: watchingCount || 0, watchedCount: watchedCount || 0, totalCount })
-  }
-
-  const loadMediaForTab = async (status: string) => {
-    setLoading(true)
+  /** Load all three lists + ratings in two queries (replaces per-tab + per-item N+1 fetching) */
+  const loadAllLists = async () => {
     try {
-      const { data, error } = await supabase
-        .from('watch_status')
-        .select(`
-          *,
-          media (*)
-        `)
-        .eq('user_id', user.id)
-        .eq('status', status)
-        .order('created_at', { ascending: false })
+      const [statusRes, ratingsRes] = await Promise.all([
+        supabase
+          .from('watch_status')
+          .select(`
+            *,
+            media (*)
+          `)
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('ratings')
+          .select('media_id, rating')
+          .eq('user_id', user.id)
+      ])
 
-      if (data) {
-        // Fetch ratings for each media item
-        const mediaWithRatings = await Promise.all(
-          data.map(async (item) => {
-            const { data: ratingData } = await supabase
-              .from('ratings')
-              .select('rating')
-              .eq('user_id', user.id)
-              .eq('media_id', item.media_id)
-              .maybeSingle()
+      const ratingByMedia = new Map<string, string>(
+        (ratingsRes.data || []).map((r: any) => [r.media_id, r.rating])
+      )
 
-            return {
-              ...item,
-              user_rating: ratingData?.rating || null
-            }
-          })
-        )
-        setMediaItems(mediaWithRatings)
-      }
+      setAllItems(
+        (statusRes.data || []).map((item: any) => ({
+          ...item,
+          user_rating: ratingByMedia.get(item.media_id) || null
+        }))
+      )
     } catch (error) {
       console.error('Error loading media:', error)
     } finally {
@@ -289,8 +272,7 @@ export default function MyShowsPage() {
       }
 
       // Reload data (keep modal open)
-      loadMediaForTab(activeTab)
-      loadCounts()
+      loadAllLists()
     } catch (error) {
       console.error('Error handling media select:', error)
     }
@@ -358,7 +340,7 @@ export default function MyShowsPage() {
         setSelectedMedia((prev: any) => prev ? { ...prev, currentRating: rating } : null)
         
         // Reload data
-        loadMediaForTab(activeTab)
+        loadAllLists()
       } catch (error) {
         console.error('Error updating rating:', error)
       }
@@ -405,8 +387,7 @@ export default function MyShowsPage() {
         setSelectedMedia((prev: any) => prev ? { ...prev, currentStatus: status } : null)
         
         // Reload data
-        loadMediaForTab(activeTab)
-        loadCounts()
+        loadAllLists()
       } catch (error) {
         console.error('Error updating status:', error)
       }
@@ -519,7 +500,26 @@ export default function MyShowsPage() {
         {/* Title + View Toggle Row */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700', color: colors.textPrimary }}>My Lists</h2>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            {profile && mediaItems.length > 0 && (
+              <ShareButton
+                variant="icon"
+                size="sm"
+                data={{
+                  contentType: 'list',
+                  contentId: activeTab,
+                  title: activeTab === 'want' ? 'Want to Watch list' : activeTab === 'watching' ? 'Currently Watching list' : 'Watched list',
+                  username: profile.username,
+                  avatarUrl: profile.avatar_url || undefined,
+                  userId: user?.id,
+                  items: mediaItems.slice(0, 9).map((item: any) => ({
+                    id: item.media_id,
+                    title: (item.media?.title || '').replace(/\s*-\s*Season\s+\d+$/i, ''),
+                    posterUrl: item.media?.poster_path ? `https://image.tmdb.org/t/p/w342${item.media.poster_path}` : ''
+                  }))
+                }}
+              />
+            )}
             <button
               onClick={() => setViewMode('grid')}
               style={{

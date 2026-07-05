@@ -48,7 +48,9 @@ export default function LandingPage() {
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
-      router.push('/feed')
+      // Land on whichever home surface the user used last (feed or lists)
+      const lastHome = typeof window !== 'undefined' ? localStorage.getItem('bw_last_home') : null
+      router.push(lastHome === '/myshows' ? '/myshows' : '/feed')
     } else {
       setLoading(false)
     }

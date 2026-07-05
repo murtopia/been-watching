@@ -118,7 +118,7 @@ export function ShareModal({
 
     try {
       const blob = await generateInstagramStoryCard({
-        posterUrl: data.posterUrl || '',
+        posterUrl: data.posterUrl || data.items?.[0]?.posterUrl || '',
         title: data.title,
         year: data.year,
         genres: data.genres,
@@ -159,7 +159,7 @@ export function ShareModal({
 
     try {
       const blob = await generateInstagramPostCard({
-        posterUrl: data.posterUrl || '',
+        posterUrl: data.posterUrl || data.items?.[0]?.posterUrl || '',
         title: data.title,
         year: data.year,
         genres: data.genres,

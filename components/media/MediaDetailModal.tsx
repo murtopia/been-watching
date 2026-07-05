@@ -141,6 +141,18 @@ export default function MediaDetailModal({
 
   const handleRating = async (rating: string) => {
     const newRating = rating === selectedRating ? null : rating
+
+    // Rating gate: ratings are only for shows you've finished
+    if (newRating !== null && selectedStatus !== 'watched') {
+      const title = media?.title || media?.name || 'this show'
+      const ok = window.confirm(`Ratings are for shows you've finished. Mark "${title}" as Done Watching and rate it?`)
+      if (!ok) return
+      setSelectedStatus('watched')
+      if (onStatus) {
+        await onStatus('watched' as any, selectedStatus as any)
+      }
+    }
+
     setSelectedRating(newRating)
     if (onRate) {
       await onRate(newRating as any) // Pass null when unchecking

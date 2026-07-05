@@ -521,22 +521,26 @@ export default function ProfilePage() {
       // Create media ID format
       const mediaType = media.media_type || (media.first_air_date ? 'tv' : 'movie')
 
-      // Extract numeric ID from media.id (handles both "64356", "64356-s2", and "tv-64356-s2" formats)
+      // Preserve pre-formatted IDs (e.g. "tv-64356-s2") - never strip season suffixes
       const idString = String(media.id)
-      const numericMatch = idString.match(/(\d+)/)
-      const numericId = numericMatch ? parseInt(numericMatch[1]) : null
+      let mediaId: string
+      let numericId: number | null
+
+      if (idString.startsWith('tv-') || idString.startsWith('movie-')) {
+        // Already canonical (possibly season-specific) - use as-is
+        mediaId = idString
+        numericId = media.tmdb_id || parseInt(idString.split('-')[1]) || null
+      } else {
+        // Raw TMDB ID from search
+        const numericMatch = idString.match(/(\d+)/)
+        numericId = numericMatch ? parseInt(numericMatch[1]) : null
+        mediaId = `${mediaType}-${numericId}`
+      }
 
       if (!numericId) {
         console.error('Could not extract numeric ID from media.id:', media.id)
         return
       }
-
-      const mediaId = `${mediaType}-${numericId}`
-
-      // Debug logging
-      console.log('DEBUG media.id:', media.id)
-      console.log('DEBUG extracted numericId:', numericId)
-      console.log('DEBUG final mediaId:', mediaId)
 
       // First, ensure media exists in database
       const { error: mediaError } = await supabase
