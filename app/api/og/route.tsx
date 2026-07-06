@@ -50,10 +50,10 @@ export async function GET(request: NextRequest) {
       if (card) return card
     }
 
-    return defaultCard()
+    return await defaultCard()
   } catch (e: any) {
     console.log(`Error generating OG image: ${e.message}`)
-    return defaultCard()
+    return brandedCard()
   }
 }
 
@@ -447,10 +447,131 @@ async function buildListCard(username: string, listTab: string | null) {
 }
 
 // ============================================================
-// Default branded card
+// Default card: today's #1 shows across streaming
 // ============================================================
 
-function defaultCard() {
+const CHART_PLATFORM_ORDER = ['netflix', 'max', 'disney', 'prime', 'paramount', 'hulu', 'apple', 'peacock']
+
+/** The most recent #1 TV show on each platform (same data as the feed's hero card) */
+async function fetchNumberOnePosters(): Promise<string[]> {
+  const supabase = getSupabase()
+  if (!supabase) return []
+
+  const since = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  const { data: rows } = await supabase
+    .from('platform_charts')
+    .select('platform, chart_type, chart_date, rank, title, tmdb_id, poster_path')
+    .eq('region', 'US')
+    .eq('rank', 1)
+    .eq('chart_type', 'tv')
+    .gte('chart_date', since)
+    .not('poster_path', 'is', null)
+    .order('chart_date', { ascending: false })
+    .limit(200)
+
+  if (!rows?.length) return []
+
+  // Latest #1 per platform, deduped across platforms
+  const byPlatform = new Map<string, any>()
+  for (const row of rows) {
+    if (!byPlatform.has(row.platform)) byPlatform.set(row.platform, row)
+  }
+
+  const seen = new Set<string>()
+  const posters: string[] = []
+  for (const platform of CHART_PLATFORM_ORDER) {
+    const row = byPlatform.get(platform)
+    if (!row) continue
+    const key = String(row.tmdb_id || row.title)
+    if (seen.has(key)) continue
+    seen.add(key)
+    posters.push(`https://image.tmdb.org/t/p/w342${row.poster_path}`)
+    if (posters.length >= 5) break
+  }
+  return posters
+}
+
+async function defaultCard() {
+  let posters: string[] = []
+  try {
+    posters = await fetchNumberOnePosters()
+  } catch {
+    posters = []
+  }
+
+  if (posters.length < 3) return brandedCard()
+
+  return new ImageResponse(
+    (
+      <Frame>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Wordmark size={30} />
+
+          <div
+            style={{
+              display: 'flex',
+              fontSize: 34,
+              fontWeight: 700,
+              color: 'white',
+              marginTop: '18px',
+            }}
+          >
+            The #1 shows on streaming right now
+          </div>
+
+          <div style={{ display: 'flex', gap: '22px', marginTop: '32px' }}>
+            {posters.map((url, i) => (
+              <img
+                key={i}
+                src={url}
+                width={170}
+                height={255}
+                style={{
+                  borderRadius: '14px',
+                  objectFit: 'cover',
+                  boxShadow: '0 16px 32px rgba(0,0,0,0.5)',
+                }}
+              />
+            ))}
+          </div>
+
+          <div
+            style={{
+              display: 'flex',
+              fontSize: 22,
+              color: 'rgba(255,255,255,0.5)',
+              marginTop: '28px',
+            }}
+          >
+            Track. Share. Discover. — beenwatching.com
+          </div>
+        </div>
+      </Frame>
+    ),
+    {
+      width: 1200,
+      height: 630,
+      headers: {
+        // The chart data changes at most daily; let CDNs reuse the image for a few hours
+        'Cache-Control': 'public, max-age=3600, s-maxage=14400, stale-while-revalidate=86400',
+      },
+    }
+  )
+}
+
+// ============================================================
+// Branded fallback card (no data needed)
+// ============================================================
+
+function brandedCard() {
   return new ImageResponse(
     (
       <Frame>
