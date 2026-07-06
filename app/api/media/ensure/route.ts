@@ -9,8 +9,9 @@ const TMDB_BASE_URL = 'https://api.themoviedb.org/3'
  * Ensures a media row exists for a TMDB title and returns it.
  * For TV shows, resolves to the latest aired season row (tv-{id}-s{n}),
  * creating all season rows if missing (keeps the canonical season model).
+ * Pass seasonNumber to get a specific season's row instead.
  *
- * POST { tmdbId: number, mediaType: 'tv' | 'movie' }
+ * POST { tmdbId: number, mediaType: 'tv' | 'movie', seasonNumber?: number }
  */
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -22,6 +23,7 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null)
   const tmdbId = parseInt(body?.tmdbId)
   const mediaType = body?.mediaType
+  const requestedSeason = body?.seasonNumber != null ? parseInt(body.seasonNumber) : null
   if (!tmdbId || (mediaType !== 'tv' && mediaType !== 'movie')) {
     return NextResponse.json({ error: 'tmdbId and mediaType required' }, { status: 400 })
   }
@@ -88,10 +90,18 @@ export async function POST(request: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  // Latest aired season (fallback: latest overall)
-  const todayStr = new Date().toISOString().split('T')[0]
-  const aired = validSeasons.filter((s: any) => s.air_date && s.air_date <= todayStr)
-  const target = (aired.length > 0 ? aired[aired.length - 1] : validSeasons[validSeasons.length - 1])
+  // Specific season if requested; otherwise latest aired (fallback: latest overall)
+  let target: any = null
+  if (requestedSeason !== null) {
+    target = validSeasons.find((s: any) => s.season_number === requestedSeason)
+    if (!target) {
+      return NextResponse.json({ error: `Season ${requestedSeason} not found` }, { status: 404 })
+    }
+  } else {
+    const todayStr = new Date().toISOString().split('T')[0]
+    const aired = validSeasons.filter((s: any) => s.air_date && s.air_date <= todayStr)
+    target = (aired.length > 0 ? aired[aired.length - 1] : validSeasons[validSeasons.length - 1])
+  }
 
   const { data: mediaRow } = await admin
     .from('media')

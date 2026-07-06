@@ -35,8 +35,8 @@ export default function HelpPage() {
       answer: 'Yes! Go to your profile settings and toggle the "Private Profile" option. When private, only approved followers can see your activity.'
     },
     {
-      question: 'How do invite codes work?',
-      answer: 'During our alpha phase, Been Watching is invite-only. Each user gets a limited number of invite codes to share with friends. You can find your invite codes on your profile page.'
+      question: 'How do I join Been Watching?',
+      answer: 'Registration is open to everyone! Just head to the sign up page, create a free account, and start tracking your shows.'
     },
     {
       question: 'Can I delete my account?',

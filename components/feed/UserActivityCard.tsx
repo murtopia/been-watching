@@ -13,7 +13,7 @@
 
 'use client'
 
-import React, { useState, useRef, useEffect, useCallback } from 'react'
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Icon } from '@/components/ui/Icon'
@@ -174,6 +174,12 @@ interface FeedCardProps {
     selected: number
     onSelect: (seasonNumber: number) => void
   }
+  /**
+   * Called when the user switches seasons via the built-in "Other Seasons"
+   * selector. Receives the full media row for the newly selected season so
+   * parents (e.g. ShowDetailCard) can refetch comments/friend activity.
+   */
+  onSeasonChange?: (mediaRow: any) => void
 }
 
 /** Legacy props interface for backwards compatibility */
@@ -420,7 +426,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   badges,
   user,
   timestamp,
-  data,
+  data: rawData,
   onLike,
   onComment,
   onShare,
@@ -442,12 +448,23 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   onFlip,
   initialFlipped = false,
   seasonSelector,
+  onSeasonChange,
 }) => {
   // Theme colors for gold styling
   const colors = useThemeColors()
   
   // Determine if this is legacy data format
-  const isLegacyData = 'user' in data && 'activityBadges' in data
+  const isLegacyData = 'user' in rawData && 'activityBadges' in rawData
+
+  // "Other Seasons": when the user switches seasons on the back, we override
+  // the media fields locally so title/year/synopsis/poster + all rate/status
+  // callbacks target the selected season row.
+  const [seasonOverride, setSeasonOverride] = useState<Partial<FeedCardMedia> | null>(null)
+  const data = useMemo(() => {
+    if (!seasonOverride) return rawData
+    return { ...rawData, media: { ...(rawData as any).media, ...seasonOverride } } as typeof rawData
+  }, [rawData, seasonOverride])
+
   const legacyData = isLegacyData ? (data as UserActivityCardData) : null
   
   // Extract user info from props or legacy data
@@ -524,11 +541,24 @@ export const FeedCard: React.FC<FeedCardProps> = ({
   // Local state for comments (so we can add new ones optimistically)
   const [localActivityComments, setLocalActivityComments] = useState(data.comments)
   const [localShowComments, setLocalShowComments] = useState(data.showComments)
+  // Keep show comments in sync when the parent refetches them (e.g. after an
+  // Other Seasons switch inside ShowDetailCard). Keyed on comment ids rather
+  // than array identity so unrelated parent re-renders don't clobber
+  // optimistically-added comments.
+  const showCommentsKey = (data.showComments || []).map((c: any) => c.id).join(',')
+  useEffect(() => {
+    setLocalShowComments(data.showComments)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showCommentsKey])
   const [pressedIcon, setPressedIcon] = useState<string | null>(null) // Track which icon is being pressed for touch feedback
   const [trailerKey, setTrailerKey] = useState<string | null>(null) // YouTube trailer key
   const [trailerLoading, setTrailerLoading] = useState(true) // Track trailer fetch status
   const [showTrailerModal, setShowTrailerModal] = useState(false) // Control trailer modal visibility
   const [shareModalOpen, setShareModalOpen] = useState(false) // Instagram/social share modal
+  // "Other Seasons" (self-serve season browsing on the back for TV cards)
+  const [otherSeasons, setOtherSeasons] = useState<Array<{ seasonNumber: number; airDate?: string | null }>>([])
+  const [seasonSwitching, setSeasonSwitching] = useState(false)
+  const seasonsFetchedRef = useRef(false)
 
   // Refs for DOM elements
   const cardRef = useRef<HTMLDivElement>(null)
@@ -651,6 +681,83 @@ export const FeedCard: React.FC<FeedCardProps> = ({
 
     fetchTrailer()
   }, [data.media.id, data.media.mediaType])
+
+  // Derive the TMDB show id from the canonical media id ("tv-1396-s3" -> 1396)
+  const deriveTmdbTvId = (): number | null => {
+    if (data.media.mediaType?.toLowerCase() !== 'tv') return null
+    const mediaId = data.media.id
+    if (typeof mediaId === 'number') return mediaId
+    const match = String(mediaId).match(/^tv-(\d+)/)
+    return match ? parseInt(match[1]) : null
+  }
+
+  // Lazy-load the seasons list the first time the back face is shown.
+  // Skipped when the caller supplies its own seasonSelector (search modal).
+  useEffect(() => {
+    if (!isFlipped || seasonSelector || seasonsFetchedRef.current) return
+    const tmdbId = deriveTmdbTvId()
+    if (!tmdbId) return
+    seasonsFetchedRef.current = true
+    fetch(`/api/tmdb/tv/${tmdbId}`)
+      .then(res => (res.ok ? res.json() : null))
+      .then(details => {
+        const seasons = (details?.seasons || [])
+          .filter((s: any) => s.season_number > 0)
+          .map((s: any) => ({ seasonNumber: s.season_number, airDate: s.air_date || null }))
+        if (seasons.length > 1) setOtherSeasons(seasons)
+      })
+      .catch(() => {})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFlipped, seasonSelector])
+
+  const handleOtherSeasonSelect = async (seasonNumber: number) => {
+    if (seasonSwitching || seasonNumber === data.media.season) return
+    const tmdbId = deriveTmdbTvId()
+    if (!tmdbId) return
+    setSeasonSwitching(true)
+    try {
+      const res = await fetch('/api/media/ensure', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tmdbId, mediaType: 'tv', seasonNumber })
+      })
+      if (!res.ok) {
+        showToast('Could not load that season')
+        return
+      }
+      const { media: row } = await res.json()
+      if (!row) {
+        showToast('Could not load that season')
+        return
+      }
+      const baseTitle = String(data.media.title).replace(/\s*[-–]\s*Season\s+\d+$/i, '')
+      setSeasonOverride({
+        id: row.id,
+        title: baseTitle,
+        year: row.release_date ? parseInt(String(row.release_date).slice(0, 4)) : data.media.year,
+        synopsis: row.overview || data.media.synopsis,
+        posterUrl: row.poster_path ? `https://image.tmdb.org/t/p/w500${row.poster_path}` : data.media.posterUrl,
+        season: seasonNumber,
+      })
+      // Rating/status shown on the card belonged to the previous season row;
+      // start neutral for the newly selected season.
+      setUserRating(null)
+      setWatchlistStatus(new Set())
+      onSeasonChange?.(row)
+    } catch {
+      showToast('Could not load that season')
+    } finally {
+      setSeasonSwitching(false)
+    }
+  }
+
+  // Unified selector: external (search modal) wins; otherwise the self-serve list
+  const activeSeasonSelector = seasonSelector || (otherSeasons.length > 1 ? {
+    seasons: otherSeasons,
+    selected: data.media.season ?? -1,
+    onSelect: handleOtherSeasonSelect,
+  } : undefined)
+  const seasonSelectorLabel = seasonSelector ? 'Season' : 'Other Seasons'
 
   const handleTrailerClick = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -2051,6 +2158,11 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           margin-bottom: 14px;
         }
 
+        .season-selector.switching {
+          opacity: 0.5;
+          pointer-events: none;
+        }
+
         .season-selector-label {
           font-size: 12px;
           font-weight: 600;
@@ -2879,19 +2991,19 @@ export const FeedCard: React.FC<FeedCardProps> = ({
                   </button>
                 </div>
 
-                {/* Season Selector (search/add flow) */}
-                {seasonSelector && seasonSelector.seasons.length > 1 && (
-                  <div className="season-selector">
-                    <span className="season-selector-label">Season</span>
+                {/* Season Selector (search/add flow or self-serve Other Seasons) */}
+                {activeSeasonSelector && activeSeasonSelector.seasons.length > 1 && (
+                  <div className={`season-selector ${seasonSwitching ? 'switching' : ''}`}>
+                    <span className="season-selector-label">{seasonSelectorLabel}</span>
                     <div className="season-selector-chips">
-                      {seasonSelector.seasons.map((s) => (
+                      {activeSeasonSelector.seasons.map((s) => (
                         <button
                           key={s.seasonNumber}
                           type="button"
-                          className={`season-chip ${seasonSelector.selected === s.seasonNumber ? 'active' : ''}`}
+                          className={`season-chip ${activeSeasonSelector.selected === s.seasonNumber ? 'active' : ''}`}
                           onClick={(e) => {
                             e.stopPropagation()
-                            seasonSelector.onSelect(s.seasonNumber)
+                            activeSeasonSelector.onSelect(s.seasonNumber)
                           }}
                         >
                           {s.seasonNumber}

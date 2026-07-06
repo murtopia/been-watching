@@ -101,7 +101,6 @@ export default function TermsPage() {
               <li>You must provide accurate and complete information</li>
               <li>You are responsible for maintaining the security of your account</li>
               <li>You may not share your account with others</li>
-              <li>During our invite-only phase, you need a valid invite code to sign up</li>
             </ul>
 
             <h3 style={{ color: colors.textPrimary, fontSize: '1rem', fontWeight: 600, marginTop: '1rem', marginBottom: '0.5rem' }}>
@@ -270,20 +269,6 @@ export default function TermsPage() {
             </p>
           </section>
 
-          <div style={{ height: '1px', background: colors.dividerColor, margin: '1.5rem 0' }} />
-
-          <section>
-            <h2 style={{ color: colors.textPrimary, fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.75rem' }}>
-              16. Invite System
-            </h2>
-            <p>During our invite-only phase:</p>
-            <ul style={{ paddingLeft: '1.25rem' }}>
-              <li>You must have a valid invite code to create an account</li>
-              <li>You may receive personal invite codes to share with friends</li>
-              <li>Abuse of the invite system may result in account suspension</li>
-              <li>We reserve the right to revoke invite codes at any time</li>
-            </ul>
-          </section>
         </div>
       </div>
 

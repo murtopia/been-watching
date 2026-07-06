@@ -125,7 +125,7 @@ function AuthErrorContent() {
           </Link>
 
           <Link
-            href="/waitlist"
+            href="/auth?signup=true"
             style={{
               padding: '0.75rem 1.5rem',
               background: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
@@ -138,7 +138,7 @@ function AuthErrorContent() {
               display: 'inline-block',
             }}
           >
-            Join Waitlist
+            Sign Up
           </Link>
         </div>
 

@@ -24,7 +24,6 @@ import PlatformChartCard from '@/components/feed/PlatformChartCard'
 import HeroTopChartsCard from '@/components/feed/HeroTopChartsCard'
 import ShowDetailCard from '@/components/media/ShowDetailCard'
 import ProfileSetup from '@/components/onboarding/ProfileSetup'
-import InviteCodeGate from '@/components/onboarding/InviteCodeGate'
 import BottomNav from '@/components/navigation/BottomNav'
 import AppHeader from '@/components/navigation/AppHeader'
 import SearchModalEnhanced from '@/components/search/SearchModalEnhanced'
@@ -46,7 +45,6 @@ interface Profile {
   display_name: string
   avatar_url: string | null
   has_seen_onboarding?: boolean
-  is_approved?: boolean
 }
 
 interface DetailShow {
@@ -133,8 +131,7 @@ export default function FeedPage() {
   const [error, setError] = useState<string | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
 
-  // Onboarding gates
-  const [showInviteCodeGate, setShowInviteCodeGate] = useState(false)
+  // Onboarding
   const [showProfileSetup, setShowProfileSetup] = useState(false)
 
   // Show detail modal
@@ -171,68 +168,7 @@ export default function FeedPage() {
     localStorage.setItem('bw_last_home', '/feed')
   }, [])
 
-  // ---------- auth + onboarding (invite gate, profile setup) ----------
-
-  const redeemPendingInvite = async (userId: string): Promise<boolean> => {
-    const vipCode = sessionStorage.getItem('vip_code')
-    const inviteToken = sessionStorage.getItem('invite_token')
-
-    if (vipCode) {
-      try {
-        const { error: rpcError } = await supabase.rpc('use_master_code', {
-          master_code: vipCode,
-          user_id: userId
-        })
-        if (rpcError) console.error('Failed to increment code usage:', rpcError)
-
-        const tier = vipCode === 'BOOZEHOUND' ? 'boozehound' :
-                    vipCode.startsWith('BWALPHA_') ? 'alpha' : 'beta'
-
-        await supabase
-          .from('profiles')
-          .update({
-            invited_by_master_code: vipCode,
-            invite_tier: tier,
-            invites_remaining: tier === 'boozehound' ? 10 : tier === 'alpha' ? 3 : 0,
-            is_approved: true
-          })
-          .eq('id', userId)
-
-        sessionStorage.removeItem('vip_code')
-        return true
-      } catch (err) {
-        console.error('Error redeeming VIP code:', err)
-        return false
-      }
-    } else if (inviteToken) {
-      try {
-        const { data: redeemResult, error: redeemError } = await supabase
-          .rpc('redeem_invite_token', {
-            invite_token: inviteToken,
-            referee_user_id: userId
-          })
-
-        if (redeemError) {
-          console.error('Error redeeming invite token:', redeemError)
-          return false
-        }
-
-        if (redeemResult?.success) {
-          sessionStorage.removeItem('invite_token')
-          await supabase
-            .from('profiles')
-            .update({ invites_remaining: 0, is_approved: true })
-            .eq('id', userId)
-          return true
-        }
-      } catch (err) {
-        console.error('Error redeeming invite token:', err)
-        return false
-      }
-    }
-
-    return false
-  }
+  // ---------- auth + onboarding (profile setup) ----------
 
   const loadUser = async () => {
     const { data: { user }, error } = await supabase.auth.getUser()
@@ -258,7 +194,7 @@ export default function FeedPage() {
 
     if (profileError) {
       if (profileError.code === 'PGRST116') {
-        // No profile exists - create one
+        // No profile exists - create one (registration is open, approved by default)
         const { data: newProfile, error: insertError } = await supabase
           .from('profiles')
           .insert({
@@ -266,41 +202,23 @@ export default function FeedPage() {
             username: fallbackProfile.username,
             display_name: fallbackProfile.display_name,
             avatar_url: fallbackProfile.avatar_url,
-            has_seen_onboarding: false,
-            is_approved: false
+            has_seen_onboarding: false
           })
-          .select('id, username, display_name, avatar_url, has_seen_onboarding, is_approved')
+          .select('id, username, display_name, avatar_url, has_seen_onboarding')
           .single()
 
         if (insertError) console.error('Failed to create profile:', insertError)
 
-        const createdProfile = newProfile || { ...fallbackProfile, is_approved: false }
-        setProfile(createdProfile)
-
-        const inviteRedeemed = await redeemPendingInvite(user.id)
-        if (inviteRedeemed) {
-          setProfile({ ...createdProfile, is_approved: true })
-          setShowProfileSetup(true)
-        } else {
-          setShowInviteCodeGate(true)
-        }
+        setProfile(newProfile || fallbackProfile)
+        setShowProfileSetup(true)
       } else {
         console.warn('Profile fetch error, using fallback:', profileError.message)
         setProfile(fallbackProfile)
-        setShowInviteCodeGate(true)
       }
     } else {
       setProfile(profileData)
 
-      if (!profileData.is_approved) {
-        const inviteRedeemed = await redeemPendingInvite(user.id)
-        if (inviteRedeemed) {
-          setProfile({ ...profileData, is_approved: true })
-          setShowProfileSetup(true)
-        } else {
-          setShowInviteCodeGate(true)
-        }
-      } else if (!profileData.username || isAutoGeneratedUsername(profileData.username)) {
+      if (!profileData.username || isAutoGeneratedUsername(profileData.username)) {
         setShowProfileSetup(true)
       }
     }
@@ -808,16 +726,6 @@ export default function FeedPage() {
       `}</style>
 
       <AppHeader profile={profile} hideOnScroll />
-
-      {showInviteCodeGate && user?.id && (
-        <InviteCodeGate
-          userId={user.id}
-          onSuccess={() => {
-            setShowInviteCodeGate(false)
-            setShowProfileSetup(true)
-          }}
-        />
-      )}
 
       {showProfileSetup && profile && user?.id && (
         <ProfileSetup

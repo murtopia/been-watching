@@ -11,8 +11,6 @@ import AvatarUploadModal from '@/components/profile/AvatarUploadModal'
 import UserCard from '@/components/friends/UserCard'
 import MutualFriendsModal from '@/components/friends/MutualFriendsModal'
 import Footer from '@/components/navigation/Footer'
-import InviteSection from '@/components/profile/InviteSection'
-import ReferralDashboard from '@/components/profile/ReferralDashboard'
 import ProfileEditModal from '@/components/profile/ProfileEditModal'
 import { Icon } from '@/components/ui/Icon'
 import { useThemeColors } from '@/hooks/useThemeColors'
@@ -39,7 +37,6 @@ export default function ProfilePage() {
   const [counts, setCounts] = useState({ wantCount: 0, watchingCount: 0, watchedCount: 0 })
   const [mutualModalOpen, setMutualModalOpen] = useState(false)
   const [mutualModalFriends, setMutualModalFriends] = useState<any[]>([])
-  const [inviteSectionKey, setInviteSectionKey] = useState(0)
   const [showEditModal, setShowEditModal] = useState(false)
   // Follow request states
   const [pendingRequests, setPendingRequests] = useState<Set<string>>(new Set()) // User IDs where I have sent pending requests
@@ -587,9 +584,6 @@ export default function ProfilePage() {
 
         if (statusError) {
           console.error('Error saving watch status:', statusError)
-        } else {
-          // Refresh InviteSection to update completion status
-          setInviteSectionKey(prev => prev + 1)
         }
       }
 
@@ -772,26 +766,6 @@ export default function ProfilePage() {
           </a>
         </div>
       )}
-
-      {/* Invites Section */}
-      <div style={{ margin: '0 auto', maxWidth: '398px' }}>
-        <InviteSection
-          key={inviteSectionKey}
-          userId={user?.id}
-          username={profile?.username}
-          invitesRemaining={profile?.invites_remaining || 0}
-          onInviteEarned={() => {
-            // Reload profile data when invite is earned
-            checkUser()
-          }}
-          onOpenAvatarUpload={() => setShowAvatarModal(true)}
-          onOpenSearch={() => setSearchOpen(true)}
-          onNavigateToMyShows={() => router.push('/myshows')}
-        />
-
-        {/* Referral Dashboard */}
-        <ReferralDashboard userId={user?.id} />
-      </div>
 
       {/* Divider before Friends */}
       <div style={{ maxWidth: '398px', margin: '1.5rem auto 0' }}>
@@ -1213,7 +1187,6 @@ export default function ProfilePage() {
         currentAvatarUrl={profile?.avatar_url || null}
         onAvatarUpdated={(newUrl) => {
           setProfile({ ...profile, avatar_url: newUrl })
-          setInviteSectionKey(prev => prev + 1) // Force InviteSection to refresh
         }}
       />
 

@@ -149,6 +149,29 @@ export default function Footer({ variant = 'full', withBottomNav = false }: Foot
           paddingTop: '1.5rem',
           textAlign: 'center'
         }}>
+          {/* TMDB attribution (required by the TMDB API terms) */}
+          <div style={{ marginBottom: '1rem' }}>
+            <a
+              href="https://www.themoviedb.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: 'inline-block', marginBottom: '0.5rem' }}
+            >
+              <img
+                src="/tmdb-logo.svg"
+                alt="The Movie Database (TMDB)"
+                style={{ width: '130px', height: 'auto', display: 'block', margin: '0 auto' }}
+              />
+            </a>
+            <div style={{
+              fontSize: '0.75rem',
+              color: colors.textSecondary,
+              lineHeight: 1.5
+            }}>
+              This product uses the TMDB API but is not endorsed or certified by TMDB.
+            </div>
+          </div>
+
           <div style={{
             fontSize: '0.8125rem',
             color: colors.textSecondary

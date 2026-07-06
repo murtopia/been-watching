@@ -13,13 +13,10 @@ export default function AuthPage() {
   const [password, setPassword] = useState('')
   const [isSignup, setIsSignup] = useState(false)
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [inviteCode, setInviteCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [showForgotPassword, setShowForgotPassword] = useState(false)
-  const [inviteType, setInviteType] = useState<'token' | 'vip' | null>(null)
-  const [inviterUsername, setInviterUsername] = useState<string | null>(null)
   const supabase = createClient()
   const router = useRouter()
   const { resolvedTheme } = useTheme()
@@ -48,62 +45,13 @@ export default function AuthPage() {
     }
   }
 
-  // Check for invite token or VIP code in sessionStorage
+  // Open the Sign Up tab directly when linked with ?signup=true
   useEffect(() => {
-    const inviteToken = sessionStorage.getItem('invite_token')
-    const vipCode = sessionStorage.getItem('vip_code')
-
-    if (inviteToken) {
-      // Friend invite via secure token
-      setInviteType('token')
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('signup') === 'true') {
       setIsSignup(true)
-      validateAndLoadInviteToken(inviteToken)
-    } else if (vipCode) {
-      // VIP code invite
-      setInviteType('vip')
-      setIsSignup(true)
-      setInviteCode(vipCode)
     }
   }, [])
-
-  const validateAndLoadInviteToken = async (token: string) => {
-    try {
-      const { data, error } = await supabase
-        .rpc('validate_invite_token', { invite_token: token })
-
-      if (error || !data?.valid) {
-        console.error('Invalid invite token:', error || data?.error)
-        setErrorMessage('Your invite link is invalid or has expired. Please request a new one.')
-        sessionStorage.removeItem('invite_token')
-        setInviteType(null)
-        return
-      }
-
-      // Store inviter username for display
-      setInviterUsername(data.inviter_username)
-    } catch (err) {
-      console.error('Error validating invite token:', err)
-      setErrorMessage('Error validating invite. Please try again.')
-      sessionStorage.removeItem('invite_token')
-      setInviteType(null)
-    }
-  }
-
-  const validateInviteCode = async (code: string): Promise<boolean> => {
-    try {
-      const { data, error } = await supabase.rpc('is_master_code_valid', { master_code: code })
-
-      if (error) {
-        console.error('Error validating invite code:', error)
-        return false
-      }
-
-      return data === true
-    } catch (error) {
-      console.error('Error validating invite code:', error)
-      return false
-    }
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -113,39 +61,9 @@ export default function AuthPage() {
 
     try {
       if (isSignup) {
-        // Signup flow
+        // Signup flow - registration is open, no invite required
         if (password !== confirmPassword) {
           setErrorMessage('Passwords do not match')
-          setLoading(false)
-          return
-        }
-
-        // Validation based on invite type
-        if (inviteType === 'vip') {
-          // VIP code flow - require code validation
-          if (!inviteCode) {
-            setErrorMessage('Invite code is required to sign up')
-            setLoading(false)
-            return
-          }
-
-          const isValid = await validateInviteCode(inviteCode.trim().toUpperCase())
-          if (!isValid) {
-            setErrorMessage('Invalid or expired invite code')
-            setLoading(false)
-            return
-          }
-        } else if (inviteType === 'token') {
-          // Friend invite token flow - already validated on page load
-          const inviteToken = sessionStorage.getItem('invite_token')
-          if (!inviteToken) {
-            setErrorMessage('Invite token expired. Please request a new invite.')
-            setLoading(false)
-            return
-          }
-        } else {
-          // No invite type - shouldn't happen, but show error
-          setErrorMessage('No valid invite found. Please use an invite link or code.')
           setLoading(false)
           return
         }
@@ -154,87 +72,11 @@ export default function AuthPage() {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            data: {
-              invite_type: inviteType
-            }
-          }
         })
 
         if (error) {
           setErrorMessage(error.message)
         } else if (data.user) {
-          // Handle invite redemption based on type
-          if (inviteType === 'token') {
-            // Redeem friend invite token
-            const inviteToken = sessionStorage.getItem('invite_token')
-            if (inviteToken) {
-              try {
-                const { data: redeemResult, error: redeemError } = await supabase
-                  .rpc('redeem_invite_token', {
-                    invite_token: inviteToken,
-                    referee_user_id: data.user.id
-                  })
-
-                if (redeemError) {
-                  console.error('Error redeeming invite token:', redeemError)
-                } else if (redeemResult?.success) {
-                  console.log('✅ Successfully redeemed invite from @' + redeemResult.inviter_username)
-                  sessionStorage.removeItem('invite_token')
-
-                  // Friend invites start with 0 invites (must earn via profile completion)
-                  await supabase
-                    .from('profiles')
-                    .update({
-                      invites_remaining: 0,
-                      is_approved: true
-                    })
-                    .eq('id', data.user.id)
-                } else {
-                  console.warn('Failed to redeem invite:', redeemResult?.error)
-                }
-              } catch (err) {
-                console.error('Error processing invite token:', err)
-              }
-            }
-
-          } else if (inviteType === 'vip') {
-            // VIP code flow - use master code and award bulk invites
-            const masterCode = inviteCode.trim().toUpperCase()
-
-            try {
-              // Use the master code (increment usage counter)
-              const { error: rpcError } = await supabase.rpc('use_master_code', {
-                master_code: masterCode,
-                user_id: data.user.id
-              })
-              
-              if (rpcError) {
-                console.error('Failed to increment code usage:', rpcError)
-              }
-
-              // Determine tier and award invites
-              const tier = masterCode === 'BOOZEHOUND' ? 'boozehound' :
-                          masterCode.startsWith('BWALPHA_') ? 'alpha' : 'beta'
-
-              await supabase
-                .from('profiles')
-                .update({
-                  invited_by_master_code: masterCode,
-                  invite_tier: tier,
-                  invites_remaining: tier === 'boozehound' ? 10 : tier === 'alpha' ? 3 : 0,
-                  is_approved: true
-                })
-                .eq('id', data.user.id)
-
-              console.log(`✅ VIP code ${masterCode} used - awarded ${tier === 'boozehound' ? 10 : tier === 'alpha' ? 3 : 0} invites`)
-              sessionStorage.removeItem('vip_code')
-
-            } catch (err) {
-              console.error('Error processing VIP code:', err)
-            }
-          }
-
           // Track signup event
           identifyUser(data.user.id, {
             email: data.user.email,
@@ -243,7 +85,6 @@ export default function AuthPage() {
 
           trackUserSignedUp({
             signup_method: 'email',
-            invite_code: inviteType === 'vip' ? inviteCode.trim().toUpperCase() : undefined,
             username: data.user.email?.split('@')[0] || 'unknown',
             email: data.user.email
           })
@@ -283,18 +124,6 @@ export default function AuthPage() {
   }
 
   const handleGoogleLogin = async () => {
-    // For signup, require valid invite in sessionStorage
-    // For login (existing users), allow without invite check
-    if (isSignup) {
-      const inviteToken = sessionStorage.getItem('invite_token')
-      const vipCode = sessionStorage.getItem('vip_code')
-      
-      if (!inviteToken && !vipCode) {
-        setErrorMessage('You need a VIP invite to sign up. Enter your code on the home page or join the waitlist.')
-        return
-      }
-    }
-    
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -497,48 +326,6 @@ export default function AuthPage() {
             Sign Up
           </button>
         </div>
-
-        {/* Signup invite requirement message */}
-        {isSignup && !inviteType && (
-          <div style={{
-            marginBottom: '1.5rem',
-            padding: '1rem',
-            background: isDarkMode ? 'rgba(255, 193, 37, 0.1)' : 'rgba(255, 193, 37, 0.15)',
-            border: '1px solid rgba(255, 193, 37, 0.3)',
-            borderRadius: '12px',
-            textAlign: 'center',
-          }}>
-            <p style={{ 
-              color: textPrimary, 
-              fontSize: '0.875rem', 
-              margin: 0,
-              marginBottom: '0.5rem'
-            }}>
-              Been Watching is invite-only during our alpha.
-            </p>
-            <p style={{ 
-              color: textSecondary, 
-              fontSize: '0.8125rem', 
-              margin: 0 
-            }}>
-              Don't have a VIP invite?{' '}
-              <a 
-                href="/" 
-                style={{ 
-                  color: '#FFC125', 
-                  textDecoration: 'none',
-                  fontWeight: 600
-                }}
-                onClick={(e) => {
-                  e.preventDefault()
-                  router.push('/')
-                }}
-              >
-                Join the waitlist
-              </a>
-            </p>
-          </div>
-        )}
 
         {/* OAuth Buttons */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
@@ -776,83 +563,6 @@ export default function AuthPage() {
                   e.target.style.background = inputBg
                 }}
               />
-            </div>
-          )}
-
-          {/* Invite Info/Code (Signup only) */}
-          {isSignup && inviteType === 'token' && inviterUsername && (
-            <div style={{
-              marginBottom: '1.5rem',
-              padding: '1rem',
-              background: colors.goldGlassBg,
-              border: `1px solid ${colors.goldAccent}40`,
-              borderRadius: '12px',
-              textAlign: 'center'
-            }}>
-              <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🎉</div>
-              <div style={{ color: textPrimary, fontSize: '0.875rem', fontWeight: 600 }}>
-                Invited by <span style={{ color: colors.goldAccent }}>@{inviterUsername}</span>
-              </div>
-              <div style={{ color: textSecondary, fontSize: '0.75rem', marginTop: '0.25rem' }}>
-                No invite code needed!
-              </div>
-            </div>
-          )}
-
-          {isSignup && inviteType === 'vip' && (
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label
-                style={{
-                  display: 'block',
-                  color: textPrimary,
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  marginBottom: '0.5rem',
-                }}
-              >
-                VIP Invite Code
-              </label>
-                <input
-                type="text"
-                value={inviteCode}
-                onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                placeholder="BWALPHA_XXXXXXXX"
-                required={true}
-                style={{
-                  width: '100%',
-                  padding: '0.875rem 1rem',
-                  background: inputBg,
-                  border: `1px solid ${inputBorder}`,
-                  borderRadius: '12px',
-                  color: textPrimary,
-                  fontSize: '1rem',
-                  outline: 'none',
-                  transition: 'all 0.2s',
-                  textTransform: 'uppercase',
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = colors.goldAccent
-                  e.target.style.background = inputFocusBg
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = inputBorder
-                  e.target.style.background = inputBg
-                }}
-              />
-              <p style={{
-                color: textSecondary,
-                fontSize: '0.75rem',
-                marginTop: '0.5rem',
-                marginBottom: 0
-              }}>
-                Don't have a code?{' '}
-                <a
-                  href="/waitlist"
-                  style={{ color: colors.goldAccent, textDecoration: 'none' }}
-                >
-                  Join the waitlist
-                </a>
-              </p>
             </div>
           )}
 

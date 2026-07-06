@@ -52,11 +52,17 @@ export default function ShowDetailCard({
     watched: { count: 0, avatars: [] },
     wantToWatch: { count: 0, avatars: [] }
   })
+  // Tracks the season the user is currently viewing (FeedCard's "Other Seasons"
+  // selector can switch it) so comments/friend activity follow the right row.
+  const [activeMediaId, setActiveMediaId] = useState(media.id)
+  useEffect(() => {
+    setActiveMediaId(media.id)
+  }, [media.id])
   const supabase = createClient()
 
   // Fetch show comments
   const fetchShowComments = useCallback(async () => {
-    if (!media.id) return
+    if (!activeMediaId) return
     
     try {
       const { data: comments } = await supabase
@@ -67,7 +73,7 @@ export default function ShowDetailCard({
           created_at,
           user_id
         `)
-        .eq('media_id', media.id)
+        .eq('media_id', activeMediaId)
         .order('created_at', { ascending: false })
         .limit(20)
       
@@ -98,15 +104,18 @@ export default function ShowDetailCard({
         })
         
         setShowComments(commentsWithUsers)
+      } else {
+        // Clear stale comments when the (new) season has none
+        setShowComments([])
       }
     } catch (err) {
       console.error('Error fetching show comments:', err)
     }
-  }, [media.id, supabase])
+  }, [activeMediaId, supabase])
 
   // Fetch friends activity
   const fetchFriendsActivity = useCallback(async () => {
-    if (!media.id || !currentUser?.id) return
+    if (!activeMediaId || !currentUser?.id) return
     
     try {
       const { data: following } = await supabase
@@ -130,7 +139,7 @@ export default function ShowDetailCard({
             avatar_url
           )
         `)
-        .eq('media_id', media.id)
+        .eq('media_id', activeMediaId)
         .in('user_id', followingIds)
       
       if (statuses) {
@@ -156,7 +165,7 @@ export default function ShowDetailCard({
     } catch (err) {
       console.error('Error fetching friends activity:', err)
     }
-  }, [media.id, currentUser?.id, supabase])
+  }, [activeMediaId, currentUser?.id, supabase])
 
   useEffect(() => {
     if (isOpen) {
@@ -281,6 +290,11 @@ export default function ShowDetailCard({
             } : undefined}
             initialUserStatus={initialStatus}
             initialFlipped={true}
+            onSeasonChange={(mediaRow) => {
+              // FeedCard already swapped its displayed media; track the new id
+              // so show comments + friend activity refetch for that season.
+              if (mediaRow?.id) setActiveMediaId(mediaRow.id)
+            }}
           />
         </div>
       </div>
