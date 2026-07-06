@@ -29,6 +29,7 @@ interface ShowDetailCardProps {
     id: string
     name: string
     avatar: string | null
+    username?: string
   }
   initialRating?: 'meh' | 'like' | 'love' | null
   initialStatus?: 'want' | 'watching' | 'watched' | null
@@ -286,7 +287,8 @@ export default function ShowDetailCard({
             onSubmitShowComment={handleSubmitShowComment}
             currentUser={currentUser ? {
               name: currentUser.name,
-              avatar: currentUser.avatar || ''
+              avatar: currentUser.avatar || '',
+              username: currentUser.username
             } : undefined}
             initialUserStatus={initialStatus}
             initialFlipped={true}

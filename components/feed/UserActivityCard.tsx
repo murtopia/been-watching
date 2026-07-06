@@ -161,7 +161,7 @@ interface FeedCardProps {
   /** Called when user likes an activity comment (front of card) */
   onLikeActivityComment?: (commentId: string) => Promise<void>
   /** Current logged-in user (for showing their info on new comments) */
-  currentUser?: { name: string; avatar: string; id?: string }
+  currentUser?: { name: string; avatar: string; id?: string; username?: string }
   /** Initial watch status for this media (to show selected state in modal) */
   initialUserStatus?: 'want' | 'watching' | 'watched' | null
   onTrack?: (action: string, metadata?: any) => void
@@ -198,7 +198,7 @@ interface UserActivityCardProps {
   onSubmitShowComment?: (mediaId: string, text: string) => Promise<void>
   onLikeShowComment?: (commentId: string) => Promise<void>
   onLikeActivityComment?: (commentId: string) => Promise<void>
-  currentUser?: { name: string; avatar: string }
+  currentUser?: { name: string; avatar: string; username?: string }
   initialUserStatus?: 'want' | 'watching' | 'watched' | null
   onFlip?: (isFlipped: boolean) => void
   initialFlipped?: boolean
@@ -3486,7 +3486,8 @@ export const FeedCard: React.FC<FeedCardProps> = ({
               : watchlistStatus.has('want') ? 'want'
               : null,
             season: data.media.season ?? null,
-            username: cardUser?.username || currentUser?.name,
+            // Attribute the share to the viewer (the pill reflects their status)
+            username: currentUser?.username || cardUser?.username || '',
             avatarUrl: currentUser?.avatar || cardUser?.avatar || undefined,
             userId: currentUser?.id || cardUser?.id
           }}

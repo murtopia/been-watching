@@ -381,8 +381,8 @@ function measureTitleLines(ctx: CanvasRenderingContext2D, base: string, season: 
 
 /**
  * Circle-and-bar footer (chart-row style): avatar in a white-ringed circle
- * with a gold gradient bar tucked behind it carrying @USERNAME, plus
- * "beenwatching.com" on the right.
+ * with a gold gradient bar tucked behind it carrying
+ * "@USERNAME via beenwatching.com".
  */
 async function drawFooterBar(
   ctx: CanvasRenderingContext2D,
@@ -398,15 +398,32 @@ async function drawFooterBar(
   if (data.username) {
     const barH = Math.round(64 * scale)
     const nameFont = Math.round(30 * scale)
-    ctx.font = `800 ${nameFont}px ${FONT_STACK}`
-    let label = `@${data.username.toUpperCase()}`
+    const viaFont = Math.round(26 * scale)
     const padLeft = r + Math.round(26 * scale)
     const padRight = Math.round(30 * scale)
-    const maxBarW = rightX - leftX - Math.round(320 * scale)
-    while (label.length > 4 && padLeft + ctx.measureText(label).width + padRight > maxBarW) {
-      label = label.slice(0, -2) + '\u2026'
+    const viaGap = Math.round(10 * scale)
+    const maxBarW = rightX - leftX
+
+    let name = `@${data.username.toUpperCase()}`
+    let via = 'via beenwatching.com'
+
+    const nameW = () => {
+      ctx.font = `800 ${nameFont}px ${FONT_STACK}`
+      return ctx.measureText(name).width
     }
-    const barW = padLeft + ctx.measureText(label).width + padRight
+    const viaW = () => {
+      if (!via) return 0
+      ctx.font = `600 ${viaFont}px ${FONT_STACK}`
+      return ctx.measureText(via).width + viaGap
+    }
+
+    // Ellipsize the username first; drop the "via" segment only as a last resort
+    while (name.length > 4 && padLeft + nameW() + viaW() + padRight > maxBarW) {
+      name = name.slice(0, -2) + '\u2026'
+    }
+    if (padLeft + nameW() + viaW() + padRight > maxBarW) via = ''
+
+    const barW = padLeft + nameW() + viaW() + padRight
     const barX = leftX + r // bar starts at circle center, tucked behind it
 
     // Bar
@@ -422,13 +439,19 @@ async function drawFooterBar(
     ctx.fill()
     ctx.restore()
 
-    // Bar label
+    // Bar label: bold @USERNAME + lighter "via beenwatching.com"
     ctx.save()
-    ctx.font = `800 ${nameFont}px ${FONT_STACK}`
-    ctx.fillStyle = '#141414'
     ctx.textAlign = 'left'
     ctx.textBaseline = 'middle'
-    ctx.fillText(label, barX + padLeft, centerY + 1)
+    ctx.font = `800 ${nameFont}px ${FONT_STACK}`
+    ctx.fillStyle = '#141414'
+    ctx.fillText(name, barX + padLeft, centerY + 1)
+    if (via) {
+      const nameWidth = ctx.measureText(name).width
+      ctx.font = `600 ${viaFont}px ${FONT_STACK}`
+      ctx.fillStyle = 'rgba(20, 20, 20, 0.72)'
+      ctx.fillText(via, barX + padLeft + nameWidth + viaGap, centerY + 1)
+    }
     ctx.restore()
 
     // Circle: avatar or gold initial fallback
@@ -474,16 +497,34 @@ async function drawFooterBar(
     ctx.lineWidth = Math.max(4, Math.round(5 * scale))
     ctx.stroke()
     ctx.restore()
+  } else {
+    // No attribution available (e.g. chart shares): show just the URL
+    ctx.save()
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
+    ctx.font = `500 ${urlFont}px ${FONT_STACK}`
+    ctx.textAlign = 'left'
+    ctx.textBaseline = 'middle'
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'
+    ctx.shadowBlur = 8
+    ctx.fillText('beenwatching.com', leftX, centerY)
+    ctx.restore()
   }
+}
 
+const INSTAGRAM_HANDLE = '@what.have.you.been.watching'
+
+/** Small IG handle line under the wordmark */
+function drawInstagramHandle(ctx: CanvasRenderingContext2D, centerX: number, y: number, size = 26) {
   ctx.save()
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
-  ctx.font = `500 ${urlFont}px ${FONT_STACK}`
-  ctx.textAlign = 'right'
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.6)'
+  ctx.shadowBlur = 10
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
+  ctx.font = `500 ${size}px ${FONT_STACK}`
+  ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'
-  ctx.shadowBlur = 8
-  ctx.fillText('beenwatching.com', rightX, centerY)
+  try { (ctx as any).letterSpacing = `${Math.round(size * 0.08)}px` } catch { /* older browsers */ }
+  ctx.fillText(INSTAGRAM_HANDLE, centerX, y)
+  try { (ctx as any).letterSpacing = '0px' } catch { /* noop */ }
   ctx.restore()
 }
 
@@ -529,9 +570,9 @@ const STORY_LAYOUT: ShowLayout = {
   wordmarkY: 200,
   wordmarkSize: 40,
   leftX: 104,
-  // Keeps the footer (and everything above it) clear of Instagram's
-  // bottom caption/UI zone (~250px on a 1920 canvas).
-  footerY: 1592,
+  // Sits just above Instagram's caption pill (which starts around y=1800
+  // on the 1920 canvas) without running into it.
+  footerY: 1700,
   footerScale: 1,
   pillFont: 36,
   titleFont: 68,
@@ -581,6 +622,7 @@ async function drawShowCard(canvas: HTMLCanvasElement, data: ShareCardData, layo
   )
 
   drawWordmark(ctx, L.width / 2, L.wordmarkY, L.wordmarkSize)
+  drawInstagramHandle(ctx, L.width / 2, L.wordmarkY + Math.round(L.wordmarkSize * 1.5), Math.round(L.wordmarkSize * 0.62))
 
   // ---- Bottom-left content block (bottom-anchored above the footer) ----
   const maxW = L.width - L.leftX * 2
@@ -689,6 +731,7 @@ async function drawListStory(canvas: HTMLCanvasElement, data: ShareCardData) {
   drawBackground(ctx, 1080, 1920)
   drawGoldFrame(ctx, 1080, 1920, 36, 56)
   drawWordmark(ctx, centerX, 170, 36)
+  drawInstagramHandle(ctx, centerX, 224, 24)
 
   // Headline
   const headline = data.headline || data.title
@@ -697,9 +740,9 @@ async function drawListStory(canvas: HTMLCanvasElement, data: ShareCardData) {
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   const headlineLines = wrapText(ctx, headline, 900, 2)
-  headlineLines.forEach((line, i) => ctx.fillText(line, centerX, 282 + i * 68))
+  headlineLines.forEach((line, i) => ctx.fillText(line, centerX, 300 + i * 68))
 
-  let gridTop = 282 + headlineLines.length * 68 + 30
+  let gridTop = 300 + headlineLines.length * 68 + 30
   if (data.subtitle) {
     ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
     ctx.font = `500 36px ${FONT_STACK}`
@@ -716,7 +759,7 @@ async function drawListStory(canvas: HTMLCanvasElement, data: ShareCardData) {
   const startX = (1080 - gridWidth) / 2
   const rows = Math.max(1, Math.ceil(items.length / cols))
   const gridHeight = rows * posterH + (rows - 1) * gap
-  const footerTop = 1480
+  const footerTop = 1580
   gridTop = Math.max(gridTop, gridTop + (footerTop - gridTop - gridHeight) / 2)
 
   for (let i = 0; i < items.length; i++) {
@@ -735,7 +778,7 @@ async function drawListStory(canvas: HTMLCanvasElement, data: ShareCardData) {
   }
 
   // Same Instagram-safe footer position as the show story card
-  await drawFooterBar(ctx, data, 104, 976, 1592, 1)
+  await drawFooterBar(ctx, data, 104, 976, 1700, 1)
 }
 
 async function drawListSquare(canvas: HTMLCanvasElement, data: ShareCardData) {
@@ -748,6 +791,7 @@ async function drawListSquare(canvas: HTMLCanvasElement, data: ShareCardData) {
   drawBackground(ctx, 1080, 1080)
   drawGoldFrame(ctx, 1080, 1080, 30, 48)
   drawWordmark(ctx, centerX, 120, 28)
+  drawInstagramHandle(ctx, centerX, 162, 19)
 
   const headline = data.headline || data.title
   ctx.fillStyle = '#ffffff'

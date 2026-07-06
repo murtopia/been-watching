@@ -89,7 +89,8 @@ export default async function ShowPage({ params }: ShowPageProps) {
       viewer={profile && user ? {
         id: user.id,
         name: profile.display_name || profile.username || '',
-        avatar: profile.avatar_url
+        avatar: profile.avatar_url,
+        username: profile.username || ''
       } : null}
       initialRating={userRating}
       initialStatus={userStatus}

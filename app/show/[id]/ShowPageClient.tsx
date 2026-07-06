@@ -19,7 +19,7 @@ interface MediaRow {
 
 interface ShowPageClientProps {
   media: MediaRow
-  viewer: { id: string; name: string; avatar: string | null } | null
+  viewer: { id: string; name: string; avatar: string | null; username?: string } | null
   initialRating: 'meh' | 'like' | 'love' | null
   initialStatus: 'want' | 'watching' | 'watched' | null
 }

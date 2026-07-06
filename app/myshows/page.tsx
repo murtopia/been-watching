@@ -857,7 +857,8 @@ export default function MyShowsPage() {
         currentUser={profile ? {
           id: user?.id || '',
           name: profile.display_name || profile.username || '',
-          avatar: profile.avatar_url
+          avatar: profile.avatar_url,
+          username: profile.username || ''
         } : undefined}
         initialRating={selectedMedia?.currentRating}
         initialStatus={selectedMedia?.currentStatus}

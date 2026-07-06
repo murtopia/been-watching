@@ -1513,7 +1513,8 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         currentUser={currentUserProfile ? {
           id: currentUser?.id || '',
           name: currentUserProfile.display_name || currentUserProfile.username || '',
-          avatar: currentUserProfile.avatar_url
+          avatar: currentUserProfile.avatar_url,
+          username: currentUserProfile.username || ''
         } : undefined}
         initialRating={selectedMedia?.currentRating}
         initialStatus={selectedMedia?.currentStatus}

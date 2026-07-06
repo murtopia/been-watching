@@ -699,6 +699,7 @@ export default function FeedPage() {
   const currentUserForCards = profile ? {
     id: user?.id || '',
     name: profile.display_name || profile.username || '',
+    username: profile.username || '',
     avatar: profile.avatar_url || ''
   } : undefined
 
@@ -922,7 +923,8 @@ export default function FeedPage() {
           currentUser={currentUserForCards ? {
             id: currentUserForCards.id,
             name: currentUserForCards.name,
-            avatar: currentUserForCards.avatar || null
+            avatar: currentUserForCards.avatar || null,
+            username: currentUserForCards.username
           } : undefined}
           initialRating={feedData?.userRatings[detailShow.id] || null}
           initialStatus={feedData?.userStatuses[detailShow.id] || null}

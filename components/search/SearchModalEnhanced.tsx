@@ -940,7 +940,8 @@ export default function SearchModalEnhanced({ isOpen, onClose, onSelectMedia, us
                   currentUser={profile ? {
                     id: user?.id,
                     name: profile.display_name || profile.username || '',
-                    avatar: profile.avatar_url || ''
+                    avatar: profile.avatar_url || '',
+                    username: profile.username || ''
                   } : undefined}
                 />
               ) : null}
