@@ -2,9 +2,10 @@
  * Share Card Generator
  *
  * Client-side image generation using the Canvas API.
- * Produces story (1080x1920) and square (1080x1080) share cards that match
- * the activity-card aesthetic: dark gradient, gold outline, big cover art,
- * status-aware headline, sprite-style rating glyphs (no emoji, no stars).
+ * Produces story (1080x1920) and square (1080x1080) share cards that mirror
+ * the activity-card front: full-bleed cover art inside the gold frame,
+ * bottom gradient, gold status pill, lower-left title block, and a
+ * circle-and-bar username footer (chart-row style).
  */
 
 export type ShareCardStatus = 'want' | 'watching' | 'watched'
@@ -20,9 +21,11 @@ export interface ShareCardData {
   comment?: string
   username: string
   avatarUrl?: string
+  year?: number
+  genre?: string
   /** When present, renders the list layout (poster grid) instead of the single-show layout */
   items?: Array<{ title: string; posterUrl: string }>
-  /** Overrides the status-derived headline (used for lists/charts) */
+  /** Overrides the status-derived pill text (used for lists/charts) */
   headline?: string
   subtitle?: string
 }
@@ -60,6 +63,11 @@ async function loadImage(src: string): Promise<HTMLImageElement> {
   }
 }
 
+/** Full-bleed art needs more pixels than the w342/w500 used in the feed */
+function upgradePosterUrl(src: string): string {
+  return src.replace(/(image\.tmdb\.org\/t\/p\/)w(?:185|342|500)\//, '$1w780/')
+}
+
 function roundedRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath()
   ctx.moveTo(x + r, y)
@@ -70,7 +78,7 @@ function roundedRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w:
   ctx.closePath()
 }
 
-/** Draw an image cover-fit inside a rounded rect (poster style) */
+/** Draw an image cover-fit inside a rounded rect (poster style, used for grids) */
 async function drawPoster(
   ctx: CanvasRenderingContext2D,
   src: string | undefined,
@@ -131,6 +139,57 @@ function drawBackground(ctx: CanvasRenderingContext2D, w: number, h: number) {
   ctx.fillRect(0, 0, w, h)
 }
 
+/**
+ * Draw the poster full-bleed inside the gold frame area, with the
+ * activity card's bottom gradient and a top scrim for the wordmark.
+ * The vertical anchor is biased upward (30%) so square crops keep faces.
+ */
+async function drawFullBleedArt(
+  ctx: CanvasRenderingContext2D,
+  src: string | undefined,
+  x: number, y: number, w: number, h: number,
+  radius: number
+) {
+  let img: HTMLImageElement | null = null
+  if (src) {
+    try { img = await loadImage(upgradePosterUrl(src)) } catch { img = null }
+  }
+
+  ctx.save()
+  roundedRectPath(ctx, x, y, w, h, radius)
+  ctx.clip()
+
+  if (img) {
+    const scale = Math.max(w / img.width, h / img.height)
+    const dw = img.width * scale
+    const dh = img.height * scale
+    ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) * 0.3, dw, dh)
+  } else {
+    const fallback = ctx.createLinearGradient(0, y, 0, y + h)
+    fallback.addColorStop(0, '#26262e')
+    fallback.addColorStop(1, '#101014')
+    ctx.fillStyle = fallback
+    ctx.fillRect(x, y, w, h)
+  }
+
+  // Bottom gradient (matches .background-overlay on activity cards)
+  const overlay = ctx.createLinearGradient(0, y, 0, y + h)
+  overlay.addColorStop(0, 'rgba(0, 0, 0, 0)')
+  overlay.addColorStop(0.5, 'rgba(0, 0, 0, 0.3)')
+  overlay.addColorStop(1, 'rgba(0, 0, 0, 0.92)')
+  ctx.fillStyle = overlay
+  ctx.fillRect(x, y, w, h)
+
+  // Top scrim so the wordmark reads over bright art
+  const scrim = ctx.createLinearGradient(0, y, 0, y + Math.min(360, h * 0.3))
+  scrim.addColorStop(0, 'rgba(0, 0, 0, 0.6)')
+  scrim.addColorStop(1, 'rgba(0, 0, 0, 0)')
+  ctx.fillStyle = scrim
+  ctx.fillRect(x, y, w, Math.min(360, h * 0.3))
+
+  ctx.restore()
+}
+
 function drawGoldFrame(ctx: CanvasRenderingContext2D, w: number, h: number, inset: number, radius: number) {
   ctx.save()
   roundedRectPath(ctx, inset, inset, w - inset * 2, h - inset * 2, radius)
@@ -142,6 +201,9 @@ function drawGoldFrame(ctx: CanvasRenderingContext2D, w: number, h: number, inse
 
 function drawWordmark(ctx: CanvasRenderingContext2D, centerX: number, y: number, size = 34) {
   ctx.save()
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.6)'
+  ctx.shadowBlur = 12
+  ctx.shadowOffsetY = 2
   ctx.fillStyle = GOLD
   ctx.font = `700 ${size}px ${FONT_STACK}`
   ctx.textAlign = 'center'
@@ -194,12 +256,12 @@ const RATING_LABELS: Record<ShareCardRating, string> = {
   meh: 'It was meh'
 }
 
-function statusHeadline(status?: ShareCardStatus | null): string {
+function statusPillText(status?: ShareCardStatus | null): string {
   switch (status) {
     case 'watching': return "I'm currently watching"
     case 'watched': return 'I just finished watching'
     case 'want': return 'I want to watch'
-    default: return 'Check out'
+    default: return 'Check this out'
   }
 }
 
@@ -235,88 +297,194 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number,
   return lines
 }
 
-/** Draw "Title S3" with the season chip in gold; returns lines drawn */
-function drawTitleWithSeason(
+/** Gold status pill (activity-badge style); returns pill height */
+function drawStatusPill(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  topY: number,
+  fontSize: number,
+  maxWidth: number
+): number {
+  ctx.save()
+  ctx.font = `700 ${fontSize}px ${FONT_STACK}`
+  let label = text
+  const padX = Math.round(fontSize * 0.9)
+  while (label.length > 4 && ctx.measureText(label).width + padX * 2 > maxWidth) {
+    label = label.slice(0, -2).trimEnd() + '\u2026'
+  }
+  const textW = ctx.measureText(label).width
+  const pillH = Math.round(fontSize * 2.1)
+  const pillW = textW + padX * 2
+
+  roundedRectPath(ctx, x, topY, pillW, pillH, Math.round(pillH * 0.35))
+  ctx.fillStyle = 'rgba(255, 193, 37, 0.22)'
+  ctx.fill()
+  ctx.strokeStyle = 'rgba(255, 193, 37, 0.8)'
+  ctx.lineWidth = 2.5
+  ctx.stroke()
+
+  ctx.fillStyle = '#ffffff'
+  ctx.textAlign = 'left'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(label, x + padX, topY + pillH / 2 + 1)
+  ctx.restore()
+  return pillH
+}
+
+/** Left-aligned "Title S3" with the season chip in gold. Draws each line at baselineY + i*lineHeight. */
+function drawTitleLeft(
   ctx: CanvasRenderingContext2D,
   base: string,
   season: number | null,
-  centerX: number,
-  y: number,
+  x: number,
+  baselineY: number,
   fontSize: number,
   maxWidth: number,
   lineHeight: number
 ): number {
+  ctx.save()
   ctx.font = `700 ${fontSize}px ${FONT_STACK}`
-  ctx.textAlign = 'center'
+  ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'
+  ctx.shadowBlur = 10
+  ctx.shadowOffsetY = 2
+
   const seasonText = season != null ? ` S${season}` : ''
-  const lines = wrapText(ctx, base, maxWidth - (seasonText ? ctx.measureText(seasonText).width : 0), 2)
+  const seasonWidth = seasonText ? ctx.measureText(seasonText).width : 0
+  const lines = wrapText(ctx, base, maxWidth - seasonWidth, 2)
 
   lines.forEach((line, i) => {
-    const isLast = i === lines.length - 1
-    const lineY = y + i * lineHeight
-    if (isLast && seasonText) {
-      const lineWidth = ctx.measureText(line).width
-      const seasonWidth = ctx.measureText(seasonText).width
-      const startX = centerX - (lineWidth + seasonWidth) / 2
-      ctx.textAlign = 'left'
-      ctx.fillStyle = '#ffffff'
-      ctx.fillText(line, startX, lineY)
+    const lineY = baselineY + i * lineHeight
+    ctx.fillStyle = '#ffffff'
+    ctx.fillText(line, x, lineY)
+    if (seasonText && i === lines.length - 1) {
       ctx.fillStyle = GOLD
-      ctx.fillText(seasonText, startX + lineWidth, lineY)
-      ctx.textAlign = 'center'
-    } else {
-      ctx.fillStyle = '#ffffff'
-      ctx.fillText(line, centerX, lineY)
+      ctx.fillText(seasonText, x + ctx.measureText(line).width, lineY)
     }
   })
+  ctx.restore()
   return lines.length
 }
 
-async function drawFooter(
+/** Measure how many lines the title will take without drawing */
+function measureTitleLines(ctx: CanvasRenderingContext2D, base: string, season: number | null, fontSize: number, maxWidth: number): number {
+  ctx.save()
+  ctx.font = `700 ${fontSize}px ${FONT_STACK}`
+  const seasonText = season != null ? ` S${season}` : ''
+  const seasonWidth = seasonText ? ctx.measureText(seasonText).width : 0
+  const lines = wrapText(ctx, base, maxWidth - seasonWidth, 2)
+  ctx.restore()
+  return lines.length
+}
+
+/**
+ * Circle-and-bar footer (chart-row style): avatar in a white-ringed circle
+ * with a gold gradient bar tucked behind it carrying @USERNAME, plus
+ * "beenwatching.com" on the right.
+ */
+async function drawFooterBar(
   ctx: CanvasRenderingContext2D,
   data: ShareCardData,
   leftX: number,
   rightX: number,
-  y: number,
-  avatarRadius = 34
+  centerY: number,
+  scale = 1
 ) {
-  // Avatar
-  let textX = leftX
+  const r = Math.round(52 * scale)
+  const urlFont = Math.round(28 * scale)
+
   if (data.username) {
-    if (data.avatarUrl) {
-      try {
-        const avatar = await loadImage(data.avatarUrl)
-        ctx.save()
-        ctx.beginPath()
-        ctx.arc(leftX + avatarRadius, y, avatarRadius, 0, Math.PI * 2)
-        ctx.clip()
-        ctx.drawImage(avatar, leftX, y - avatarRadius, avatarRadius * 2, avatarRadius * 2)
-        ctx.restore()
-        ctx.save()
-        ctx.beginPath()
-        ctx.arc(leftX + avatarRadius, y, avatarRadius, 0, Math.PI * 2)
-        ctx.strokeStyle = GOLD
-        ctx.lineWidth = 3
-        ctx.stroke()
-        ctx.restore()
-        textX = leftX + avatarRadius * 2 + 20
-      } catch {
-        textX = leftX
-      }
+    const barH = Math.round(64 * scale)
+    const nameFont = Math.round(30 * scale)
+    ctx.font = `800 ${nameFont}px ${FONT_STACK}`
+    let label = `@${data.username.toUpperCase()}`
+    const padLeft = r + Math.round(26 * scale)
+    const padRight = Math.round(30 * scale)
+    const maxBarW = rightX - leftX - Math.round(320 * scale)
+    while (label.length > 4 && padLeft + ctx.measureText(label).width + padRight > maxBarW) {
+      label = label.slice(0, -2) + '\u2026'
     }
-    ctx.fillStyle = '#ffffff'
-    ctx.font = `600 ${avatarRadius * 0.9}px ${FONT_STACK}`
+    const barW = padLeft + ctx.measureText(label).width + padRight
+    const barX = leftX + r // bar starts at circle center, tucked behind it
+
+    // Bar
+    ctx.save()
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.35)'
+    ctx.shadowBlur = 8
+    ctx.shadowOffsetY = 3
+    roundedRectPath(ctx, barX, centerY - barH / 2, barW, barH, barH / 2)
+    const barGradient = ctx.createLinearGradient(barX, 0, barX + barW, 0)
+    barGradient.addColorStop(0, '#FFC125')
+    barGradient.addColorStop(1, '#E8A200')
+    ctx.fillStyle = barGradient
+    ctx.fill()
+    ctx.restore()
+
+    // Bar label
+    ctx.save()
+    ctx.font = `800 ${nameFont}px ${FONT_STACK}`
+    ctx.fillStyle = '#141414'
     ctx.textAlign = 'left'
     ctx.textBaseline = 'middle'
-    ctx.fillText(`@${data.username}`, textX, y)
+    ctx.fillText(label, barX + padLeft, centerY + 1)
+    ctx.restore()
+
+    // Circle: avatar or gold initial fallback
+    let avatar: HTMLImageElement | null = null
+    if (data.avatarUrl) {
+      try { avatar = await loadImage(data.avatarUrl) } catch { avatar = null }
+    }
+    ctx.save()
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'
+    ctx.shadowBlur = 10
+    ctx.shadowOffsetY = 2
+    ctx.beginPath()
+    ctx.arc(leftX + r, centerY, r, 0, Math.PI * 2)
+    ctx.fillStyle = '#222'
+    ctx.fill()
+    ctx.restore()
+
+    ctx.save()
+    ctx.beginPath()
+    ctx.arc(leftX + r, centerY, r, 0, Math.PI * 2)
+    ctx.clip()
+    if (avatar) {
+      const cover = Math.max((r * 2) / avatar.width, (r * 2) / avatar.height)
+      const dw = avatar.width * cover
+      const dh = avatar.height * cover
+      ctx.drawImage(avatar, leftX + r - dw / 2, centerY - dh / 2, dw, dh)
+    } else {
+      ctx.fillStyle = GOLD
+      ctx.fillRect(leftX, centerY - r, r * 2, r * 2)
+      ctx.fillStyle = '#141414'
+      ctx.font = `800 ${Math.round(r * 1.05)}px ${FONT_STACK}`
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(data.username.charAt(0).toUpperCase(), leftX + r, centerY + 2)
+    }
+    ctx.restore()
+
+    // White ring (chart-poster style)
+    ctx.save()
+    ctx.beginPath()
+    ctx.arc(leftX + r, centerY, r - 2, 0, Math.PI * 2)
+    ctx.strokeStyle = '#ffffff'
+    ctx.lineWidth = Math.max(4, Math.round(5 * scale))
+    ctx.stroke()
+    ctx.restore()
   }
 
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.45)'
-  ctx.font = `500 ${avatarRadius * 0.75}px ${FONT_STACK}`
+  ctx.save()
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
+  ctx.font = `500 ${urlFont}px ${FONT_STACK}`
   ctx.textAlign = 'right'
   ctx.textBaseline = 'middle'
-  ctx.fillText('beenwatching.com', rightX, y)
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'
+  ctx.shadowBlur = 8
+  ctx.fillText('beenwatching.com', rightX, centerY)
+  ctx.restore()
 }
 
 function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
@@ -332,116 +500,179 @@ function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
 // Single show cards
 // ============================================================
 
-async function drawShowStory(canvas: HTMLCanvasElement, data: ShareCardData) {
-  canvas.width = 1080
-  canvas.height = 1920
+interface ShowLayout {
+  width: number
+  height: number
+  frameInset: number
+  frameRadius: number
+  wordmarkY: number
+  wordmarkSize: number
+  leftX: number
+  /** Center of the footer circle/bar */
+  footerY: number
+  footerScale: number
+  pillFont: number
+  titleFont: number
+  titleLineHeight: number
+  metaFont: number
+  ratingGlyph: number
+  ratingFont: number
+  commentFont: number
+  commentLineHeight: number
+}
+
+const STORY_LAYOUT: ShowLayout = {
+  width: 1080,
+  height: 1920,
+  frameInset: 36,
+  frameRadius: 56,
+  wordmarkY: 200,
+  wordmarkSize: 40,
+  leftX: 104,
+  // Keeps the footer (and everything above it) clear of Instagram's
+  // bottom caption/UI zone (~250px on a 1920 canvas).
+  footerY: 1592,
+  footerScale: 1,
+  pillFont: 36,
+  titleFont: 68,
+  titleLineHeight: 82,
+  metaFont: 38,
+  ratingGlyph: 50,
+  ratingFont: 40,
+  commentFont: 36,
+  commentLineHeight: 50
+}
+
+const SQUARE_LAYOUT: ShowLayout = {
+  width: 1080,
+  height: 1080,
+  frameInset: 30,
+  frameRadius: 48,
+  wordmarkY: 130,
+  wordmarkSize: 32,
+  leftX: 96,
+  footerY: 946,
+  footerScale: 0.88,
+  pillFont: 30,
+  titleFont: 56,
+  titleLineHeight: 68,
+  metaFont: 32,
+  ratingGlyph: 42,
+  ratingFont: 34,
+  commentFont: 30,
+  commentLineHeight: 42
+}
+
+async function drawShowCard(canvas: HTMLCanvasElement, data: ShareCardData, layout: ShowLayout) {
+  const L = layout
+  canvas.width = L.width
+  canvas.height = L.height
   const ctx = canvas.getContext('2d')!
-  const centerX = 540
 
-  drawBackground(ctx, 1080, 1920)
-  drawGoldFrame(ctx, 1080, 1920, 36, 56)
-  drawWordmark(ctx, centerX, 150, 36)
+  drawBackground(ctx, L.width, L.height)
 
-  // Status headline
-  const headline = data.headline || statusHeadline(data.status)
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'
-  ctx.font = `500 44px ${FONT_STACK}`
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.fillText(headline, centerX, 258)
+  // Full-bleed art clipped to the frame rect; the gold stroke goes on top
+  await drawFullBleedArt(
+    ctx,
+    data.posterUrl,
+    L.frameInset, L.frameInset,
+    L.width - L.frameInset * 2, L.height - L.frameInset * 2,
+    L.frameRadius
+  )
 
-  // Big poster
-  await drawPoster(ctx, data.posterUrl, 165, 330, 750, 1125, 32)
+  drawWordmark(ctx, L.width / 2, L.wordmarkY, L.wordmarkSize)
 
-  // Title + season
-  const { base, season } = splitTitleSeason(data.title, data.season)
-  const titleLines = drawTitleWithSeason(ctx, base, season, centerX, 1560, 64, 920, 76)
+  // ---- Bottom-left content block (bottom-anchored above the footer) ----
+  const maxW = L.width - L.leftX * 2
+  const circleR = Math.round(52 * L.footerScale)
+  const contentBottom = L.footerY - circleR - Math.round(52 * L.footerScale)
 
-  // Rating (only when watched + rated)
-  let cursorY = 1560 + (titleLines - 1) * 76 + 62
-  if (data.rating && data.status === 'watched') {
-    const label = RATING_LABELS[data.rating]
-    ctx.font = `600 40px ${FONT_STACK}`
-    const labelWidth = ctx.measureText(label).width
-    const glyphSize = 52
-    const totalWidth = glyphSize + 20 + labelWidth
-    const startX = centerX - totalWidth / 2
-    drawRatingGlyph(ctx, data.rating, startX, cursorY - glyphSize / 2 - 6, glyphSize)
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
+  const pillText = data.headline || statusPillText(data.status)
+  const pillH = Math.round(L.pillFont * 2.1)
+  const pillGap = Math.round(L.pillFont * 0.95)
+
+  const titleParts = splitTitleSeason(data.title, data.season)
+  const titleLines = measureTitleLines(ctx, titleParts.base, titleParts.season, L.titleFont, maxW)
+  const titleBlockH = titleLines * L.titleLineHeight
+
+  const metaParts: string[] = []
+  if (data.year) metaParts.push(String(data.year))
+  if (data.genre) metaParts.push(data.genre)
+  const metaText = metaParts.join('  \u2022  ')
+  const metaH = metaText ? Math.round(L.metaFont * 1.5) : 0
+
+  const showRating = !!data.rating && data.status === 'watched'
+  const ratingH = showRating ? L.ratingGlyph + Math.round(L.ratingGlyph * 0.45) : 0
+
+  let commentLines: string[] = []
+  if (data.comment) {
+    ctx.font = `italic 400 ${L.commentFont}px ${FONT_STACK}`
+    commentLines = wrapText(ctx, `\u201C${data.comment}\u201D`, maxW, 2)
+  }
+  const commentH = commentLines.length
+    ? commentLines.length * L.commentLineHeight + Math.round(L.commentFont * 0.5)
+    : 0
+
+  const totalH = pillH + pillGap + titleBlockH + metaH + ratingH + commentH
+  let cursorY = contentBottom - totalH
+
+  // Pill
+  drawStatusPill(ctx, pillText, L.leftX, cursorY, L.pillFont, maxW)
+  cursorY += pillH + pillGap
+
+  // Title (baseline of first line sits ~0.78em below its top)
+  const titleBaseline = cursorY + Math.round(L.titleFont * 0.78)
+  drawTitleLeft(ctx, titleParts.base, titleParts.season, L.leftX, titleBaseline, L.titleFont, maxW, L.titleLineHeight)
+  cursorY += titleBlockH
+
+  // Meta line: year • genre
+  if (metaText) {
+    ctx.save()
+    ctx.font = `500 ${L.metaFont}px ${FONT_STACK}`
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.82)'
+    ctx.textAlign = 'left'
+    ctx.textBaseline = 'alphabetic'
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'
+    ctx.shadowBlur = 8
+    ctx.fillText(metaText, L.leftX, cursorY + Math.round(L.metaFont * 0.9))
+    ctx.restore()
+    cursorY += metaH
+  }
+
+  // Rating row (only when watched + rated)
+  if (showRating && data.rating) {
+    const rowCenter = cursorY + Math.round(ratingH * 0.55)
+    drawRatingGlyph(ctx, data.rating, L.leftX, rowCenter - L.ratingGlyph / 2, L.ratingGlyph)
+    ctx.save()
+    ctx.font = `600 ${L.ratingFont}px ${FONT_STACK}`
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.92)'
     ctx.textAlign = 'left'
     ctx.textBaseline = 'middle'
-    ctx.fillText(label, startX + glyphSize + 20, cursorY + 16)
-    cursorY += 80
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'
+    ctx.shadowBlur = 8
+    ctx.fillText(RATING_LABELS[data.rating], L.leftX + L.ratingGlyph + Math.round(L.ratingGlyph * 0.4), rowCenter)
+    ctx.restore()
+    cursorY += ratingH
   }
 
   // Comment
-  if (data.comment) {
-    ctx.font = `italic 400 34px ${FONT_STACK}`
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.75)'
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    const lines = wrapText(ctx, `\u201C${data.comment}\u201D`, 880, 2)
-    lines.forEach((line, i) => ctx.fillText(line, centerX, cursorY + 12 + i * 46))
-  }
-
-  await drawFooter(ctx, data, 110, 970, 1810)
-}
-
-async function drawShowSquare(canvas: HTMLCanvasElement, data: ShareCardData) {
-  canvas.width = 1080
-  canvas.height = 1080
-  const ctx = canvas.getContext('2d')!
-
-  drawBackground(ctx, 1080, 1080)
-  drawGoldFrame(ctx, 1080, 1080, 30, 48)
-
-  // Poster left
-  await drawPoster(ctx, data.posterUrl, 80, 160, 440, 660, 24)
-
-  // Right column
-  const rightX = 580
-  const rightWidth = 410
-  const rightCenter = rightX + rightWidth / 2
-
-  drawWordmark(ctx, rightCenter, 210, 26)
-
-  const headline = data.headline || statusHeadline(data.status)
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'
-  ctx.font = `500 32px ${FONT_STACK}`
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  const headlineLines = wrapText(ctx, headline, rightWidth, 2)
-  headlineLines.forEach((line, i) => ctx.fillText(line, rightCenter, 300 + i * 42))
-
-  const { base, season } = splitTitleSeason(data.title, data.season)
-  const titleLines = drawTitleWithSeason(ctx, base, season, rightCenter, 420 + (headlineLines.length - 1) * 42, 48, rightWidth, 58)
-
-  let cursorY = 420 + (headlineLines.length - 1) * 42 + (titleLines - 1) * 58 + 60
-  if (data.rating && data.status === 'watched') {
-    const label = RATING_LABELS[data.rating]
-    ctx.font = `600 30px ${FONT_STACK}`
-    const labelWidth = ctx.measureText(label).width
-    const glyphSize = 40
-    const totalWidth = glyphSize + 16 + labelWidth
-    const startX = rightCenter - totalWidth / 2
-    drawRatingGlyph(ctx, data.rating, startX, cursorY - glyphSize / 2, glyphSize)
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
+  if (commentLines.length) {
+    ctx.save()
+    ctx.font = `italic 400 ${L.commentFont}px ${FONT_STACK}`
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.78)'
     ctx.textAlign = 'left'
-    ctx.textBaseline = 'middle'
-    ctx.fillText(label, startX + glyphSize + 16, cursorY + 12)
-    cursorY += 64
+    ctx.textBaseline = 'alphabetic'
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'
+    ctx.shadowBlur = 8
+    commentLines.forEach((line, i) => {
+      ctx.fillText(line, L.leftX, cursorY + Math.round(L.commentFont * 0.9) + i * L.commentLineHeight)
+    })
+    ctx.restore()
   }
 
-  if (data.comment) {
-    ctx.font = `italic 400 26px ${FONT_STACK}`
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.75)'
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    const lines = wrapText(ctx, `\u201C${data.comment}\u201D`, rightWidth, 3)
-    lines.forEach((line, i) => ctx.fillText(line, rightCenter, cursorY + 8 + i * 36))
-  }
-
-  await drawFooter(ctx, data, 100, 980, 960, 28)
+  // Footer + frame on top
+  await drawFooterBar(ctx, data, L.leftX, L.width - L.leftX, L.footerY, L.footerScale)
+  drawGoldFrame(ctx, L.width, L.height, L.frameInset, L.frameRadius)
 }
 
 // ============================================================
@@ -457,7 +688,7 @@ async function drawListStory(canvas: HTMLCanvasElement, data: ShareCardData) {
 
   drawBackground(ctx, 1080, 1920)
   drawGoldFrame(ctx, 1080, 1920, 36, 56)
-  drawWordmark(ctx, centerX, 150, 36)
+  drawWordmark(ctx, centerX, 170, 36)
 
   // Headline
   const headline = data.headline || data.title
@@ -466,9 +697,9 @@ async function drawListStory(canvas: HTMLCanvasElement, data: ShareCardData) {
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   const headlineLines = wrapText(ctx, headline, 900, 2)
-  headlineLines.forEach((line, i) => ctx.fillText(line, centerX, 262 + i * 68))
+  headlineLines.forEach((line, i) => ctx.fillText(line, centerX, 282 + i * 68))
 
-  let gridTop = 262 + headlineLines.length * 68 + 30
+  let gridTop = 282 + headlineLines.length * 68 + 30
   if (data.subtitle) {
     ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
     ctx.font = `500 36px ${FONT_STACK}`
@@ -485,7 +716,7 @@ async function drawListStory(canvas: HTMLCanvasElement, data: ShareCardData) {
   const startX = (1080 - gridWidth) / 2
   const rows = Math.max(1, Math.ceil(items.length / cols))
   const gridHeight = rows * posterH + (rows - 1) * gap
-  const footerTop = 1720
+  const footerTop = 1480
   gridTop = Math.max(gridTop, gridTop + (footerTop - gridTop - gridHeight) / 2)
 
   for (let i = 0; i < items.length; i++) {
@@ -503,7 +734,8 @@ async function drawListStory(canvas: HTMLCanvasElement, data: ShareCardData) {
     )
   }
 
-  await drawFooter(ctx, data, 110, 970, 1810)
+  // Same Instagram-safe footer position as the show story card
+  await drawFooterBar(ctx, data, 104, 976, 1592, 1)
 }
 
 async function drawListSquare(canvas: HTMLCanvasElement, data: ShareCardData) {
@@ -539,13 +771,13 @@ async function drawListSquare(canvas: HTMLCanvasElement, data: ShareCardData) {
   const posterH = 435
   const gridWidth = cols * posterW + (cols - 1) * gap
   const startX = (1080 - gridWidth) / 2
-  gridTop = Math.max(gridTop, 360)
+  gridTop = Math.max(gridTop, 340)
 
   for (let i = 0; i < items.length; i++) {
     await drawPoster(ctx, items[i].posterUrl, startX + i * (posterW + gap), gridTop, posterW, posterH, 18, false)
   }
 
-  await drawFooter(ctx, data, 100, 980, 960, 28)
+  await drawFooterBar(ctx, data, 96, 984, 946, 0.88)
 }
 
 // ============================================================
@@ -562,8 +794,7 @@ export async function generateShareCard(data: ShareCardData, format: ShareCardFo
     if (format === 'story') await drawListStory(canvas, data)
     else await drawListSquare(canvas, data)
   } else {
-    if (format === 'story') await drawShowStory(canvas, data)
-    else await drawShowSquare(canvas, data)
+    await drawShowCard(canvas, data, format === 'story' ? STORY_LAYOUT : SQUARE_LAYOUT)
   }
   return canvasToBlob(canvas)
 }

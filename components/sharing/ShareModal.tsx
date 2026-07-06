@@ -126,6 +126,8 @@ export function ShareModal({
       comment: data.comment,
       username: data.username || '',
       avatarUrl: data.avatarUrl,
+      year: data.year,
+      genre: data.genres?.slice(0, 2).join(' '),
       items: data.contentType === 'list' || data.contentType === 'top3'
         ? data.items
         : undefined,
@@ -209,7 +211,17 @@ export function ShareModal({
     return `beenwatching-${slug || 'share'}-${format}.png`
   }
 
-  const isMobile = typeof navigator !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+  // Phones/tablets that can share files get "Save Image" via the system
+  // sheet (anchor-download of a blob doesn't reach the camera roll on iOS).
+  const supportsFileShare = (() => {
+    try {
+      return typeof navigator !== 'undefined' &&
+        typeof navigator.canShare === 'function' &&
+        navigator.canShare({ files: [new File([], 'card.png', { type: 'image/png' })] })
+    } catch {
+      return false
+    }
+  })()
 
   const handleShareImage = async () => {
     if (!blobRef.current || isSharing) return
@@ -254,13 +266,38 @@ export function ShareModal({
     }
   }
 
-  const handleDownload = () => {
-    if (!blobRef.current) return
-    downloadImage(blobRef.current, buildFilename())
+  const handleDownload = async () => {
+    if (!blobRef.current || isSharing) return
 
-    if (isMobile) {
-      setShowInstagramHint(true)
+    if (supportsFileShare) {
+      // Route through the system sheet so "Save Image" actually reaches
+      // the camera roll; a plain anchor download can't do that on iOS.
+      setIsSharing(true)
+      try {
+        const file = new File([blobRef.current], buildFilename(), { type: 'image/png' })
+        await navigator.share({ files: [file] })
+
+        // Sheet completed (not cancelled): remind them where the card went
+        setShowInstagramHint(true)
+
+        trackEvent('content_shared', {
+          content_type: data.contentType,
+          content_id: data.contentId,
+          share_method: 'save_image',
+          share_destination: 'external'
+        })
+
+        onShareComplete?.('download')
+      } catch (err) {
+        // User cancelled the sheet — not an error
+        console.log('Save cancelled:', err)
+      } finally {
+        setIsSharing(false)
+      }
+      return
     }
+
+    downloadImage(blobRef.current, buildFilename())
 
     trackEvent('content_shared', {
       content_type: data.contentType,
@@ -366,10 +403,10 @@ export function ShareModal({
             <button
               className="action-btn"
               onClick={handleDownload}
-              disabled={isGenerating || !previewUrl}
+              disabled={isGenerating || isSharing || !previewUrl}
             >
               <Icon name="download" size={20} color="white" />
-              Download
+              {supportsFileShare ? 'Save Image' : 'Download'}
             </button>
 
             <button
@@ -382,14 +419,14 @@ export function ShareModal({
           </div>
         </div>
 
-        {/* Instagram hint after download (mobile) */}
+        {/* Instagram hint after the save sheet completes (mobile) */}
         {showInstagramHint && (
           <div className="instructions-overlay">
             <div className="instructions-card">
-              <h3>Image saved!</h3>
+              <h3>Ready for Instagram</h3>
               <p>
-                Open Instagram, start a Story or Post, and pick the card from
-                your camera roll.
+                If you picked Save Image, the card is in your camera roll —
+                open Instagram, start a Story or Post, and add it from there.
               </p>
               <div className="instructions-actions">
                 <button
