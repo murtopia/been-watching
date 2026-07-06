@@ -725,7 +725,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({
         showToast('Could not load that season')
         return
       }
-      const { media: row } = await res.json()
+      const { media: row, userRating: srvRating, userStatus: srvStatus } = await res.json()
       if (!row) {
         showToast('Could not load that season')
         return
@@ -739,10 +739,9 @@ export const FeedCard: React.FC<FeedCardProps> = ({
         posterUrl: row.poster_path ? `https://image.tmdb.org/t/p/w500${row.poster_path}` : data.media.posterUrl,
         season: seasonNumber,
       })
-      // Rating/status shown on the card belonged to the previous season row;
-      // start neutral for the newly selected season.
-      setUserRating(null)
-      setWatchlistStatus(new Set())
+      // Show the user's actual saved rating/status for the selected season
+      setUserRating((srvRating as 'meh' | 'like' | 'love' | null) ?? null)
+      setWatchlistStatus(srvStatus ? new Set([srvStatus as 'want' | 'watching' | 'watched']) : new Set())
       onSeasonChange?.(row)
     } catch {
       showToast('Could not load that season')

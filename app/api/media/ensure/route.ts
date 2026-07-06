@@ -11,7 +11,12 @@ const TMDB_BASE_URL = 'https://api.themoviedb.org/3'
  * creating all season rows if missing (keeps the canonical season model).
  * Pass seasonNumber to get a specific season's row instead.
  *
+ * Also returns the requesting user's rating and watch status for the
+ * resolved row, so callers (e.g. the card season switcher) can show
+ * per-season state without extra round trips.
+ *
  * POST { tmdbId: number, mediaType: 'tv' | 'movie', seasonNumber?: number }
+ * -> { media, userRating: string | null, userStatus: string | null }
  */
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -30,6 +35,15 @@ export async function POST(request: NextRequest) {
 
   const admin = createAdminClient()
 
+  // User's rating/status for a media row (user-scoped client, RLS applies)
+  const fetchUserState = async (mediaId: string) => {
+    const [{ data: ratingRow }, { data: statusRow }] = await Promise.all([
+      supabase.from('ratings').select('rating').eq('user_id', user.id).eq('media_id', mediaId).maybeSingle(),
+      supabase.from('watch_status').select('status').eq('user_id', user.id).eq('media_id', mediaId).maybeSingle(),
+    ])
+    return { userRating: ratingRow?.rating ?? null, userStatus: statusRow?.status ?? null }
+  }
+
   // Existing rows for this title
   const { data: existing } = await admin
     .from('media')
@@ -39,7 +53,7 @@ export async function POST(request: NextRequest) {
 
   if (mediaType === 'movie') {
     const movieRow = (existing || []).find(m => m.id === `movie-${tmdbId}`)
-    if (movieRow) return NextResponse.json({ media: movieRow })
+    if (movieRow) return NextResponse.json({ media: movieRow, ...(await fetchUserState(movieRow.id)) })
 
     const res = await fetch(`${TMDB_BASE_URL}/movie/${tmdbId}?api_key=${TMDB_API_KEY}`)
     if (!res.ok) return NextResponse.json({ error: 'TMDB fetch failed' }, { status: 502 })
@@ -58,7 +72,7 @@ export async function POST(request: NextRequest) {
     }
     const { error } = await admin.from('media').upsert(row, { onConflict: 'id' })
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json({ media: row })
+    return NextResponse.json({ media: row, ...(await fetchUserState(row.id)) })
   }
 
   // TV: make sure all season rows exist, then return the latest aired one
@@ -109,5 +123,6 @@ export async function POST(request: NextRequest) {
     .eq('id', `tv-${tmdbId}-s${target.season_number}`)
     .single()
 
-  return NextResponse.json({ media: mediaRow })
+  const userState = mediaRow ? await fetchUserState(mediaRow.id) : { userRating: null, userStatus: null }
+  return NextResponse.json({ media: mediaRow, ...userState })
 }
