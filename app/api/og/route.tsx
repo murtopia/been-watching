@@ -1,606 +1,502 @@
 import { ImageResponse } from 'next/og'
 import { NextRequest } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
 export const runtime = 'edge'
 
-// Default values
-const DEFAULT_BG_GRADIENT = ['#0a0a0a', '#1a0a1a']
-const DEFAULT_BRAND_COLOR = '#FF006E'
+/**
+ * Open Graph image generator (1200x630).
+ *
+ * Real Supabase data, styled to match the activity-card aesthetic:
+ * dark gradient, gold outline, big cover art, no emoji.
+ *
+ * ?type=show&id={mediaId}
+ * ?type=profile&id={username}
+ * ?type=list&id={username}&list={want|watching|watched}
+ * (anything else renders the default branded card)
+ */
+
+const GOLD = '#FFC125'
+const BG = 'linear-gradient(180deg, #16161c 0%, #0c0c10 100%)'
+const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!url || !key) return null
+  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } })
+}
+
+function splitTitleSeason(title: string, seasonNumber?: number | null): { base: string; season: number | null } {
+  const match = title.match(/^(.*?)\s*[-\u2013]\s*Season\s+(\d+)$/i)
+  if (match) return { base: match[1], season: seasonNumber ?? parseInt(match[2]) }
+  return { base: title, season: seasonNumber ?? null }
+}
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-
-    // Parse query params
-    const type = searchParams.get('type') || 'show' // 'show', 'profile', 'top3', 'list'
+    const type = searchParams.get('type')
     const id = searchParams.get('id')
-    const sharedBy = searchParams.get('shared_by')
 
-    // For demo/testing, use mock data - in production, fetch from database
-    const data = await getMockData(type, id, sharedBy)
-
-    // Generate the appropriate card based on type
-    if (type === 'show') {
-      return generateShowCard(data)
-    } else if (type === 'profile') {
-      return generateProfileCard(data)
-    } else if (type === 'top3') {
-      return generateTop3Card(data)
-    } else if (type === 'list') {
-      return generateListCard(data)
+    if (type === 'show' && id) {
+      const card = await buildShowCard(id)
+      if (card) return card
+    } else if (type === 'profile' && id) {
+      const card = await buildProfileCard(id)
+      if (card) return card
+    } else if (type === 'list' && id) {
+      const card = await buildListCard(id, searchParams.get('list'))
+      if (card) return card
     }
 
-    // Default fallback
-    return generateDefaultCard()
+    return defaultCard()
   } catch (e: any) {
     console.log(`Error generating OG image: ${e.message}`)
-    return new Response('Failed to generate image', { status: 500 })
+    return defaultCard()
   }
 }
 
-/**
- * Generate OG card for a show/movie
- */
-function generateShowCard(data: any) {
-  return new ImageResponse(
-    (
+// ============================================================
+// Shared frame
+// ============================================================
+
+function Frame({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        background: BG,
+        fontFamily: FONT,
+        padding: '28px',
+      }}
+    >
       <div
         style={{
-          width: '100%',
-          height: '100%',
+          flex: 1,
           display: 'flex',
-          background: `linear-gradient(135deg, ${DEFAULT_BG_GRADIENT[0]}, ${DEFAULT_BG_GRADIENT[1]})`,
-          padding: '40px',
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+          border: `3px solid ${GOLD}`,
+          borderRadius: '28px',
+          padding: '36px 44px',
         }}
       >
-        {/* Poster */}
-        {data.posterUrl && (
+        {children}
+      </div>
+    </div>
+  )
+}
+
+function Wordmark({ size = 26 }: { size?: number }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        fontSize: size,
+        fontWeight: 700,
+        color: GOLD,
+        letterSpacing: '6px',
+      }}
+    >
+      BEEN WATCHING
+    </div>
+  )
+}
+
+// ============================================================
+// Show card
+// ============================================================
+
+async function buildShowCard(mediaId: string) {
+  const supabase = getSupabase()
+  if (!supabase) return null
+
+  const { data: media } = await supabase
+    .from('media')
+    .select('id, title, poster_path, overview, release_date, tmdb_data')
+    .eq('id', mediaId)
+    .maybeSingle()
+
+  if (!media) return null
+
+  const tmdbData = media.tmdb_data || {}
+  const { base, season } = splitTitleSeason(media.title, tmdbData.season_number)
+  const year = media.release_date?.substring(0, 4)
+  const genres = (tmdbData.genres || []).slice(0, 3).map((g: any) => g.name).join(', ')
+  const posterUrl = media.poster_path ? `https://image.tmdb.org/t/p/w500${media.poster_path}` : null
+  const overview = media.overview
+    ? media.overview.length > 180 ? `${media.overview.slice(0, 177)}...` : media.overview
+    : null
+
+  return new ImageResponse(
+    (
+      <Frame>
+        {posterUrl && (
           <img
-            src={data.posterUrl}
-            width={420}
-            height={630}
+            src={posterUrl}
+            width={340}
+            height={510}
             style={{
-              borderRadius: '12px',
+              borderRadius: '20px',
               objectFit: 'cover',
               boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
             }}
           />
         )}
 
-        {/* Content */}
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
-            marginLeft: '40px',
-            flex: 1,
             justifyContent: 'center',
+            marginLeft: posterUrl ? '48px' : '0',
+            flex: 1,
           }}
         >
-          {/* Title */}
-          <div
-            style={{
-              fontSize: 52,
-              fontWeight: 'bold',
-              color: 'white',
-              marginBottom: '16px',
-              lineHeight: 1.1,
-            }}
-          >
-            {data.title}
-          </div>
+          <Wordmark />
 
-          {/* Meta info */}
-          {(data.year || data.genres) && (
-            <div
-              style={{
-                fontSize: 28,
-                color: 'rgba(255, 255, 255, 0.7)',
-                marginBottom: '32px',
-              }}
-            >
-              {data.year && data.year}
-              {data.year && data.genres && ' • '}
-              {data.genres && data.genres.join(', ')}
-            </div>
-          )}
-
-          {/* Rating */}
-          {data.rating && (
-            <div
-              style={{
-                fontSize: 48,
-                marginBottom: '32px',
-                display: 'flex',
-              }}
-            >
-              {typeof data.rating === 'string' ? (
-                <span style={{ fontSize: 48 }}>
-                  {data.rating === 'love' ? '❤️' : data.rating === 'like' ? '👍' : '😐'}
-                </span>
-              ) : (
-                Array(5).fill(0).map((_, i) => (
-                  <span key={i} style={{ marginRight: '4px' }}>
-                    {i < Math.floor(data.rating) ? '⭐' : '☆'}
-                  </span>
-                ))
-              )}
-            </div>
-          )}
-
-          {/* Comment */}
-          {data.comment && (
-            <div
-              style={{
-                fontSize: 32,
-                color: 'rgba(255, 255, 255, 0.9)',
-                fontStyle: 'italic',
-                marginBottom: '40px',
-              }}
-            >
-              "{data.comment.length > 80 ? data.comment.substring(0, 77) + '...' : data.comment}"
-            </div>
-          )}
-
-          {/* Footer */}
           <div
             style={{
               display: 'flex',
-              alignItems: 'center',
-              fontSize: 24,
-              color: 'rgba(255, 255, 255, 0.6)',
-            }}
-          >
-            {data.sharedBy && (
-              <>
-                <span>@{data.sharedBy}</span>
-                <span style={{ margin: '0 12px' }}>•</span>
-              </>
-            )}
-            <span style={{ fontWeight: 'bold' }}>BEEN WATCHING</span>
-          </div>
-        </div>
-      </div>
-    ),
-    {
-      width: 1200,
-      height: 630,
-    }
-  )
-}
-
-/**
- * Generate OG card for a user profile
- */
-function generateProfileCard(data: any) {
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          background: `linear-gradient(135deg, ${DEFAULT_BG_GRADIENT[0]}, ${DEFAULT_BG_GRADIENT[1]})`,
-          padding: '60px',
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-          alignItems: 'center',
-        }}
-      >
-        {/* Avatar */}
-        <div
-          style={{
-            width: 200,
-            height: 200,
-            borderRadius: '50%',
-            background: data.avatarUrl ? `url(${data.avatarUrl})` : 'rgba(255, 255, 255, 0.1)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            border: '4px solid',
-            borderColor: DEFAULT_BRAND_COLOR,
-            marginRight: '40px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 80,
-            fontWeight: 'bold',
-            color: 'white',
-          }}
-        >
-          {!data.avatarUrl && data.username?.[0]?.toUpperCase()}
-        </div>
-
-        {/* User Info */}
-        <div style={{ flex: 1 }}>
-          <div
-            style={{
-              fontSize: 56,
-              fontWeight: 'bold',
+              fontSize: 58,
+              fontWeight: 700,
               color: 'white',
-              marginBottom: '8px',
+              lineHeight: 1.1,
+              marginTop: '28px',
+              flexWrap: 'wrap',
             }}
           >
-            {data.displayName || data.username}
-          </div>
-          <div
-            style={{
-              fontSize: 36,
-              color: 'rgba(255, 255, 255, 0.7)',
-              marginBottom: '24px',
-            }}
-          >
-            @{data.username}
-          </div>
-          <div
-            style={{
-              fontSize: 28,
-              color: 'rgba(255, 255, 255, 0.7)',
-              marginBottom: '40px',
-            }}
-          >
-            {data.showCount || 0} Shows Watched • {data.followerCount || 0} Followers
+            <span>{base}</span>
+            {season != null && (
+              <span style={{ color: GOLD, marginLeft: '16px' }}>{`S${season}`}</span>
+            )}
           </div>
 
-          {/* Top 3 shows */}
-          {data.topShows && data.topShows.length > 0 && (
-            <div>
-              <div
-                style={{
-                  fontSize: 24,
-                  fontWeight: 'bold',
-                  color: 'white',
-                  marginBottom: '16px',
-                }}
-              >
-                Top 3 Shows
-              </div>
-              <div style={{ display: 'flex', gap: '16px' }}>
-                {data.topShows.slice(0, 3).map((show: any, i: number) => (
-                  <div
-                    key={i}
-                    style={{
-                      width: 120,
-                      height: 180,
-                      borderRadius: '8px',
-                      background: show.posterUrl ? `url(${show.posterUrl})` : 'rgba(255, 255, 255, 0.1)',
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Logo */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '40px',
-            right: '40px',
-            fontSize: 28,
-            fontWeight: 'bold',
-            color: 'rgba(255, 255, 255, 0.5)',
-          }}
-        >
-          beenwatching.com
-        </div>
-      </div>
-    ),
-    {
-      width: 1200,
-      height: 630,
-    }
-  )
-}
-
-/**
- * Generate OG card for top 3 shows
- */
-function generateTop3Card(data: any) {
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          background: `linear-gradient(135deg, ${DEFAULT_BG_GRADIENT[0]}, ${DEFAULT_BG_GRADIENT[1]})`,
-          padding: '60px',
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        {/* Title */}
-        <div
-          style={{
-            fontSize: 48,
-            fontWeight: 'bold',
-            color: 'white',
-            marginBottom: '40px',
-          }}
-        >
-          {data.username ? `@${data.username}'s` : 'My'} Top 3 Shows
-        </div>
-
-        {/* Shows */}
-        <div style={{ display: 'flex', gap: '32px', marginBottom: '40px' }}>
-          {(data.shows || []).slice(0, 3).map((show: any, i: number) => (
+          {(year || genres) && (
             <div
-              key={i}
               style={{
                 display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
+                fontSize: 26,
+                color: 'rgba(255,255,255,0.65)',
+                marginTop: '16px',
               }}
             >
-              <div
-                style={{
-                  width: 280,
-                  height: 420,
-                  borderRadius: '12px',
-                  background: show.posterUrl ? `url(${show.posterUrl})` : 'rgba(255, 255, 255, 0.1)',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  marginBottom: '16px',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
-                }}
-              />
-              <div
-                style={{
-                  fontSize: 24,
-                  fontWeight: '600',
-                  color: 'white',
-                  textAlign: 'center',
-                }}
-              >
-                {show.title}
-              </div>
-              {show.rating && (
-                <div style={{ fontSize: 28, marginTop: '8px' }}>
-                  {'⭐'.repeat(Math.floor(show.rating))}
-                </div>
-              )}
+              {[year, genres].filter(Boolean).join(' \u2022 ')}
             </div>
-          ))}
-        </div>
+          )}
 
-        {/* Footer */}
-        <div
-          style={{
-            fontSize: 32,
-            fontWeight: 'bold',
-            color: 'rgba(255, 255, 255, 0.7)',
-          }}
-        >
-          BEEN WATCHING
+          {overview && (
+            <div
+              style={{
+                display: 'flex',
+                fontSize: 24,
+                lineHeight: 1.5,
+                color: 'rgba(255,255,255,0.8)',
+                marginTop: '24px',
+              }}
+            >
+              {overview}
+            </div>
+          )}
+
+          <div
+            style={{
+              display: 'flex',
+              fontSize: 22,
+              color: 'rgba(255,255,255,0.45)',
+              marginTop: '32px',
+            }}
+          >
+            beenwatching.com
+          </div>
         </div>
-      </div>
+      </Frame>
     ),
-    {
-      width: 1200,
-      height: 630,
-    }
+    { width: 1200, height: 630 }
   )
 }
 
-/**
- * Generate OG card for a watchlist
- */
-function generateListCard(data: any) {
+// ============================================================
+// Profile card
+// ============================================================
+
+async function buildProfileCard(username: string) {
+  const supabase = getSupabase()
+  if (!supabase) return null
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id, username, display_name, avatar_url, bio, top_show_1, top_show_2, top_show_3')
+    .ilike('username', username)
+    .maybeSingle()
+
+  if (!profile) return null
+
+  const { count: watchedCount } = await supabase
+    .from('watch_status')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', profile.id)
+    .eq('status', 'watched')
+
+  const topShows = [profile.top_show_1, profile.top_show_2, profile.top_show_3]
+    .filter((s: any) => s?.poster_path)
+    .map((s: any) => `https://image.tmdb.org/t/p/w342${s.poster_path}`)
+
+  const displayName = profile.display_name || profile.username
+
   return new ImageResponse(
     (
-      <div
-        style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          background: `linear-gradient(135deg, ${DEFAULT_BG_GRADIENT[0]}, ${DEFAULT_BG_GRADIENT[1]})`,
-          padding: '60px',
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-        }}
-      >
-        {/* Title */}
-        <div
-          style={{
-            fontSize: 48,
-            fontWeight: 'bold',
-            color: 'white',
-            marginBottom: '32px',
-          }}
-        >
-          {data.title}
-        </div>
-
-        {/* User info */}
-        <div
-          style={{
-            fontSize: 28,
-            color: 'rgba(255, 255, 255, 0.7)',
-            marginBottom: '40px',
-          }}
-        >
-          @{data.username} • {data.itemCount} items
-        </div>
-
-        {/* Grid of posters */}
+      <Frame>
         <div
           style={{
             display: 'flex',
-            flexWrap: 'wrap',
-            gap: '20px',
-            marginBottom: '40px',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            flex: 1,
           }}
         >
-          {(data.items || []).slice(0, 6).map((item: any, i: number) => (
-            <div
-              key={i}
-              style={{
-                width: 160,
-                height: 240,
-                borderRadius: '8px',
-                background: item.posterUrl ? `url(${item.posterUrl})` : 'rgba(255, 255, 255, 0.1)',
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                position: 'relative',
-              }}
-            >
-              {/* Overlay for "+X more" on last item */}
-              {i === 5 && data.itemCount > 6 && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    background: 'rgba(0, 0, 0, 0.8)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: '8px',
-                    fontSize: 28,
-                    fontWeight: 'bold',
-                    color: 'white',
-                  }}
-                >
-                  +{data.itemCount - 6} more
-                </div>
-              )}
+          <Wordmark />
+
+          <div style={{ display: 'flex', alignItems: 'center', marginTop: '32px' }}>
+            {profile.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                width={120}
+                height={120}
+                style={{
+                  borderRadius: '60px',
+                  border: `3px solid ${GOLD}`,
+                  objectFit: 'cover',
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: 120,
+                  height: 120,
+                  borderRadius: '60px',
+                  border: `3px solid ${GOLD}`,
+                  background: 'rgba(255,255,255,0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 52,
+                  fontWeight: 700,
+                  color: 'white',
+                }}
+              >
+                {profile.username[0]?.toUpperCase()}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', flexDirection: 'column', marginLeft: '28px' }}>
+              <div style={{ display: 'flex', fontSize: 48, fontWeight: 700, color: 'white' }}>
+                {displayName}
+              </div>
+              <div style={{ display: 'flex', fontSize: 28, color: GOLD, marginTop: '4px' }}>
+                @{profile.username}
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  fontSize: 24,
+                  color: 'rgba(255,255,255,0.65)',
+                  marginTop: '12px',
+                }}
+              >
+                {`${watchedCount ?? 0} shows watched`}
+              </div>
             </div>
-          ))}
+          </div>
+
+          <div
+            style={{
+              display: 'flex',
+              fontSize: 22,
+              color: 'rgba(255,255,255,0.45)',
+              marginTop: '36px',
+            }}
+          >
+            beenwatching.com
+          </div>
         </div>
 
-        {/* Footer */}
-        <div
-          style={{
-            fontSize: 28,
-            fontWeight: 'bold',
-            color: 'rgba(255, 255, 255, 0.5)',
-            marginTop: 'auto',
-          }}
-        >
-          BEEN WATCHING
-        </div>
-      </div>
+        {topShows.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            {topShows.map((url, i) => (
+              <img
+                key={i}
+                src={url}
+                width={170}
+                height={255}
+                style={{
+                  borderRadius: '14px',
+                  objectFit: 'cover',
+                  boxShadow: '0 16px 32px rgba(0,0,0,0.5)',
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </Frame>
     ),
-    {
-      width: 1200,
-      height: 630,
-    }
+    { width: 1200, height: 630 }
   )
 }
 
-/**
- * Generate default OG card
- */
-function generateDefaultCard() {
+// ============================================================
+// List card
+// ============================================================
+
+const LIST_HEADLINES: Record<string, string> = {
+  want: 'wants to watch',
+  watching: 'is currently watching',
+  watched: 'has been watching',
+}
+
+async function buildListCard(username: string, listTab: string | null) {
+  const supabase = getSupabase()
+  if (!supabase) return null
+
+  const tab = listTab && LIST_HEADLINES[listTab] ? listTab : 'watching'
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id, username, display_name')
+    .ilike('username', username)
+    .maybeSingle()
+
+  if (!profile) return null
+
+  const { data: items, count } = await supabase
+    .from('watch_status')
+    .select('media:media_id (poster_path)', { count: 'exact' })
+    .eq('user_id', profile.id)
+    .eq('status', tab)
+    .order('updated_at', { ascending: false })
+    .limit(5)
+
+  const posters = (items || [])
+    .map((row: any) => row.media?.poster_path)
+    .filter(Boolean)
+    .map((p: string) => `https://image.tmdb.org/t/p/w342${p}`)
+
+  const displayName = profile.display_name || profile.username
+
   return new ImageResponse(
     (
-      <div
-        style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          background: `linear-gradient(135deg, ${DEFAULT_BG_GRADIENT[0]}, ${DEFAULT_BG_GRADIENT[1]})`,
-          padding: '60px',
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
+      <Frame>
         <div
           style={{
-            fontSize: 72,
-            fontWeight: 'bold',
-            background: `linear-gradient(135deg, #FF006E, #FF8E53)`,
-            backgroundClip: 'text',
-            color: 'transparent',
-            marginBottom: '24px',
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
           }}
         >
-          BEEN WATCHING
+          <Wordmark />
+
+          <div
+            style={{
+              display: 'flex',
+              fontSize: 44,
+              fontWeight: 700,
+              color: 'white',
+              marginTop: '24px',
+              textAlign: 'center',
+            }}
+          >
+            {`${displayName} ${LIST_HEADLINES[tab]} ${count ?? posters.length} shows`}
+          </div>
+
+          {posters.length > 0 && (
+            <div style={{ display: 'flex', gap: '20px', marginTop: '36px' }}>
+              {posters.map((url, i) => (
+                <img
+                  key={i}
+                  src={url}
+                  width={160}
+                  height={240}
+                  style={{
+                    borderRadius: '14px',
+                    objectFit: 'cover',
+                    boxShadow: '0 16px 32px rgba(0,0,0,0.5)',
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
+          <div
+            style={{
+              display: 'flex',
+              fontSize: 22,
+              color: 'rgba(255,255,255,0.45)',
+              marginTop: '32px',
+            }}
+          >
+            beenwatching.com
+          </div>
         </div>
-        <div
-          style={{
-            fontSize: 32,
-            color: 'rgba(255, 255, 255, 0.8)',
-          }}
-        >
-          Track. Share. Discover.
-        </div>
-      </div>
+      </Frame>
     ),
-    {
-      width: 1200,
-      height: 630,
-    }
+    { width: 1200, height: 630 }
   )
 }
 
-/**
- * Mock data for testing - replace with actual database queries
- */
-async function getMockData(type: string, id: string | null, sharedBy: string | null) {
-  // In production, fetch from your database based on type and id
-  // For now, return mock data
+// ============================================================
+// Default branded card
+// ============================================================
 
-  if (type === 'show') {
-    return {
-      title: 'Breaking Bad',
-      year: 2008,
-      genres: ['Crime', 'Drama', 'Thriller'],
-      posterUrl: 'https://image.tmdb.org/t/p/w500/ggFHVNu6YYI5L9pCfOacjizRGt.jpg',
-      rating: 5,
-      comment: 'Absolutely incredible show! The character development is unmatched.',
-      sharedBy: sharedBy || 'murtopia',
-    }
-  } else if (type === 'profile') {
-    return {
-      username: sharedBy || 'murtopia',
-      displayName: 'Nick',
-      avatarUrl: null, // Will show initial
-      showCount: 250,
-      followerCount: 342,
-      topShows: [
-        { posterUrl: 'https://image.tmdb.org/t/p/w200/ggFHVNu6YYI5L9pCfOacjizRGt.jpg' },
-        { posterUrl: 'https://image.tmdb.org/t/p/w200/rgMfhcrVZjuy5b7Pn0KzCRCEnMX.jpg' },
-        { posterUrl: 'https://image.tmdb.org/t/p/w200/2IWouZK4gkgHhJa3oyYuSWfSqbG.jpg' },
-      ],
-    }
-  } else if (type === 'top3') {
-    return {
-      username: sharedBy || 'murtopia',
-      shows: [
-        {
-          title: 'Breaking Bad',
-          posterUrl: 'https://image.tmdb.org/t/p/w500/ggFHVNu6YYI5L9pCfOacjizRGt.jpg',
-          rating: 5,
-        },
-        {
-          title: 'The Bear',
-          posterUrl: 'https://image.tmdb.org/t/p/w500/rgMfhcrVZjuy5b7Pn0KzCRCEnMX.jpg',
-          rating: 5,
-        },
-        {
-          title: 'Succession',
-          posterUrl: 'https://image.tmdb.org/t/p/w500/2IWouZK4gkgHhJa3oyYuSWfSqbG.jpg',
-          rating: 5,
-        },
-      ],
-    }
-  } else if (type === 'list') {
-    return {
-      title: 'Want to Watch',
-      username: sharedBy || 'murtopia',
-      itemCount: 12,
-      items: Array(6).fill({
-        posterUrl: 'https://image.tmdb.org/t/p/w200/ggFHVNu6YYI5L9pCfOacjizRGt.jpg',
-      }),
-    }
-  }
-
-  return {}
+function defaultCard() {
+  return new ImageResponse(
+    (
+      <Frame>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              fontSize: 72,
+              fontWeight: 700,
+              color: GOLD,
+              letterSpacing: '10px',
+            }}
+          >
+            BEEN WATCHING
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              fontSize: 30,
+              color: 'rgba(255,255,255,0.75)',
+              marginTop: '20px',
+            }}
+          >
+            Track. Share. Discover.
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              fontSize: 22,
+              color: 'rgba(255,255,255,0.45)',
+              marginTop: '36px',
+            }}
+          >
+            beenwatching.com
+          </div>
+        </div>
+      </Frame>
+    ),
+    { width: 1200, height: 630 }
+  )
 }

@@ -4,7 +4,6 @@ import { useState } from 'react'
 import Icon from '@/components/ui/Icon'
 import { ShareModal } from './ShareModal'
 import { trackEvent } from '@/utils/analytics'
-import { trackShareEvent, createShareUrl } from '@/utils/share-tracking'
 
 export type ShareContentType = 'show' | 'profile' | 'list' | 'top3' | 'invite' | 'achievement'
 
@@ -21,6 +20,8 @@ export interface ShareData {
   genres?: string[]
   rating?: number | string // Number for stars, string for 'love'/'like'/'meh'
   comment?: string
+  status?: 'want' | 'watching' | 'watched' | null
+  season?: number | null
 
   // User info (for attribution)
   username?: string
@@ -33,6 +34,8 @@ export interface ShareData {
     title: string
     posterUrl: string
   }>
+  headline?: string
+  subtitle?: string
 
   // Profile specific
   displayName?: string
@@ -52,6 +55,8 @@ interface ShareButtonProps {
   size?: 'sm' | 'md' | 'lg'
   className?: string
   disabled?: boolean
+  /** Icon color (defaults to white); pass a theme color on light backgrounds */
+  iconColor?: string
   onShareComplete?: (method: string) => void
 }
 
@@ -67,6 +72,7 @@ export function ShareButton({
   size = 'md',
   className = '',
   disabled = false,
+  iconColor = 'white',
   onShareComplete
 }: ShareButtonProps) {
   const [showModal, setShowModal] = useState(false)
@@ -150,8 +156,8 @@ export function ShareButton({
 
   const handleShareComplete = (method: string) => {
     onShareComplete?.(method)
-    // Keep modal open unless it's a redirect (Twitter, etc.)
-    if (method === 'twitter' || method === 'native_sheet') {
+    // Close after the system share sheet takes over
+    if (method === 'share_image' || method === 'native_sheet') {
       setShowModal(false)
     }
   }
@@ -181,10 +187,9 @@ export function ShareButton({
           >
             <Icon
               name="share"
-              variant="circle"
               size={sizeMap[size]}
-              color="white"
-              state={isSharing ? 'active' : 'default'}
+              color={iconColor}
+              state="default"
             />
           </button>
         )
@@ -197,7 +202,7 @@ export function ShareButton({
             disabled={disabled || isSharing}
             style={{ ...parseStyleString(buttonSizeMap[size]) }}
           >
-            <Icon name="share" variant="circle" size={16} color="white" />
+            <Icon name="share" size={16} color={iconColor} state="default" />
             <span>{isSharing ? 'Sharing...' : 'Share'}</span>
           </button>
         )
@@ -330,13 +335,13 @@ function generateShareUrl(data: ShareData): string {
     case 'show':
       return `${baseUrl}/show/${data.contentId}?${utm.toString()}`
     case 'profile':
+    case 'top3':
+      if (!data.username) return `${baseUrl}?${utm.toString()}`
       return `${baseUrl}/${data.username}?${utm.toString()}`
     case 'list':
-      return `${baseUrl}/${data.username}/${data.contentId}?${utm.toString()}`
-    case 'top3':
-      return `${baseUrl}/${data.username}/top-shows?${utm.toString()}`
-    case 'achievement':
-      return `${baseUrl}/achievement/${data.contentId}?user=${data.username}&${utm.toString()}`
+      if (!data.username) return `${baseUrl}?${utm.toString()}`
+      utm.set('list', data.contentId)
+      return `${baseUrl}/${data.username}?${utm.toString()}`
     default:
       return baseUrl
   }
@@ -344,23 +349,26 @@ function generateShareUrl(data: ShareData): string {
 
 function generateShareText(data: ShareData): string {
   switch (data.contentType) {
-    case 'show':
-      const reaction = data.rating === 'love' ? 'loved' :
-                      data.rating === 'like' ? 'liked' :
-                      data.rating === 'meh' ? 'watched' : 'watching'
-      return `Just ${reaction} ${data.title} on Been Watching!${data.comment ? ` "${data.comment}"` : ''}`
+    case 'show': {
+      const lead = data.status === 'watching' ? "I'm currently watching" :
+                   data.status === 'watched' ? 'I just finished watching' :
+                   data.status === 'want' ? 'I want to watch' : 'Check out'
+      return `${lead} ${data.title} on Been Watching${data.comment ? ` — "${data.comment}"` : ''}`
+    }
 
     case 'profile':
       return `Check out my Been Watching profile to see what I've been watching!`
 
     case 'list':
-      return `Check out my ${data.title} on Been Watching`
+      return data.headline
+        ? `${data.headline} on Been Watching`
+        : `Check out my ${data.title} on Been Watching`
 
     case 'top3':
       return `These are my top 3 shows right now on Been Watching`
 
     case 'invite':
-      return `I just got an invite code to Been Watching, a new social show and movie discovery platform that I think you'd like! Come join me see what I've been watching here:`
+      return `Come join me on Been Watching, a social show and movie discovery platform, and see what I've been watching:`
 
     case 'achievement':
       return `Just unlocked "${data.title}" on Been Watching!`

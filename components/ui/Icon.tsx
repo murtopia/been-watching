@@ -147,7 +147,7 @@ const IconBase: React.FC<IconProps> = ({
         pointerEvents: onClick ? 'auto' : 'none',
       }}
     >
-      <use xlinkHref={`/icons/feed-sprite.svg?v=20250119a#${iconId}`} />
+      <use xlinkHref={`/icons/feed-sprite.svg?v=20260705a#${iconId}`} />
     </svg>
   );
 };

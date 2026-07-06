@@ -515,15 +515,21 @@ export default function MyShowsPage() {
             {profile && mediaItems.length > 0 && (
               <ShareButton
                 variant="icon"
-                size="sm"
+                size="md"
+                iconColor={colors.textSecondary}
                 data={{
                   contentType: 'list',
                   contentId: activeTab,
                   title: activeTab === 'want' ? 'Want to Watch list' : activeTab === 'watching' ? 'Currently Watching list' : 'Watched list',
+                  status: activeTab,
+                  headline: activeTab === 'want' ? 'I want to watch these'
+                    : activeTab === 'watching' ? "I'm currently watching"
+                    : "I've been watching",
+                  subtitle: `${mediaItems.length} show${mediaItems.length === 1 ? '' : 's'} on my list`,
                   username: profile.username,
                   avatarUrl: profile.avatar_url || undefined,
                   userId: user?.id,
-                  items: mediaItems.slice(0, 9).map((item: any) => ({
+                  items: mediaItems.slice(0, 6).map((item: any) => ({
                     id: item.media_id,
                     title: (item.media?.title || '').replace(/\s*-\s*Season\s+\d+$/i, ''),
                     posterUrl: item.media?.poster_path ? `https://image.tmdb.org/t/p/w342${item.media.poster_path}` : ''

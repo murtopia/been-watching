@@ -3481,6 +3481,11 @@ export const FeedCard: React.FC<FeedCardProps> = ({
             year: data.media.year,
             genres: data.media.genres,
             rating: userRating || data.media.rating,
+            status: watchlistStatus.has('watched') ? 'watched'
+              : watchlistStatus.has('watching') ? 'watching'
+              : watchlistStatus.has('want') ? 'want'
+              : null,
+            season: data.media.season ?? null,
             username: cardUser?.username || currentUser?.name,
             avatarUrl: currentUser?.avatar || cardUser?.avatar || undefined,
             userId: currentUser?.id || cardUser?.id

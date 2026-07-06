@@ -5,10 +5,10 @@ import Icon from '@/components/ui/Icon'
 import { ShareData } from './ShareButton'
 import { trackEvent } from '@/utils/analytics'
 import {
-  generateInstagramStoryCard,
-  generateInstagramPostCard,
-  generateTwitterCard,
-  downloadImage
+  generateShareCard,
+  downloadImage,
+  ShareCardData,
+  ShareCardFormat
 } from '@/lib/share-card-generator'
 
 interface ShareModalProps {
@@ -21,8 +21,8 @@ interface ShareModalProps {
 /**
  * ShareModal Component
  *
- * Mobile-first bottom sheet modal for rich content sharing
- * Provides platform-specific templates and in-app sharing
+ * Slim, image-first share flow: live preview of the generated card,
+ * plus Share Image (system sheet), Download, and Copy Link actions.
  */
 export function ShareModal({
   isOpen,
@@ -30,13 +30,14 @@ export function ShareModal({
   data,
   onShareComplete
 }: ShareModalProps) {
+  const [format, setFormat] = useState<ShareCardFormat>('story')
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
-  const [showInstructions, setShowInstructions] = useState(false)
-  const [instructionType, setInstructionType] = useState<'story' | 'post' | null>(null)
+  const [isSharing, setIsSharing] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [showInstagramHint, setShowInstagramHint] = useState(false)
+  const blobRef = useRef<Blob | null>(null)
   const modalRef = useRef<HTMLDivElement>(null)
-  const backdropRef = useRef<HTMLDivElement>(null)
 
   // Close on escape key
   useEffect(() => {
@@ -66,7 +67,6 @@ export function ShareModal({
     let isDragging = false
 
     const handleTouchStart = (e: TouchEvent) => {
-      // Only start drag from the drag handle area
       const target = e.target as HTMLElement
       if (target.closest('.modal-drag-handle')) {
         startY = e.touches[0].clientY
@@ -79,9 +79,8 @@ export function ShareModal({
       currentY = e.touches[0].clientY
       const deltaY = currentY - startY
 
-      // Only allow downward dragging
       if (deltaY > 0 && modalRef.current) {
-        modalRef.current.style.transform = `translateY(${deltaY}px)`
+        modalRef.current.style.transform = `translate(-50%, ${deltaY}px)`
       }
     }
 
@@ -91,10 +90,8 @@ export function ShareModal({
 
       const deltaY = currentY - startY
       if (deltaY > 100) {
-        // Swipe down threshold met, close modal
         onClose()
       } else if (modalRef.current) {
-        // Reset position
         modalRef.current.style.transform = ''
       }
     }
@@ -111,159 +108,61 @@ export function ShareModal({
     }
   }, [isOpen, onClose])
 
+  // Generate the card whenever the modal opens or the format changes
+  useEffect(() => {
+    if (!isOpen) return
+
+    let cancelled = false
+    setIsGenerating(true)
+
+    const cardData: ShareCardData = {
+      title: data.title,
+      posterUrl: data.posterUrl || data.items?.[0]?.posterUrl,
+      season: data.season,
+      status: data.status,
+      rating: typeof data.rating === 'string'
+        ? (data.rating as 'love' | 'like' | 'meh')
+        : null,
+      comment: data.comment,
+      username: data.username || '',
+      avatarUrl: data.avatarUrl,
+      items: data.contentType === 'list' || data.contentType === 'top3'
+        ? data.items
+        : undefined,
+      headline: data.headline,
+      subtitle: data.subtitle
+    }
+
+    generateShareCard(cardData, format)
+      .then((blob) => {
+        if (cancelled) return
+        blobRef.current = blob
+        setPreviewUrl((prev) => {
+          if (prev) URL.revokeObjectURL(prev)
+          return URL.createObjectURL(blob)
+        })
+      })
+      .catch((err) => {
+        console.error('Failed to generate share card:', err)
+      })
+      .finally(() => {
+        if (!cancelled) setIsGenerating(false)
+      })
+
+    return () => { cancelled = true }
+  }, [isOpen, format, data])
+
+  // Revoke the preview URL on unmount
+  useEffect(() => {
+    return () => {
+      setPreviewUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev)
+        return null
+      })
+    }
+  }, [])
+
   if (!isOpen) return null
-
-  const handleInstagramStory = async () => {
-    setIsGenerating(true)
-
-    try {
-      const blob = await generateInstagramStoryCard({
-        posterUrl: data.posterUrl || data.items?.[0]?.posterUrl || '',
-        title: data.title,
-        year: data.year,
-        genres: data.genres,
-        rating: typeof data.rating === 'number' ? data.rating : undefined,
-        comment: data.comment,
-        username: data.username || 'user',
-        avatarUrl: data.avatarUrl,
-        profileUrl: generateShareUrl()
-      })
-
-      // Download the image
-      const filename = `beenwatching-${data.title.toLowerCase().replace(/\s+/g, '-')}-story.png`
-      downloadImage(blob, filename)
-
-      // Show instructions
-      setInstructionType('story')
-      setShowInstructions(true)
-
-      // Track event
-      trackEvent('content_shared', {
-        content_type: data.contentType,
-        content_id: data.contentId,
-        share_method: 'instagram_story',
-        share_destination: 'external'
-      })
-
-      onShareComplete?.('instagram_story')
-    } catch (error) {
-      console.error('Failed to generate Instagram story:', error)
-      alert('Failed to generate image. Please try again.')
-    } finally {
-      setIsGenerating(false)
-    }
-  }
-
-  const handleInstagramPost = async () => {
-    setIsGenerating(true)
-
-    try {
-      const blob = await generateInstagramPostCard({
-        posterUrl: data.posterUrl || data.items?.[0]?.posterUrl || '',
-        title: data.title,
-        year: data.year,
-        genres: data.genres,
-        rating: typeof data.rating === 'number' ? data.rating : undefined,
-        comment: data.comment,
-        username: data.username || 'user',
-        avatarUrl: data.avatarUrl,
-        profileUrl: generateShareUrl()
-      })
-
-      // Download the image
-      const filename = `beenwatching-${data.title.toLowerCase().replace(/\s+/g, '-')}-post.png`
-      downloadImage(blob, filename)
-
-      // Show instructions
-      setInstructionType('post')
-      setShowInstructions(true)
-
-      // Track event
-      trackEvent('content_shared', {
-        content_type: data.contentType,
-        content_id: data.contentId,
-        share_method: 'instagram_post',
-        share_destination: 'external'
-      })
-
-      onShareComplete?.('instagram_post')
-    } catch (error) {
-      console.error('Failed to generate Instagram post:', error)
-      alert('Failed to generate image. Please try again.')
-    } finally {
-      setIsGenerating(false)
-    }
-  }
-
-  const handleTwitterShare = () => {
-    const shareUrl = generateShareUrl()
-    const shareText = generateShareText()
-
-    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`
-    window.open(twitterUrl, '_blank', 'width=550,height=420')
-
-    // Track event
-    trackEvent('content_shared', {
-      content_type: data.contentType,
-      content_id: data.contentId,
-      share_method: 'twitter',
-      share_destination: 'external'
-    })
-
-    onShareComplete?.('twitter')
-  }
-
-  const handleNativeShare = async () => {
-    const shareUrl = generateShareUrl()
-    const shareText = generateShareText()
-
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: data.title,
-          text: shareText,
-          url: shareUrl
-        })
-
-        trackEvent('content_shared', {
-          content_type: data.contentType,
-          content_id: data.contentId,
-          share_method: 'native_sheet',
-          share_destination: 'external'
-        })
-
-        onShareComplete?.('native_sheet')
-      } else {
-        // Fallback to copy
-        handleCopyLink()
-      }
-    } catch (err) {
-      console.log('Share cancelled:', err)
-    }
-  }
-
-  const handleCopyLink = async () => {
-    const shareUrl = generateShareUrl()
-    const shareText = generateShareText()
-    const fullMessage = `${shareText}\n${shareUrl}`
-
-    try {
-      await navigator.clipboard.writeText(fullMessage)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-
-      trackEvent('content_shared', {
-        content_type: data.contentType,
-        content_id: data.contentId,
-        share_method: 'copy_link',
-        share_destination: 'external'
-      })
-
-      onShareComplete?.('copy_link')
-    } catch (err) {
-      console.error('Failed to copy:', err)
-    }
-  }
 
   const generateShareUrl = (): string => {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://beenwatching.com'
@@ -281,6 +180,13 @@ export function ShareModal({
       case 'show':
         return `${baseUrl}/show/${data.contentId}?${utm.toString()}`
       case 'profile':
+      case 'top3':
+        if (!data.username) return `${baseUrl}?${utm.toString()}`
+        return `${baseUrl}/${data.username}?${utm.toString()}`
+      case 'list':
+        // Chart/hero shares are 'list' type but have no profile to link to
+        if (!data.username) return `${baseUrl}?${utm.toString()}`
+        utm.set('list', data.contentId)
         return `${baseUrl}/${data.username}?${utm.toString()}`
       default:
         return baseUrl
@@ -288,14 +194,100 @@ export function ShareModal({
   }
 
   const generateShareText = (): string => {
-    switch (data.contentType) {
-      case 'show':
-        const reaction = data.rating === 'love' ? 'loved' :
-                        data.rating === 'like' ? 'liked' :
-                        data.rating === 'meh' ? 'watched' : 'watching'
-        return `Just ${reaction} ${data.title} on Been Watching!${data.comment ? ` "${data.comment}"` : ''}`
-      default:
-        return `Check out ${data.title} on Been Watching`
+    if (data.contentType === 'show') {
+      const lead = data.status === 'watching' ? "I'm currently watching" :
+                   data.status === 'watched' ? 'I just finished watching' :
+                   data.status === 'want' ? 'I want to watch' : 'Check out'
+      return `${lead} ${data.title} on Been Watching`
+    }
+    if (data.headline) return `${data.headline} on Been Watching`
+    return `Check out ${data.title} on Been Watching`
+  }
+
+  const buildFilename = () => {
+    const slug = data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+    return `beenwatching-${slug || 'share'}-${format}.png`
+  }
+
+  const isMobile = typeof navigator !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+
+  const handleShareImage = async () => {
+    if (!blobRef.current || isSharing) return
+    setIsSharing(true)
+
+    try {
+      const file = new File([blobRef.current], buildFilename(), { type: 'image/png' })
+
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: data.title,
+          text: generateShareText()
+        })
+
+        trackEvent('content_shared', {
+          content_type: data.contentType,
+          content_id: data.contentId,
+          share_method: 'share_image',
+          share_destination: 'external'
+        })
+
+        onShareComplete?.('share_image')
+      } else {
+        // No file sharing support (most desktop browsers): download instead
+        downloadImage(blobRef.current, buildFilename())
+
+        trackEvent('content_shared', {
+          content_type: data.contentType,
+          content_id: data.contentId,
+          share_method: 'download_fallback',
+          share_destination: 'external'
+        })
+
+        onShareComplete?.('download')
+      }
+    } catch (err) {
+      // User cancelled the sheet — not an error
+      console.log('Share cancelled:', err)
+    } finally {
+      setIsSharing(false)
+    }
+  }
+
+  const handleDownload = () => {
+    if (!blobRef.current) return
+    downloadImage(blobRef.current, buildFilename())
+
+    if (isMobile) {
+      setShowInstagramHint(true)
+    }
+
+    trackEvent('content_shared', {
+      content_type: data.contentType,
+      content_id: data.contentId,
+      share_method: 'download',
+      share_destination: 'external'
+    })
+
+    onShareComplete?.('download')
+  }
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(generateShareUrl())
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+
+      trackEvent('content_shared', {
+        content_type: data.contentType,
+        content_id: data.contentId,
+        share_method: 'copy_link',
+        share_destination: 'external'
+      })
+
+      onShareComplete?.('copy_link')
+    } catch (err) {
+      console.error('Failed to copy:', err)
     }
   }
 
@@ -305,11 +297,7 @@ export function ShareModal({
   return (
     <>
       {/* Backdrop */}
-      <div
-        ref={backdropRef}
-        className="share-modal-backdrop"
-        onClick={onClose}
-      />
+      <div className="share-modal-backdrop" onClick={onClose} />
 
       {/* Modal */}
       <div
@@ -325,137 +313,97 @@ export function ShareModal({
 
         {/* Close button (desktop only) */}
         {isDesktop && (
-          <button className="modal-close-btn" onClick={onClose}>
+          <button className="modal-close-btn" onClick={onClose} aria-label="Close">
             <Icon name="close" size={24} color="white" />
           </button>
         )}
 
         {/* Header */}
         <div className="modal-header">
-          <h2>Share "{data.title}"</h2>
+          <h2>Share</h2>
+          <div className="format-toggle">
+            <button
+              className={`format-chip ${format === 'story' ? 'active' : ''}`}
+              onClick={() => setFormat('story')}
+            >
+              Story
+            </button>
+            <button
+              className={`format-chip ${format === 'square' ? 'active' : ''}`}
+              onClick={() => setFormat('square')}
+            >
+              Square
+            </button>
+          </div>
         </div>
 
-        {/* Preview */}
-        <div className="preview-section">
-          <div className="section-label">PREVIEW</div>
-          <div className="preview-card">
-            {data.posterUrl && (
-              <img
-                src={data.posterUrl}
-                alt={data.title}
-                className="preview-poster"
-              />
-            )}
-            <div className="preview-content">
-              <div className="preview-title">{data.title}</div>
-              {data.year && data.genres && (
-                <div className="preview-meta">
-                  {data.year} • {data.genres.slice(0, 2).join(', ')}
-                </div>
-              )}
-              {data.rating && (
-                <div className="preview-rating">
-                  {typeof data.rating === 'string' ? (
-                    <span className="reaction-emoji">
-                      {data.rating === 'love' ? '❤️ Loved' :
-                       data.rating === 'like' ? '👍 Liked' :
-                       '😐 Meh'}
-                    </span>
-                  ) : (
-                    '⭐'.repeat(data.rating)
-                  )}
-                </div>
-              )}
-              {data.comment && (
-                <div className="preview-comment">"{data.comment}"</div>
-              )}
-              {data.username && (
-                <div className="preview-user">@{data.username}</div>
-              )}
-            </div>
+        {/* Live preview of the generated card */}
+        <div className={`preview-area ${format}`}>
+          {previewUrl ? (
+            <img
+              src={previewUrl}
+              alt={`Share card for ${data.title}`}
+              className="preview-image"
+            />
+          ) : (
+            <div className="preview-loading">Building your card…</div>
+          )}
+          {isGenerating && previewUrl && <div className="preview-refreshing" />}
+        </div>
+
+        {/* Actions */}
+        <div className="actions">
+          <button
+            className="action-btn primary"
+            onClick={handleShareImage}
+            disabled={isGenerating || isSharing || !previewUrl}
+          >
+            <Icon name="share" size={20} color="#0c0c10" />
+            {isSharing ? 'Sharing…' : 'Share Image'}
+          </button>
+
+          <div className="action-row">
+            <button
+              className="action-btn"
+              onClick={handleDownload}
+              disabled={isGenerating || !previewUrl}
+            >
+              <Icon name="download" size={20} color="white" />
+              Download
+            </button>
+
+            <button
+              className="action-btn"
+              onClick={handleCopyLink}
+            >
+              <Icon name="copy" size={20} color="white" />
+              {copied ? 'Copied!' : 'Copy Link'}
+            </button>
           </div>
         </div>
 
-        {/* Share Options */}
-        <div className="share-section">
-          <div className="section-label">SHARE TO</div>
-
-          <div className="platform-buttons">
-            <button
-              className="platform-btn"
-              onClick={handleInstagramStory}
-              disabled={isGenerating}
-            >
-              <div className="platform-icon">📱</div>
-              <div className="platform-label">IG Story</div>
-            </button>
-
-            <button
-              className="platform-btn"
-              onClick={handleInstagramPost}
-              disabled={isGenerating}
-            >
-              <div className="platform-icon">📱</div>
-              <div className="platform-label">IG Post</div>
-            </button>
-
-            <button
-              className="platform-btn"
-              onClick={handleTwitterShare}
-              disabled={isGenerating}
-            >
-              <div className="platform-icon">🐦</div>
-              <div className="platform-label">Twitter</div>
-            </button>
-          </div>
-
-          <button
-            className="full-width-btn"
-            onClick={handleNativeShare}
-            disabled={isGenerating}
-          >
-            <Icon name="share" size={20} color="white" />
-            Share via...
-          </button>
-
-          <button
-            className="full-width-btn secondary"
-            onClick={handleCopyLink}
-            disabled={isGenerating}
-          >
-            <Icon name="copy" size={20} color="white" />
-            {copied ? 'Copied!' : 'Copy Link'}
-          </button>
-        </div>
-
-        {/* Instructions Dialog */}
-        {showInstructions && (
+        {/* Instagram hint after download (mobile) */}
+        {showInstagramHint && (
           <div className="instructions-overlay">
             <div className="instructions-card">
-              <div className="instructions-icon">✓</div>
               <h3>Image saved!</h3>
               <p>
-                Open Instagram and:
-                <br />
-                1. Tap {instructionType === 'story' ? 'Story' : 'Post'} camera
-                <br />
-                2. Select from Camera Roll
-                <br />
-                3. Find "{data.title}" card
+                Open Instagram, start a Story or Post, and pick the card from
+                your camera roll.
               </p>
               <div className="instructions-actions">
                 <button
                   className="instructions-btn primary"
                   onClick={() => {
                     window.open('instagram://story-camera', '_blank')
-                    setShowInstructions(false)
+                    setShowInstagramHint(false)
                   }}
                 >
                   Open Instagram
                 </button>
                 <button
                   className="instructions-btn"
-                  onClick={() => setShowInstructions(false)}
+                  onClick={() => setShowInstagramHint(false)}
                 >
                   Done
                 </button>
@@ -492,7 +440,7 @@ export function ShareModal({
           width: 398px;
           max-width: 100vw;
           border-radius: 16px 16px 0 0;
-          padding: 0 20px 20px;
+          padding: 0 20px 24px;
           max-height: 90vh;
           overflow-y: auto;
           animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -502,11 +450,11 @@ export function ShareModal({
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
-          width: 600px;
+          width: 480px;
           max-width: 90vw;
           border-radius: 16px;
           padding: 24px;
-          max-height: 80vh;
+          max-height: 90vh;
           overflow-y: auto;
           animation: fadeInScale 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -539,134 +487,112 @@ export function ShareModal({
           justify-content: center;
           cursor: pointer;
           transition: all 0.2s;
+          z-index: 1;
         }
 
         .modal-close-btn:hover {
           background: rgba(255, 255, 255, 0.2);
         }
 
+        .modal-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 16px;
+          padding-right: 44px;
+        }
+
+        .share-modal.mobile .modal-header {
+          padding-right: 0;
+        }
+
         .modal-header h2 {
           font-size: 18px;
           font-weight: 600;
-          margin: 0 0 20px;
+          margin: 0;
           line-height: 1.3;
         }
 
-        .section-label {
-          font-size: 11px;
-          font-weight: 500;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-          opacity: 0.6;
-          margin-bottom: 10px;
-        }
-
-        .preview-section {
-          margin-bottom: 24px;
-        }
-
-        .preview-card {
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 8px;
-          padding: 12px;
+        .format-toggle {
           display: flex;
-          gap: 12px;
+          gap: 6px;
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 999px;
+          padding: 3px;
         }
 
-        .preview-poster {
-          width: 80px;
-          height: 120px;
-          object-fit: cover;
-          border-radius: 6px;
-          flex-shrink: 0;
-        }
-
-        .preview-content {
-          flex: 1;
-        }
-
-        .preview-title {
-          font-size: 16px;
-          font-weight: 600;
-          margin-bottom: 4px;
-        }
-
-        .preview-meta {
+        .format-chip {
+          border: none;
+          background: transparent;
+          color: rgba(255, 255, 255, 0.7);
           font-size: 12px;
-          opacity: 0.7;
-          margin-bottom: 8px;
-        }
-
-        .preview-rating {
-          font-size: 20px;
-          margin-bottom: 8px;
-        }
-
-        .reaction-emoji {
-          font-size: 16px;
-        }
-
-        .preview-comment {
-          font-size: 13px;
-          font-style: italic;
-          opacity: 0.9;
-          margin-bottom: 8px;
-        }
-
-        .preview-user {
-          font-size: 14px;
           font-weight: 600;
-          opacity: 0.7;
-        }
-
-        .share-section {
-          margin-top: 20px;
-        }
-
-        .platform-buttons {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 12px;
-          margin-bottom: 16px;
-        }
-
-        .platform-btn {
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          border-radius: 8px;
-          padding: 16px 8px;
+          padding: 6px 14px;
+          border-radius: 999px;
           cursor: pointer;
-          transition: all 0.2s;
-          color: white;
+          transition: all 0.15s;
         }
 
-        .platform-btn:hover:not(:disabled) {
-          background: rgba(255, 255, 255, 0.1);
-          transform: translateY(-2px);
+        .format-chip.active {
+          background: #FFC125;
+          color: #0c0c10;
         }
 
-        .platform-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
+        .preview-area {
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 20px;
+          min-height: 200px;
         }
 
-        .platform-icon {
-          font-size: 24px;
-          margin-bottom: 4px;
+        .preview-area.story .preview-image {
+          max-height: 380px;
         }
 
-        .platform-label {
-          font-size: 12px;
-          font-weight: 600;
+        .preview-area.square .preview-image {
+          max-height: 300px;
         }
 
-        .full-width-btn {
+        .preview-image {
+          max-width: 100%;
+          border-radius: 12px;
+          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .preview-loading {
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.5);
+          padding: 60px 0;
+        }
+
+        .preview-refreshing {
+          position: absolute;
+          inset: 0;
+          background: rgba(10, 10, 10, 0.4);
+          border-radius: 12px;
+        }
+
+        .actions {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .action-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+        }
+
+        .action-btn {
           width: 100%;
           padding: 14px;
           background: rgba(255, 255, 255, 0.05);
           border: 1px solid rgba(255, 255, 255, 0.15);
-          border-radius: 8px;
+          border-radius: 10px;
           color: white;
           font-size: 14px;
           font-weight: 600;
@@ -676,20 +602,25 @@ export function ShareModal({
           align-items: center;
           justify-content: center;
           gap: 8px;
-          margin-bottom: 12px;
         }
 
-        .full-width-btn:hover:not(:disabled) {
+        .action-btn:hover:not(:disabled) {
           background: rgba(255, 255, 255, 0.1);
         }
 
-        .full-width-btn.secondary {
-          background: transparent;
-        }
-
-        .full-width-btn:disabled {
+        .action-btn:disabled {
           opacity: 0.5;
           cursor: not-allowed;
+        }
+
+        .action-btn.primary {
+          background: #FFC125;
+          border-color: #FFC125;
+          color: #0c0c10;
+        }
+
+        .action-btn.primary:hover:not(:disabled) {
+          background: #ffce4d;
         }
 
         .instructions-overlay {
@@ -705,23 +636,12 @@ export function ShareModal({
 
         .instructions-card {
           background: rgba(20, 20, 20, 0.98);
+          border: 1px solid rgba(255, 193, 37, 0.4);
           border-radius: 12px;
           padding: 24px;
           text-align: center;
           max-width: 320px;
           color: white;
-        }
-
-        .instructions-icon {
-          width: 48px;
-          height: 48px;
-          background: linear-gradient(135deg, #FF006E, #FF8E53);
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin: 0 auto 16px;
-          font-size: 24px;
         }
 
         .instructions-card h3 {
@@ -756,8 +676,9 @@ export function ShareModal({
         }
 
         .instructions-btn.primary {
-          background: linear-gradient(135deg, #FF006E, #FF8E53);
+          background: #FFC125;
           border: none;
+          color: #0c0c10;
         }
 
         .instructions-btn:hover {
@@ -775,11 +696,11 @@ export function ShareModal({
 
         @keyframes slideUp {
           from {
-            transform: translateY(100%);
+            transform: translate(-50%, 100%);
             opacity: 0;
           }
           to {
-            transform: translateY(0);
+            transform: translate(-50%, 0);
             opacity: 1;
           }
         }

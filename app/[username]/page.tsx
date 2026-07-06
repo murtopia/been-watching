@@ -185,6 +185,14 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
     loadUserProfile()
   }, [username])
 
+  // Shared list links (/{username}?list=want|watching|watched) open that tab
+  useEffect(() => {
+    const listParam = new URLSearchParams(window.location.search).get('list')
+    if (listParam === 'want' || listParam === 'watching' || listParam === 'watched') {
+      setActiveWatchTab(listParam)
+    }
+  }, [])
+
   useEffect(() => {
     if (profile && canViewActivities) {
       loadWatchList(activeWatchTab)

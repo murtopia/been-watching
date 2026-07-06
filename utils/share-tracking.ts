@@ -12,7 +12,7 @@ export async function trackShareEvent({
 }: {
   contentType: 'show' | 'profile' | 'list' | 'top3' | 'invite' | 'achievement'
   contentId: string
-  shareMethod: 'instagram_story' | 'instagram_post' | 'twitter' | 'native_sheet' | 'copy_link' | 'in_app' | 'qr_code'
+  shareMethod: 'share_image' | 'download' | 'native_sheet' | 'copy_link' | 'in_app' | 'qr_code'
   recipientUserId?: string
   metadata?: Record<string, any>
 }): Promise<string | null> {
