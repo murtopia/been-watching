@@ -10,7 +10,6 @@ import {
   TrendingUp,
   Search,
   Shield,
-  Ticket,
   Settings,
   MessageSquare,
   ChevronLeft,
@@ -121,12 +120,6 @@ export default function AdminLayout({
       label: 'Moderation',
       href: '/admin/moderation',
       isActive: pathname?.startsWith('/admin/moderation')
-    },
-    {
-      icon: Ticket,
-      label: 'Invites',
-      href: '/admin/invites',
-      isActive: pathname?.startsWith('/admin/invites')
     },
     {
       icon: MessageSquare,

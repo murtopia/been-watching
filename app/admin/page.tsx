@@ -12,12 +12,7 @@ import {
   Star,
   Activity,
   Heart,
-  TrendingUp,
-  Search,
-  AlertCircle,
-  Clock,
-  Gift,
-  CheckCircle
+  TrendingUp
 } from 'lucide-react'
 
 export default function AdminDashboard() {
@@ -31,8 +26,6 @@ export default function AdminDashboard() {
   const [totalRatings, setTotalRatings] = useState(0)
   const [totalLikes, setTotalLikes] = useState(0)
   const [totalFollows, setTotalFollows] = useState(0)
-  const [totalInvites, setTotalInvites] = useState(0)
-  const [invitesAccepted, setInvitesAccepted] = useState(0)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -81,20 +74,6 @@ export default function AdminDashboard() {
         .from('follows')
         .select('*', { count: 'exact', head: true })
       setTotalFollows(followsCount || 0)
-
-      // Invite Metrics - from master_codes table
-      const { data: masterCodes } = await supabase
-        .from('master_codes')
-        .select('current_uses, max_uses, is_active')
-      
-      // Count total uses across all codes
-      const totalUsed = masterCodes?.reduce((sum, code) => sum + (code.current_uses || 0), 0) || 0
-      
-      // Count active codes
-      const activeCodes = masterCodes?.filter(c => c.is_active).length || 0
-      
-      setTotalInvites(activeCodes)
-      setInvitesAccepted(totalUsed)
 
       setLoading(false)
     } catch (error) {
@@ -231,47 +210,6 @@ export default function AdminDashboard() {
         />
       </div>
 
-      {/* Invite Metrics */}
-      <h2 style={{
-        fontSize: '1.25rem',
-        fontWeight: 600,
-        color: colors.textPrimary,
-        margin: '2rem 0 1rem 0'
-      }}>
-        Invite System
-      </h2>
-
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-        gap: '1.5rem',
-        marginBottom: '2rem'
-      }}>
-        <MetricCard
-          title="Active Invite Codes"
-          value={loading ? '-' : totalInvites.toLocaleString()}
-          icon={Gift}
-          subtitle="VIP & BWALPHA codes"
-          loading={loading}
-        />
-
-        <MetricCard
-          title="Code Redemptions"
-          value={loading ? '-' : invitesAccepted.toLocaleString()}
-          icon={CheckCircle}
-          subtitle="Total signups via codes"
-          loading={loading}
-        />
-
-        <MetricCard
-          title="Avg per Code"
-          value={loading ? '-' : (totalInvites > 0 ? (invitesAccepted / totalInvites).toFixed(1) : '0')}
-          icon={Clock}
-          subtitle="Redemptions per code"
-          loading={loading}
-        />
-      </div>
-
       {/* PostHog Analytics Note */}
       <div style={{
         marginTop: '3rem',
@@ -333,12 +271,6 @@ export default function AdminDashboard() {
           icon={TrendingUp}
           colors={colors}
           external
-        />
-        <QuickActionLink
-          label="Manage Invites"
-          href="/admin/invites"
-          icon={UserPlus}
-          colors={colors}
         />
       </div>
     </div>
