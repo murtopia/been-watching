@@ -5,6 +5,8 @@ import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useTheme } from '@/contexts/ThemeContext'
 import ThemeToggle from '@/components/theme/ThemeToggle'
+import PasswordChecklist from '@/components/auth/PasswordChecklist'
+import { validatePassword, friendlyAuthError } from '@/utils/passwordPolicy'
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState('')
@@ -30,9 +32,9 @@ export default function ResetPasswordPage() {
       return
     }
 
-    // Validate password length
-    if (password.length < 6) {
-      setErrorMessage('Password must be at least 6 characters')
+    // Validate against the password policy
+    if (!validatePassword(password).valid) {
+      setErrorMessage("Your password doesn't meet the requirements — check the list under the password field.")
       setLoading(false)
       return
     }
@@ -43,7 +45,7 @@ export default function ResetPasswordPage() {
       })
 
       if (error) {
-        setErrorMessage(error.message)
+        setErrorMessage(friendlyAuthError(error))
       } else {
         setMessage('Password updated successfully! Redirecting to login...')
         setTimeout(() => {
@@ -169,6 +171,7 @@ export default function ResetPasswordPage() {
                 e.target.style.background = inputBg
               }}
             />
+            <PasswordChecklist password={password} />
           </div>
 
           {/* Confirm Password Input */}

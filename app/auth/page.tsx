@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import Footer from '@/components/navigation/Footer'
+import PasswordChecklist from '@/components/auth/PasswordChecklist'
+import { validatePassword, friendlyAuthError } from '@/utils/passwordPolicy'
 import { trackUserSignedUp, trackUserLoggedIn, identifyUser } from '@/utils/analytics'
 
 export default function AuthPage() {
@@ -68,6 +70,12 @@ export default function AuthPage() {
           return
         }
 
+        if (!validatePassword(password).valid) {
+          setErrorMessage("Your password doesn't meet the requirements yet — check the list below the password field.")
+          setLoading(false)
+          return
+        }
+
         // Create account
         const { data, error } = await supabase.auth.signUp({
           email,
@@ -75,7 +83,7 @@ export default function AuthPage() {
         })
 
         if (error) {
-          setErrorMessage(error.message)
+          setErrorMessage(friendlyAuthError(error))
         } else if (data.user) {
           // Track signup event
           identifyUser(data.user.id, {
@@ -481,6 +489,7 @@ export default function AuthPage() {
                 e.target.style.background = inputBg
               }}
             />
+            {isSignup && <PasswordChecklist password={password} />}
           </div>
 
           {/* Error Message & Forgot Password (Login only, shown after error) */}
@@ -646,7 +655,7 @@ export default function AuthPage() {
                 borderRadius: '8px',
                 color: '#ef4444',
                 fontSize: '0.875rem',
-                textAlign: 'center',
+                textAlign: 'left',
               }}
             >
               {errorMessage}
