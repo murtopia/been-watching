@@ -102,49 +102,8 @@ export function ShareButton({
 
   const handleNativeShare = async () => {
     setIsSharing(true)
-
-    const shareUrl = data.url || generateShareUrl(data)
-    const shareText = generateShareText(data)
-
     try {
-      if (navigator.share) {
-        // Use Web Share API
-        await navigator.share({
-          title: data.title,
-          text: shareText,
-          url: shareUrl
-        })
-
-        // Track successful share
-        trackEvent('content_shared', {
-          content_type: data.contentType,
-          content_id: data.contentId,
-          share_method: 'native_sheet',
-          share_destination: 'external'
-        })
-
-        onShareComplete?.('native_sheet')
-      } else {
-        // Fallback to clipboard
-        const fullMessage = `${shareText}\n${shareUrl}`
-        await navigator.clipboard.writeText(fullMessage)
-
-        // Show toast notification
-        showCopySuccessToast()
-
-        // Track copy
-        trackEvent('content_shared', {
-          content_type: data.contentType,
-          content_id: data.contentId,
-          share_method: 'copy_link',
-          share_destination: 'external'
-        })
-
-        onShareComplete?.('copy_link')
-      }
-    } catch (err) {
-      // User cancelled or error
-      console.log('Share cancelled or failed:', err)
+      await shareViaNativeSheet(data, onShareComplete)
     } finally {
       setIsSharing(false)
     }
@@ -315,8 +274,57 @@ export function ShareButton({
   )
 }
 
+/**
+ * Share simple content via the Web Share API (clipboard fallback).
+ * Used by ShareButton and by custom-styled share triggers.
+ */
+export async function shareViaNativeSheet(
+  data: ShareData,
+  onShareComplete?: (method: string) => void
+): Promise<void> {
+  const shareUrl = data.url || generateShareUrl(data)
+  const shareText = generateShareText(data)
+
+  try {
+    if (navigator.share) {
+      await navigator.share({
+        title: data.title,
+        text: shareText,
+        url: shareUrl
+      })
+
+      trackEvent('content_shared', {
+        content_type: data.contentType,
+        content_id: data.contentId,
+        share_method: 'native_sheet',
+        share_destination: 'external'
+      })
+
+      onShareComplete?.('native_sheet')
+    } else {
+      // Fallback to clipboard
+      const fullMessage = `${shareText}\n${shareUrl}`
+      await navigator.clipboard.writeText(fullMessage)
+
+      showCopySuccessToast()
+
+      trackEvent('content_shared', {
+        content_type: data.contentType,
+        content_id: data.contentId,
+        share_method: 'copy_link',
+        share_destination: 'external'
+      })
+
+      onShareComplete?.('copy_link')
+    }
+  } catch (err) {
+    // User cancelled or error
+    console.log('Share cancelled or failed:', err)
+  }
+}
+
 // Helper functions
-function generateShareUrl(data: ShareData): string {
+export function generateShareUrl(data: ShareData): string {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://beenwatching.com'
 
   // Add UTM parameters for tracking
@@ -347,7 +355,7 @@ function generateShareUrl(data: ShareData): string {
   }
 }
 
-function generateShareText(data: ShareData): string {
+export function generateShareText(data: ShareData): string {
   switch (data.contentType) {
     case 'show': {
       const lead = data.status === 'watching' ? "I'm currently watching" :

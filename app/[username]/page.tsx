@@ -4,6 +4,7 @@ import { use, useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { getTasteMatchBetweenUsers } from '@/utils/tasteMatch'
+import { followUser, unfollowUser, cancelFollowRequest } from '@/utils/follow'
 import ShowDetailCard from '@/components/media/ShowDetailCard'
 import MediaBadges from '@/components/media/MediaBadges'
 import MediaCardGrid from '@/components/media/MediaCardGrid'
@@ -460,10 +461,6 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
   const handleFollow = async () => {
     if (!currentUser || !profile) return
 
-    // Determine follow status based on whether target is private
-    const followStatus = profile.is_private ? 'pending' : 'accepted'
-    const notificationType = profile.is_private ? 'follow_request' : 'follow'
-
     // OPTIMISTIC UPDATE - Update UI immediately
     if (profile.is_private) {
       setIsPendingFollow(true)
@@ -473,24 +470,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
     }
 
     try {
-      await supabase
-        .from('follows')
-        .insert({
-          follower_id: currentUser.id,
-          following_id: profile.id,
-          status: followStatus
-        })
-
-      // Create appropriate notification
-      await supabase
-        .from('notifications')
-        .insert({
-          user_id: profile.id,
-          actor_id: currentUser.id,
-          type: notificationType,
-          target_type: 'profile',
-          target_id: profile.id
-        })
+      await followUser(supabase, currentUser.id, profile.id)
 
       // Calculate taste match after following
       const match = await getTasteMatchBetweenUsers(currentUser.id, profile.id)
@@ -531,11 +511,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
     }
 
     try {
-      await supabase
-        .from('follows')
-        .delete()
-        .eq('follower_id', currentUser.id)
-        .eq('following_id', profile.id)
+      await unfollowUser(supabase, currentUser.id, profile.id)
 
       // Track unfollow event
       trackUserUnfollowed({
@@ -557,20 +533,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
     setIsPendingFollow(false)
 
     try {
-      await supabase
-        .from('follows')
-        .delete()
-        .eq('follower_id', currentUser.id)
-        .eq('following_id', profile.id)
-        .eq('status', 'pending')
-
-      // Also delete the follow_request notification
-      await supabase
-        .from('notifications')
-        .delete()
-        .eq('actor_id', currentUser.id)
-        .eq('user_id', profile.id)
-        .eq('type', 'follow_request')
+      await cancelFollowRequest(supabase, currentUser.id, profile.id)
     } catch (error) {
       console.error('Error canceling follow request:', error)
       // ROLLBACK on error

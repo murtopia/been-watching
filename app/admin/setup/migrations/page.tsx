@@ -20,11 +20,6 @@ CREATE TABLE IF NOT EXISTS admin_settings (
 -- Create indexes
 CREATE INDEX IF NOT EXISTS idx_admin_settings_key ON admin_settings(setting_key);
 
--- Insert default feed setting
-INSERT INTO admin_settings (setting_key, setting_value, description)
-VALUES ('feed_show_all_users', 'true', 'Show all users activities in feed (true) or only followed users (false)')
-ON CONFLICT (setting_key) DO NOTHING;
-
 -- Enable Row Level Security
 ALTER TABLE admin_settings ENABLE ROW LEVEL SECURITY;
 

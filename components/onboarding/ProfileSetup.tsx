@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { suggestUsername, cleanUsername } from '@/utils/usernameValidation'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { followUser } from '@/utils/follow'
+import { trackUserFollowed, trackEvent } from '@/utils/analytics'
 
 interface ProfileSetupProps {
   userId: string
@@ -11,6 +13,15 @@ interface ProfileSetupProps {
   initialDisplayName?: string
   userEmail?: string
   onComplete: (updatedProfile: { username: string; display_name: string }) => void
+}
+
+interface FollowSuggestion {
+  id: string
+  username: string
+  display_name: string
+  avatar_url: string | null
+  bio: string | null
+  showCount: number
 }
 
 export default function ProfileSetup({ 
@@ -26,6 +37,12 @@ export default function ProfileSetup({
   const [bio, setBio] = useState('What have you been watching?')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [step, setStep] = useState<'profile' | 'follow'>('profile')
+  const [savedProfile, setSavedProfile] = useState<{ username: string; display_name: string } | null>(null)
+  const [followerUserId, setFollowerUserId] = useState('')
+  const [suggestions, setSuggestions] = useState<FollowSuggestion[]>([])
+  const [followedIds, setFollowedIds] = useState<Set<string>>(new Set())
+  const [followingInFlight, setFollowingInFlight] = useState<Set<string>>(new Set())
   const supabase = createClient()
 
   useEffect(() => {
@@ -114,14 +131,99 @@ export default function ProfileSetup({
         return
       }
 
-      onComplete({
+      const profile = {
         username: username.toLowerCase(),
         display_name: displayName
-      })
+      }
+
+      // Move to the follow-suggestions step; skip straight to the feed
+      // if there's nobody to suggest yet.
+      const found = await loadSuggestions(effectiveUserId)
+      if (found.length === 0) {
+        onComplete(profile)
+        return
+      }
+
+      setSavedProfile(profile)
+      setFollowerUserId(effectiveUserId)
+      setSuggestions(found)
+      setStep('follow')
+      setLoading(false)
     } catch (err) {
       setError('An unexpected error occurred')
       setLoading(false)
     }
+  }
+
+  const loadSuggestions = async (selfId: string): Promise<FollowSuggestion[]> => {
+    try {
+      const { data: candidates } = await supabase
+        .from('profiles')
+        .select('id, username, display_name, avatar_url, bio')
+        .neq('id', selfId)
+        .eq('is_private', false)
+        .limit(20)
+
+      if (!candidates || candidates.length === 0) return []
+
+      const { data: statusRows } = await supabase
+        .from('watch_status')
+        .select('user_id')
+        .in('user_id', candidates.map(c => c.id))
+
+      const countByUser = new Map<string, number>()
+      for (const row of statusRows || []) {
+        countByUser.set(row.user_id, (countByUser.get(row.user_id) || 0) + 1)
+      }
+
+      return candidates
+        .filter(c => (countByUser.get(c.id) || 0) > 0) // only active users
+        .sort((a, b) => (countByUser.get(b.id) || 0) - (countByUser.get(a.id) || 0))
+        .slice(0, 5)
+        .map(c => ({
+          id: c.id,
+          username: c.username,
+          display_name: c.display_name || c.username,
+          avatar_url: c.avatar_url,
+          bio: c.bio,
+          showCount: countByUser.get(c.id) || 0
+        }))
+    } catch (err) {
+      console.error('Error loading follow suggestions:', err)
+      return []
+    }
+  }
+
+  const handleSuggestionFollow = async (suggestion: FollowSuggestion) => {
+    if (followedIds.has(suggestion.id) || followingInFlight.has(suggestion.id)) return
+    setFollowingInFlight(prev => new Set([...prev, suggestion.id]))
+    try {
+      await followUser(supabase, followerUserId, suggestion.id)
+      setFollowedIds(prev => new Set([...prev, suggestion.id]))
+      trackUserFollowed({
+        followed_user_id: suggestion.id,
+        followed_username: suggestion.username,
+        followed_display_name: suggestion.display_name,
+        follow_type: 'public',
+        source: 'onboarding'
+      })
+    } catch (err) {
+      console.error('Error following user:', err)
+    } finally {
+      setFollowingInFlight(prev => {
+        const next = new Set(prev)
+        next.delete(suggestion.id)
+        return next
+      })
+    }
+  }
+
+  const handleFinish = () => {
+    trackEvent('onboarding_follow_step_completed', {
+      suggestions_shown: suggestions.length,
+      users_followed: followedIds.size
+    })
+    if (savedProfile) onComplete(savedProfile)
   }
 
   // Gold color constant
@@ -160,6 +262,136 @@ export default function ProfileSetup({
           margin: 'auto',
         }}
       >
+        {step === 'follow' ? (
+          <div>
+            <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+              <h1
+                style={{
+                  fontSize: '1.75rem',
+                  fontWeight: 700,
+                  color: goldAccent,
+                  marginBottom: '0.5rem',
+                }}
+              >
+                Find people to follow
+              </h1>
+              <p style={{ color: colors.textSecondary, fontSize: '0.875rem' }}>
+                Your feed is built from people you follow. Here are a few active
+                members to get you started.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
+              {suggestions.map((s) => {
+                const followed = followedIds.has(s.id)
+                const inFlight = followingInFlight.has(s.id)
+                return (
+                  <div
+                    key={s.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      padding: '0.75rem',
+                      background: colors.inputBg,
+                      border: `1px solid ${colors.inputBorder}`,
+                      borderRadius: '12px',
+                    }}
+                  >
+                    {s.avatar_url ? (
+                      <img
+                        src={s.avatar_url}
+                        alt=""
+                        style={{
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '50%',
+                          objectFit: 'cover',
+                          flexShrink: 0,
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '50%',
+                          background: `${goldAccent}30`,
+                          color: goldAccent,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 700,
+                          fontSize: '0.9375rem',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {s.display_name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          color: colors.textPrimary,
+                          fontWeight: 600,
+                          fontSize: '0.9375rem',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
+                      >
+                        {s.display_name}
+                      </div>
+                      <div style={{ color: colors.textSecondary, fontSize: '0.8125rem' }}>
+                        @{s.username} · {s.showCount} show{s.showCount === 1 ? '' : 's'} tracked
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleSuggestionFollow(s)}
+                      disabled={followed || inFlight}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        borderRadius: '9999px',
+                        border: followed ? `1px solid ${colors.inputBorder}` : 'none',
+                        background: followed ? 'transparent' : goldAccent,
+                        color: followed ? colors.textSecondary : '#000',
+                        fontSize: '0.8125rem',
+                        fontWeight: 700,
+                        cursor: followed || inFlight ? 'default' : 'pointer',
+                        opacity: inFlight ? 0.6 : 1,
+                        flexShrink: 0,
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      {followed ? 'Following' : inFlight ? '...' : 'Follow'}
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+
+            <button
+              type="button"
+              onClick={handleFinish}
+              style={{
+                width: '100%',
+                padding: '1rem',
+                background: goldAccent,
+                border: 'none',
+                borderRadius: '12px',
+                color: '#000',
+                fontSize: '1rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+            >
+              {followedIds.size > 0 ? 'Continue to your feed' : 'Skip for now'}
+            </button>
+          </div>
+        ) : (
+        <>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <h1
             style={{
@@ -359,6 +591,8 @@ export default function ProfileSetup({
             {loading ? 'Creating Profile...' : 'Get Started'}
           </button>
         </form>
+        </>
+        )}
       </div>
     </div>
   )

@@ -26,7 +26,7 @@ export default function ErrorLogsPage() {
       timestamp: new Date(Date.now() - 7200000).toISOString(),
       level: 'warning',
       message: 'Slow database query detected',
-      endpoint: '/api/feed',
+      endpoint: '/api/feed/v2',
       userId: 'user_456',
       stack: 'Query took 2.5s to complete',
       resolved: false

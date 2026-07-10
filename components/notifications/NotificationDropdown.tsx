@@ -245,17 +245,10 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
       return
     }
 
-    // Check if this is the invite earned notification
-    if (isSystemNotification(notification) && notification.type === 'mentioned') {
-      // Navigate to profile page to see their invite code
-      router.push('/profile')
-      onClose()
-      return
-    }
-
     // Navigate based on notification type
     switch (notification.type) {
       case 'follow':
+      case 'follow_request':
         router.push(`/${notification.actor?.username}`)
         break
       case 'like_activity':
@@ -286,7 +279,7 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
   }
 
   const isSystemNotification = (notification: Notification) => {
-    return !notification.actor && (notification.type === 'mentioned' || notification.type === 'announcement' || notification.type === 'feature_release' || notification.type === 'maintenance' || notification.type === 'welcome')
+    return !notification.actor && (notification.type === 'announcement' || notification.type === 'feature_release' || notification.type === 'maintenance' || notification.type === 'welcome')
   }
 
   const isAnnouncement = (notification: Notification) => {
@@ -435,7 +428,10 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
             </div>
           </div>
         ) : (
-          notifications.map((notification) => {
+          notifications
+            // Hide legacy actor-less rows (e.g. retired invite-system notifications)
+            .filter((notification) => notification.actor || isSystemNotification(notification))
+            .map((notification) => {
             const isSystem = isSystemNotification(notification)
 
             return (
@@ -479,7 +475,7 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
                   overflow: 'hidden'
                 }}>
                   {isSystem ? (
-                    isAnnouncement(notification) ? notification.metadata?.icon || '📢' : '🎉'
+                    notification.metadata?.icon || '📢'
                   ) : notification.actor?.avatar_url ? (
                     <img
                       src={notification.actor.avatar_url}
@@ -502,10 +498,7 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
                         lineHeight: '1.4',
                         fontWeight: '700'
                       }}>
-                        {isAnnouncement(notification)
-                          ? notification.metadata?.title || 'Announcement'
-                          : 'You earned an invite! 🎉'
-                        }
+                        {notification.metadata?.title || 'Announcement'}
                       </div>
                       <div style={{
                         fontSize: '0.8125rem',
@@ -513,10 +506,7 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
                         marginBottom: '0.5rem',
                         lineHeight: '1.4'
                       }}>
-                        {isAnnouncement(notification)
-                          ? notification.metadata?.message || ''
-                          : 'You completed your profile and earned an invite code to share with a friend!'
-                        }
+                        {notification.metadata?.message || ''}
                       </div>
                     </>
                   ) : (

@@ -15,6 +15,8 @@ import ProfileEditModal from '@/components/profile/ProfileEditModal'
 import { Icon } from '@/components/ui/Icon'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { getTasteMatchBetweenUsers, findSimilarUsers } from '@/utils/tasteMatch'
+import { followUser, unfollowUser, cancelFollowRequest } from '@/utils/follow'
+import { shareViaNativeSheet } from '@/components/sharing/ShareButton'
 import { safeFormatDate } from '@/utils/dateFormatting'
 import { trackUserLoggedOut, resetUser } from '@/utils/analytics'
 
@@ -357,89 +359,41 @@ export default function ProfilePage() {
     return followers.some(f => f.id === userId)
   }
 
-  const handleFollow = async (userId: string, targetIsPrivate?: boolean) => {
-    // Check if target user is private (if not passed, we need to fetch it)
-    let isPrivate = targetIsPrivate
-    if (isPrivate === undefined) {
-      const { data: targetProfile } = await supabase
-        .from('profiles')
-        .select('is_private')
-        .eq('id', userId)
-        .single()
-      isPrivate = targetProfile?.is_private || false
-    }
+  const handleFollow = async (userId: string, _targetIsPrivate?: boolean) => {
+    try {
+      const result = await followUser(supabase, user.id, userId)
 
-    // Set status based on whether target is private
-    const followStatus = isPrivate ? 'pending' : 'accepted'
-    const notificationType = isPrivate ? 'follow_request' : 'follow'
-
-    const { error } = await supabase
-      .from('follows')
-      .insert({
-        follower_id: user.id,
-        following_id: userId,
-        status: followStatus
-      })
-
-    if (!error) {
-      // Create appropriate notification
-      await supabase
-        .from('notifications')
-        .insert({
-          user_id: userId,
-          actor_id: user.id,
-          type: notificationType,
-          target_type: 'profile',
-          target_id: userId
-        })
-
-      // If pending, add to pendingRequests state
-      if (followStatus === 'pending') {
+      if (result.status === 'pending') {
         setPendingRequests(prev => new Set([...prev, userId]))
       }
 
       const followingList = await loadFollowData()
       loadSuggestedFriends(followingList)
+    } catch (error) {
+      console.error('Error following user:', error)
     }
   }
 
   const handleUnfollow = async (userId: string) => {
-    const { error } = await supabase
-      .from('follows')
-      .delete()
-      .eq('follower_id', user.id)
-      .eq('following_id', userId)
-
-    if (!error) {
+    try {
+      await unfollowUser(supabase, user.id, userId)
       const followingList = await loadFollowData()
       loadSuggestedFriends(followingList)
+    } catch (error) {
+      console.error('Error unfollowing user:', error)
     }
   }
 
   const handleCancelRequest = async (userId: string) => {
-    // Delete the pending follow request
-    const { error } = await supabase
-      .from('follows')
-      .delete()
-      .eq('follower_id', user.id)
-      .eq('following_id', userId)
-      .eq('status', 'pending')
-
-    if (!error) {
-      // Remove from pending requests
+    try {
+      await cancelFollowRequest(supabase, user.id, userId)
       setPendingRequests(prev => {
         const newSet = new Set(prev)
         newSet.delete(userId)
         return newSet
       })
-
-      // Also delete the follow_request notification we sent
-      await supabase
-        .from('notifications')
-        .delete()
-        .eq('actor_id', user.id)
-        .eq('user_id', userId)
-        .eq('type', 'follow_request')
+    } catch (error) {
+      console.error('Error canceling follow request:', error)
     }
   }
 
@@ -497,6 +451,17 @@ export default function ProfilePage() {
       // Remove from incoming requests state
       setIncomingRequests(prev => prev.filter(r => r.id !== requesterId))
     }
+  }
+
+  const handleShareProfile = () => {
+    if (!profile) return
+    shareViaNativeSheet({
+      contentType: 'profile',
+      contentId: profile.id,
+      title: `${profile.display_name} on Been Watching`,
+      username: profile.username,
+      displayName: profile.display_name
+    })
   }
 
   const handleDetailModalRate = (rating: string) => {
@@ -737,6 +702,25 @@ export default function ProfilePage() {
             >
               <Icon name="edit" size={18} color={colors.textPrimary} />
             </button>
+            {/* Share Profile Button */}
+            <button
+              onClick={handleShareProfile}
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                background: colors.buttonBg,
+                border: `1px solid ${colors.borderColor}`,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s'
+              }}
+              title="Share Profile"
+            >
+              <Icon name="share" size={18} color={colors.textPrimary} />
+            </button>
           </div>
         </div>
       </div>
@@ -933,7 +917,23 @@ export default function ProfilePage() {
               <div style={{ textAlign: 'center', padding: '3rem 1rem', color: colors.textSecondary }}>
                 <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>👤</div>
                 <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem', color: colors.textPrimary }}>No followers yet</div>
-                <div style={{ fontSize: '0.875rem' }}>Share your profile to get followers!</div>
+                <div style={{ fontSize: '0.875rem', marginBottom: '1rem' }}>Share your profile to get followers!</div>
+                <button
+                  onClick={handleShareProfile}
+                  style={{
+                    padding: '0.625rem 1.5rem',
+                    borderRadius: '9999px',
+                    border: 'none',
+                    background: colors.goldAccent,
+                    color: '#000',
+                    fontSize: '0.875rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Share Profile
+                </button>
               </div>
             )}
           </div>

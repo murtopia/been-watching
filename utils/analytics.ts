@@ -131,6 +131,7 @@ export const trackUserFollowed = (data: {
   followed_display_name?: string
   is_private_profile?: boolean
   follow_type?: 'public' | 'pending'
+  source?: string
 }) => {
   if (!isPostHogAvailable()) return
 

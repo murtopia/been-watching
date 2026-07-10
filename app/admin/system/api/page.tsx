@@ -12,7 +12,7 @@ export default function APIPerformancePage() {
   // Mock API performance data (in production, fetch from monitoring service)
   const apiEndpoints = [
     {
-      endpoint: '/api/feed',
+      endpoint: '/api/feed/v2',
       method: 'GET',
       avgResponseTime: 245,
       p95ResponseTime: 420,

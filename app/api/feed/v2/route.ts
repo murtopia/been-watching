@@ -68,7 +68,7 @@ export async function GET() {
   const today = now.toISOString().split('T')[0]
 
   // ---- Stage 1: friends + own data + charts (parallel) ----
-  const [followsRes, ownStatusRes, ownRatingsRes, chartsRes] = await Promise.all([
+  const [followsRes, ownStatusRes, ownRatingsRes, chartsRes, privateProfilesRes] = await Promise.all([
     supabase.from('follows').select('following_id').eq('follower_id', user.id).eq('status', 'accepted'),
     supabase.from('watch_status').select('media_id, status').eq('user_id', user.id),
     supabase.from('ratings').select('media_id, rating').eq('user_id', user.id),
@@ -78,10 +78,13 @@ export async function GET() {
       .eq('region', 'US')
       .gte('chart_date', new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
       .order('chart_date', { ascending: false })
-      .limit(1200)
+      .limit(1200),
+    // Private users are excluded from community surfaces (VLY, suggestions)
+    supabase.from('profiles').select('id').eq('is_private', true)
   ])
 
   const friendIds = (followsRes.data || []).map(f => f.following_id)
+  const privateUserIds = new Set(((privateProfilesRes.data as any[]) || []).map(p => p.id))
 
   const userStatuses: Record<string, 'want' | 'watching' | 'watched'> = {}
   const userStatusBaseIds = new Set<string>()
@@ -119,6 +122,7 @@ export async function GET() {
   ])
 
   const activities = (activitiesRes.data as any[]) || []
+  const communityRatings = ((allRatingsRes.data as any[]) || []).filter(r => !privateUserIds.has(r.user_id))
 
   // ---- Friend digests ----
   // Group by friend, then by media
@@ -319,7 +323,7 @@ export async function GET() {
   })
 
   // ---- Viewers Like You (collaborative filtering on ratings overlap) ----
-  const allRatings = (allRatingsRes.data as any[]) || []
+  const allRatings = communityRatings
   const myPositive = new Set(
     Object.entries(userRatings).filter(([, r]) => r === 'like' || r === 'love').map(([id]) => id)
   )
@@ -501,6 +505,7 @@ export async function GET() {
       .from('profiles')
       .select('id, username, display_name, avatar_url, bio')
       .neq('id', user.id)
+      .eq('is_private', false)
       .limit(30)
 
     const notFollowed = (candidates || []).filter(c => !friendIds.includes(c.id)).slice(0, 6)
